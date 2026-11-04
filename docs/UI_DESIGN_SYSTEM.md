@@ -211,8 +211,9 @@ The phase tracker expands Phase 9 with UI-1 … UI-14. The sequence is:
 13. **Accessibility pass** — focus, contrast, labels, reduced motion.
 14. **Temporary rename demo** — prove the brand config is the only source.
 
-Current status: pricing page and onboarding shell/steps are implemented in this
-repo; the remaining screens are tracked in `docs/PHASES.md`.
+Current status: pricing, onboarding shell/steps, and the auth screens (login,
+signup, invite, verify, forgot/reset) are implemented; the remaining screens
+are tracked in `docs/PHASES.md`.
 
 ---
 
