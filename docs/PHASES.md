@@ -9,8 +9,8 @@
 ## Overall progress
 
 - Total phases: **12** (0–11 product/build, 12 go-to-market)
-- Phases complete: **4 full, 1 with caveats** (Phase 4 caveat: live Resend delivery)
-- Overall percent (average of phases 0–11): **52%**
+- Phases complete: **3 full, 2 with caveats** (Phase 2: copy-with-data rehearsal; Phase 4: live Resend delivery)
+- Overall percent (average of phases 0–11): **50%**
 - Build state at last check: **green** (`pnpm build` exit 0; `tsc --noEmit`
   clean; `biome lint` clean). Full test run: **577 passed / 0 failed** after
   pinning the test process to `TZ=UTC` and raising the UI test timeout to 15s.
