@@ -176,3 +176,50 @@ test('keeps encrypted credentials and schedules retry after provider failure', a
   const update = client.providerWebhookCleanupJob.update.mock.calls[0][0];
   expect(update.data).not.toHaveProperty('credentialsRef');
 });
+
+test('uses each queued job’s own tenant credentials and endpoint', async () => {
+  const jobs = [
+    {
+      id: 'job-a',
+      providerName: 'stripe',
+      providerWebhookEndpointId: 'we_tenant_a',
+      credentialsRef: 'enc:tenant-a',
+      attempts: 0,
+    },
+    {
+      id: 'job-b',
+      providerName: 'stripe',
+      providerWebhookEndpointId: 'we_tenant_b',
+      credentialsRef: 'enc:tenant-b',
+      attempts: 0,
+    },
+  ];
+  const client = {
+    providerWebhookCleanupJob: {
+      findMany: vi.fn().mockResolvedValue(jobs),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      update: vi.fn().mockResolvedValue({}),
+    },
+  };
+  const deleteStripe = vi.fn().mockResolvedValue(undefined);
+  const decrypt = vi.fn((ref: string) => (ref === 'enc:tenant-a' ? 'key-a' : 'key-b'));
+
+  const result = await runProviderWebhookCleanupJob({
+    client: client as any,
+    decrypt,
+    deleteStripe,
+    now: new Date('2026-07-13T12:00:00Z'),
+  });
+
+  expect(result.completed).toBe(2);
+  expect(deleteStripe).toHaveBeenNthCalledWith(1, { apiKey: 'key-a', endpointId: 'we_tenant_a' });
+  expect(deleteStripe).toHaveBeenNthCalledWith(2, { apiKey: 'key-b', endpointId: 'we_tenant_b' });
+  expect(client.providerWebhookCleanupJob.update).toHaveBeenNthCalledWith(
+    1,
+    expect.objectContaining({ where: { id: 'job-a' } }),
+  );
+  expect(client.providerWebhookCleanupJob.update).toHaveBeenNthCalledWith(
+    2,
+    expect.objectContaining({ where: { id: 'job-b' } }),
+  );
+});

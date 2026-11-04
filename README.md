@@ -38,14 +38,12 @@ pnpm exec prisma migrate deploy
 pnpm dev
 ```
 
-Open `http://localhost:3000` and sign in with:
+Open `http://localhost:3000` and create an account at `/signup`. There is no
+default account and no default password; the obsolete bootstrap `admin` row is
+disabled by migration `20261104190000_remove_default_admin`.
 
-- Username: `admin`
-- Password: `admin`
-
-Change this bootstrap password immediately under **Settings → Account**.
-Administrators can create additional username/password accounts and change their roles on the same
-Account page. Password hashes are never shown; every user changes their own password.
+Sessions are stored server-side and delivered through an HttpOnly,
+SameSite=Lax cookie. Password changes and resets revoke every existing session.
 
 Useful checks:
 
@@ -100,8 +98,9 @@ docker compose up --build -d
 docker compose ps
 ```
 
-Open `http://localhost:3000` and change the bootstrap `admin` password immediately. The container
-applies the OSS database migration automatically before starting the application.
+Open `http://localhost:3000`, create an account at `/signup`, and complete
+onboarding. The container applies database migrations automatically before
+starting the application; there is no default account or password.
 
 ## Backups and upgrades
 

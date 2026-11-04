@@ -2,7 +2,6 @@
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useApi } from '@/components/hooks';
-import { removeClientAuthToken } from '@/lib/client';
 import { setUser } from '@/store/app';
 
 export function LogoutPage() {
@@ -16,7 +15,6 @@ export function LogoutPage() {
       window.location.href = '/login';
     }
 
-    removeClientAuthToken();
     setUser(null);
     logout();
   }, [router, post]);

@@ -1,4 +1,5 @@
 import { Cron, type CronOptions } from 'croner';
+import { runAuthMaintenanceJob } from './jobs/auth-maintenance';
 import { runProviderWebhookCleanupJob } from './jobs/provider-webhook-cleanup';
 
 const CRON_STATE_KEY = '__taliviaCronScheduler';
@@ -20,6 +21,11 @@ const cronJobs: TaliviaCronJob[] = [
     name: 'provider-webhook-cleanup',
     schedule: '* * * * *',
     run: () => runProviderWebhookCleanupJob(),
+  },
+  {
+    name: 'auth-maintenance',
+    schedule: '15 3 * * *',
+    run: () => runAuthMaintenanceJob(),
   },
 ];
 

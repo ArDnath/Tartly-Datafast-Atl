@@ -1,11 +1,16 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { checkAuth } from '@/lib/auth';
+import { revokeAllAuthSessions } from '@/lib/auth-session';
 import { checkPassword, hashPassword } from '@/lib/password';
 import { getUser, updateUser } from '@/queries/prisma';
 import { POST } from './route';
 
 vi.mock('@/lib/auth', () => ({
   checkAuth: vi.fn(),
+}));
+
+vi.mock('@/lib/auth-session', () => ({
+  revokeAllAuthSessions: vi.fn(),
 }));
 
 vi.mock('@/queries/prisma', () => ({
@@ -43,6 +48,8 @@ test('changes the authenticated user password without returning its hash', async
   expect(body).toEqual({ ok: true });
   expect(checkPassword('new-password', passwordHash)).toBe(true);
   expect(body).not.toHaveProperty('password');
+  expect(revokeAllAuthSessions).toHaveBeenCalledWith('user-1');
+  expect(response.headers.get('set-cookie')).toContain('Max-Age=0');
 });
 
 test('rejects an incorrect current password', async () => {

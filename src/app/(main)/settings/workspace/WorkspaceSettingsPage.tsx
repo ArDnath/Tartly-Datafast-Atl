@@ -44,7 +44,6 @@ export function WorkspaceSettingsPage() {
   const { workspaceId, activeWorkspace, isLoading: workspaceLoading } = useActiveWorkspace();
   const [role, setRole] = useState('MEMBER');
   const [message, setMessage] = useState<string | null>(null);
-  const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const membersQuery = useQuery({
@@ -77,23 +76,17 @@ export function WorkspaceSettingsPage() {
   const handleInvite = async (data: { email: string }) => {
     setBusy(true);
     setMessage(null);
-    setInviteLink(null);
 
     try {
       const invitation = (await post(`/workspaces/${workspaceId}/invitations`, {
         email: data.email,
         role,
-      })) as Invitation & { emailDelivered: boolean; token?: string };
-
-      if (!invitation.emailDelivered && invitation.token) {
-        const link = `${window.location.origin}/invite/${invitation.token}`;
-        setInviteLink(link);
-      }
+      })) as Invitation & { emailDelivered: boolean };
 
       setMessage(
         invitation.emailDelivered
           ? `Invitation sent to ${invitation.email}.`
-          : `Email delivery is not configured. Share the link below with ${invitation.email}.`,
+          : `Invitation created for ${invitation.email}, but email delivery is not configured. In development, open .dev-emails/outbox.log for the link.`,
       );
       await invitationsQuery.refetch();
     } catch (cause) {
@@ -182,14 +175,6 @@ export function WorkspaceSettingsPage() {
             </Row>
             <FormSubmitButton isDisabled={busy}>Send invitation</FormSubmitButton>
           </Form>
-          {inviteLink && (
-            <Column gap="1">
-              <Text size="sm" color="muted">
-                Share this single-use link:
-              </Text>
-              <code style={{ overflowWrap: 'anywhere' }}>{inviteLink}</code>
-            </Column>
-          )}
         </Column>
       </Panel>
 

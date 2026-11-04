@@ -51,3 +51,6 @@ yarn-error.log*
 
 *.dev.yml
 .omc
+
+# Local development email outbox (contains single-use links)
+.dev-emails/

@@ -17,7 +17,6 @@ import { useMessages, useUpdateQuery } from '@/components/hooks';
 import { BrandMark } from '@/components/brand/BrandMark';
 import { sanitizeAuthReturnUrl } from '@/lib/auth-return-url';
 import { BRAND } from '@/lib/brand';
-import { setClientAuthToken } from '@/lib/client';
 
 interface LoginFormProps {
   returnUrl?: string;
@@ -31,10 +30,9 @@ export function LoginForm({ returnUrl, initialError }: LoginFormProps) {
 
   const handleSubmit = async (data: { username: string; password: string }) => {
     const safeReturnUrl = sanitizeAuthReturnUrl(returnUrl || '/app');
-    let result;
 
     try {
-      result = await mutateAsync(data);
+      await mutateAsync(data);
     } catch {
       // React Query exposes the API error through `submitError`, which the form
       // renders below. Consume the rejected mutation to avoid a browser-level
@@ -42,7 +40,6 @@ export function LoginForm({ returnUrl, initialError }: LoginFormProps) {
       return;
     }
 
-    setClientAuthToken(result.token);
     router.push(safeReturnUrl);
   };
 
@@ -79,6 +76,9 @@ export function LoginForm({ returnUrl, initialError }: LoginFormProps) {
           </FormSubmitButton>
         </FormButtons>
       </Form>
+      <Text color="muted">
+        <Link href="/forgot-password">Forgot your password?</Link>
+      </Text>
       <Text color="muted">
         New to {BRAND.name}? <Link href="/signup">Create an account</Link>
       </Text>

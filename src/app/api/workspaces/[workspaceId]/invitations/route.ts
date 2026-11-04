@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { getPublicOrigin } from '@/lib/get-base-url';
 import { parseRequest } from '@/lib/request';
 import { badRequest, json, unauthorized } from '@/lib/response';
 import {
@@ -58,6 +59,7 @@ export async function POST(
       workspaceId,
       email: body.email,
       role: body.role,
+      origin: getPublicOrigin(request),
     });
 
     return json(invitation);

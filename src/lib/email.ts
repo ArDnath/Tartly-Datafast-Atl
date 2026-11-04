@@ -1,3 +1,5 @@
+import { mkdir, appendFile } from 'node:fs/promises';
+import path from 'node:path';
 import debug from 'debug';
 import { BRAND } from '@/lib/brand';
 
@@ -16,16 +18,30 @@ export interface EmailTransport {
 
 class LogTransport implements EmailTransport {
   async send(message: EmailMessage) {
-    // Development fallback. Never print secrets; invitation links are
-    // single-use and short-lived, but still only log them outside production.
+    // Development fallback. The email body contains single-use tokens, so it
+    // is written to a local outbox file instead of the application log.
     log('Email queued (no provider configured): %o', {
       to: message.to,
       subject: message.subject,
     });
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.info(`[email] ${message.subject} -> ${message.to}\n${message.text}`);
+    if (process.env.NODE_ENV === 'production' && process.env.EMAIL_OUTBOX !== 'true') {
+      return;
     }
+
+    const directory = path.join(process.cwd(), '.dev-emails');
+    const file = path.join(directory, 'outbox.log');
+
+    await mkdir(directory, { recursive: true });
+    await appendFile(
+      file,
+      `${JSON.stringify({ at: new Date().toISOString(), ...message })}\n`,
+      'utf8',
+    );
+
+    console.info(
+      `[email] ${message.subject} -> ${message.to} (written to .dev-emails/outbox.log)`,
+    );
   }
 }
 
@@ -89,6 +105,52 @@ export async function sendWorkspaceInvitationEmail({
       '',
       `This link expires ${expiresAt.toUTCString()}.`,
       `If you were not expecting this invitation, you can ignore this email.`,
+    ].join('\n'),
+  });
+}
+
+export async function sendEmailVerificationEmail({
+  to,
+  verifyUrl,
+  expiresAt,
+}: {
+  to: string;
+  verifyUrl: string;
+  expiresAt: Date;
+}) {
+  await sendEmail({
+    to,
+    subject: `Verify your email for ${BRAND.name}`,
+    text: [
+      `Confirm your email address to finish setting up ${BRAND.name}.`,
+      '',
+      `Verify email: ${verifyUrl}`,
+      '',
+      `This link expires ${expiresAt.toUTCString()}.`,
+      `If you did not create an account, you can ignore this email.`,
+    ].join('\n'),
+  });
+}
+
+export async function sendPasswordResetEmail({
+  to,
+  resetUrl,
+  expiresAt,
+}: {
+  to: string;
+  resetUrl: string;
+  expiresAt: Date;
+}) {
+  await sendEmail({
+    to,
+    subject: `Reset your ${BRAND.name} password`,
+    text: [
+      `Someone requested a password reset for your ${BRAND.name} account.`,
+      '',
+      `Reset password: ${resetUrl}`,
+      '',
+      `This link expires ${expiresAt.toUTCString()} and can be used once.`,
+      `If you did not request this, no action is needed; your password is unchanged.`,
     ].join('\n'),
   });
 }

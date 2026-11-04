@@ -47,3 +47,24 @@ export function getBaseUrl(input?: HeaderStore | RequestLike) {
     return new URL(LOCAL_ORIGIN);
   }
 }
+
+/**
+ * Public origin used in email links.
+ *
+ * `APP_URL` wins when configured, so a spoofed Host/X-Forwarded-Host header
+ * cannot redirect a verification or reset token to another domain. The request
+ * origin is only a development fallback.
+ */
+export function getPublicOrigin(request: RequestLike) {
+  const configured = process.env.APP_URL?.trim();
+
+  if (configured) {
+    try {
+      return new URL(configured).origin;
+    } catch {
+      // Fall through to the request origin so a typo does not break links.
+    }
+  }
+
+  return getBaseUrl(request).origin;
+}

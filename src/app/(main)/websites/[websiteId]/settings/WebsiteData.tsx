@@ -25,7 +25,6 @@ import {
 } from '@/components/hooks';
 import { DateFilter } from '@/components/input/DateFilter';
 import { Logo } from '@/components/svg';
-import { getClientAuthToken } from '@/lib/client';
 import { parseDateRange } from '@/lib/date';
 import { WebsiteDeleteForm } from './WebsiteDeleteForm';
 import { WebsiteResetForm } from './WebsiteResetForm';
@@ -114,7 +113,6 @@ function ImportCard({
         `/api/websites/${websiteId}/imports/${source}`,
         {
           method: 'POST',
-          headers: { authorization: `Bearer ${getClientAuthToken()}` },
           body: formData,
         },
       );
@@ -249,7 +247,7 @@ function ExportDataForm({ websiteId, close }: { websiteId: string; close: () => 
     try {
       const response = await fetch(
         `/api/websites/${websiteId}/${format === 'backup' ? 'backup' : 'export'}?${parameters}`,
-        { headers: { authorization: `Bearer ${getClientAuthToken()}` } },
+        { credentials: 'same-origin' },
       );
 
       if (!response.ok) {

@@ -102,18 +102,23 @@ describe('workspace invitations', () => {
     });
 
     expect(invitation.email).toBe('member@example.com');
-    expect(invitation.token).toMatch(/^[a-f0-9]{64}$/);
+    expect(invitation).not.toHaveProperty('token');
+
+    const inviteUrl = vi.mocked(sendWorkspaceInvitationEmail).mock.calls[0][0].inviteUrl;
+    const token = inviteUrl.split('/invite/')[1];
+
+    expect(token).toMatch(/^[a-f0-9]{64}$/);
     expect(workspaceInvitation.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         create: expect.objectContaining({
           email: 'member@example.com',
-          invitationTokenHash: hashInvitationToken(invitation.token),
+          invitationTokenHash: hashInvitationToken(token),
         }),
       }),
     );
     expect(
       workspaceInvitation.upsert.mock.calls[0][0].create.invitationTokenHash,
-    ).not.toBe(invitation.token);
+    ).not.toBe(token);
     expect(sendWorkspaceInvitationEmail).toHaveBeenCalledTimes(1);
   });
 

@@ -64,11 +64,13 @@ export async function createWorkspaceInvitation({
   workspaceId,
   email,
   role,
+  origin,
 }: {
   user: Auth['user'] | null | undefined;
   workspaceId: string;
   email: string;
   role: InvitationRole;
+  origin?: string;
 }) {
   const access = await requireWorkspaceAccess(user, workspaceId, 'ADMIN');
 
@@ -147,14 +149,19 @@ export async function createWorkspaceInvitation({
       workspaceName: access.workspace.name,
       inviterName: user?.username || 'A workspace owner',
       role,
-      inviteUrl: buildInvitationUrl(process.env.APP_URL || 'http://localhost:3000', token),
+      inviteUrl: buildInvitationUrl(
+        origin || process.env.APP_URL || 'http://localhost:3000',
+        token,
+      ),
       expiresAt,
     });
   } catch {
     emailDelivered = false;
   }
 
-  return { ...invitation, token, emailDelivered };
+  // The plaintext token is intentionally not returned to the client. It is
+  // delivered by email (or the local .dev-emails/outbox.log in development).
+  return { ...invitation, emailDelivered };
 }
 
 export async function listWorkspaceInvitations({

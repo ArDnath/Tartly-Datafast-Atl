@@ -15,7 +15,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { BrandMark } from '@/components/brand/BrandMark';
 import { useMessages, useUpdateQuery } from '@/components/hooks';
-import { setClientAuthToken } from '@/lib/client';
 import { BRAND } from '@/lib/brand';
 
 export function SignupForm() {
@@ -29,10 +28,8 @@ export function SignupForm() {
     confirmPassword: string;
     workspaceName?: string;
   }) => {
-    let result;
-
     try {
-      result = await mutateAsync({
+      await mutateAsync({
         username: data.username.trim().toLowerCase(),
         password: data.password,
         workspaceName: data.workspaceName?.trim() || undefined,
@@ -41,7 +38,6 @@ export function SignupForm() {
       return;
     }
 
-    setClientAuthToken(result.token);
     router.push('/onboarding');
   };
 

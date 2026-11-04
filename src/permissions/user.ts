@@ -1,7 +1,7 @@
 import type { Auth } from '@/lib/types';
 
 export async function canCreateUser({ user }: Auth) {
-  return user?.isAdmin ?? false;
+  return user?.isPlatformAdmin ?? false;
 }
 
 export async function canViewUser({ user }: Auth, viewedUserId: string) {
@@ -9,7 +9,7 @@ export async function canViewUser({ user }: Auth, viewedUserId: string) {
     return false;
   }
 
-  if (user.isAdmin) {
+  if (user.isPlatformAdmin) {
     return true;
   }
 
@@ -17,7 +17,7 @@ export async function canViewUser({ user }: Auth, viewedUserId: string) {
 }
 
 export async function canViewUsers({ user }: Auth) {
-  return user?.isAdmin ?? false;
+  return user?.isPlatformAdmin ?? false;
 }
 
 export async function canUpdateUser({ user }: Auth, viewedUserId: string) {
@@ -25,7 +25,7 @@ export async function canUpdateUser({ user }: Auth, viewedUserId: string) {
     return false;
   }
 
-  if (user.isAdmin) {
+  if (user.isPlatformAdmin) {
     return true;
   }
 

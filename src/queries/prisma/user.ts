@@ -25,6 +25,7 @@ async function findUser(criteria: Prisma.UserFindUniqueArgs, options: GetUserOpt
       role: true,
       createdAt: true,
       deletedAt: true,
+      emailVerifiedAt: true,
     },
   });
 }
