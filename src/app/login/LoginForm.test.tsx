@@ -35,7 +35,7 @@ test('shows the APP_SECRET setup instruction returned by the API', () => {
 
   expect(
     screen.getByText(
-      'Talivia setup is incomplete: set APP_SECRET in .env to a random value of at least 32 bytes, then restart Talivia.',
+      'RevenueLens setup is incomplete: set APP_SECRET in .env to a random value of at least 32 bytes, then restart RevenueLens.',
     ),
   ).toBeInTheDocument();
 });

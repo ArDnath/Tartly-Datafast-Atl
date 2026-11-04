@@ -3,6 +3,7 @@ import { readReplicas } from '@prisma/extension-read-replicas';
 import debug from 'debug';
 import { PrismaClient } from '@/generated/prisma/client';
 import { DEFAULT_PAGE_SIZE, FILTER_COLUMNS, OPERATORS, SESSION_COLUMNS } from './constants';
+import { withDbRetry } from './db-retry';
 import { filtersObjectToArray } from './params';
 import type { Operator, QueryFilters, QueryOptions } from './types';
 
@@ -262,7 +263,7 @@ async function rawQuery(sql: string, data: Record<string, any>, name?: string): 
   const schema = getSchema();
 
   if (schema) {
-    await client.$executeRawUnsafe(`SET search_path TO "${schema}";`);
+    await withDbRetry(() => client.$executeRawUnsafe(`SET search_path TO "${schema}";`));
   }
 
   const query = sql?.replaceAll(/\{\{\s*(\w+)(::\w+)?\s*}}/g, (...args) => {
@@ -275,10 +276,11 @@ async function rawQuery(sql: string, data: Record<string, any>, name?: string): 
     return `$${params.length}${type ?? ''}`;
   });
 
+  // Analytics reads are idempotent, so retrying a suspended Neon compute is safe.
   if (process.env.DATABASE_REPLICA_URL && '$replica' in client) {
-    return client.$replica().$queryRawUnsafe(query, ...params);
+    return withDbRetry(() => client.$replica().$queryRawUnsafe(query, ...params));
   }
-  return client.$queryRawUnsafe(query, ...params);
+  return withDbRetry(() => client.$queryRawUnsafe(query, ...params));
 }
 
 async function pagedQuery<T>(model: string, criteria: T, filters?: QueryFilters) {
@@ -373,7 +375,18 @@ function getClient() {
   const logQuery = process.env.LOG_QUERY;
   const schema = getSchema();
 
-  const baseAdapter = new PrismaPg({ connectionString: url }, { schema });
+  // Keep the pool small: Neon scales compute by CU, and the app is deployed as
+  // many short-lived server instances. The timeouts let a cold/suspended
+  // compute wake without hanging a request indefinitely.
+  const baseAdapter = new PrismaPg(
+    {
+      connectionString: url,
+      max: 10,
+      connectionTimeoutMillis: 15_000,
+      idleTimeoutMillis: 30_000,
+    },
+    { schema },
+  );
 
   const baseClient = new PrismaClient({
     adapter: baseAdapter,
@@ -391,7 +404,16 @@ function getClient() {
     return baseClient;
   }
 
-  const replicaAdapter = new PrismaPg({ connectionString: replicaUrl }, { schema });
+
+  const replicaAdapter = new PrismaPg(
+    {
+      connectionString: replicaUrl,
+      max: 10,
+      connectionTimeoutMillis: 15_000,
+      idleTimeoutMillis: 30_000,
+    },
+    { schema },
+  );
 
   const replicaClient = new PrismaClient({
     adapter: replicaAdapter,

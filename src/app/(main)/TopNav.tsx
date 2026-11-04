@@ -6,6 +6,7 @@ import { useNavigation } from '@/components/hooks';
 import { UserButton } from '@/components/input/UserButton';
 import { Logo } from '@/components/svg';
 import { APP_LAYOUT_MAX_WIDTH } from '@/lib/constants';
+import { BRAND } from '@/lib/brand';
 
 export function TopNav({ showUser = true }: { showUser?: boolean }) {
   const { renderUrl } = useNavigation();
@@ -24,7 +25,7 @@ export function TopNav({ showUser = true }: { showUser?: boolean }) {
         <Row alignItems="center" gap="2" minWidth="0">
           <Link href={renderUrl('/app', false)} style={{ color: 'inherit', textDecoration: 'none' }}>
             <IconLabel icon={<Logo />}>
-              <Text weight="bold">Talivia</Text>
+              <Text weight="bold">{BRAND.name}</Text>
             </IconLabel>
           </Link>
         </Row>

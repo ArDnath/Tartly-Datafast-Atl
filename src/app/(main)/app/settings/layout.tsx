@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { BRAND } from '@/lib/brand';
 import { SettingsLayout } from '@/app/(main)/settings/SettingsLayout';
 
 export default function ({ children }: { children: React.ReactNode }) {
@@ -7,7 +8,7 @@ export default function ({ children }: { children: React.ReactNode }) {
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | Settings | Talivia',
-    default: 'Settings | Talivia',
+    template: `%s | Settings | ${BRAND.name}`,
+    default: `Settings | ${BRAND.name}`,
   },
 };

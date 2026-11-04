@@ -47,6 +47,11 @@
   "cacheDirectories": [
     ".next/cache"
   ],
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "sharp"
+    ]
+  },
   "dependencies": {
     "@clickhouse/client": "^1.18.2",
     "@date-fns/utc": "^1.2.0",

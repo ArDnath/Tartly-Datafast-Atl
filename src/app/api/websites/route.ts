@@ -7,6 +7,7 @@ import { getWebsiteNameFromDomain, normalizeWebsiteDomainInput } from '@/lib/web
 import { canCreateWebsite } from '@/permissions';
 import { createWebsite } from '@/queries/prisma';
 import { getUserWebsites } from '@/queries/prisma/website';
+import { requireWorkspaceAccess } from '@/lib/workspace-auth';
 
 export async function GET(request: Request) {
   const schema = z.object({
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
     name: z.string().max(100).optional(),
     domain: z.string().trim().min(1).max(500),
     id: z.uuid().nullable().optional(),
+    workspaceId: z.uuid().optional(),
   });
 
   const { auth, body, error } = await parseRequest(request, schema);
@@ -40,9 +42,17 @@ export async function POST(request: Request) {
     return error();
   }
 
-  const { id } = body;
+  const { id, workspaceId } = body;
   const domain = normalizeWebsiteDomainInput(body.domain);
   const name = body.name?.trim() || getWebsiteNameFromDomain(domain);
+
+  if (workspaceId) {
+    const access = await requireWorkspaceAccess(auth.user, workspaceId, 'ADMIN');
+
+    if (!access) {
+      return unauthorized({ message: 'You cannot add a website to this workspace.' });
+    }
+  }
 
   if (!domain) {
     return badRequest({ message: 'Domain is required.' });
@@ -58,6 +68,7 @@ export async function POST(request: Request) {
     name,
     domain,
     userId: auth.user.id,
+    ...(workspaceId ? { workspaceId } : {}),
   };
 
   const website = await createWebsite(data);

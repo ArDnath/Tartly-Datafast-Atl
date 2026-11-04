@@ -17,6 +17,65 @@ model OssInstallationIdentity {
   @@map("oss_installation_identity")
 }
 
+model Workspace {
+  id                 String    @id() @default(uuid()) @map("workspace_id") @db.Uuid
+  name               String    @db.VarChar(100)
+  slug               String    @unique @db.VarChar(100)
+  ownerId            String    @map("owner_id") @db.Uuid
+  planId             String?   @map("plan_id") @db.VarChar(50)
+  subscriptionStatus String    @default("incomplete") @map("subscription_status") @db.VarChar(50)
+  createdAt          DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt          DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  owner       User                  @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  memberships WorkspaceMembership[]
+  invitations WorkspaceInvitation[]
+  websites    Website[]
+
+  @@index([ownerId])
+  @@index([createdAt])
+  @@map("workspace")
+}
+
+model WorkspaceMembership {
+  id          String    @id() @default(uuid()) @map("workspace_membership_id") @db.Uuid
+  workspaceId String    @map("workspace_id") @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  role        String    @db.VarChar(20)
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@unique([workspaceId, userId])
+  @@index([workspaceId])
+  @@index([userId])
+  @@map("workspace_membership")
+}
+
+model WorkspaceInvitation {
+  id                  String    @id() @default(uuid()) @map("workspace_invitation_id") @db.Uuid
+  workspaceId         String    @map("workspace_id") @db.Uuid
+  email               String    @db.VarChar(320)
+  role                String    @db.VarChar(20)
+  invitationTokenHash String    @map("invitation_token_hash") @db.VarChar(255)
+  invitedBy           String?   @map("invited_by") @db.Uuid
+  expiresAt           DateTime  @map("expires_at") @db.Timestamptz(6)
+  acceptedAt          DateTime? @map("accepted_at") @db.Timestamptz(6)
+  createdAt           DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  inviter   User?     @relation("WorkspaceInviter", fields: [invitedBy], references: [id])
+
+  @@unique([workspaceId, email])
+  @@index([workspaceId])
+  @@index([invitationTokenHash])
+  @@index([expiresAt])
+  @@map("workspace_invitation")
+}
+
 model User {
   id          String    @id() @map("user_id") @db.Uuid
   username    String    @unique @db.VarChar(255)
@@ -39,6 +98,9 @@ model User {
   boards             Board[]         @relation("user")
   apiKeys            ApiKey[]
   auditEvents        AuditEvent[]
+  ownedWorkspaces    Workspace[]          @relation("WorkspaceOwner")
+  workspaceMemberships WorkspaceMembership[]
+  workspaceInvites   WorkspaceInvitation[] @relation("WorkspaceInviter")
 
   @@map("user")
 }
@@ -94,12 +156,13 @@ model Website {
   name      String    @db.VarChar(100)
   domain    String?   @db.VarChar(500)
   resetAt   DateTime? @map("reset_at") @db.Timestamptz(6)
-  userId    String?   @map("user_id") @db.Uuid
-  teamId    String?   @map("team_id") @db.Uuid
-  createdBy String?   @map("created_by") @db.Uuid
-  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  userId      String?   @map("user_id") @db.Uuid
+  teamId      String?   @map("team_id") @db.Uuid
+  workspaceId String?   @map("workspace_id") @db.Uuid
+  createdBy   String?   @map("created_by") @db.Uuid
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
 
   replayEnabled Boolean @default(false) @map("replay_enabled")
   replayConfig  Json?   @map("replay_config")
@@ -107,6 +170,7 @@ model Website {
   user                   User?                       @relation("user", fields: [userId], references: [id])
   createUser             User?                       @relation("createUser", fields: [createdBy], references: [id])
   team                   Team?                       @relation(fields: [teamId], references: [id])
+  workspace              Workspace?                  @relation(fields: [workspaceId], references: [id])
   members                WebsiteMember[]
   eventData              EventData[]
   attributionConfig      WebsiteAttributionConfig?
@@ -137,6 +201,7 @@ model Website {
 
   @@index([userId])
   @@index([teamId])
+  @@index([workspaceId])
   @@index([createdAt])
   @@index([createdBy])
   @@map("website")

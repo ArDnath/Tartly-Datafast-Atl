@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { BRAND } from '@/lib/brand';
 import { notFound } from 'next/navigation';
 import { WebsiteLayout } from '@/app/(main)/websites/[websiteId]/WebsiteLayout';
 import { isWebsiteId } from '@/lib/app-route';
@@ -28,7 +29,7 @@ export default async function ({
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | Talivia',
-    default: 'Websites | Talivia',
+    template: `%s | ${BRAND.name}`,
+    default: `Websites | ${BRAND.name}`,
   },
 };

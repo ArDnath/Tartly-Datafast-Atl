@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { Suspense } from 'react';
+import { BRAND } from '@/lib/brand';
 import { getBaseUrl } from '@/lib/get-base-url';
 import { Providers } from './Providers';
 import '@talivia/react-zen/styles.full.css';
@@ -59,8 +60,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: getBaseUrl(headerStore),
     title: {
-      template: '%s | Talivia',
-      default: 'Talivia',
+      template: `%s | ${BRAND.name}`,
+      default: BRAND.name,
     },
   };
 }
