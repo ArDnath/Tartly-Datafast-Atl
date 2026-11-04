@@ -1,0 +1,15 @@
+import type { Metadata } from 'next';
+import { SettingsPageLayout } from '@/app/(main)/settings/SettingsPageLayout';
+import { UsageSettingsPage } from '@/app/(main)/settings/billing/UsageSettingsPage';
+
+export default function () {
+  return (
+    <SettingsPageLayout activeKey="billing" subtitle="Plan, allowances, and this month's usage">
+      <UsageSettingsPage />
+    </SettingsPageLayout>
+  );
+}
+
+export const metadata: Metadata = {
+  title: 'Plan and usage',
+};

@@ -28,14 +28,53 @@ model Workspace {
   updatedAt          DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt          DateTime? @map("deleted_at") @db.Timestamptz(6)
 
-  owner       User                  @relation("WorkspaceOwner", fields: [ownerId], references: [id])
-  memberships WorkspaceMembership[]
-  invitations WorkspaceInvitation[]
-  websites    Website[]
+  owner        User                  @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  memberships  WorkspaceMembership[]
+  invitations  WorkspaceInvitation[]
+  websites     Website[]
+  usagePeriods UsagePeriod[]
 
   @@index([ownerId])
   @@index([createdAt])
   @@map("workspace")
+}
+
+/// Monthly billable usage for one workspace. The DB row is the source of
+/// truth; caches and dashboards are display-only.
+model UsagePeriod {
+  id                  String    @id() @default(uuid()) @map("usage_period_id") @db.Uuid
+  workspaceId         String    @map("workspace_id") @db.Uuid
+  periodStart         DateTime  @map("period_start") @db.Timestamptz(6)
+  periodEnd           DateTime  @map("period_end") @db.Timestamptz(6)
+  eventsCount         Int       @default(0) @map("events_count")
+  replaySessionsCount Int       @default(0) @map("replay_sessions_count")
+  warningNotifiedAt   DateTime? @map("warning_notified_at") @db.Timestamptz(6)
+  limitNotifiedAt     DateTime? @map("limit_notified_at") @db.Timestamptz(6)
+  createdAt           DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  workspace      Workspace            @relation(fields: [workspaceId], references: [id])
+  replaySessions UsageReplaySession[]
+
+  @@unique([workspaceId, periodStart])
+  @@index([workspaceId, periodEnd])
+  @@map("usage_period")
+}
+
+/// Replay sessions are metered once per workspace per billing period. The
+/// unique key makes retries and duplicate chunks idempotent.
+model UsageReplaySession {
+  id            String   @id() @default(uuid()) @map("usage_replay_session_id") @db.Uuid
+  usagePeriodId String   @map("usage_period_id") @db.Uuid
+  websiteId     String   @map("website_id") @db.Uuid
+  sessionId     String   @map("session_id") @db.VarChar(100)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  usagePeriod UsagePeriod @relation(fields: [usagePeriodId], references: [id])
+
+  @@unique([usagePeriodId, sessionId])
+  @@index([usagePeriodId])
+  @@map("usage_replay_session")
 }
 
 model WorkspaceMembership {

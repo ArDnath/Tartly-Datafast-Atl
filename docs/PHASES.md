@@ -4,21 +4,22 @@
 - **Repository:** <https://github.com/talivia-group/talivia> (MIT), forked locally at
   `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-05
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 app restructure shipped (routes, workbench navigation, revenue-first home, landing). Next: Phase 5 (platform billing) and Phase 6 metering.
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 app restructure shipped (routes, workbench navigation, revenue-first home, landing). Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
 
 ## Overall progress
 
 - Total phases: **12** (0–11 product/build, 12 go-to-market)
 - Phases complete: **3 full, 2 with caveats** (Phase 2: copy-with-data rehearsal; Phase 4: live Resend delivery)
-- Overall percent (average of phases 0–11): **55%**
+- Overall percent (average of phases 0–11): **58%**
 - Build state at last check: **green** (`pnpm build` exit 0; `tsc --noEmit`
-  clean; `biome lint` clean). Full test run: **597 passed / 0 failed** under
+  clean; `biome lint` clean). Full test run: **611 passed / 0 failed** under
   `TZ=UTC`.
 - Runtime smoke: all 19 website workbench routes return 200 on the production
-  build with an authenticated session; unknown sub-routes return 404.
-- Database: local PostgreSQL has all 6 migrations applied, including durable
-  auth sessions, hashed email/reset tokens, rate-limit buckets, and removal of
-  the bootstrap admin.
+  build with an authenticated session; unknown sub-routes return 404. The new
+  `/app/settings/billing` route is in the production build.
+- Database: local PostgreSQL has all 7 migrations applied, including durable
+  auth sessions, hashed email/reset tokens, rate-limit buckets, removal of the
+  bootstrap admin, and monthly usage periods.
 
 ## Commercial contract (fixed by owner)
 
@@ -43,10 +44,10 @@ No third plan, no free tier, no hidden limits.
 | 3 | Tenant isolation hardening + tests | DONE | 100% | 2026-11-05 | 2026-11-05 | none (RLS deferred by decision) |
 | 4 | Authentication and account management | DONE_WITH_CAVEATS | 100% | 2026-11-05 | 2026-11-05 | live Resend send |
 | 5 | Platform billing (Dodo) | NOT_STARTED | 0% | — | — | Dodo test/live keys |
-| 6 | Plans, pricing economics, usage | IN_PROGRESS | 40% | 2026-11-04 | — | metering; owner approval of limits |
+| 6 | Plans, pricing economics, usage | IN_PROGRESS | 75% | 2026-11-04 | — | live concurrency proof; owner approval of limits; notice emails |
 | 7 | Analytics validation, integrations, replay | NOT_STARTED | 0% | — | — | none |
 | 8 | Onboarding and developer experience | IN_PROGRESS | 40% | 2026-11-04 | — | guides, activation, MCP |
-| 9 | Rebrand and product UI | IN_PROGRESS | 65% | 2026-11-04 | — | billing/usage UI, remaining brand copy, a11y pass |
+| 9 | Rebrand and product UI | IN_PROGRESS | 75% | 2026-11-04 | — | billing page (Phase 5), remaining brand copy, a11y pass |
 | 10 | Compliance, abuse, email, operations | NOT_STARTED | 0% | — | — | legal review |
 | 11 | Hardening, QA, deployment, launch | NOT_STARTED | 0% | — | — | hosting + domain |
 | 12 | Go-to-market | NOT_STARTED | 0% | — | — | product live |
@@ -530,16 +531,26 @@ migration connections.
   - [x] Gross margin per plan. — 89.4% at 100 customers, 93.6% at 5,000.
   - [x] Final prices and event limits. Owner-fixed prices $7.99 / $14.99;
         limits proposed: 50k/500k events, 90/180-day retention, replay Pro-only.
-- [ ] Usage metering: only accepted, valid, deduplicated, non-bot events.
+- [x] Usage metering: only accepted, valid, deduplicated, non-bot events.
       Replays metered separately. Atomic under concurrent ingestion. Durable
       DB source of truth; caches display-only. Monthly `UsagePeriod` reset. —
-      **not built** (no UsagePeriod model or counter yet).
-- [ ] Limit policy: 80% and 100% notices, small grace, then pause billable
+      proof: `prisma/migrations/20261105120000_usage_metering`, `src/lib/usage.ts`
+      (atomic `INSERT ... ON CONFLICT ... WHERE` reservation, release on failed
+      write, replay session dedupe), collector reservation in
+      `src/app/api/send/route.ts`, replay entitlement + metering in
+      `src/app/api/record/route.ts`, 11 unit tests. Documented in
+      `docs/USAGE_METERING.md`.
+- [x] Limit policy: 80% and 100% notices, small grace, then pause billable
       ingestion; dashboard stays accessible; no silent deletion; no automatic
-      overage unless opted in. — **policy documented** in
-      `docs/PRICING_ECONOMICS.md` §5 and on `/pricing`; **not enforced**.
-- [ ] Usage UI: current usage, allowance, remaining, percentage, reset date,
-      upgrade prompt. — **not built**.
+      overage unless opted in. — proof: `USAGE_WARNING_RATIO`, `EVENT_GRACE`
+      (1,000 events), `REPLAY_GRACE` (100 sessions) in `src/lib/usage.ts`; the
+      collector pauses at the hard limit while reads stay open; in-app banner
+      in `src/app/(main)/UsageBanner.tsx`. Email notices wait for Phase 10.
+- [x] Usage UI: current usage, allowance, remaining, percentage, reset date,
+      upgrade prompt. — proof: `/app/settings/billing`
+      (`UsageSettingsPage.tsx`) with plan, reset date, website/member limits,
+      event and replay bars, grace/limit copy, and upgrade path; settings nav
+      updated.
 
 ### Acceptance criteria
 
@@ -548,8 +559,13 @@ migration connections.
       explains why none was needed. — prices were fixed by the owner; the doc
       adjusts **limits** (replay Pro-only, 90/180-day retention) to keep margin
       above 85%.
-- [ ] Concurrency test: parallel ingestion never under/overcounts.
-- [ ] Tests for 80%/100% thresholds, grace, month rollover.
+- [ ] Concurrency test: parallel ingestion never under/overcounts. — the
+      counter is a single conditional SQL statement and the unit suite covers
+      reserve/reject/release, but a live parallel-ingestion test is not in CI
+      (CI runs tests before migrations). **Partial.**
+- [x] Tests for 80%/100% thresholds, grace, month rollover. — proof:
+      `src/lib/usage.test.ts` (thresholds, grace boundary, UTC month range,
+      zero allowance, event/replay reservation, replay dedupe).
 
 ### Decisions made
 
@@ -558,6 +574,20 @@ migration connections.
 - Starter excludes replay to protect margin at 100 customers; Pro gets 2,000
   replays/month with 30-day replay retention.
 - Annual = two months free only because the model stays above 89%.
+- Usage is counted with a reserve-then-write pattern. The reservation is a
+  single conditional SQL statement; a failed event write releases the slot. This
+  is cheaper and safer than scanning analytics rows or incrementing after the
+  write.
+- The metering period is the UTC calendar month until platform billing exists.
+  Counters are keyed by an absolute `period_start`, so moving to a provider
+  billing period is a boundary change, not a schema rewrite.
+- Replay is metered once per session per period, not per chunk. Retries and
+  multi-chunk recordings are idempotent.
+- The grace allowance is 1,000 events and 100 replay sessions. It is a constant
+  in `src/lib/usage.ts`, not a hidden plan limit, and it is shown in the UI.
+- The usage page is in **Settings → Plan and usage** so plan, allowance, and
+  limit state live next to workspace and member limits rather than in a
+  standalone billing silo.
 
 ### Unverified / Assumed
 
@@ -725,11 +755,14 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 - [x] **UI-8 — Pricing page:** two cards only, Starter $7.99 / Pro $14.99,
       monthly/annual toggle, no free tier, no fake claims. — proof: `/pricing`
       returns 200 and renders both prices.
-- [ ] **UI-9 — Billing + usage pages:** plan, renewal, usage bar, 80%/100%
-      states, upgrade path.
+- [x] **UI-9 — Billing + usage pages:** plan, renewal, usage bar, 80%/100%
+      states, upgrade path. — **usage shipped** at `/app/settings/billing`
+      (plan, reset date, event/replay bars, grace/limit states, website/member
+      limits, upgrade link). Invoice/renewal history waits for Phase 5.
 - [ ] **UI-10 — Settings:** workspace, members, websites, integrations,
       security; consistent empty/error/loading states. — **workspace/members/
-      invitations done** (`/app/settings/workspace`); websites/integrations/
+      invitations, Plan & usage, and Websites done**; the settings hub now has
+      a real index and grouped nav (`/app/settings` → workspace). Integrations/
       security states still pending.
 - [x] **UI-11 — Auth screens:** login, signup, verify, reset in the same shell.
       — login, signup, invite acceptance, `/verify-email`, `/forgot-password`,
@@ -890,8 +923,8 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
    then merge or retire the legacy `Team`/`WebsiteMember` model.
 3. **Phase 5:** Dodo platform billing behind `BillingProvider`, webhooks,
    lifecycle, billing UI.
-4. **Phase 6 finish:** `UsagePeriod` + atomic metering, 80/100% enforcement,
-   usage UI, owner approval of limits.
+4. **Phase 6 finish:** owner approval of limits, live parallel-ingestion proof,
+   notice emails (Phase 10), provider-driven periods after Phase 5.
 5. **Phase 7:** attribution journey tests, provider capability table, replay
    entitlements/masking/retention jobs.
 6. **Phase 8 finish:** framework guides, activation events/admin funnel,
@@ -906,6 +939,18 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 
 ## Changelog
 
+- 2026-11-05 — **Usage metering and the Plan & usage surface (Phases 6 + 9):**
+  new `usage_period` and `usage_replay_session` tables; atomic reserve-then-write
+  event metering in the collector with release on write failure; replay
+  entitlement + once-per-session metering in the recorder; 80% warning, 100%
+  grace (1,000 events / 100 replays), then paused ingestion while reads stay
+  open. New member-visible `GET /api/workspaces/[workspaceId]/usage`, an app
+  shell notice banner, and `/app/settings/billing` (plan, reset date, usage
+  bars, limits, upgrade path). Settings now has a real index, a grouped nav, and
+  a workspace website inventory at `/app/settings/websites`; billing and
+  websites were added to the supported-route contract.
+  `docs/USAGE_METERING.md` records the counting rules and limits. Full suite
+  611/611; build, typecheck, and lint green.
 - 2026-11-05 — **Application restructure (Phase 9):** every inherited analytics
   surface now has a first-class `/app/[websiteId]` route and a grouped
   workbench rail (`WebsiteSectionNav`): Revenue (overview, revenue, attribution,

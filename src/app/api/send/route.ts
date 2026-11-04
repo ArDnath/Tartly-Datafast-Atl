@@ -15,6 +15,7 @@ import {
 } from '@/lib/cross-domain-linker';
 import { getSalt, secret, uuid } from '@/lib/crypto';
 import { getClientInfo, hasBlockedIp } from '@/lib/detect';
+import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import { fetchWebsite } from '@/lib/load';
 import { getPaymentReturnDetection } from '@/lib/payment-detection';
 import { parseRequest } from '@/lib/request';
@@ -22,6 +23,7 @@ import { badRequest, forbidden, json, serverError } from '@/lib/response';
 import { anyObjectParam, urlOrPathParam } from '@/lib/schema';
 import { getTrackingSessionId, getTrackingVisitorId } from '@/lib/tracking-identity';
 import { safeDecodeURI, safeDecodeURIComponent } from '@/lib/url';
+import { isBillableEvent, releaseEventUsage, reserveEventUsage } from '@/lib/usage';
 import {
   ensureVisitorContext,
   savePaymentDetectionEvent,
@@ -77,6 +79,9 @@ const schema = z.object({
 });
 
 export async function POST(request: Request) {
+  let reservedWorkspaceId: string | null = null;
+  let eventCommitted = false;
+
   try {
     const { body, error } = await parseRequest(request, schema, { skipAuth: true });
 
@@ -115,6 +120,7 @@ export async function POST(request: Request) {
 
     // Cache check
     let cache: CollectorCachePayload | null = null;
+    let workspaceId: string | null = null;
 
     if (websiteId) {
       const cacheHeader = request.headers.get('x-talivia-cache');
@@ -123,13 +129,18 @@ export async function POST(request: Request) {
         cache = parseCollectorCacheToken(cacheHeader, websiteId, secret());
       }
 
-      // Find website
-      if (!cache?.websiteId) {
+      workspaceId = cache?.workspaceId ?? null;
+
+      // The tenant is required for usage metering. Older cache tokens do not
+      // contain it, so resolve the website once and refresh the token below.
+      if (!cache?.websiteId || !workspaceId) {
         const website = await fetchWebsite(websiteId);
 
         if (!website) {
           return badRequest({ message: 'Website not found.' });
         }
+
+        workspaceId = website.workspaceId ?? null;
       }
     }
 
@@ -291,6 +302,27 @@ export async function POST(request: Request) {
             ? EVENT_TYPE.customEvent
             : EVENT_TYPE.pageView;
 
+      // Reserve the billable event before writing it. Bot, blocked-IP, and
+      // invalid requests returned earlier, so they never consume allowance.
+      if (websiteId && workspaceId && isBillableEvent(eventType)) {
+        const entitlements = await getWorkspaceEntitlements(workspaceId);
+        const reservation = await reserveEventUsage(
+          workspaceId,
+          entitlements?.plan?.eventsPerMonth ?? 0,
+        );
+
+        if (!reservation.allowed) {
+          return json({
+            ok: false,
+            reason: 'usage_limit_reached',
+            limit: reservation.limit,
+            used: reservation.used,
+          });
+        }
+
+        reservedWorkspaceId = workspaceId;
+      }
+
       if (websiteId && visitorId && visitorToken) {
         visitor = await upsertVisitorContext({
           websiteId,
@@ -361,6 +393,8 @@ export async function POST(request: Request) {
         lifatid,
         twclid,
       });
+
+      eventCommitted = true;
 
       const paymentDetection =
         attributionConfig?.enablePaymentUrlDetection === false
@@ -439,7 +473,15 @@ export async function POST(request: Request) {
 
     const token =
       websiteId && visitorId
-        ? createCollectorCacheToken({ websiteId, visitorId, sessionId }, secret())
+        ? createCollectorCacheToken(
+            {
+              websiteId,
+              visitorId,
+              sessionId,
+              ...(workspaceId ? { workspaceId } : {}),
+            },
+            secret(),
+          )
         : undefined;
     const crossDomainLinker =
       websiteId && visitorToken && sessionToken
@@ -454,6 +496,17 @@ export async function POST(request: Request) {
       sessionId: sessionToken,
     });
   } catch (e) {
+    if (reservedWorkspaceId && !eventCommitted) {
+      // A failed write must not consume allowance. This is best-effort: the
+      // original error is still the one returned to the client.
+      try {
+        await releaseEventUsage(reservedWorkspaceId);
+      } catch {
+        // Ignore release failures; the counter is repaired by the next write
+        // or the period rollover.
+      }
+    }
+
     const error = serializeError(e);
 
     // eslint-disable-next-line no-console

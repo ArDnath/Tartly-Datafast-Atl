@@ -5,7 +5,7 @@ import { IconLabel } from '@/components/common/IconLabel';
 import Link from '@/components/common/Link';
 import { Panel } from '@/components/common/Panel';
 import { useMessages, useNavigation } from '@/components/hooks';
-import { ArrowLeft, Settings2, UserRound, Users } from '@/components/icons';
+import { ArrowLeft, CreditCard, Globe2, Settings2, UserRound, Users } from '@/components/icons';
 import { APP_LAYOUT_MAX_WIDTH } from '@/lib/constants';
 
 const SETTINGS_SURFACE_STYLE: CSSProperties = {
@@ -14,7 +14,7 @@ const SETTINGS_SURFACE_STYLE: CSSProperties = {
   background: '#161616',
 };
 
-type SettingsKey = 'preferences' | 'account' | 'workspace';
+type SettingsKey = 'preferences' | 'account' | 'workspace' | 'websites' | 'billing';
 
 export function SettingsPageLayout({
   activeKey,
@@ -39,6 +39,18 @@ export function SettingsPageLayout({
       label: 'Workspace',
       path: renderUrl('/app/settings/workspace', false),
       icon: <Users />,
+    },
+    {
+      id: 'websites' as const,
+      label: 'Websites',
+      path: renderUrl('/app/settings/websites', false),
+      icon: <Globe2 />,
+    },
+    {
+      id: 'billing' as const,
+      label: 'Plan and usage',
+      path: renderUrl('/app/settings/billing', false),
+      icon: <CreditCard />,
     },
     {
       id: 'account' as const,

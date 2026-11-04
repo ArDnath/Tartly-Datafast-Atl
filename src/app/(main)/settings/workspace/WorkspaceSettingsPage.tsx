@@ -14,7 +14,8 @@ import {
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Panel } from '@/components/common/Panel';
-import { useActiveWorkspace, useApi } from '@/components/hooks';
+import Link from '@/components/common/Link';
+import { useActiveWorkspace, useApi, useNavigation } from '@/components/hooks';
 import { getPlanOrNull } from '@/lib/plans';
 
 interface Member {
@@ -40,6 +41,7 @@ const CARD_STYLE = {
 
 export function WorkspaceSettingsPage() {
   const { get, post, del } = useApi();
+  const { renderUrl } = useNavigation();
   const queryClient = useQueryClient();
   const { workspaceId, activeWorkspace, isLoading: workspaceLoading } = useActiveWorkspace();
   const [role, setRole] = useState('MEMBER');
@@ -120,6 +122,20 @@ export function WorkspaceSettingsPage() {
           {' · '}
           {activeWorkspace.subscriptionStatus}
         </Text>
+        <Row gap="3" alignItems="center" wrap="wrap" paddingTop="1">
+          <Link
+            href={renderUrl('/app/settings/websites', false)}
+            style={{ color: '#f2b4cb', fontSize: 13, fontWeight: 600 }}
+          >
+            Manage websites
+          </Link>
+          <Link
+            href={renderUrl('/app/settings/billing', false)}
+            style={{ color: '#ffffff99', fontSize: 13 }}
+          >
+            Plan and usage
+          </Link>
+        </Row>
       </Column>
 
       <Panel style={CARD_STYLE}>
