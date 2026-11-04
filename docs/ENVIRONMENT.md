@@ -50,7 +50,9 @@ Optional groups (see `.env.example`):
 - Analytics provider fallback secrets: `STRIPE_WEBHOOK_SECRET`,
   `LEMONSQUEEZY_WEBHOOK_SECRET`, `POLAR_WEBHOOK_SECRET`.
 - Platform billing (Phase 5): `DODO_PAYMENTS_*`.
-- Email (Phase 10): `RESEND_API_KEY`, `EMAIL_FROM`.
+- Email (Phase 10): `RESEND_API_KEY`, `EMAIL_FROM`, and `APP_URL` (public origin
+  used in invitation/reset links). Without `RESEND_API_KEY`, links are logged to
+  the server console in development and returned once to the inviting admin.
 - Tuning/flags: `SKIP_DB_CHECK`, `SKIP_DB_MIGRATION`, `DISABLE_BOT_CHECK`,
   `CLIENT_IP_HEADER`, `IGNORE_IP`, `LOG_QUERY`, `SALT_ROTATION`, etc.
 

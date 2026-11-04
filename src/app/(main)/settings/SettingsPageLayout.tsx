@@ -5,7 +5,7 @@ import { IconLabel } from '@/components/common/IconLabel';
 import Link from '@/components/common/Link';
 import { Panel } from '@/components/common/Panel';
 import { useMessages, useNavigation } from '@/components/hooks';
-import { ArrowLeft, Settings2, UserRound } from '@/components/icons';
+import { ArrowLeft, Settings2, UserRound, Users } from '@/components/icons';
 import { APP_LAYOUT_MAX_WIDTH } from '@/lib/constants';
 
 const SETTINGS_SURFACE_STYLE: CSSProperties = {
@@ -14,7 +14,7 @@ const SETTINGS_SURFACE_STYLE: CSSProperties = {
   background: '#161616',
 };
 
-type SettingsKey = 'preferences' | 'account';
+type SettingsKey = 'preferences' | 'account' | 'workspace';
 
 export function SettingsPageLayout({
   activeKey,
@@ -33,6 +33,12 @@ export function SettingsPageLayout({
       label: t(labels.preferences),
       path: renderUrl('/app/settings/preferences', false),
       icon: <Settings2 />,
+    },
+    {
+      id: 'workspace' as const,
+      label: 'Workspace',
+      path: renderUrl('/app/settings/workspace', false),
+      icon: <Users />,
     },
     {
       id: 'account' as const,

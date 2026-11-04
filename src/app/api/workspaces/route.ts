@@ -41,6 +41,20 @@ export async function POST(request: Request) {
     return unauthorized();
   }
 
+  // Until platform billing exists, a second owned workspace would create a
+  // second Starter allowance without a subscription. Owners can join other
+  // workspaces by invitation; self-service ownership limits land with billing.
+  const owned = await prisma.client.workspace.count({
+    where: { ownerId: auth.user.id, deletedAt: null },
+  });
+
+  if (owned > 0) {
+    return badRequest({
+      code: 'workspace-limit',
+      message: 'You already have a workspace. Join another by invitation.',
+    });
+  }
+
   const slug = body.slug || `${slugifyWorkspaceName(body.name)}-${uuid().slice(0, 8)}`;
 
   const existing = await prisma.client.workspace.findUnique({

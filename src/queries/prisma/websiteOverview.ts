@@ -79,8 +79,12 @@ function getChartBuckets(
   return buckets;
 }
 
-export async function getUserWebsiteOverview(userId: string, filters?: QueryFilters) {
-  const websites = await getUserWebsites(userId, filters);
+export async function getUserWebsiteOverview(
+  userId: string,
+  filters?: QueryFilters,
+  workspaceId?: string,
+) {
+  const websites = await getUserWebsites(userId, filters, workspaceId);
   const websiteIds = websites.data.map((website: Website) => website.id);
 
   if (!websiteIds.length) {

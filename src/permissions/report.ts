@@ -2,46 +2,18 @@ import type { Report } from '@/generated/prisma/client';
 import type { Auth } from '@/lib/types';
 import { canDeleteWebsite, canUpdateWebsite, canViewWebsite } from './website';
 
+/**
+ * Reports are tenant data. Access is derived from the website they belong to,
+ * never from the user who happened to create them.
+ */
 export async function canViewReport(auth: Auth, report: Report) {
-  if (auth.user?.isAdmin) {
-    return true;
-  }
-
-  if (auth.user?.id === report.userId) {
-    return true;
-  }
-
-  return !!(await canViewWebsite(auth, report.websiteId));
+  return canViewWebsite(auth, report.websiteId);
 }
 
 export async function canUpdateReport(auth: Auth, report: Report) {
-  if (!auth.user) {
-    return false;
-  }
-
-  if (auth.user.isAdmin) {
-    return true;
-  }
-
-  if (auth.user.id === report.userId) {
-    return true;
-  }
-
-  return !!(await canUpdateWebsite(auth, report.websiteId));
+  return canUpdateWebsite(auth, report.websiteId);
 }
 
 export async function canDeleteReport(auth: Auth, report: Report) {
-  if (!auth.user) {
-    return false;
-  }
-
-  if (auth.user.isAdmin) {
-    return true;
-  }
-
-  if (auth.user.id === report.userId) {
-    return true;
-  }
-
-  return !!(await canDeleteWebsite(auth, report.websiteId));
+  return canDeleteWebsite(auth, report.websiteId);
 }

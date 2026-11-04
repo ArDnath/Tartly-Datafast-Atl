@@ -8,8 +8,10 @@ import {
   FormSubmitButton,
   Heading,
   Icon,
+  Text,
   TextField,
 } from '@talivia/react-zen';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMessages, useUpdateQuery } from '@/components/hooks';
 import { BrandMark } from '@/components/brand/BrandMark';
@@ -77,6 +79,9 @@ export function LoginForm({ returnUrl, initialError }: LoginFormProps) {
           </FormSubmitButton>
         </FormButtons>
       </Form>
+      <Text color="muted">
+        New to {BRAND.name}? <Link href="/signup">Create an account</Link>
+      </Text>
     </Column>
   );
 }

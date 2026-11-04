@@ -54,9 +54,14 @@ async function getWebsiteMembershipOrFilters(userId: string): Promise<Prisma.Web
   });
 
   const username = normalizeUsername(user?.username);
+  const memberships = await prisma.client.workspaceMembership.findMany({
+    where: { userId },
+    select: { workspaceId: true },
+  });
 
   return [
     { userId },
+    { workspaceId: { in: memberships.map(member => member.workspaceId) } },
     {
       members: {
         some: {
@@ -67,14 +72,18 @@ async function getWebsiteMembershipOrFilters(userId: string): Promise<Prisma.Web
   ];
 }
 
-export async function getUserWebsites(userId: string, filters?: QueryFilters) {
+export async function getUserWebsites(
+  userId: string,
+  filters?: QueryFilters,
+  workspaceId?: string,
+) {
   const userWebsiteFilters = await getWebsiteMembershipOrFilters(userId);
 
   return getWebsites(
     {
-      where: {
-        OR: userWebsiteFilters,
-      },
+      where: workspaceId
+        ? { workspaceId, OR: userWebsiteFilters }
+        : { OR: userWebsiteFilters },
       include: {
         user: {
           select: {
@@ -89,6 +98,32 @@ export async function getUserWebsites(userId: string, filters?: QueryFilters) {
       ...filters,
     },
   );
+}
+
+export async function countWorkspaceWebsites(workspaceId: string) {
+  return prisma.client.website.count({
+    where: { workspaceId, deletedAt: null },
+  });
+}
+
+/**
+ * Resolve the workspace a new website should belong to. Members with ADMIN or
+ * OWNER on exactly one workspace get it implicitly; ambiguous users must pass
+ * an explicit workspaceId.
+ */
+export async function getDefaultWorkspaceForUser(userId: string) {
+  const memberships = await prisma.client.workspaceMembership.findMany({
+    where: {
+      userId,
+      role: { in: ['OWNER', 'ADMIN'] },
+      workspace: { deletedAt: null },
+    },
+    select: { workspaceId: true },
+    orderBy: { createdAt: 'asc' },
+    take: 2,
+  });
+
+  return memberships.length === 1 ? memberships[0].workspaceId : null;
 }
 
 export async function createWebsite(

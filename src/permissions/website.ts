@@ -1,54 +1,72 @@
 import { hasPermission } from '@/lib/auth';
 import { PERMISSIONS, WEBSITE_MEMBER_ROLES } from '@/lib/constants';
-import { getEntity } from '@/lib/entity';
 import type { Auth } from '@/lib/types';
+import {
+  canWorkspace,
+  getWorkspaceMembership,
+  hasMinimumRole,
+  type WorkspaceRole,
+} from '@/lib/workspace-auth';
 import { getTeamUser, getWebsite, getWebsiteMemberForUser } from '@/queries/prisma';
 
-async function getWebsiteMemberAccess(user: Auth['user'], websiteId: string) {
-  if (!user) {
-    return null;
-  }
+/**
+ * Website access is resolved from the workspace that owns the website.
+ *
+ * This module is the single access point used by the inherited API routes.
+ * Routes must never query tenant data before it returns.
+ *
+ * Websites created before the workspace migration may still have a null
+ * `workspace_id`. Those rows fall back to the legacy owner/team check so the
+ * migration remains reversible; every new website is workspace-owned and is
+ * never authorized by the legacy path.
+ */
 
-  return getWebsiteMemberForUser(websiteId, user);
+const NO_ACCESS = {
+  role: null,
+  canView: false,
+  canUpdate: false,
+  canDelete: false,
+  canManageMembers: false,
+  workspaceId: null,
+} as const;
+
+function toAccess(role: WorkspaceRole, workspaceId: string) {
+  return {
+    role: role.toLowerCase(),
+    canView: canWorkspace(role, 'website:read'),
+    canUpdate: canWorkspace(role, 'website:update'),
+    canDelete: canWorkspace(role, 'website:delete'),
+    canManageMembers: canWorkspace(role, 'members:manage'),
+    workspaceId,
+  };
 }
 
-export async function getWebsiteAccess(auth: Auth, websiteId: string) {
+function isShareForWebsite(auth: Auth, websiteId: string) {
+  const { shareToken } = auth;
+
+  return (
+    shareToken?.websiteId === websiteId ||
+    shareToken?.pixelId === websiteId ||
+    shareToken?.linkId === websiteId
+  );
+}
+
+async function getLegacyWebsiteAccess(auth: Auth, websiteId: string) {
   const { user } = auth;
 
   if (!user) {
-    return {
-      role: null,
-      canView: false,
-      canUpdate: false,
-      canDelete: false,
-      canManageMembers: false,
-    };
-  }
-
-  if (user.isAdmin) {
-    return {
-      role: 'owner',
-      canView: true,
-      canUpdate: true,
-      canDelete: true,
-      canManageMembers: true,
-    };
+    return NO_ACCESS;
   }
 
   const website = await getWebsite(websiteId);
 
-  if (!website) {
-    return {
-      role: null,
-      canView: false,
-      canUpdate: false,
-      canDelete: false,
-      canManageMembers: false,
-    };
+  if (!website || website.deletedAt) {
+    return NO_ACCESS;
   }
 
   if (website.userId === user.id) {
     return {
+      ...NO_ACCESS,
       role: 'owner',
       canView: true,
       canUpdate: true,
@@ -64,6 +82,7 @@ export async function getWebsiteAccess(auth: Auth, websiteId: string) {
 
     if (teamUser) {
       return {
+        ...NO_ACCESS,
         role: canUpdate ? WEBSITE_MEMBER_ROLES.member : WEBSITE_MEMBER_ROLES.viewer,
         canView: true,
         canUpdate,
@@ -73,10 +92,11 @@ export async function getWebsiteAccess(auth: Auth, websiteId: string) {
     }
   }
 
-  const member = await getWebsiteMemberAccess(user, websiteId);
+  const member = await getWebsiteMemberForUser(websiteId, user);
   const canUpdate = member?.role === WEBSITE_MEMBER_ROLES.member;
 
   return {
+    ...NO_ACCESS,
     role: member?.role || null,
     canView: !!member,
     canUpdate,
@@ -85,142 +105,116 @@ export async function getWebsiteAccess(auth: Auth, websiteId: string) {
   };
 }
 
-export async function canViewWebsite({ user, shareToken }: Auth, websiteId: string) {
-  if (user?.isAdmin) {
+export async function getWebsiteAccess(auth: Auth, websiteId: string) {
+  const { user } = auth;
+
+  // A share token is scoped to exactly one entity and is always read-only,
+  // even when the visitor also has a signed-in session.
+  if (isShareForWebsite(auth, websiteId)) {
+    return {
+      ...NO_ACCESS,
+      canView: true,
+    };
+  }
+
+  if (!user) {
+    return NO_ACCESS;
+  }
+
+  const website = await getWebsite(websiteId);
+
+  if (!website || website.deletedAt) {
+    return NO_ACCESS;
+  }
+
+  if (!website.workspaceId) {
+    return getLegacyWebsiteAccess(auth, websiteId);
+  }
+
+  const membership = await getWorkspaceMembership(user.id, website.workspaceId);
+
+  if (!membership) {
+    return NO_ACCESS;
+  }
+
+  return toAccess(membership.role, website.workspaceId);
+}
+
+export async function canViewWebsite(auth: Auth, websiteId: string) {
+  if (auth.shareToken && isShareForWebsite(auth, websiteId)) {
     return true;
   }
 
-  if (
-    shareToken?.websiteId === websiteId ||
-    shareToken?.pixelId === websiteId ||
-    shareToken?.linkId === websiteId
-  ) {
-    return true;
-  }
-
-  const entity = await getEntity(websiteId);
-
-  if (!entity || !user) {
-    return false;
-  }
-
-  if (entity.userId) {
-    if (user.id === entity.userId) {
-      return true;
-    }
-
-    return !!(await getWebsiteMemberAccess(user, websiteId));
-  }
-
-  if (entity.teamId) {
-    const teamUser = await getTeamUser(entity.teamId, user.id);
-
-    if (teamUser) {
-      return true;
-    }
-
-    return !!(await getWebsiteMemberAccess(user, websiteId));
-  }
-
-  return !!(await getWebsiteMemberAccess(user, websiteId));
+  // Platform admins are intentionally not granted tenant data through this
+  // helper. Internal administration uses a separate, audited path.
+  return (await getWebsiteAccess(auth, websiteId)).canView;
 }
 
 export async function canViewAllWebsites({ user }: Auth) {
-  return user?.isAdmin ?? false;
-}
-
-export async function canCreateWebsite({ user }: Auth) {
-  if (!user) {
-    return false;
-  }
-
-  if (user.isAdmin) {
-    return true;
-  }
-
-  return hasPermission(user.role, PERMISSIONS.websiteCreate);
-}
-
-export async function canUpdateWebsite({ user }: Auth, websiteId: string) {
-  if (!user) {
-    return false;
-  }
-
-  if (user.isAdmin) {
-    return true;
-  }
-
-  const website = await getWebsite(websiteId);
-
-  if (!website) {
-    return false;
-  }
-
-  if (website.userId) {
-    if (user.id === website.userId) {
-      return true;
-    }
-
-    const member = await getWebsiteMemberAccess(user, websiteId);
-
-    return member?.role === WEBSITE_MEMBER_ROLES.member;
-  }
-
-  if (website.teamId) {
-    const teamUser = await getTeamUser(website.teamId, user.id);
-
-    if (teamUser) {
-      return hasPermission(teamUser.role, PERMISSIONS.websiteUpdate);
-    }
-
-    const member = await getWebsiteMemberAccess(user, websiteId);
-
-    return member?.role === WEBSITE_MEMBER_ROLES.member;
-  }
-
-  const member = await getWebsiteMemberAccess(user, websiteId);
-
-  return member?.role === WEBSITE_MEMBER_ROLES.member;
-}
-
-export async function canDeleteWebsite({ user }: Auth, websiteId: string) {
-  if (!user) {
-    return false;
-  }
-
-  if (user.isAdmin) {
-    return true;
-  }
-
-  const website = await getWebsite(websiteId);
-
-  if (!website) {
-    return false;
-  }
-
-  if (website.userId) {
-    return user.id === website.userId;
-  }
-
-  if (website.teamId) {
-    const teamUser = await getTeamUser(website.teamId, user.id);
-
-    return teamUser && hasPermission(teamUser.role, PERMISSIONS.websiteDelete);
-  }
-
+  void user;
   return false;
 }
 
-export async function canManageWebsiteMembers({ user }: Auth, websiteId: string) {
-  if (!user) {
+export async function canCreateWebsite({ user }: Auth) {
+  // Workspace role and plan limits are enforced by the route. This helper
+  // only answers "is there a signed-in principal?".
+  return Boolean(user?.id);
+}
+
+export async function canUpdateWebsite(auth: Auth, websiteId: string) {
+  if (auth.shareToken) {
     return false;
   }
 
-  if (user.isAdmin) {
-    return true;
+  return (await getWebsiteAccess(auth, websiteId)).canUpdate;
+}
+
+export async function canDeleteWebsite(auth: Auth, websiteId: string) {
+  if (auth.shareToken) {
+    return false;
+  }
+
+  return (await getWebsiteAccess(auth, websiteId)).canDelete;
+}
+
+export async function canManageWebsiteMembers(auth: Auth, websiteId: string) {
+  if (auth.shareToken) {
+    return false;
+  }
+
+  return (await getWebsiteAccess(auth, websiteId)).canManageMembers;
+}
+
+/**
+ * Explicit workspace-and-website assertion used by server actions and new
+ * routes. Returns null rather than leaking whether the website exists.
+ */
+export async function getWebsiteWorkspaceAccess(
+  auth: Auth,
+  websiteId: string,
+  minimum: WorkspaceRole = 'VIEWER',
+) {
+  if (!auth.user?.id || !websiteId) {
+    return null;
   }
 
   const website = await getWebsite(websiteId);
 
-  return !!website && website.userId === user.id;
+  if (!website?.workspaceId || website.deletedAt) {
+    return null;
+  }
+
+  const membership = await getWorkspaceMembership(auth.user.id, website.workspaceId);
+
+  if (!membership || !hasMinimumRole(membership.role, minimum)) {
+    return null;
+  }
+
+  return {
+    websiteId,
+    workspaceId: website.workspaceId,
+    role: membership.role,
+  };
 }
+
+
