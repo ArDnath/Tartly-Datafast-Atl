@@ -81,14 +81,6 @@ if (isProd) {
   });
 }
 
-const redirects = [
-  {
-    source: '/',
-    destination: '/login',
-    permanent: false,
-  },
-];
-
 /** @type {import('next').NextConfig} */
 export default withNextIntl({
   env: {
@@ -104,8 +96,5 @@ export default withNextIntl({
   devIndicators: false,
   async headers() {
     return headers;
-  },
-  async redirects() {
-    return [...redirects];
   },
 });

@@ -4,7 +4,7 @@
   overflow-x: hidden;
   color: #f5f5f5;
   background:
-    radial-gradient(circle at 74% 8%, rgba(59, 130, 255, 0.2), transparent 34%),
+    radial-gradient(circle at 74% 8%, rgba(242, 180, 203, 0.16), transparent 34%),
     radial-gradient(circle at 18% 82%, rgba(45, 191, 114, 0.12), transparent 30%), #0d0d0d;
 }
 
@@ -47,10 +47,10 @@
   align-items: center;
   min-height: 30px;
   padding: 0 12px;
-  border: 1px solid rgba(59, 130, 255, 0.32);
+  border: 1px solid rgba(242, 180, 203, 0.32);
   border-radius: 999px;
-  color: #8db5ff;
-  background: rgba(59, 130, 255, 0.1);
+  color: #f2b4cb;
+  background: rgba(242, 180, 203, 0.1);
   font-size: 13px;
   font-weight: 800;
 }
@@ -92,13 +92,13 @@
 }
 
 .primaryAction {
-  border: 1px solid rgba(59, 130, 255, 0.8);
-  color: #ffffff;
-  background: #2563eb;
+  border: 1px solid #f4f4f5;
+  color: #1b1b1b;
+  background: #f4f4f5;
 }
 
 .primaryAction:hover {
-  background: #2f72ff;
+  background: #e7e7e9;
 }
 
 .secondaryAction {

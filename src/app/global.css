@@ -1,8 +1,8 @@
 :root {
   --font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --primary: oklch(62.3% 0.214 259.815);
-  --primary-foreground: oklch(98.5% 0 0);
+  --primary: #f4f4f5;
+  --primary-foreground: #1b1b1b;
   --talivia-app-background: #0d0d0d;
   --talivia-card-background: #161616;
   --talivia-card-border: #ffffff12;
@@ -739,7 +739,7 @@ button.breakdown-sort-button[data-pressed] {
 }
 
 .talivia-app-shell button.payment-provider-option[data-selected="true"] {
-  border-color: rgba(59, 130, 255, 0.78) !important;
+  border-color: rgba(242, 180, 203, 0.62) !important;
   background: var(--talivia-app-background) !important;
 }
 
@@ -824,8 +824,8 @@ button.breakdown-sort-button[data-pressed] {
 .talivia-app-shell .website-settings-button:active,
 .talivia-app-shell .website-settings-button[data-pressed] {
   border-color: transparent !important;
-  background: var(--primary) !important;
-  color: var(--primary-foreground) !important;
+  background: #f4f4f5 !important;
+  color: #1b1b1b !important;
 }
 
 .website-card-settings-link {
@@ -868,11 +868,11 @@ button.breakdown-sort-button[data-pressed] {
 
 .website-card-settings-link:hover,
 .website-card-settings-link:focus-visible {
-  color: #60a5fa;
+  color: #f2b4cb;
 }
 
 .website-card-settings-link:focus-visible {
-  outline: 2px solid rgba(59, 130, 255, 0.72);
+  outline: 2px solid rgba(242, 180, 203, 0.72);
   outline-offset: 1px;
 }
 
@@ -1141,8 +1141,8 @@ button.breakdown-sort-button[data-pressed] {
 
 [role="option"][data-selected],
 [role="menuitemradio"][data-selected] {
-  background: rgba(59, 130, 255, 0.16) !important;
-  color: var(--text-primary);
+  background: rgba(242, 180, 203, 0.14) !important;
+  color: #f2b4cb;
 }
 
 .talivia-popover > div {
@@ -1184,8 +1184,8 @@ button.breakdown-sort-button[data-pressed] {
 
 .talivia-popover [role="option"][data-selected],
 .talivia-popover [role="menuitemradio"][data-selected] {
-  background: rgba(59, 130, 255, 0.16) !important;
-  color: var(--text-primary);
+  background: rgba(242, 180, 203, 0.14) !important;
+  color: #f2b4cb;
 }
 
 .talivia-popover [role="separator"] {
@@ -1286,8 +1286,8 @@ button.breakdown-sort-button[data-pressed] {
 }
 
 .talivia-nav-menu-item[data-selected] {
-  background: rgba(59, 130, 255, 0.16) !important;
-  color: var(--text-primary);
+  background: rgba(242, 180, 203, 0.14) !important;
+  color: #f2b4cb;
 }
 
 .talivia-expanded-toolbar {
@@ -2739,4 +2739,95 @@ select:-webkit-autofill:focus {
 
 .rr-controller__btns .label {
   color: black;
+}
+
+/* Website workbench navigation */
+.website-section-nav {
+  position: sticky;
+  top: 16px;
+  min-width: 0;
+}
+
+.website-section-nav-label {
+  padding: 0 10px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.website-section-nav-link {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-decoration: none;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.website-section-nav-link:hover {
+  background: #1b1b1b;
+  color: var(--text-primary);
+}
+
+.website-section-nav-link[data-selected] {
+  border-color: rgba(242, 180, 203, 0.22);
+  background: rgba(242, 180, 203, 0.1);
+  color: #f2b4cb;
+}
+
+.website-section-nav-link:focus-visible {
+  outline: 2px solid rgba(242, 180, 203, 0.72);
+  outline-offset: 1px;
+}
+
+.website-section-tabs {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--talivia-card-border);
+  background: var(--talivia-app-background);
+  scrollbar-width: none;
+}
+
+.website-section-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.website-section-tab {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.website-section-tab[data-selected] {
+  border-color: rgba(242, 180, 203, 0.22);
+  background: rgba(242, 180, 203, 0.1);
+  color: #f2b4cb;
+}
+
+@media (max-width: 1023px) {
+  .website-section-nav {
+    display: none;
+  }
+
+  .website-section-tabs {
+    display: flex;
+  }
 }

@@ -4,16 +4,18 @@
 - **Repository:** <https://github.com/talivia-group/talivia> (MIT), forked locally at
   `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-05
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Next: Phase 5 (platform billing) and Phase 6 metering.
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 app restructure shipped (routes, workbench navigation, revenue-first home, landing). Next: Phase 5 (platform billing) and Phase 6 metering.
 
 ## Overall progress
 
 - Total phases: **12** (0–11 product/build, 12 go-to-market)
 - Phases complete: **3 full, 2 with caveats** (Phase 2: copy-with-data rehearsal; Phase 4: live Resend delivery)
-- Overall percent (average of phases 0–11): **50%**
+- Overall percent (average of phases 0–11): **55%**
 - Build state at last check: **green** (`pnpm build` exit 0; `tsc --noEmit`
-  clean; `biome lint` clean). Full test run: **577 passed / 0 failed** after
-  pinning the test process to `TZ=UTC` and raising the UI test timeout to 15s.
+  clean; `biome lint` clean). Full test run: **597 passed / 0 failed** under
+  `TZ=UTC`.
+- Runtime smoke: all 19 website workbench routes return 200 on the production
+  build with an authenticated session; unknown sub-routes return 404.
 - Database: local PostgreSQL has all 6 migrations applied, including durable
   auth sessions, hashed email/reset tokens, rate-limit buckets, and removal of
   the bootstrap admin.
@@ -44,7 +46,7 @@ No third plan, no free tier, no hidden limits.
 | 6 | Plans, pricing economics, usage | IN_PROGRESS | 40% | 2026-11-04 | — | metering; owner approval of limits |
 | 7 | Analytics validation, integrations, replay | NOT_STARTED | 0% | — | — | none |
 | 8 | Onboarding and developer experience | IN_PROGRESS | 40% | 2026-11-04 | — | guides, activation, MCP |
-| 9 | Rebrand and product UI | IN_PROGRESS | 30% | 2026-11-04 | — | full app rebrand |
+| 9 | Rebrand and product UI | IN_PROGRESS | 65% | 2026-11-04 | — | billing/usage UI, remaining brand copy, a11y pass |
 | 10 | Compliance, abuse, email, operations | NOT_STARTED | 0% | — | — | legal review |
 | 11 | Hardening, QA, deployment, launch | NOT_STARTED | 0% | — | — | hosting + domain |
 | 12 | Go-to-market | NOT_STARTED | 0% | — | — | product live |
@@ -698,10 +700,18 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 - [x] **UI-2 — Brand config adoption:** name, wordmark, favicon, metadata,
       emails, footer, auth, docs read from one config. — **partial**: auth/nav/
       metadata/pricing/onboarding use it; settings copy not yet.
-- [ ] **UI-3 — App shell:** quiet dark workstation; tonal layering; hairline
-      borders; blush reserved for signal; tabular numerals.
-- [ ] **UI-4 — Revenue-first overview:** replace generic analytics hero with
-      revenue, revenue/visitor, conversion, MRR-by-channel cards + charts.
+- [x] **UI-3 — App shell:** quiet dark workstation; tonal layering; hairline
+      borders; blush reserved for signal; tabular numerals. — proof:
+      `TopNav.tsx` uses the brand wordmark and a hairline border;
+      `WebsiteLayout.tsx` adds a grouped workbench rail (`WebsiteSectionNav`)
+      that becomes horizontal section tabs below 1024 px. Chrome accents were
+      moved from blue to blush (`global.css`, settings and onboarding).
+- [x] **UI-4 — Revenue-first overview:** replace generic analytics hero with
+      revenue, revenue/visitor, conversion, MRR-by-channel cards + charts. —
+      **partial proof:** `/app` now opens with a portfolio strip (revenue,
+      revenue per visitor, purchase rate, visitors) and each website card leads
+      with revenue; MRR-by-channel still needs the revenue aggregate query in
+      Phase 7.
 - [x] **UI-5 — Onboarding shell:** full-height centred 440 px column, logo,
       title, subtitle, directional slide/fade (12 px, 320 ms, 70 ms stagger),
       reduced-motion support, welcome moment. — proof: `OnboardingFlow.tsx` /
@@ -724,8 +734,20 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 - [x] **UI-11 — Auth screens:** login, signup, verify, reset in the same shell.
       — login, signup, invite acceptance, `/verify-email`, `/forgot-password`,
       and `/reset-password` use the same auth shell.
-- [ ] **UI-12 — Marketing landing:** one promise, three proof points, product
-      visual, pricing teaser, FAQ.
+- [x] **UI-12 — Marketing landing:** one promise, three proof points, product
+      visual, pricing teaser, FAQ. — proof: `src/app/page.tsx` +
+      `Landing.module.css`; `/` returns 200 and renders both config-driven
+      plans. The previous `/` → `/login` redirect was removed from
+      `next.config.ts`.
+- [x] **UI-15 — Full analytics route restructure (new):** every inherited
+      analytics surface is reachable inside `/app/[websiteId]` instead of only
+      the three revenue debug pages. — proof: new routes for `revenue`,
+      `attribution`, `journeys`, `diagnostics`, `sessions`, `events`,
+      `realtime`, `breakdown`, `goals`, `funnels`, `retention`, `cohorts`,
+      `utm`, `performance`, `compare`, and `replays`; legacy
+      `revenue-attribution`/`revenue-journey`/`revenue-diagnostics` redirect to
+      the canonical route; `app-route.test.ts` and
+      `WebsiteSectionNav.test.tsx` lock the route/nav contract.
 - [ ] **UI-13 — Motion + polish pass:** page transitions, hover lift, focus
       rings, skeletons, reduced motion, mobile.
 - [ ] **UI-14 — Temporary rename demonstration:** change brand config and show
@@ -734,8 +756,12 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 ### Acceptance criteria
 
 - [ ] Repo-wide search for the original brand finds nothing customer-facing
-      (allowed exceptions listed). — **partial**: 112 case-sensitive
-      `Talivia` strings remain in `src/` (settings copy, imports, comments).
+      (allowed exceptions listed). — **partial**: onboarding, API-key, data
+      import/export, share branding, top nav, 404, and landing copy are now
+      brand-config driven or renamed. About 59 `Talivia` strings remain,
+      mostly provider-setup copy in `WebsiteRevenueSettings.tsx`, the
+      backup-format parser (kept for compatibility), internal type names, and
+      comments.
 - [ ] Changing the brand config changes name, logo, colors, emails everywhere
       (demonstrated with a temporary rename). — not yet demonstrated.
 - [x] Onboarding motion matches the Tartly constants and respects reduced
@@ -870,15 +896,30 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
    entitlements/masking/retention jobs.
 6. **Phase 8 finish:** framework guides, activation events/admin funnel,
    `llms.txt`, MCP/CLI verification.
-7. **Phase 9 finish:** rebrand all customer-facing copy, revenue-first
-   overview, billing/usage, settings, landing page, a11y pass, temporary
-   rename demo.
+7. **Phase 9 finish:** remaining provider-setup brand copy, MRR-by-channel on
+   the portfolio overview, billing/usage screens (blocked on Phases 5–6),
+   integrations/security settings states, a11y/contrast pass, temporary rename
+   demo.
 8. **Phase 10:** legal drafts, abuse protection, transactional email, ops.
 9. **Phase 11:** security review, load test, CI, deployment/runbook.
 10. **Phase 12:** go-to-market.
 
 ## Changelog
 
+- 2026-11-05 — **Application restructure (Phase 9):** every inherited analytics
+  surface now has a first-class `/app/[websiteId]` route and a grouped
+  workbench rail (`WebsiteSectionNav`): Revenue (overview, revenue, attribution,
+  journeys, diagnostics), Audience (visitors, events, realtime, breakdown),
+  Behaviour (goals, funnels, retention, cohorts), Growth (UTM, performance,
+  compare), replay, and settings. Legacy revenue debug routes redirect to the
+  canonical paths. The website layout uses a 1320 px workstation width.
+  `/app` is now a revenue-first portfolio (revenue, revenue/visitor, purchase
+  rate, visitors; revenue-led site cards) and `/` is a real landing page driven
+  by `BRAND` + `PLANS` instead of redirecting to login. Brand chrome moved from
+  blue to the blush signal, and the top nav/search/settings/404/share surfaces
+  use the brand mark and config. New tests: nav coverage/active state (4) and
+  expanded route allowlist. Full suite 597/597, build/lint/typecheck green; 19
+  authenticated route smoke checks returned 200.
 - 2026-11-05 — **Auth and isolation restructuring (Phases 3–4):** durable
   PostgreSQL sessions behind an HttpOnly/SameSite cookie; localStorage bearer
   tokens removed from the browser; password change/reset revokes every session;

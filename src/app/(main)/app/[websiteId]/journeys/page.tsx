@@ -1,0 +1,12 @@
+import type { Metadata } from 'next';
+import { JourneysPage } from '@/app/(main)/websites/[websiteId]/(reports)/journeys/JourneysPage';
+
+export default async function ({ params }: { params: Promise<{ websiteId: string }> }) {
+  const { websiteId } = await params;
+
+  return <JourneysPage websiteId={websiteId} />;
+}
+
+export const metadata: Metadata = {
+  title: 'Journeys',
+};

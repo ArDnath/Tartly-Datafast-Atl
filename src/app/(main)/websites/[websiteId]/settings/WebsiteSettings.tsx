@@ -199,8 +199,8 @@ export function WebsiteSettings({
                     borderRadius
                     paddingX="2"
                     style={{
-                      background: isActive ? 'rgba(59, 130, 255, 0.12)' : 'transparent',
-                      border: `1px solid ${isActive ? 'rgba(59, 130, 255, 0.42)' : 'transparent'}`,
+                      background: isActive ? 'rgba(242, 180, 203, 0.12)' : 'transparent',
+                      border: `1px solid ${isActive ? 'rgba(242, 180, 203, 0.34)' : 'transparent'}`,
                     }}
                   >
                     <IconLabel

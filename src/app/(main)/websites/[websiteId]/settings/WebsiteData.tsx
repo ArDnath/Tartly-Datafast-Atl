@@ -23,8 +23,9 @@ import {
   useTimezone,
   useWebsite,
 } from '@/components/hooks';
+import { BrandMark } from '@/components/brand/BrandMark';
 import { DateFilter } from '@/components/input/DateFilter';
-import { Logo } from '@/components/svg';
+import { BRAND } from '@/lib/brand';
 import { parseDateRange } from '@/lib/date';
 import { WebsiteDeleteForm } from './WebsiteDeleteForm';
 import { WebsiteResetForm } from './WebsiteResetForm';
@@ -47,10 +48,9 @@ const IMPORT_DETAILS: Record<
   }
 > = {
   talivia: {
-    title: 'Restore Talivia activity backup',
+    title: `Restore ${BRAND.name} activity backup`,
     subtitle: 'Raw sessions, events, and properties',
-    description:
-      'Restore a Talivia activity backup into this website. It recreates historical sessions, page views, custom events, and their properties. Provider connections and payment credentials are never included.',
+    description: `Restore a ${BRAND.name} activity backup into this website. It recreates historical sessions, page views, custom events, and their properties. Provider connections and payment credentials are never included.`,
     accept: '.zip',
     logo: '',
   },
@@ -144,7 +144,7 @@ function ImportCard({
         <div className="talivia-import-card-heading">
           <span className="talivia-import-logo" data-source={source} aria-hidden="true">
             {source === 'talivia' ? (
-              <Logo width={28} height={28} />
+              <BrandMark size={28} />
             ) : (
               <img src={details.logo} alt="" />
             )}
@@ -283,8 +283,7 @@ function ExportDataForm({ websiteId, close }: { websiteId: string; close: () => 
   return (
     <Column gap="5">
       <Text color="muted">
-        Choose how much history to include. Activity backups can be restored into Talivia; aggregate
-        reports include traffic and revenue totals but cannot recreate sessions.
+        {`Choose how much history to include. Activity backups can be restored into ${BRAND.name}; aggregate reports include traffic and revenue totals but cannot recreate sessions.`}
       </Text>
       <Select value={format} onChange={value => setFormat(value as 'backup' | 'reports')}>
         <ListItem id="backup">Activity backup - sessions, events, and properties</ListItem>
@@ -340,7 +339,7 @@ export function WebsiteData({ websiteId, onSave }: { websiteId: string; onSave?:
         <Column gap="6">
           <ActionForm
             label="Export data"
-            description="Download a restorable Talivia backup or aggregate CSV reports for a selected period."
+            description={`Download a restorable ${BRAND.name} backup or aggregate CSV reports for a selected period.`}
           >
             <DialogTrigger>
               <Button variant="primary">Export data</Button>

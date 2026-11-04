@@ -4,6 +4,28 @@ const WEBSITE_ID_PATTERN =
 const APP_SETTINGS_PATHS = new Set(['preferences', 'account', 'workspace']);
 const WEBSITE_PATHS = new Set([
   'settings',
+  // Revenue workbench
+  'revenue',
+  'attribution',
+  'journeys',
+  'diagnostics',
+  // Audience
+  'sessions',
+  'events',
+  'realtime',
+  'breakdown',
+  // Behaviour
+  'goals',
+  'funnels',
+  'retention',
+  'cohorts',
+  // Growth
+  'utm',
+  'performance',
+  'compare',
+  // Replay
+  'replays',
+  // Canonicalised revenue URLs kept for existing links and bookmarks.
   'revenue-attribution',
   'revenue-journey',
   'revenue-diagnostics',

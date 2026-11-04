@@ -16,6 +16,7 @@ import { InlineExternalLink } from '@/components/common/InlineExternalLink';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { useApi, useMessages, useTimezone } from '@/components/hooks';
 import { DialogButton } from '@/components/input/DialogButton';
+import { BRAND } from '@/lib/brand';
 
 interface WebsiteApiKey {
   id: string;
@@ -129,7 +130,9 @@ export function WebsiteApiKeysSettings({ websiteId }: { websiteId: string }) {
           style={{ borderColor: 'rgba(59, 130, 255, 0.42)', background: '#3b82ff14' }}
         >
           <Label>Copy this key now</Label>
-          <Text color="muted">This is the only time Talivia will show the complete secret.</Text>
+          <Text color="muted">
+            {`This is the only time ${BRAND.name} will show the complete secret.`}
+          </Text>
           <TextField value={createdApiKey} isReadOnly allowCopy aria-label="New API key" />
         </Column>
       )}

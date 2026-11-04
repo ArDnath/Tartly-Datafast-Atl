@@ -81,8 +81,8 @@ export function SettingsPageLayout({
                     style={
                       isSelected
                         ? {
-                            background: 'rgba(59, 130, 255, 0.12)',
-                            border: '1px solid rgba(59, 130, 255, 0.42)',
+                            background: 'rgba(242, 180, 203, 0.12)',
+                            border: '1px solid rgba(242, 180, 203, 0.34)',
                           }
                         : undefined
                     }

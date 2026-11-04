@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { PageBody } from '@/components/common/PageBody';
 import { Panel } from '@/components/common/Panel';
 import { useMessages, useModified, useNavigation } from '@/components/hooks';
+import { BRAND } from '@/lib/brand';
 import { WebsiteEditForm } from '../../websites/[websiteId]/settings/WebsiteEditForm';
 import { WebsiteRevenueConnect } from '../../websites/[websiteId]/settings/WebsiteRevenueSettings';
 import { WebsiteTrackingCode } from '../../websites/[websiteId]/settings/WebsiteTrackingCode';
@@ -57,7 +58,7 @@ function Stepper({
               alignItems: 'center',
               background: isActive ? '#ffffff12' : 'transparent',
               border: '1px solid #ffffff12',
-              borderColor: isActive ? '#3b82ff' : '#ffffff12',
+              borderColor: isActive ? '#f2b4cb' : '#ffffff12',
               borderRadius: 999,
               color: index <= activeIndex ? '#f5f5f5' : '#9ca3af',
               cursor: isAvailable ? 'pointer' : 'not-allowed',
@@ -74,7 +75,7 @@ function Stepper({
               aria-hidden
               style={{
                 alignItems: 'center',
-                background: isActive ? '#3b82ff' : '#ffffff12',
+                background: isActive ? '#f2b4cb' : '#ffffff12',
                 borderRadius: 999,
                 display: 'inline-flex',
                 height: 20,
@@ -176,8 +177,7 @@ export function WebsiteOnboardingPage() {
               <Column gap="1">
                 <Heading size="base">Install tracker</Heading>
                 <Text color="muted">
-                  Add this script before the closing body tag on every page you want Talivia to
-                  measure.
+                  {`Add this script before the closing body tag on every page you want ${BRAND.name} to measure.`}
                 </Text>
               </Column>
               {websiteId ? (
