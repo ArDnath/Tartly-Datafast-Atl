@@ -15,8 +15,9 @@ import { useMemo, useState } from 'react';
 import { Avatar } from '@/components/common/Avatar';
 import { DateDistance } from '@/components/common/DateDistance';
 import { Favicon } from '@/components/common/Favicon';
+import { LinkButton } from '@/components/common/LinkButton';
 import { Panel } from '@/components/common/Panel';
-import { useDateParameters, useLocale, useMessages } from '@/components/hooks';
+import { useDateParameters, useLocale, useMessages, useNavigation } from '@/components/hooks';
 import { useWebsiteEventsSeriesQuery } from '@/components/hooks/queries/useWebsiteEventsSeriesQuery';
 import { useWebsiteSessionsQuery } from '@/components/hooks/queries/useWebsiteSessionsQuery';
 import { useWebsiteStatsQuery } from '@/components/hooks/queries/useWebsiteStatsQuery';
@@ -596,6 +597,7 @@ function EventsOverviewPanel({
 }) {
   const [selectedTab, setSelectedTab] = useState('sessions');
   const { locale } = useLocale();
+  const { renderUrl } = useNavigation();
   const { unit } = useDateParameters();
   const { data, isLoading } = useWebsiteEventsSeriesQuery(websiteId, { limit: 12 });
   const { data: sessionsData, isLoading: sessionsLoading } = useWebsiteSessionsQuery(websiteId, {
@@ -700,17 +702,34 @@ function EventsOverviewPanel({
             </div>
           </Grid>
         </TabPanel>
-        {['funnels', 'journey'].map(tab => (
-          <TabPanel key={tab} id={tab}>
-            <Row
+        {[
+          {
+            id: 'funnels',
+            title: 'See where visitors drop off between steps.',
+            action: 'Open funnels',
+            href: `/app/${websiteId}/funnels`,
+          },
+          {
+            id: 'journey',
+            title: 'Follow the path from first visit to payment.',
+            action: 'Open customer journeys',
+            href: `/app/${websiteId}/journeys`,
+          },
+        ].map(tab => (
+          <TabPanel key={tab.id} id={tab.id}>
+            <Column
               alignItems="center"
               justifyContent="center"
+              gap="3"
               style={{ minHeight: EVENTS_OVERVIEW_HEIGHT }}
             >
               <Text color="muted" weight="bold">
-                Coming soon
+                {tab.title}
               </Text>
-            </Row>
+              <LinkButton href={renderUrl(tab.href, false)} variant="outline">
+                {tab.action}
+              </LinkButton>
+            </Column>
           </TabPanel>
         ))}
         <TabPanel id="payments">

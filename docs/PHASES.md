@@ -914,8 +914,11 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
   compare), replay, and settings. Legacy revenue debug routes redirect to the
   canonical paths. The website layout uses a 1320 px workstation width.
   `/app` is now a revenue-first portfolio (revenue, revenue/visitor, purchase
-  rate, visitors; revenue-led site cards) and `/` is a real landing page driven
-  by `BRAND` + `PLANS` instead of redirecting to login. Brand chrome moved from
+  rate, visitors; revenue-led site cards); the website metric strip now leads
+  with revenue and revenue/visitor; and the overview's funnels/journey tabs
+  link to the real report pages instead of showing "Coming soon". `/` is a real
+  landing page driven by `BRAND` + `PLANS` instead of redirecting to login.
+  Brand chrome moved from
   blue to the blush signal, and the top nav/search/settings/404/share surfaces
   use the brand mark and config. New tests: nav coverage/active state (4) and
   expanded route allowlist. Full suite 597/597, build/lint/typecheck green; 19

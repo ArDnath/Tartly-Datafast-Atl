@@ -35,15 +35,15 @@ export function useWebsiteOverviewMetrics({
   const metrics: WebsiteOverviewMetric[] | null = overview
     ? [
         {
-          value: overview.visitors,
-          label: t(labels.visitors),
-          change: overview.visitors - (comparisonOverview?.visitors || 0),
-          formatValue: formatLongNumber,
-        },
-        {
           value: overview.revenue,
           label: 'Revenue',
           change: overview.revenue - (comparisonOverview?.revenue || 0),
+          formatValue: (n: number) => formatLongCurrency(Number(n || 0), currency),
+        },
+        {
+          value: overview.revenuePerVisitor,
+          label: 'Revenue/visitor',
+          change: overview.revenuePerVisitor - (comparisonOverview?.revenuePerVisitor || 0),
           formatValue: (n: number) => formatLongCurrency(Number(n || 0), currency),
         },
         {
@@ -53,10 +53,10 @@ export function useWebsiteOverviewMetrics({
           formatValue: (n: number) => `${Number(n || 0).toFixed(2)}%`,
         },
         {
-          value: overview.revenuePerVisitor,
-          label: 'Revenue/visitor',
-          change: overview.revenuePerVisitor - (comparisonOverview?.revenuePerVisitor || 0),
-          formatValue: (n: number) => formatLongCurrency(Number(n || 0), currency),
+          value: overview.visitors,
+          label: t(labels.visitors),
+          change: overview.visitors - (comparisonOverview?.visitors || 0),
+          formatValue: formatLongNumber,
         },
         {
           label: t(labels.bounceRate),
