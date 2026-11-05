@@ -32,7 +32,10 @@ Exactly two plans, no free tier:
 | Pro | $14.99 | up to 20 |
 
 Plan data lives in `src/lib/plans.ts`. Event, replay, member, and retention
-allowances are defined there and in `docs/PRICING_ECONOMICS.md`.
+allowances are defined there and in `docs/PRICING_ECONOMICS.md`. A new workspace
+has a **one-time 1,000-event setup allowance** to verify the tracker before
+checkout. It never resets and is not a free plan; ingestion pauses until a paid
+subscription is active.
 
 ## Local development
 
@@ -61,6 +64,7 @@ cookie. Password changes and resets revoke every session.
 Useful checks:
 
 ```bash
+pnpm gate   # format, lint, typecheck, full tests, production build
 pnpm lint
 pnpm test
 pnpm build
@@ -71,6 +75,15 @@ Or start PostgreSQL with Docker:
 ```bash
 docker compose up -d postgres
 ```
+
+## Operations
+
+- `docs/LAUNCH_CHECKLIST.md` — what is verified and what needs a human.
+- `docs/RUNBOOK.md` — deploy, rollback, outages, abuse, webhook failures.
+- `docs/BACKUP_AND_RECOVERY.md` — Neon restore rehearsal and verification.
+- `docs/SECRETS_ROTATION.md` — `APP_SECRET` and provider credential rotation.
+- `docs/ENGINEERING_STANDARDS.md` — the mandatory per-feature gate.
+- `docs/PHASES.md` — current status, proof, and remaining external blockers.
 
 ## Configuration
 
