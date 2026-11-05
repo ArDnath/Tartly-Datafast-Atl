@@ -63,12 +63,12 @@ app  ->  features  ->  components / lib / queries / permissions / store
 
 | Domain | Owns |
 | --- | --- |
-| `account` | `/api/me` profile, password, owned websites, account/security/preferences settings, local-user admin and permission checks |
+| `account` | `/api/me` profile, password, owned websites, account/security/preferences settings, local-user admin and permission checks, and the platform-admin activation funnel |
 | `analytics` | the signed-in website workbench (overview, reports, sessions, events, replay, realtime, cohorts, compare, segments), ingestion (`send`, `record`, `batch`), heartbeat, report/metric handlers and report permission checks, analytics widgets, filters, and query hooks |
 | `app-shell` | signed-in shell, top nav, notices, workspace switcher, user menu |
 | `auth` | login, signup, verification, reset, logout, auth query hooks |
 | `billing` | platform subscription lifecycle, Dodo checkout/portal/cancel/change-plan, signed billing webhooks, invoices, and the plan/usage settings screen |
-| `docs` | public documentation shell and provider revenue guides |
+| `docs` | public documentation shell, provider revenue guides, and generated tracker install guides (`/docs/install`) |
 | `legacy` | frozen boards/links/pixels APIs and the share-rendered link/pixel pages, with their read permissions; list, edit, and board UI are deleted |
 | `marketing` | landing and pricing |
 | `onboarding` | onboarding canvas and website setup |
@@ -233,7 +233,10 @@ account, security, and preference screens live in `features/account/settings`,
 workspace settings in `features/workspaces/settings`, website list settings in
 `features/websites/settings`, integration settings in
 `features/payments/settings`, and plan/usage in `features/billing`. The
-structure test pins this so `settings` cannot regrow into a catch-all domain.
+platform-admin activation funnel lives in `features/account/settings` with its
+query under `features/account/server/queries/activation.ts`, and its nav item is
+rendered only when `user.isPlatformAdmin` is true. The structure test pins this
+so `settings` cannot regrow into a catch-all domain.
 
 The workbench split is deliberate: `analytics` owns everything a customer does
 to read their traffic and revenue, while `websites` owns the site itself

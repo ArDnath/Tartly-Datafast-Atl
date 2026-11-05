@@ -222,6 +222,46 @@
   text-decoration: none;
 }
 
+.links li {
+  line-height: 1.6;
+}
+
+.codeBlock {
+  margin: 16px 0;
+  border: 1px solid var(--rl-border);
+  border-radius: 12px;
+  background: #161616;
+  overflow: hidden;
+}
+
+.codeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--rl-border);
+  color: var(--rl-muted-fg);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.codeBlock pre {
+  margin: 0;
+  padding: 14px;
+  overflow-x: auto;
+}
+
+.codeBlock code {
+  color: #e8e8ea;
+  font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre;
+}
+
 .links a:hover {
   text-decoration: underline;
   text-underline-offset: 3px;

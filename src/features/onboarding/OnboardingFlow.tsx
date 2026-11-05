@@ -6,10 +6,19 @@ import { type FormEvent, type ReactNode, useEffect, useMemo, useRef, useState } 
 import { BrandMark, BrandWordmark } from '@/components/brand/BrandMark';
 import { useApi } from '@/components/hooks';
 import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
+import { getInstallSnippet, INSTALL_GUIDES } from '@/features/docs/install-guides';
 import { BRAND } from '@/lib/brand';
 import styles from './Onboarding.module.css';
 
-type Step = 'welcome' | 'workspace' | 'website' | 'install' | 'verify' | 'payments' | 'done';
+type Step =
+  | 'welcome'
+  | 'workspace'
+  | 'website'
+  | 'install'
+  | 'verify'
+  | 'payments'
+  | 'report'
+  | 'done';
 type Direction = 'forward' | 'backward';
 
 interface WorkspaceSummary {
@@ -33,6 +42,7 @@ const ORDERED_STEPS: Exclude<Step, 'welcome' | 'done'>[] = [
   'install',
   'verify',
   'payments',
+  'report',
 ];
 
 const STEP_LABEL: Record<Exclude<Step, 'welcome' | 'done'>, string> = {
@@ -41,6 +51,7 @@ const STEP_LABEL: Record<Exclude<Step, 'welcome' | 'done'>, string> = {
   install: 'Tracker',
   verify: 'Verify',
   payments: 'Revenue',
+  report: 'Report',
 };
 
 function StepHeading({
@@ -65,14 +76,20 @@ function Reveal({
   children,
   index,
   className,
+  role,
+  'aria-label': ariaLabel,
 }: {
   children: ReactNode;
   index: number;
   className?: string;
+  role?: string;
+  'aria-label'?: string;
 }) {
   return (
     <div
       className={`${styles.reveal} ${className || ''}`}
+      role={role}
+      aria-label={ariaLabel}
       style={{ animationDelay: `${index * 70}ms` }}
     >
       {children}
@@ -98,6 +115,7 @@ export function OnboardingFlow() {
   const [domain, setDomain] = useState('');
   const [websiteId, setWebsiteId] = useState<string | null>(null);
   const [createdWebsiteDomain, setCreatedWebsiteDomain] = useState('');
+  const [framework, setFramework] = useState(INSTALL_GUIDES[0].slug);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -248,9 +266,11 @@ export function OnboardingFlow() {
 
   const snippet =
     websiteId && typeof window !== 'undefined'
-      ? `<script defer src="${window.location.origin}/script.js" data-website-id="${websiteId}"${
-          createdWebsiteDomain ? ` data-domain="${createdWebsiteDomain}"` : ''
-        }></script>`
+      ? getInstallSnippet(framework, {
+          websiteId,
+          domain: createdWebsiteDomain || undefined,
+          hostUrl: window.location.origin,
+        })
       : '';
 
   async function handleCopy() {
@@ -476,9 +496,28 @@ export function OnboardingFlow() {
             <>
               <StepHeading
                 title="Install the tracker"
-                subtitle={`Paste this snippet before the closing </body> tag on every page of ${createdWebsiteDomain}.`}
+                subtitle={`Add this snippet to ${createdWebsiteDomain}. Pick the framework you deploy.`}
               />
-              <Reveal index={1} className={styles.codeCard}>
+
+              <Reveal index={1} className={styles.frameworkTabs} role="group" aria-label="Framework">
+                {INSTALL_GUIDES.map(guide => (
+                  <button
+                    key={guide.slug}
+                    type="button"
+                    className={
+                      framework === guide.slug
+                        ? `${styles.frameworkTab} ${styles.frameworkTabActive}`
+                        : styles.frameworkTab
+                    }
+                    aria-pressed={framework === guide.slug}
+                    onClick={() => setFramework(guide.slug)}
+                  >
+                    {guide.title}
+                  </button>
+                ))}
+              </Reveal>
+
+              <Reveal index={2} className={styles.codeCard}>
                 <pre className={styles.code}>{snippet}</pre>
                 <button
                   type="button"
@@ -488,14 +527,16 @@ export function OnboardingFlow() {
                   {copied ? 'Copied' : 'Copy snippet'}
                 </button>
               </Reveal>
-              <Reveal index={2}>
+
+              <Reveal index={3}>
                 <p className={styles.hint}>
-                  With Next.js, put it in the root layout. With plain HTML, paste it once per page.
-                  Ad blockers can block analytics requests — test in a normal browser profile.
+                  {INSTALL_GUIDES.find(guide => guide.slug === framework)?.summary}{' '}
+                  <Link href={`/docs/install#${framework}`}>Full {framework} guide</Link>. Ad
+                  blockers can block analytics requests — test in a normal browser profile.
                 </p>
               </Reveal>
               {error && <p className={styles.error}>{error}</p>}
-              <Reveal index={3} className={styles.actions}>
+              <Reveal index={4} className={styles.actions}>
                 <button type="button" className={styles.primary} onClick={() => go('verify')}>
                   I installed it
                 </button>
@@ -605,9 +646,65 @@ export function OnboardingFlow() {
                     Open payment settings
                   </Link>
                 )}
-                <button type="button" className={styles.secondary} onClick={() => go('done')}>
-                  I&apos;ll do this later
+                <button type="button" className={styles.secondary} onClick={() => go('report')}>
+                  Continue to your first report
                 </button>
+              </Reveal>
+            </>
+          )}
+
+          {step === 'report' && (
+            <>
+              <StepHeading
+                title="Your first revenue report"
+                subtitle="Traffic is already recorded. Revenue and attribution fill in as soon as a payment provider sends the first payment."
+              />
+              <Reveal index={1} className={styles.reportGrid}>
+                <div className={styles.reportCard}>
+                  <span className={styles.reportLabel}>Traffic</span>
+                  <strong className={styles.reportValue}>
+                    {verifyState?.installed
+                      ? `${verifyState.eventCount.toLocaleString('en-US')} event${
+                          verifyState.eventCount === 1 ? '' : 's'
+                        }`
+                      : 'Tracker not verified yet'}
+                  </strong>
+                  <p>
+                    Visitors, sessions, channels, and landing pages are available on the overview.
+                  </p>
+                </div>
+                <div className={styles.reportCard}>
+                  <span className={styles.reportLabel}>Revenue</span>
+                  <strong className={styles.reportValue}>Waiting for a provider</strong>
+                  <p>
+                    Connect Stripe, Dodo, Polar, Lemon Squeezy, Yolfi, or the manual API to record
+                    payments for this website.
+                  </p>
+                </div>
+                <div className={styles.reportCard}>
+                  <span className={styles.reportLabel}>Attribution</span>
+                  <strong className={styles.reportValue}>First and last touch</strong>
+                  <p>
+                    Every matched payment links back to the visit that produced it, so you can see
+                    which channel makes money.
+                  </p>
+                </div>
+              </Reveal>
+              <Reveal index={2} className={styles.actions}>
+                {websiteId && (
+                  <Link className={styles.primary} href={`/app/${websiteId}/revenue`}>
+                    Open revenue report
+                  </Link>
+                )}
+                <button type="button" className={styles.secondary} onClick={() => go('done')}>
+                  Finish setup
+                </button>
+              </Reveal>
+              <Reveal index={3}>
+                <p className={styles.hint}>
+                  No numbers are invented. The report shows real events and real provider payments
+                  only; empty states stay visible until data arrives.
+                </p>
               </Reveal>
             </>
           )}

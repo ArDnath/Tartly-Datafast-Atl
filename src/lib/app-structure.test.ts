@@ -199,6 +199,7 @@ describe('application source layout', () => {
 
     for (const path of [
       'account/server/password/handler.test.ts',
+      'account/server/activation/handler.test.ts',
       'account/server/users/handler.test.ts',
       'billing/server/checkout/handler.test.ts',
       'billing/server/webhook/dodo/handler.test.ts',
@@ -403,7 +404,10 @@ describe('application source layout', () => {
       'account/lib/website-overview.ts',
       'account/server/queries/portfolioMrr.ts',
       'account/server/queries/websiteOverview.ts',
+      'account/server/queries/activation.ts',
+      'account/server/activation/handler.ts',
       'account/server/users/handler.ts',
+      'account/settings/ActivationSettingsPage.tsx',
       'account/settings/ProfilePage.tsx',
       'account/settings/SecuritySettingsPage.tsx',
       'account/settings/preferences/PreferencesPage.tsx',
@@ -449,6 +453,7 @@ describe('application source layout', () => {
       'billing/server/providers/dodo.ts',
       'billing/server/service.ts',
       'billing/server/webhook/dodo/handler.ts',
+      'docs/install-guides.ts',
       'legacy/lib/legacy-features.ts',
       'legacy/lib/permissions.ts',
       'legacy/server/collect/link/handler.ts',

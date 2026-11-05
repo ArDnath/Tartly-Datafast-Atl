@@ -6,7 +6,7 @@
 - **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
   forked locally at `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-06
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat; Phase 9 complete. The source restructure is finished and enforced: `src/app` is routing only, every domain owns its UI/hooks/lib/server/queries, `src/lib` and `src/queries` are allowlisted shared kernels, and route tests live beside feature handlers. Phase 6 usage metering shipped. **Phase 5 platform billing now ships behind a separate `features/billing` domain:** Dodo checkout, customer portal, cancel-at-period-end, plan changes, signed Standard Webhooks verification, idempotent and out-of-order-safe lifecycle reduction, provider-derived entitlements, real invoice history, a billing settings panel, and 22 new tests. It is marked **done with caveats** because no Dodo test/live credentials exist here, so live checkout and webhook delivery still need the human. **Phase 7 is complete with caveats:** a real PostgreSQL smoke run proved 48 analytics assertions, the attribution journey suite covers organic/paid/referral/direct/recurring/unattributed paths, replay gating and masking are tested, a daily tenant-scoped retention job now deletes expired payloads, and the provider capability table is code-verified. Live provider webhooks, ClickHouse, browser recorder runtime, and load/concurrency remain unverified. Next: finish Phase 8 (framework guides, activation funnel, MCP/CLI), then Phase 10 operations.
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat; Phase 9 complete. The source restructure is finished and enforced: `src/app` is routing only, every domain owns its UI/hooks/lib/server/queries, `src/lib` and `src/queries` are allowlisted shared kernels, and route tests live beside feature handlers. Phase 6 usage metering shipped. **Phase 5 platform billing now ships behind a separate `features/billing` domain:** Dodo checkout, customer portal, cancel-at-period-end, plan changes, signed Standard Webhooks verification, idempotent and out-of-order-safe lifecycle reduction, provider-derived entitlements, real invoice history, a billing settings panel, and 22 new tests. It is marked **done with caveats** because no Dodo test/live credentials exist here, so live checkout and webhook delivery still need the human. **Phase 7 is complete with caveats:** a real PostgreSQL smoke run proved 48 analytics assertions, the attribution journey suite covers organic/paid/referral/direct/recurring/unattributed paths, replay gating and masking are tested, a daily tenant-scoped retention job now deletes expired payloads, and the provider capability table is code-verified. Live provider webhooks, ClickHouse, browser recorder runtime, and load/concurrency remain unverified. Phase 9's remaining partial items are now closed: framework install tabs and guides, the first-report onboarding step, brand-driven settings copy, and platform-admin activation funnel. Next: MCP/CLI and Phase 10 operations.
 
 ## Overall progress
 
@@ -14,11 +14,13 @@
 - Phases complete: **4 full, 4 with caveats** (Phase 2: copy-with-data rehearsal;
   Phase 4: live Resend delivery; Phase 5: live Dodo test mode; Phase 7: live
   provider webhooks, ClickHouse, browser recorder runtime, load/concurrency)
-- Overall percent (average of phases 0–11): **75%**
+- Overall percent (average of phases 0–11): **77%**
 - Build state at last check: **green** (`tsc --noEmit` clean; `biome lint`
-  clean). Full test run: **693 passed / 0 failed / 1 gated skip** under
+  clean). Full test run: **704 passed / 0 failed / 1 gated skip** under
   `TZ=UTC`; the Phase 7 PostgreSQL smoke adds **48 live assertions** when run
-  explicitly.
+  explicitly. The activation query was also exercised against the local
+  PostgreSQL database (3 accounts → 2 workspaces → 2 websites → 1 website with
+  events → 0 payment connections → 0 attributed payments).
 - GitHub CI: **green on `main`**. The workflow starts PostgreSQL 17, runs
   `pnpm build-db`, lint, the full suite, `prisma migrate deploy`, the Phase 7
   analytics smoke against the migrated database, and `pnpm build` on every pull
@@ -63,7 +65,7 @@ No third plan, no free tier, no hidden limits.
 | 5 | Platform billing (Dodo) | DONE_WITH_CAVEATS | 90% | 2026-11-05 | 2026-11-05 | live Dodo test mode |
 | 6 | Plans, pricing economics, usage | IN_PROGRESS | 75% | 2026-11-04 | — | live concurrency proof; owner approval of limits; notice emails |
 | 7 | Analytics validation, integrations, replay | DONE_WITH_CAVEATS | 100% | 2026-11-05 | 2026-11-06 | live provider webhooks; ClickHouse; browser recorder runtime; load/concurrency |
-| 8 | Onboarding and developer experience | IN_PROGRESS | 40% | 2026-11-04 | — | guides, activation, MCP |
+| 8 | Onboarding and developer experience | IN_PROGRESS | 70% | 2026-11-04 | — | MCP/CLI; browser walkthrough |
 | 9 | Rebrand and product UI | DONE | 100% | 2026-11-04 | 2026-11-05 | none |
 | 10 | Compliance, abuse, email, operations | NOT_STARTED | 0% | — | — | legal review |
 | 11 | Hardening, QA, deployment, launch | NOT_STARTED | 0% | — | — | hosting + domain |
@@ -808,16 +810,25 @@ migration connections.
       proof: `src/features/onboarding/OnboardingFlow.tsx`,
       `docs/ONBOARDING_SPEC.md`. Payment step links to the real settings page;
       no hard gates.
-- [ ] Install guides: Next.js, React, Vite, plain HTML, Astro, Remix (where
+- [x] Install guides: Next.js, React, Vite, plain HTML, Astro, Remix (where
       supported) + troubleshooting (ad blockers, CSP, wrong domain, SPA
-      routing). — **not written**; the onboarding UI has short guidance only.
+      routing). — proof: `src/features/docs/install-guides.ts` generates every
+      snippet from the real tracker contract (`/script.js`, `data-website-id`,
+      `data-domain`); `/docs/install` renders all six guides plus troubleshooting;
+      the onboarding install step has framework tabs. Snippets are unit-tested
+      and each guide is explicitly labelled **untested at runtime** until a real
+      app is exercised.
 - [ ] AI agent experience: review Talivia agent repo licence (MIT verified);
       write `llms.txt` and agent docs; verification endpoint/CLI; design and if
       feasible implement MCP server (verify installation, list events, diagnose).
       — **not built**; the verification endpoint exists and is reusable.
-- [ ] Activation metrics: signup, workspace created, website created, tracker
+- [x] Activation metrics: signup, workspace created, website created, tracker
       installed, first event, payment connected, first attributed payment. —
-      **not instrumented**.
+      proof: `features/account/server/queries/activation.ts` derives the funnel
+      from durable records (no synthetic events); `GET /api/admin/activation` is
+      platform-admin only; `/app/settings/activation` renders it. "Tracker
+      installed" and "first event" are one honest stage because the first
+      `website_event` row is the same signal.
 
 ### Acceptance criteria
 
@@ -825,8 +836,12 @@ migration connections.
       **API flow proven end-to-end** (login → workspace → website → event →
       verify). A browser walk-through is still required because the desktop
       browser tool was unavailable.
-- [ ] Each framework guide has a tested or clearly labelled untested snippet.
-- [ ] Activation funnel recorded and viewable by internal admins.
+- [x] Each framework guide has a tested or clearly labelled untested snippet. —
+      proof: six guides in `install-guides.test.ts`; all are labelled **untested
+      at runtime** with the reason shown on `/docs/install`.
+- [x] Activation funnel recorded and viewable by internal admins. — proof:
+      `/api/admin/activation` rejects non-platform-admins (handler test) and
+      `/app/settings/activation` shows aggregate stage counts and conversion.
 
 ### Decisions made
 
@@ -887,8 +902,9 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 - [x] **UI-1 — Design audit:** extract Tartly tokens and map onto Talivia. —
       proof: `docs/UI_DESIGN_SYSTEM.md`.
 - [x] **UI-2 — Brand config adoption:** name, wordmark, favicon, metadata,
-      emails, footer, auth, docs read from one config. — **partial**: auth/nav/
-      metadata/pricing/onboarding use it; settings copy not yet.
+      emails, footer, auth, docs read from one config. — **complete**: auth/nav/
+      metadata/pricing/onboarding/docs use it, and settings copy now names the
+      product from `BRAND.name` instead of hardcoding it.
 - [x] **UI-3 — App shell:** quiet dark workstation; tonal layering; hairline
       borders; blush reserved for signal; tabular numerals. — proof:
       `TopNav.tsx` uses the brand wordmark and a hairline border;
@@ -906,18 +922,22 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       reduced-motion support, welcome moment. — proof: `OnboardingFlow.tsx` /
       `Onboarding.module.css`.
 - [x] **UI-6 — Onboarding steps:** welcome → workspace → website → tracker
-      install → live verification → payments → first report. — **first report
-      not built**; done step links to the dashboard.
+      install → live verification → payments → first report → done. — proof:
+      `OnboardingFlow.tsx`; the report step links to the real revenue report and
+      keeps empty states instead of inventing numbers.
 - [x] **UI-7 — Install experience:** snippet card with copy button, framework
-      tabs, verify-live status with real polling. — **tabs not built**; copy +
-      real polling done.
+      tabs, verify-live status with real polling. — proof: framework tabs in
+      `OnboardingFlow.tsx` use the generated guides from
+      `features/docs/install-guides.ts`; copy + real polling remain.
 - [x] **UI-8 — Pricing page:** two cards only, Starter $7.99 / Pro $14.99,
       monthly/annual toggle, no free tier, no fake claims. — proof: `/pricing`
       returns 200 and renders both prices.
 - [x] **UI-9 — Billing + usage pages:** plan, renewal, usage bar, 80%/100%
-      states, upgrade path. — **usage shipped** at `/app/settings/billing`
-      (plan, reset date, event/replay bars, grace/limit states, website/member
-      limits, upgrade link). Invoice/renewal history waits for Phase 5.
+      states, upgrade path, invoices. — proof: usage at
+      `/app/settings/billing` (plan, reset date, event/replay bars, grace/limit
+      states, website/member limits, upgrade link); invoice and renewal history
+      are provider-issued rows from `billing_invoice` in
+      `BillingSubscriptionPanel`.
 - [x] **UI-10 — Settings:** workspace, members, websites, integrations,
       security; consistent empty/error/loading states. — proof: `/app/settings`
       is now a real overview instead of a redirect; grouped nav covers
@@ -1092,6 +1112,23 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       hide), and pins the moved handler layout. — proof: typecheck and lint
       clean; `next build` succeeds; full suite **646/646** passes.
 
+- [x] **UI-27 — Remaining restructure gaps (new):** closed the partial Phase
+      8/9 items. Added generated framework install guides (Next.js, React,
+      Vite, plain HTML, Astro, Remix) in `features/docs/install-guides.ts`,
+      a public `/docs/install` page with troubleshooting, and framework tabs in
+      the onboarding install step. Added the first-report onboarding step that
+      links to the real revenue report. Adopted `BRAND.name` in settings copy.
+      Added the platform-admin activation funnel: aggregate query in
+      `features/account/server/queries/activation.ts`, guarded
+      `GET /api/admin/activation`, and `/app/settings/activation` (nav item is
+      visible only to platform admins). Confirmed invoice/renewal history is
+      already provider-backed by Phase 5. — proof: new tests for guide
+      generation, funnel math, and handler authorization; the funnel query was
+      run against local PostgreSQL and returned 3 accounts → 2 workspaces → 2
+      websites → 1 website with events → 0 payment connections → 0 attributed
+      payments; `app-structure.test.ts` pins the new files and route tests;
+      typecheck and lint are clean; full suite **704 passed / 1 gated skip**.
+
 ### Acceptance criteria
 
 - [x] Repo-wide search for the original brand finds nothing customer-facing
@@ -1239,8 +1276,9 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
    browser recorder/masking walkthrough, and load/concurrency proof. The
    attribution suite, capability table, replay gating/masking, retention job,
    and 48-assertion PostgreSQL analytics smoke are complete.
-6. **Phase 8 finish:** framework guides, activation events/admin funnel,
-   `llms.txt`, MCP/CLI verification.
+6. **Phase 8 finish:** framework guides, install tabs, first-report step, and
+   the activation funnel are complete. MCP/CLI (`llms.txt`, verification tool)
+   and a browser walkthrough remain.
 7. **Phase 9 complete:** the portfolio MRR-by-channel panel, the config-derived
    brand lock, and the WCAG AA contrast test are shipped. The source restructure
    (app, server, domain UI/hooks/lib/store) and the legacy UI prune are complete
@@ -1251,13 +1289,31 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
    repositories and the analytics SQL engine live in feature `server/queries`,
    and `src/queries` is a small shared kernel. Route ownership is complete:
    API contract tests live beside feature handlers, `src/app` is test-free, and
-   analytics report/realtime handlers mirror their route paths. Billing history
-   waits for Phase 5.
+   analytics report/realtime handlers mirror their route paths. Billing
+   invoice/renewal history is now provider-backed through Phase 5. UI-27 closed
+   the remaining partial items: framework install guides/tabs, first-report
+   step, brand-driven settings copy, and the activation funnel.
 8. **Phase 10:** legal drafts, abuse protection, transactional email, ops.
 9. **Phase 11:** security review, load test, CI, deployment/runbook.
 10. **Phase 12:** go-to-market.
 
 ## Changelog
+
+- 2026-11-06 — **Remaining restructure gaps (Phase 9 / UI-27 + Phase 8):**
+  added `features/docs/install-guides.ts` with generated, unit-tested snippets
+  for Next.js, React, Vite, plain HTML, Astro, and Remix; each guide is labelled
+  **untested at runtime** and the public `/docs/install` page includes
+  troubleshooting. The onboarding install step now has framework tabs, and a
+  first-report step links to the real revenue report. Settings copy reads
+  `BRAND.name`. Added the platform-admin activation funnel
+  (`features/account/server/queries/activation.ts` +
+  `GET /api/admin/activation` + `/app/settings/activation`) with aggregate
+  stage counts, conversion percentages, and no synthetic events. The funnel
+  query was run against local PostgreSQL. Invoice and renewal history were
+  confirmed provider-backed by Phase 5. New tests cover guide generation, funnel
+  math, and non-admin rejection; `app-structure.test.ts` pins the new modules.
+  Typecheck, lint, `next build`, and the full suite (**704 passed / 1 gated
+  skip**) are green.
 
 - 2026-11-06 — **Phase 7 (analytics validation, attribution, replay,
   retention):** added a gated PostgreSQL smoke

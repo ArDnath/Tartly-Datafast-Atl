@@ -18,6 +18,7 @@ import { useApi, useMessages } from '@/components/hooks';
 import { DialogButton } from '@/components/input/DialogButton';
 import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { PasswordChangeForm } from '@/features/account/settings/PasswordChangeForm';
+import { BRAND } from '@/lib/brand';
 
 const CARD_STYLE = {
   background: '#161616',
@@ -143,8 +144,8 @@ export function SecuritySettingsPage() {
       <Column gap="1">
         <Heading size="lg">Security</Heading>
         <Text color="muted">
-          Sign-in, email verification, and account lifecycle. Tenant access is re-checked on every
-          request, not inferred from this page.
+          {BRAND.name} sign-in, email verification, and account lifecycle. Tenant access is
+          re-checked on every request, not inferred from this page.
         </Text>
       </Column>
 
