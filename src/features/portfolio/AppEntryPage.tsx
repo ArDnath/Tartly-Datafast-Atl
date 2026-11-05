@@ -374,10 +374,11 @@ function MrrByChannelPanel({ mrr }: { mrr?: PortfolioMrr }) {
       <Row alignItems="baseline" justifyContent="space-between" gap="3" wrap="wrap">
         <Column gap="1" minWidth="0">
           <Text size="lg" weight="bold">
-            MRR by channel
+            Current MRR by channel
           </Text>
           <Text size="sm" color="muted">
-            Active subscriptions by the channel that first brought the customer in.
+            Active subscriptions by the channel that first brought the customer in. Not affected by
+            the date filter.
           </Text>
         </Column>
         <Text
