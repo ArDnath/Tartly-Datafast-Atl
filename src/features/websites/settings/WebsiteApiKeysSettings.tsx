@@ -127,7 +127,10 @@ export function WebsiteApiKeysSettings({ websiteId }: { websiteId: string }) {
           border
           borderRadius
           padding="4"
-          style={{ borderColor: 'rgba(242, 180, 203, 0.34)', background: 'rgba(242, 180, 203, 0.08)' }}
+          style={{
+            borderColor: 'rgba(242, 180, 203, 0.34)',
+            background: 'rgba(242, 180, 203, 0.08)',
+          }}
         >
           <Label>Copy this key now</Label>
           <Text color="muted">

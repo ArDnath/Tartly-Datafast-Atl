@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { getPublicOrigin } from '@/lib/get-base-url';
 import { parseRequest } from '@/lib/request';
 import { badRequest, json, unauthorized } from '@/lib/response';
+import { recordAuditEvent } from '@/queries/prisma';
 import {
   createWorkspaceInvitation,
   InvitationError,
@@ -60,6 +61,15 @@ export async function POST(
       email: body.email,
       role: body.role,
       origin: getPublicOrigin(request),
+    });
+
+    await recordAuditEvent({
+      auth,
+      eventType: 'invitation.created',
+      metadata: { email: body.email, role: body.role },
+      request,
+      resourceId: invitation.id,
+      resourceType: 'workspace_invitation',
     });
 
     return json(invitation);

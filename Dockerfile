@@ -62,4 +62,7 @@ EXPOSE 3000
 
 ENV HOSTNAME=0.0.0.0
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD curl -fsS http://localhost:3000/api/health/live || exit 1
+
 CMD ["pnpm", "start-docker"]

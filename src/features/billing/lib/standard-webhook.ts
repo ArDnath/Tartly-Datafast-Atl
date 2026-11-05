@@ -52,7 +52,10 @@ function decodeSecret(secret: string): Buffer {
   try {
     const decoded = Buffer.from(value, 'base64');
 
-    if (decoded.length >= 16 && decoded.toString('base64').replace(/=+$/, '') === value.replace(/=+$/, '')) {
+    if (
+      decoded.length >= 16 &&
+      decoded.toString('base64').replace(/=+$/, '') === value.replace(/=+$/, '')
+    ) {
       return decoded;
     }
   } catch {
@@ -135,13 +138,15 @@ export function verifyStandardWebhook({
     );
   }
 
-  const expected = Buffer.from(
-    computeWebhookSignature({ id, timestamp, payload, secret }),
-    'utf8',
-  );
+  const expected = Buffer.from(computeWebhookSignature({ id, timestamp, payload, secret }), 'utf8');
   const candidates = signatureCandidates(signature).map(value => Buffer.from(value, 'utf8'));
 
-  if (!candidates.some(candidate => candidate.length === expected.length && crypto.timingSafeEqual(candidate, expected))) {
+  if (
+    !candidates.some(
+      candidate =>
+        candidate.length === expected.length && crypto.timingSafeEqual(candidate, expected),
+    )
+  ) {
     throw new WebhookVerificationError('invalid-signature', 'Webhook signature does not match.');
   }
 

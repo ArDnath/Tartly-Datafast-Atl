@@ -74,6 +74,23 @@ export function secret() {
   return hash(value);
 }
 
+/**
+ * Previous APP_SECRET used only to read ciphertext during a rotation.
+ *
+ * Rotation procedure: set `APP_SECRET_PREVIOUS` to the old value, deploy with
+ * the new `APP_SECRET`, run `pnpm rotate:provider-secrets`, then remove
+ * `APP_SECRET_PREVIOUS`. Never encrypt new data with this key.
+ */
+export function previousSecret() {
+  const value = process.env.APP_SECRET_PREVIOUS?.trim();
+
+  if (!value || Buffer.byteLength(value, 'utf8') < 32) {
+    return null;
+  }
+
+  return hash(value);
+}
+
 export function uuid(...args: any) {
   if (args.length) {
     return v5(hash(...args, secret()), v5.DNS);

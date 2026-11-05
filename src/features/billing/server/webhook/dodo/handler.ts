@@ -34,8 +34,7 @@ export async function POST(request: Request) {
       secret: config.webhookSecret,
     });
   } catch (error) {
-    const code =
-      error instanceof WebhookVerificationError ? error.code : 'invalid-signature';
+    const code = error instanceof WebhookVerificationError ? error.code : 'invalid-signature';
 
     return badRequest({ code: `webhook-${code}`, message: 'Webhook verification failed.' });
   }
@@ -45,7 +44,10 @@ export async function POST(request: Request) {
   try {
     event = JSON.parse(verified.payload);
   } catch {
-    return badRequest({ code: 'webhook-invalid-payload', message: 'Webhook payload is not valid JSON.' });
+    return badRequest({
+      code: 'webhook-invalid-payload',
+      message: 'Webhook payload is not valid JSON.',
+    });
   }
 
   if (

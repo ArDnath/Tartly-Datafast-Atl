@@ -21,7 +21,9 @@ export function shouldApplySubscriptionEvent({
 }) {
   const incomingTime = incomingAt.getTime();
   const storedTime = storedAt.getTime();
-  return incomingTime > storedTime || (incomingTime === storedTime && incomingPriority > storedPriority);
+  return (
+    incomingTime > storedTime || (incomingTime === storedTime && incomingPriority > storedPriority)
+  );
 }
 
 function parsedDate(value: unknown) {
@@ -30,10 +32,7 @@ function parsedDate(value: unknown) {
   return Number.isNaN(result.getTime()) ? undefined : result;
 }
 
-export function yolfiEventDate(
-  data: Record<string, unknown>,
-  event: Record<string, unknown>,
-) {
+export function yolfiEventDate(data: Record<string, unknown>, event: Record<string, unknown>) {
   const fromData = parsedDate(data.updatedAt) || parsedDate(data.createdAt);
   if (fromData) return fromData;
 

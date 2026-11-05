@@ -53,12 +53,8 @@ export interface WorkspaceUsageSnapshot {
 }
 
 export function getUsagePeriodRange(now: Date = new Date()) {
-  const periodStart = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0),
-  );
-  const periodEnd = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0),
-  );
+  const periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
+  const periodEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0));
 
   return { periodStart, periodEnd };
 }
@@ -454,9 +450,7 @@ export async function markUsageNotice(
     where: {
       workspaceId,
       periodStart,
-      ...(level === 'warning'
-        ? { warningNotifiedAt: null }
-        : { limitNotifiedAt: null }),
+      ...(level === 'warning' ? { warningNotifiedAt: null } : { limitNotifiedAt: null }),
     },
     data: level === 'warning' ? { warningNotifiedAt: now } : { limitNotifiedAt: now },
   });

@@ -81,9 +81,7 @@ export async function getUserWebsites(
 
   return getWebsites(
     {
-      where: workspaceId
-        ? { workspaceId, OR: userWebsiteFilters }
-        : { OR: userWebsiteFilters },
+      where: workspaceId ? { workspaceId, OR: userWebsiteFilters } : { OR: userWebsiteFilters },
       include: {
         user: {
           select: {

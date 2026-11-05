@@ -39,12 +39,14 @@ settles behind the wordmark, rather than shipping Tartly's canvas worker.
 ```
 /welcome
    ├─ existing workspace? ── yes ──► /website
-   └─ no ──► /workspace ──► /website ──► /install ──► /verify ──► /payments ──► /done
+   └─ no ──► /workspace ──► /website ──► /install ──► /verify ──► /payments ──► /report ──► /done
 ```
 
 The step list adapts: a user who already has a workspace skips the workspace
-step, so the header shows 4 steps instead of 5. The dashboard is linked from
-`/done` and from the header wordmark; no step is a hard gate.
+step, so the header shows 5 steps instead of 6. The dashboard is linked from
+`/done`, `/report`, and the header wordmark; no step is a hard gate.
+`/report` links to the real revenue report and never invents numbers: empty
+states remain visible until the tracker and a payment provider produce data.
 
 ### Step 0 — Welcome
 
@@ -186,8 +188,15 @@ tool was unavailable in this environment.
 - Automatic workspace selection / workspace switcher in the app shell.
 - Invite step (ADMIN/MEMBER/VIEWER), expiry, revoke.
 - Plan choice + billing activation before the dashboard.
-- Analytics activation events and internal funnel view.
-- Framework-specific install tabs (Next.js, React, Vite, HTML, Astro, Remix)
-  with tested snippets.
-- MCP/CLI verification endpoint for AI agents.
 - Screenshot/visual regression coverage for the welcome and step transitions.
+- MCP/CLI verification endpoint for AI agents.
+
+Completed since the first draft:
+
+- Framework-specific install tabs (Next.js, React, Vite, plain HTML, Astro,
+  Remix). Snippets are generated from `src/features/docs/install-guides.ts`,
+  unit-tested, and labelled **untested at runtime** until a real app is run.
+- First-report step links to the real revenue report.
+- Analytics activation metrics and the internal, platform-admin-only funnel
+  view at `/app/settings/activation`.
+

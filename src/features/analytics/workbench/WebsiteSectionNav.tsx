@@ -43,10 +43,7 @@ function getActiveSection(pathname: string, websiteId: string) {
     return 'overview';
   }
 
-  const segment = pathname
-    .slice(base.length)
-    .replace(/^\/+/, '')
-    .split('/')[0];
+  const segment = pathname.slice(base.length).replace(/^\/+/, '').split('/')[0];
 
   if (!segment) {
     return 'overview';
@@ -62,8 +59,7 @@ function getActiveSection(pathname: string, websiteId: string) {
  * reachable the moment its route exists.
  */
 export function getWebsiteNavSections(websiteId: string): NavSection[] {
-  const path = (route: string) =>
-    route ? `/app/${websiteId}/${route}` : `/app/${websiteId}`;
+  const path = (route: string) => (route ? `/app/${websiteId}/${route}` : `/app/${websiteId}`);
 
   return [
     {
@@ -196,21 +192,23 @@ export function WebsiteSectionTabs({ websiteId }: { websiteId: string }) {
       gap="1"
       overflowX="auto"
     >
-      {sections.flatMap(section => section.items).map(item => {
-        const isActive = item.id === active;
+      {sections
+        .flatMap(section => section.items)
+        .map(item => {
+          const isActive = item.id === active;
 
-        return (
-          <Link
-            key={item.id}
-            href={item.path}
-            className="website-section-tab"
-            data-selected={isActive ? '' : undefined}
-            aria-current={isActive ? 'page' : undefined}
-          >
-            {item.label}
-          </Link>
-        );
-      })}
+          return (
+            <Link
+              key={item.id}
+              href={item.path}
+              className="website-section-tab"
+              data-selected={isActive ? '' : undefined}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
     </Row>
   );
 }

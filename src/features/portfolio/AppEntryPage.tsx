@@ -386,7 +386,9 @@ function MrrByChannelPanel({ mrr }: { mrr?: PortfolioMrr }) {
           weight="bold"
           style={{ color: '#f2b4cb', fontVariantNumeric: 'tabular-nums' }}
         >
-          {hasSingleCurrency ? formatLongCurrency(totalMrr, mrr.currency as string, locale) : 'Mixed'}
+          {hasSingleCurrency
+            ? formatLongCurrency(totalMrr, mrr.currency as string, locale)
+            : 'Mixed'}
         </Text>
       </Row>
 

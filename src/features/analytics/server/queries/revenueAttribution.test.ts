@@ -41,6 +41,27 @@ test('revenue attribution includes payments from every provider environment', as
   expect(call.where.payment).not.toHaveProperty('paymentMode');
 });
 
+test('the default report groups revenue by first touch', async () => {
+  await getRevenueAttributionReport('site-1', input);
+
+  const call = (prisma.client.paymentAttribution as any).groupBy.mock.calls[0][0];
+  expect(call.where.attributionModel).toBe('first_touch');
+  expect(call.by[0]).toBe('firstTouchSource');
+});
+
+test('a workspace can switch the report to last touch', async () => {
+  mockPrisma.client.websiteAttributionConfig.findUnique.mockResolvedValue({
+    attributionModelDefault: 'last_touch',
+    defaultCurrency: 'USD',
+  });
+
+  await getRevenueAttributionReport('site-1', input);
+
+  const call = (prisma.client.paymentAttribution as any).groupBy.mock.calls[0][0];
+  expect(call.where.attributionModel).toBe('last_touch');
+  expect(call.by[0]).toBe('lastTouchSource');
+});
+
 test('revenue overview does not filter payments by provider environment', async () => {
   await getRevenueOverviewReport('site-1', input);
 

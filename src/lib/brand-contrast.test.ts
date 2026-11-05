@@ -30,7 +30,11 @@ function contrast(foreground: string, background: string) {
 const AA_NORMAL_TEXT = 4.5;
 
 describe('brand color contrast', () => {
-  const pairs: [name: string, foreground: keyof typeof BRAND.colors, background: keyof typeof BRAND.colors][] = [
+  const pairs: [
+    name: string,
+    foreground: keyof typeof BRAND.colors,
+    background: keyof typeof BRAND.colors,
+  ][] = [
     ['body text on canvas', 'foreground', 'canvas'],
     ['body text on card', 'foreground', 'card'],
     ['muted text on card', 'mutedForeground', 'card'],

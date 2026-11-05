@@ -14,7 +14,10 @@ export interface ReplayChunk {
   endedAt: Date;
 }
 
-export async function getReplayChunks(websiteId: string, sessionId: string): Promise<ReplayChunk[]> {
+export async function getReplayChunks(
+  websiteId: string,
+  sessionId: string,
+): Promise<ReplayChunk[]> {
   return runQuery({
     [PRISMA]: () => relationalQuery(websiteId, sessionId),
     [CLICKHOUSE]: () => clickhouseQuery(websiteId, sessionId),

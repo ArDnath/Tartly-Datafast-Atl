@@ -39,9 +39,7 @@ class LogTransport implements EmailTransport {
       'utf8',
     );
 
-    console.info(
-      `[email] ${message.subject} -> ${message.to} (written to .dev-emails/outbox.log)`,
-    );
+    console.info(`[email] ${message.subject} -> ${message.to} (written to .dev-emails/outbox.log)`);
   }
 }
 
@@ -151,6 +149,81 @@ export async function sendPasswordResetEmail({
       '',
       `This link expires ${expiresAt.toUTCString()} and can be used once.`,
       `If you did not request this, no action is needed; your password is unchanged.`,
+    ].join('\n'),
+  });
+}
+
+export interface UsageNoticeEmail {
+  to: string;
+  workspaceName: string;
+  planName: string;
+  used: number;
+  limit: number;
+  percentage: number;
+  resetAt: Date;
+  billingUrl: string;
+  level: 'warning' | 'limit';
+}
+
+export async function sendUsageNoticeEmail({
+  to,
+  workspaceName,
+  planName,
+  used,
+  limit,
+  percentage,
+  resetAt,
+  billingUrl,
+  level,
+}: UsageNoticeEmail) {
+  const isLimit = level === 'limit';
+  const subject = isLimit
+    ? `${BRAND.name}: event limit reached for ${workspaceName}`
+    : `${BRAND.name}: ${percentage}% of your event allowance used`;
+
+  await sendEmail({
+    to,
+    subject,
+    text: [
+      isLimit
+        ? `${workspaceName} has used its full ${planName} event allowance for this period.`
+        : `${workspaceName} has used ${percentage}% of its ${planName} event allowance.`,
+      '',
+      `Events this period: ${used.toLocaleString('en-US')} of ${limit.toLocaleString('en-US')}.`,
+      `Allowance resets: ${resetAt.toUTCString()}.`,
+      '',
+      isLimit
+        ? 'Ingestion pauses after the small grace window. Analytics stays readable, and no data is deleted. Upgrade the plan or wait for the reset to resume collection.'
+        : 'Ingestion continues. If traffic keeps growing, review the plan before the limit is reached.',
+      '',
+      `Plan and usage: ${billingUrl}`,
+      '',
+      `If this volume is unexpected, check the website domain and your install snippet.`,
+    ].join('\n'),
+  });
+}
+
+export async function sendPaymentFailedEmail({
+  to,
+  workspaceName,
+  planName,
+  billingUrl,
+}: {
+  to: string;
+  workspaceName: string;
+  planName: string;
+  billingUrl: string;
+}) {
+  await sendEmail({
+    to,
+    subject: `${BRAND.name}: payment failed for ${workspaceName}`,
+    text: [
+      `The latest payment for the ${workspaceName} workspace (${planName}) did not succeed.`,
+      '',
+      `Update the payment method: ${billingUrl}`,
+      '',
+      'Access continues while the billing provider retries. If payment keeps failing, the subscription may become past due or expire.',
+      'This message comes from the platform billing provider. Customer revenue integrations are separate and are not affected.',
     ].join('\n'),
   });
 }

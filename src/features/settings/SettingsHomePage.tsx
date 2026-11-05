@@ -8,6 +8,7 @@ import { useApi, useNavigation } from '@/components/hooks';
 import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { useWebsiteOverviewQuery } from '@/features/portfolio/hooks/useWebsiteOverviewQuery';
 import { useActiveWorkspace } from '@/features/workspaces/hooks/useActiveWorkspace';
+import { BRAND } from '@/lib/brand';
 import { getPlanOrNull } from '@/lib/plans';
 import type { UsageMeter } from '@/lib/usage';
 
@@ -91,8 +92,8 @@ export function SettingsHomePage() {
       <Column gap="1">
         <Heading size="lg">Workspace settings</Heading>
         <Text color="muted">
-          One place for the workspace, its sites, analytics integrations, plan, and account
-          security. Change the active workspace from the top navigation.
+          One place for the workspace, its sites, analytics integrations, plan, and account security
+          in {BRAND.name}. Change the active workspace from the top navigation.
         </Text>
       </Column>
 

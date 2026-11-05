@@ -26,7 +26,10 @@ export async function POST(request: Request) {
   const access = await requireWorkspaceAccess(auth.user, body.workspaceId, 'OWNER');
 
   if (!access) {
-    return forbidden({ code: 'billing-owner-required', message: 'Only the workspace owner can manage billing.' });
+    return forbidden({
+      code: 'billing-owner-required',
+      message: 'Only the workspace owner can manage billing.',
+    });
   }
 
   const config = getBillingConfig();

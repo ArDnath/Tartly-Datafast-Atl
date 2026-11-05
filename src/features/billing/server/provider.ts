@@ -42,10 +42,7 @@ export interface CreateBillingCheckoutInput {
 export interface BillingProvider {
   readonly name: string;
   createCheckout(input: CreateBillingCheckoutInput): Promise<{ url: string; sessionId: string }>;
-  createPortalSession(
-    providerCustomerId: string,
-    returnUrl: string,
-  ): Promise<{ url: string }>;
+  createPortalSession(providerCustomerId: string, returnUrl: string): Promise<{ url: string }>;
   cancelAtPeriodEnd(providerSubscriptionId: string): Promise<void>;
   changePlan(providerSubscriptionId: string, productId: string): Promise<void>;
 }

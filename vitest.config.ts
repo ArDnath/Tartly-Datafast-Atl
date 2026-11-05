@@ -10,8 +10,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     // UI interaction tests run slower under full parallel load; the default
-    // 5s produced flaky timeouts without any assertion failure.
-    testTimeout: 15000,
+    // 5s and then 15s produced flaky timeouts without any assertion failure.
+    testTimeout: 30000,
     include: ['src/**/*.test.{ts,tsx}'],
     setupFiles: ['./src/test/setup.ts'],
     env: {

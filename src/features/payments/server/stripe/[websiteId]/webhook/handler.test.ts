@@ -54,10 +54,15 @@ vi.mock('@/features/payments/server/queries/payment', () => ({
 
 const { fetchWebsite } = await import('@/lib/load');
 const { default: prisma } = await import('@/lib/prisma');
-const { mapStripeCheckoutSessionToPaymentInput } = await import('@/features/payments/server/providers/stripe-provider');
-const { verifyStripeSignature } = await import('@/features/payments/server/webhooks/stripe-webhook');
+const { mapStripeCheckoutSessionToPaymentInput } = await import(
+  '@/features/payments/server/providers/stripe-provider'
+);
+const { verifyStripeSignature } = await import(
+  '@/features/payments/server/webhooks/stripe-webhook'
+);
 const { normalizeEmailHash } = await import('@/features/payments/server/queries/attribution');
-const { recalculatePaymentAttribution, recordPayment, recordRefund, recordSubscriptionState } = await import('@/features/payments/server/queries/payment')
+const { recalculatePaymentAttribution, recordPayment, recordRefund, recordSubscriptionState } =
+  await import('@/features/payments/server/queries/payment');
 
 // Committed fixture secret; never a real merchant key
 const YOLFI_FIXTURE_KEY = 'yolfi_test_fixture_key';
@@ -657,7 +662,9 @@ test('a processed refund event is recovered when its refund row is missing', asy
 });
 
 test('every write is scoped to the website in the webhook URL', async () => {
-  vi.mocked(fetchWebsite).mockImplementation(async (websiteId: string) => ({ id: websiteId }) as any);
+  vi.mocked(fetchWebsite).mockImplementation(
+    async (websiteId: string) => ({ id: websiteId }) as any,
+  );
   vi.mocked(recordPayment).mockResolvedValue({
     payment: { id: 'pay_site_2' },
     paymentMatch: null,
@@ -675,9 +682,7 @@ test('every write is scoped to the website in the webhook URL', async () => {
       where: expect.objectContaining({ websiteId: 'site-2' }),
     }),
   );
-  expect(recordPayment).toHaveBeenCalledWith(
-    expect.objectContaining({ websiteId: 'site-2' }),
-  );
+  expect(recordPayment).toHaveBeenCalledWith(expect.objectContaining({ websiteId: 'site-2' }));
   expect(prisma.client.providerEvent.create).toHaveBeenCalledWith({
     data: expect.objectContaining({ websiteId: 'site-2' }),
   });

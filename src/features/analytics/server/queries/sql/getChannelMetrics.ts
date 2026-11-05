@@ -53,7 +53,7 @@ async function relationalQuery(websiteId: string, filters: QueryFilters) {
 
     channels as (
       select case
-          when referrer_domain = '' and url_query = '' then 'direct'
+          when coalesce(referrer_domain, '') = '' and coalesce(url_query, '') = '' then 'direct'
           when ${toPostgresLikeClause('url_query', PAID_AD_PARAMS)} then 'paidAds'
           when ${toPostgresLikeClause('utm_medium', ['referral', 'app', 'link'])} then 'referral'
           when utm_medium ilike '%affiliate%' then 'affiliate'
@@ -63,7 +63,7 @@ async function relationalQuery(websiteId: string, filters: QueryFilters) {
           when ${toPostgresLikeClause('referrer_domain', EMAIL_DOMAINS)} or utm_medium ilike '%mail%' then 'email'
           when ${toPostgresLikeClause('referrer_domain', SHOPPING_DOMAINS)} or utm_medium ilike '%shop%' then concat(prefix, 'Shopping')
           when ${toPostgresLikeClause('referrer_domain', VIDEO_DOMAINS)} or utm_medium ilike '%video%' then concat(prefix, 'Video')
-          when referrer_domain != regexp_replace(hostname, '^www.', '') and referrer_domain != '' then 'referral'
+          when coalesce(referrer_domain, '') != '' and referrer_domain != regexp_replace(hostname, '^www.', '') then 'referral'
           else '' end AS x,
         visitor_id
       from prefix)

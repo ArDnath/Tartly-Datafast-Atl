@@ -27,7 +27,30 @@ const defaultHeaders = [
     key: 'Content-Security-Policy',
     value: contentSecurityPolicy.replace(/\s{2,}/g, ' ').trim(),
   },
+  {
+    key: 'X-Content-Type-Options',
+    value: 'nosniff',
+  },
+  {
+    key: 'X-Frame-Options',
+    value: 'SAMEORIGIN',
+  },
+  {
+    key: 'Referrer-Policy',
+    value: 'strict-origin-when-cross-origin',
+  },
+  {
+    key: 'Permissions-Policy',
+    value: 'camera=(), microphone=(), geolocation=(), payment=()',
+  },
 ];
+
+if (isProd) {
+  defaultHeaders.push({
+    key: 'Strict-Transport-Security',
+    value: 'max-age=31536000; includeSubDomains',
+  });
+}
 
 const trackerHeaders = [
   {
@@ -40,18 +63,18 @@ const trackerHeaders = [
   },
 ];
 
-const apiHeaders = [
+const collectorHeaders = [
   {
     key: 'Access-Control-Allow-Origin',
     value: '*',
   },
   {
     key: 'Access-Control-Allow-Headers',
-    value: '*',
+    value: 'Content-Type, x-talivia-cache',
   },
   {
     key: 'Access-Control-Allow-Methods',
-    value: 'GET, DELETE, POST, PUT',
+    value: 'POST, OPTIONS',
   },
   {
     key: 'Access-Control-Max-Age',
@@ -63,7 +86,17 @@ const apiHeaders = [
   },
 ];
 
+const apiHeaders = [
+  {
+    key: 'Cache-Control',
+    value: 'no-cache',
+  },
+];
+
+const COLLECTOR_PATHS = ['/api/send', '/api/batch', '/api/record', '/api/heartbeat'];
+
 const headers = [
+  ...COLLECTOR_PATHS.map(source => ({ source, headers: collectorHeaders })),
   {
     source: '/api/:path*',
     headers: apiHeaders,

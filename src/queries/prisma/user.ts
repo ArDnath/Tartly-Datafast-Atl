@@ -16,7 +16,7 @@ async function findUser(criteria: Prisma.UserFindUniqueArgs, options: GetUserOpt
     ...criteria,
     where: {
       ...criteria.where,
-      ...(showDeleted ? {} : { deletedAt: null }),
+      ...(showDeleted ? {} : { deletedAt: null, suspendedAt: null }),
     },
     select: {
       id: true,

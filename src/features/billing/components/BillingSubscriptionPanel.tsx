@@ -115,8 +115,7 @@ export function BillingSubscriptionPanel({
 
   const billingQuery = useQuery({
     queryKey: ['workspace-billing', workspaceId],
-    queryFn: () =>
-      get('/billing', { workspaceId }) as Promise<BillingStateResponse>,
+    queryFn: () => get('/billing', { workspaceId }) as Promise<BillingStateResponse>,
     enabled: Boolean(workspaceId),
     refetchOnWindowFocus: true,
   });
@@ -304,11 +303,7 @@ export function BillingSubscriptionPanel({
                 that, paid features stop and your data remains available under the Starter limits.
               </Text>
               <Row gap="2">
-                <Button
-                  variant="danger"
-                  onPress={cancelAtPeriodEnd}
-                  isDisabled={busy !== null}
-                >
+                <Button variant="danger" onPress={cancelAtPeriodEnd} isDisabled={busy !== null}>
                   {busy === 'cancel' ? 'Scheduling…' : 'Confirm cancellation'}
                 </Button>
                 <Button variant="quiet" onPress={() => setConfirmCancel(false)}>
@@ -348,8 +343,7 @@ export function BillingSubscriptionPanel({
               const productAvailable = billing.availableProducts.some(
                 product => product.planId === plan.id && product.interval === interval,
               );
-              const price =
-                interval === 'annual' ? plan.annualPriceCents : plan.monthlyPriceCents;
+              const price = interval === 'annual' ? plan.annualPriceCents : plan.monthlyPriceCents;
 
               return (
                 <Column key={plan.id} border padding="4" gap="2" style={SURFACE}>

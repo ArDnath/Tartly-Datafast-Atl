@@ -43,7 +43,6 @@ const workspaceA = {
   deletedAt: null,
 };
 
-
 const userA = {
   id: 'user-a',
   username: 'a@example.com',

@@ -13,9 +13,9 @@ test('accepts a matching Origin header', () => {
 });
 
 test('accepts a matching Referer when Origin is absent', () => {
-  expect(
-    isSameOriginRequest(request({ referer: 'https://app.example.com/app/website/1' })),
-  ).toBe(true);
+  expect(isSameOriginRequest(request({ referer: 'https://app.example.com/app/website/1' }))).toBe(
+    true,
+  );
 });
 
 test('rejects a cross-site Origin', () => {

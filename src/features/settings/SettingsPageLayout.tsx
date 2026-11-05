@@ -13,9 +13,12 @@ import {
   Lock,
   Network,
   Settings2,
+  ShieldAlert,
+  TrendingUp,
   UserRound,
   Users,
 } from '@/components/icons';
+import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { APP_LAYOUT_MAX_WIDTH } from '@/lib/constants';
 
 const SETTINGS_SURFACE_STYLE: CSSProperties = {
@@ -32,7 +35,9 @@ type SettingsKey =
   | 'websites'
   | 'integrations'
   | 'billing'
-  | 'security';
+  | 'security'
+  | 'activation'
+  | 'admin';
 
 export function SettingsPageLayout({
   activeKey,
@@ -45,6 +50,7 @@ export function SettingsPageLayout({
 }) {
   const { t, labels } = useMessages();
   const { renderUrl } = useNavigation();
+  const { user } = useLoginQuery();
   const items = [
     {
       id: 'overview' as const,
@@ -94,6 +100,22 @@ export function SettingsPageLayout({
       path: renderUrl('/app/settings/preferences', false),
       icon: <Settings2 />,
     },
+    ...(user?.isPlatformAdmin
+      ? [
+          {
+            id: 'activation' as const,
+            label: 'Activation',
+            path: renderUrl('/app/settings/activation', false),
+            icon: <TrendingUp />,
+          },
+          {
+            id: 'admin' as const,
+            label: 'Platform ops',
+            path: renderUrl('/app/settings/admin', false),
+            icon: <ShieldAlert />,
+          },
+        ]
+      : []),
   ];
 
   return (

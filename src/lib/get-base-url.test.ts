@@ -70,7 +70,7 @@ test('email links prefer APP_URL over a spoofed forwarded host', () => {
 test('email links fall back to the request origin without APP_URL', () => {
   vi.stubEnv('APP_URL', '');
 
-  expect(
-    getPublicOrigin(new Request('http://localhost:3000/api/auth/password/forgot')),
-  ).toBe('http://localhost:3000');
+  expect(getPublicOrigin(new Request('http://localhost:3000/api/auth/password/forgot'))).toBe(
+    'http://localhost:3000',
+  );
 });

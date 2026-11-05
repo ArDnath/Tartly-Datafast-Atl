@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma';
 import { parseRequest } from '@/lib/request';
 import { json, notFound, unauthorized } from '@/lib/response';
 import { canUpdateWebsite } from '@/permissions';
+import { recordAuditEvent } from '@/queries/prisma';
 
 export async function DELETE(
   request: Request,
@@ -37,6 +38,15 @@ export async function DELETE(
     data: {
       revokedAt: new Date(),
     },
+  });
+
+  await recordAuditEvent({
+    auth,
+    eventType: 'api_key.revoked',
+    request,
+    resourceId: apiKey.id,
+    resourceType: 'api_key',
+    websiteId,
   });
 
   return json({ ok: true });

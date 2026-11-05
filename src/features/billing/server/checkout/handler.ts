@@ -30,7 +30,10 @@ export async function POST(request: Request) {
   const access = await requireWorkspaceAccess(auth.user, body.workspaceId, 'OWNER');
 
   if (!access) {
-    return forbidden({ code: 'billing-owner-required', message: 'Only the workspace owner can manage billing.' });
+    return forbidden({
+      code: 'billing-owner-required',
+      message: 'Only the workspace owner can manage billing.',
+    });
   }
 
   const config = getBillingConfig();
@@ -71,7 +74,8 @@ export async function POST(request: Request) {
   ) {
     return badRequest({
       code: 'subscription-exists',
-      message: 'This workspace already has a subscription. Use the plan change or billing portal action.',
+      message:
+        'This workspace already has a subscription. Use the plan change or billing portal action.',
     });
   }
 

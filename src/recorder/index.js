@@ -1,4 +1,5 @@
 import { record } from 'rrweb';
+import { getReplayMaskConfig, isReplayConsentGranted } from './privacy';
 
 (window => {
   const { document } = window;
@@ -13,6 +14,7 @@ import { record } from 'rrweb';
   const hostUrl = config(`host-url`);
   const sampleRate = parseFloat(config(`sample-rate`) || '0.15');
   const maskLevel = config(`mask-level`) || 'moderate';
+  const consentMode = config(`consent`) || 'implicit';
   const maxDuration = parseInt(config(`max-duration`) || '300000', 10);
   const blockSelector = config(`block-selector`) || '';
 
@@ -35,7 +37,12 @@ import { record } from 'rrweb';
   let flushTimer = null;
   let startTime = null;
   let stopped = false;
+  let started = false;
   let collectorCache;
+  let consentGranted = isReplayConsentGranted({
+    mode: consentMode,
+    granted: window.__taliviaConsent,
+  });
 
   document.addEventListener(collectorContextEvent, event => {
     collectorCache = event.detail?.cache;
@@ -91,22 +98,8 @@ import { record } from 'rrweb';
     if (stopFn) stopFn();
   };
 
-  const getMaskConfig = level => {
-    switch (level) {
-      case 'strict':
-        return {
-          maskAllInputs: true,
-          maskTextSelector: '*',
-        };
-      default: // moderate
-        return {
-          maskAllInputs: true,
-        };
-    }
-  };
-
   const waitForSession = (attempts = 0) => {
-    if (attempts > 50) return;
+    if (stopped || started || !consentGranted || attempts > 50) return;
 
     document.dispatchEvent(new CustomEvent(collectorContextRequestEvent));
 
@@ -118,9 +111,12 @@ import { record } from 'rrweb';
   };
 
   const beginRecording = () => {
+    if (stopped || started || !consentGranted) return;
+
+    started = true;
     startTime = Date.now();
 
-    const maskConfig = getMaskConfig(maskLevel);
+    const maskConfig = getReplayMaskConfig(maskLevel);
 
     stopFn = record({
       emit(event) {
@@ -163,6 +159,18 @@ import { record } from 'rrweb';
 
     window.addEventListener('beforeunload', () => flush(true));
   };
+
+  const applyConsent = granted => {
+    consentGranted = isReplayConsentGranted({ mode: consentMode, granted });
+    if (consentGranted) {
+      waitForSession();
+    } else if (started) {
+      stop();
+    }
+  };
+
+  window.__taliviaSetConsent = granted => applyConsent(granted === true);
+  window.addEventListener('talivia:consent', event => applyConsent(event.detail?.granted === true));
 
   if (document.readyState === 'complete') {
     waitForSession();

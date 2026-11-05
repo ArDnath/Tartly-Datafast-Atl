@@ -1,0 +1,148 @@
+.page {
+  --rl-canvas: #1b1b1b;
+  --rl-card: #222222;
+  --rl-fg: #f4f4f5;
+  --rl-muted-fg: #a1a1aa;
+  --rl-border: rgba(255, 255, 255, 0.08);
+  --rl-blush: #f2b4cb;
+
+  min-height: 100vh;
+  background:
+    radial-gradient(820px 420px at 50% -12%, rgba(242, 180, 203, 0.06), transparent 70%),
+    var(--rl-canvas);
+  color: var(--rl-fg);
+  font-family: var(--font-family), sans-serif;
+}
+
+.nav,
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: min(860px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--rl-border);
+  font-size: 13px;
+}
+
+.footer {
+  border-top: 1px solid var(--rl-border);
+  border-bottom: 0;
+  margin-top: 56px;
+  color: var(--rl-muted-fg);
+}
+
+.brand {
+  color: inherit;
+  text-decoration: none;
+}
+
+.links {
+  display: flex;
+  gap: 20px;
+  color: var(--rl-muted-fg);
+}
+
+.links a,
+.footer a,
+.back a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.links a:hover,
+.footer a:hover,
+.back a:hover {
+  color: var(--rl-fg);
+}
+
+.main {
+  width: min(720px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 56px 0 0;
+}
+
+.main h1 {
+  margin: 0 0 8px;
+  font-size: 34px;
+  letter-spacing: -0.03em;
+}
+
+.summary {
+  margin: 0 0 24px;
+  color: var(--rl-muted-fg);
+  font-size: 15px;
+}
+
+.notice {
+  border: 1px solid rgba(242, 180, 203, 0.28);
+  background: rgba(242, 180, 203, 0.07);
+  color: var(--rl-blush);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.updated {
+  color: var(--rl-muted-fg);
+  font-size: 12px;
+  margin: 18px 0 0;
+}
+
+.section {
+  margin-top: 36px;
+}
+
+.section h2 {
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+
+.section p {
+  margin: 0 0 12px;
+  color: #d4d4d8;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.index {
+  list-style: none;
+  padding: 0;
+  margin: 28px 0 0;
+  display: grid;
+  gap: 14px;
+}
+
+.index li {
+  border: 1px solid var(--rl-border);
+  background: var(--rl-card);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: grid;
+  gap: 6px;
+}
+
+.index a {
+  color: var(--rl-fg);
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.index a:hover {
+  color: var(--rl-blush);
+}
+
+.index span {
+  color: var(--rl-muted-fg);
+  font-size: 13px;
+}
+
+.back {
+  margin-top: 40px;
+  font-size: 13px;
+  color: var(--rl-muted-fg);
+}

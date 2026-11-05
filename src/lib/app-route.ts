@@ -9,6 +9,7 @@ const APP_SETTINGS_PATHS = new Set([
   'integrations',
   'billing',
   'security',
+  'activation',
 ]);
 const WEBSITE_PATHS = new Set([
   'settings',

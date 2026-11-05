@@ -114,12 +114,13 @@ export async function getWorkspaceMembership(userId: string, workspaceId: string
           planId: true,
           subscriptionStatus: true,
           deletedAt: true,
+          suspendedAt: true,
         },
       },
     },
   });
 
-  if (!membership || membership.workspace.deletedAt) {
+  if (!membership || membership.workspace.deletedAt || membership.workspace.suspendedAt) {
     return null;
   }
 
@@ -202,7 +203,7 @@ export async function getUserWorkspaces(userId: string) {
   return prisma.client.workspaceMembership.findMany({
     where: {
       userId,
-      workspace: { deletedAt: null },
+      workspace: { deletedAt: null, suspendedAt: null },
     },
     select: {
       role: true,

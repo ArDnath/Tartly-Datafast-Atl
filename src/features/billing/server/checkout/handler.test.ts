@@ -1,10 +1,7 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { parseRequest } from '@/lib/request';
 import { requireWorkspaceAccess } from '@/lib/workspace-auth';
-import {
-  findBillingProduct,
-  getBillingConfig,
-} from '@/features/billing/server/provider';
+import { findBillingProduct, getBillingConfig } from '@/features/billing/server/provider';
 import { getDodoBillingProvider } from '@/features/billing/server/providers/dodo';
 import { recordAuditEvent } from '@/queries/prisma';
 import { POST } from './handler';

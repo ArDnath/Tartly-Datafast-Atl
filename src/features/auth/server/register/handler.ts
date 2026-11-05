@@ -9,8 +9,15 @@ import { getPublicOrigin } from '@/lib/get-base-url';
 import { getIpAddress } from '@/lib/ip';
 import { consumeRateLimit, hashRateLimitSubject, rateLimitKey } from '@/lib/rate-limit';
 import { RegistrationError, registerAccount } from '@/features/auth/server/registration';
+import { isDisposableEmail } from '@/features/auth/lib/disposable-email';
 import { parseRequest } from '@/lib/request';
-import { appConfigurationError, badRequest, forbidden, json, tooManyRequests } from '@/lib/response';
+import {
+  appConfigurationError,
+  badRequest,
+  forbidden,
+  json,
+  tooManyRequests,
+} from '@/lib/response';
 
 const schema = z.object({
   username: z.email().max(255),
@@ -44,6 +51,13 @@ export async function POST(request: Request) {
 
   const ip = getIpAddress(request.headers) || 'unknown';
   const email = body.username.trim().toLowerCase();
+
+  if (isDisposableEmail(email)) {
+    return badRequest({
+      code: 'disposable-email',
+      message: 'Use a permanent email address. Disposable inboxes cannot receive account mail.',
+    });
+  }
 
   const [ipLimit, emailLimit] = await Promise.all([
     consumeRateLimit({

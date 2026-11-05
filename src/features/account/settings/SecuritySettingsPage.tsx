@@ -18,6 +18,7 @@ import { useApi, useMessages } from '@/components/hooks';
 import { DialogButton } from '@/components/input/DialogButton';
 import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { PasswordChangeForm } from '@/features/account/settings/PasswordChangeForm';
+import { BRAND } from '@/lib/brand';
 
 const CARD_STYLE = {
   background: '#161616',
@@ -143,8 +144,8 @@ export function SecuritySettingsPage() {
       <Column gap="1">
         <Heading size="lg">Security</Heading>
         <Text color="muted">
-          Sign-in, email verification, and account lifecycle. Tenant access is re-checked on every
-          request, not inferred from this page.
+          {BRAND.name} sign-in, email verification, and account lifecycle. Tenant access is
+          re-checked on every request, not inferred from this page.
         </Text>
       </Column>
 
@@ -202,6 +203,31 @@ export function SecuritySettingsPage() {
           out and asked to sign in again.
         </Text>
         <PasswordChangeForm />
+      </Column>
+
+      <Column border padding="4" gap="3" style={CARD_STYLE}>
+        <Heading size="lg">Your data</Heading>
+        <Text size="sm" color="muted">
+          Download a portable JSON copy of your account, workspace memberships, website list, and
+          active session metadata. It never includes passwords, tokens, provider credentials, or
+          another member&apos;s data.
+        </Text>
+        <Row gap="3" wrap="wrap">
+          <a
+            href="/api/me/export"
+            download
+            style={{
+              border: '1px solid #ffffff1f',
+              borderRadius: 10,
+              padding: '8px 14px',
+              color: '#f4f4f5',
+              textDecoration: 'none',
+              fontSize: 13,
+            }}
+          >
+            Download account data (JSON)
+          </a>
+        </Row>
       </Column>
 
       <Column

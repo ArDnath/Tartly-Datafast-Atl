@@ -1,11 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { WEBSITE_MEMBER_ROLES } from '@/lib/constants';
-import {
-  canDeleteWebsite,
-  canUpdateWebsite,
-  canViewWebsite,
-  getWebsiteAccess,
-} from './website';
+import { canDeleteWebsite, canUpdateWebsite, canViewWebsite, getWebsiteAccess } from './website';
 
 vi.mock('@/lib/auth', () => ({
   hasPermission: vi.fn(async () => false),

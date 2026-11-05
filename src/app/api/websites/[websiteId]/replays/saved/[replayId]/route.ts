@@ -1,1 +1,4 @@
-export { GET, POST } from '@/features/analytics/server/[websiteId]/replays/saved/[replayId]/handler';
+export {
+  GET,
+  POST,
+} from '@/features/analytics/server/[websiteId]/replays/saved/[replayId]/handler';

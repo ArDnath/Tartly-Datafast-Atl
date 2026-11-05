@@ -4,12 +4,7 @@ import { describe, expect, test } from 'vitest';
 
 const ROOT = join(process.cwd(), 'src/app/api');
 
-const TENANT_ROOTS = [
-  'websites',
-  'reports',
-  'users',
-  'workspaces',
-];
+const TENANT_ROOTS = ['websites', 'reports', 'users', 'workspaces'];
 
 const AUTHORIZATION_HELPERS = [
   'canViewWebsite',

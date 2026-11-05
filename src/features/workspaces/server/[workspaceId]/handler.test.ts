@@ -5,11 +5,17 @@ import { DELETE, GET, PATCH } from './handler';
 
 vi.mock('@/lib/request', () => ({ parseRequest: vi.fn() }));
 vi.mock('@/lib/workspace-auth', () => ({ requireWorkspaceAccess: vi.fn() }));
+vi.mock('@/queries/prisma', () => ({ recordAuditEvent: vi.fn() }));
 
 const prisma = vi.hoisted(() => ({
   client: {
     workspace: { update: vi.fn() },
-    workspaceMembership: { findUnique: vi.fn(), update: vi.fn(), updateMany: vi.fn(), deleteMany: vi.fn() },
+    workspaceMembership: {
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      updateMany: vi.fn(),
+      deleteMany: vi.fn(),
+    },
     workspaceInvitation: { deleteMany: vi.fn() },
     website: { updateMany: vi.fn() },
   },

@@ -142,8 +142,8 @@ export function LandingPage() {
             <details className={styles.faqItem}>
               <summary>Is there a free tier?</summary>
               <p>
-                No. There are exactly two paid plans: Starter and Pro. That keeps the product
-                funded without inventing usage limits later.
+                No. There are exactly two paid plans: Starter and Pro. That keeps the product funded
+                without inventing usage limits later.
               </p>
             </details>
             <details className={styles.faqItem}>
@@ -176,6 +176,8 @@ export function LandingPage() {
           <Link href="/signup">Sign up</Link>
           {' · '}
           <Link href="/login">Sign in</Link>
+          {' · '}
+          <Link href="/legal">Legal</Link>
         </nav>
       </footer>
     </div>

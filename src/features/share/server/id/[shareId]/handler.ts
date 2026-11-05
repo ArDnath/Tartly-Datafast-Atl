@@ -27,10 +27,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ sha
   return json(share);
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ shareId: string }> },
-) {
+export async function POST(request: Request, { params }: { params: Promise<{ shareId: string }> }) {
   const schema = z.object({
     name: z.string().max(200),
     slug: z.string().max(100),

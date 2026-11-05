@@ -2,10 +2,7 @@ import { parseRequest } from '@/lib/request';
 import { json, notFound } from '@/lib/response';
 import { previewWorkspaceInvitation } from '@/features/workspaces/lib/workspace-invitations';
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ token: string }> },
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ token: string }> }) {
   const { error } = await parseRequest(request, undefined, { skipAuth: true });
 
   if (error) {

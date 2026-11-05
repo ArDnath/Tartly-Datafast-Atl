@@ -1,6 +1,10 @@
 import { parseRequest } from '@/lib/request';
 import { badRequest, json } from '@/lib/response';
-import { InvitationError, revokeWorkspaceInvitation } from '@/features/workspaces/lib/workspace-invitations';
+import { recordAuditEvent } from '@/queries/prisma';
+import {
+  InvitationError,
+  revokeWorkspaceInvitation,
+} from '@/features/workspaces/lib/workspace-invitations';
 
 export async function DELETE(
   request: Request,
@@ -19,6 +23,14 @@ export async function DELETE(
       user: auth.user,
       workspaceId,
       invitationId,
+    });
+
+    await recordAuditEvent({
+      auth,
+      eventType: 'invitation.revoked',
+      request,
+      resourceId: invitationId,
+      resourceType: 'workspace_invitation',
     });
 
     return json({ ok: true });

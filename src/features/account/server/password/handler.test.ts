@@ -36,7 +36,11 @@ beforeEach(() => {
     password: hashPassword('admin', 4),
     role: 'admin',
   } as any);
-  vi.mocked(updateUser).mockResolvedValue({ id: 'user-1', username: 'admin', role: 'admin' } as any);
+  vi.mocked(updateUser).mockResolvedValue({
+    id: 'user-1',
+    username: 'admin',
+    role: 'admin',
+  } as any);
 });
 
 test('changes the authenticated user password without returning its hash', async () => {

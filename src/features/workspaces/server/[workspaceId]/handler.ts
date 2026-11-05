@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { parseRequest } from '@/lib/request';
 import { badRequest, forbidden, json, notFound, ok } from '@/lib/response';
 import { requireWorkspaceAccess } from '@/lib/workspace-auth';
+import { recordAuditEvent } from '@/queries/prisma';
 
 const updateSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
@@ -115,6 +116,18 @@ export async function PATCH(
 
   const updated = await requireWorkspaceAccess(auth.user, workspaceId, 'VIEWER');
 
+  await recordAuditEvent({
+    auth,
+    eventType: isTransfer ? 'workspace.transferred' : 'workspace.updated',
+    request,
+    resourceId: workspaceId,
+    resourceType: 'workspace',
+    metadata: {
+      nameChanged: Boolean(body.name),
+      transferredTo: body.transferToUserId ?? null,
+    },
+  });
+
   return json({ ...updated?.workspace, role: updated?.role });
 }
 
@@ -163,6 +176,15 @@ export async function DELETE(
       data: { deletedAt: now },
       select: { id: true },
     });
+  });
+
+  await recordAuditEvent({
+    auth,
+    eventType: 'workspace.deleted',
+    request,
+    resourceId: workspaceId,
+    resourceType: 'workspace',
+    metadata: { slug: access.workspace.slug },
   });
 
   return ok();

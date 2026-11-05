@@ -28,8 +28,7 @@ function subDays(date: Date, days: number) {
 
 function sortByCreatedAt(items: Record<string, any>[]) {
   return [...items].sort(
-    (left, right) =>
-      new Date(left.created_at).getTime() - new Date(right.created_at).getTime(),
+    (left, right) => new Date(left.created_at).getTime() - new Date(right.created_at).getTime(),
   );
 }
 
@@ -51,10 +50,13 @@ export async function backfillPolarRevenue({
     throw new Error('Polar API environment is unavailable.');
   }
 
-  const paymentRecorder = recordPayment || (await import('@/features/payments/server/queries/payment')).recordPayment;
-  const refundRecorder = recordRefund || (await import('@/features/payments/server/queries/payment')).recordRefund;
+  const paymentRecorder =
+    recordPayment || (await import('@/features/payments/server/queries/payment')).recordPayment;
+  const refundRecorder =
+    recordRefund || (await import('@/features/payments/server/queries/payment')).recordRefund;
   const subscriptionRecorder =
-    recordSubscription || (await import('@/features/payments/server/queries/payment')).recordSubscriptionState;
+    recordSubscription ||
+    (await import('@/features/payments/server/queries/payment')).recordSubscriptionState;
   const createdGte = subDays(now, POLAR_BACKFILL_DAYS);
   const orders = sortByCreatedAt(
     await listOrders({ apiKey, organizationId, environment, createdGte }),
@@ -80,9 +82,7 @@ export async function backfillPolarRevenue({
     importedPayments += 1;
 
     if (Number(order.refunded_amount || 0) + Number(order.refunded_tax_amount || 0) > 0) {
-      const result = await refundRecorder(
-        mapPolarOrderRefundToRefundInput({ websiteId, order }),
-      );
+      const result = await refundRecorder(mapPolarOrderRefundToRefundInput({ websiteId, order }));
 
       if (result.payment && result.refund) {
         importedRefunds += 1;

@@ -116,9 +116,7 @@ describe('workspace invitations', () => {
         }),
       }),
     );
-    expect(
-      workspaceInvitation.upsert.mock.calls[0][0].create.invitationTokenHash,
-    ).not.toBe(token);
+    expect(workspaceInvitation.upsert.mock.calls[0][0].create.invitationTokenHash).not.toBe(token);
     expect(sendWorkspaceInvitationEmail).toHaveBeenCalledTimes(1);
   });
 
@@ -164,7 +162,9 @@ describe('workspace invitations', () => {
     };
     workspaceInvitation.findFirst.mockResolvedValue(invitation);
     workspaceMembership.findUnique.mockResolvedValue(null);
-    transaction.mockImplementation(async (fn: any) => fn({ workspaceMembership, workspaceInvitation }));
+    transaction.mockImplementation(async (fn: any) =>
+      fn({ workspaceMembership, workspaceInvitation }),
+    );
 
     const result = await acceptWorkspaceInvitation({
       user: { ...auth.user, username: 'member@example.com' },

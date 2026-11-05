@@ -89,9 +89,7 @@ export function PricingPage() {
 
       <section className={styles.hero}>
         <p className={styles.eyebrow}>Two plans. No free tier.</p>
-        <h1 className={styles.title}>
-          Revenue analytics for the price of a coffee.
-        </h1>
+        <h1 className={styles.title}>Revenue analytics for the price of a coffee.</h1>
         <p className={styles.subtitle}>
           {BRAND.promise} Every plan includes first- and last-touch attribution, funnels, and
           exports. No per-seat surprises, no unlimited promise we cannot keep.
@@ -166,9 +164,7 @@ export function PricingPage() {
                 ))}
               </ul>
 
-              <p className={styles.cardFoot}>
-                {plan.description}
-              </p>
+              <p className={styles.cardFoot}>{plan.description}</p>
             </article>
           );
         })}
@@ -178,17 +174,17 @@ export function PricingPage() {
         <div>
           <h2>What counts as an event?</h2>
           <p>
-            One accepted pageview or custom event, after bot filtering and deduplication.
-            Replays are counted separately. We never bill for a pageview that a bot generated or
-            that we rejected.
+            One accepted pageview or custom event, after bot filtering and deduplication. Replays
+            are counted separately. We never bill for a pageview that a bot generated or that we
+            rejected.
           </p>
         </div>
         <div>
           <h2>What happens at the limit?</h2>
           <p>
             You get a notice at 80% and 100%, then a small grace allowance. After that, billable
-            ingestion pauses — your dashboard, reports, and exports stay available. We do not
-            delete data silently and we do not auto-charge overages.
+            ingestion pauses — your dashboard, reports, and exports stay available. We do not delete
+            data silently and we do not auto-charge overages.
           </p>
         </div>
         <div>
@@ -232,11 +228,10 @@ export function PricingPage() {
 
       <footer className={styles.footer}>
         <BrandWordmark size={24} />
-        <p>
-          {BRAND.tagline}. Independent product, built on an MIT-licensed analytics core.
-        </p>
+        <p>{BRAND.tagline}. Independent product, built on an MIT-licensed analytics core.</p>
         <div className={styles.footerLinks}>
           <a href={`mailto:${BRAND.supportEmail}`}>Support</a>
+          <Link href="/legal">Legal</Link>
           <Link href="/login">Sign in</Link>
         </div>
       </footer>

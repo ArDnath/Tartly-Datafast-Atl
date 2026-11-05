@@ -3,11 +3,17 @@ import { fetchWebsite } from '@/lib/load';
 import { serializePolarCredential } from '@/features/payments/server/providers/polar-provider';
 import { verifyPolarSignature } from '@/features/payments/server/webhooks/polar-webhook';
 import prisma from '@/lib/prisma';
-import { recordPayment, recordRefund, recordSubscriptionState } from '@/features/payments/server/queries/payment';
+import {
+  recordPayment,
+  recordRefund,
+  recordSubscriptionState,
+} from '@/features/payments/server/queries/payment';
 import { POST } from './handler';
 
 vi.mock('@/lib/load', () => ({ fetchWebsite: vi.fn() }));
-vi.mock('@/features/payments/server/webhooks/polar-webhook', () => ({ verifyPolarSignature: vi.fn() }));
+vi.mock('@/features/payments/server/webhooks/polar-webhook', () => ({
+  verifyPolarSignature: vi.fn(),
+}));
 vi.mock('@/features/payments/server/provider-secrets', () => ({
   decryptProviderSecret: vi.fn((value?: string | null) => value?.replace(/^enc:/, '')),
 }));
