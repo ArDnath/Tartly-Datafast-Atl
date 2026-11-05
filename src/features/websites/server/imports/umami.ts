@@ -45,7 +45,7 @@ export async function parseUmamiArchive(
 
   if (!options.allowTaliviaBackup && isTaliviaReportExport(tables.events)) {
     throw new Error(
-      'This is a Talivia report export, not a raw Umami data export. Report archives contain aggregate totals and cannot recreate individual sessions or events. Export raw data from Umami Settings > Data instead.',
+      'This is a legacy report export, not a raw Umami data export. Report archives contain aggregate totals and cannot recreate individual sessions or events. Export raw data from Umami Settings > Data instead.',
     );
   }
 

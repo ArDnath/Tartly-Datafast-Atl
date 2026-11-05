@@ -1,7 +1,15 @@
 const WEBSITE_ID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-const APP_SETTINGS_PATHS = new Set(['preferences', 'account', 'workspace', 'websites', 'billing']);
+const APP_SETTINGS_PATHS = new Set([
+  'preferences',
+  'account',
+  'workspace',
+  'websites',
+  'integrations',
+  'billing',
+  'security',
+]);
 const WEBSITE_PATHS = new Set([
   'settings',
   // Revenue workbench

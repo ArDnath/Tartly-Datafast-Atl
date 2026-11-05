@@ -47,6 +47,7 @@ app  ->  features  ->  components / lib / queries / permissions / store
 | `analytics` | ingestion (`send`, `record`, `batch`), heartbeat, realtime, report and metric endpoints |
 | `app-shell` | signed-in shell, top nav, notices |
 | `auth` | login, signup, verification, reset, logout |
+| `docs` | public documentation shell and provider revenue guides |
 | `legacy` | frozen boards, links, pixels and their APIs |
 | `marketing` | landing and pricing |
 | `onboarding` | onboarding canvas and website setup |

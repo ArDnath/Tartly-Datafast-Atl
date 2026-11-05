@@ -5,7 +5,17 @@ import { IconLabel } from '@/components/common/IconLabel';
 import Link from '@/components/common/Link';
 import { Panel } from '@/components/common/Panel';
 import { useMessages, useNavigation } from '@/components/hooks';
-import { ArrowLeft, CreditCard, Globe2, Settings2, UserRound, Users } from '@/components/icons';
+import {
+  ArrowLeft,
+  CreditCard,
+  Gauge,
+  Globe2,
+  Lock,
+  Network,
+  Settings2,
+  UserRound,
+  Users,
+} from '@/components/icons';
 import { APP_LAYOUT_MAX_WIDTH } from '@/lib/constants';
 
 const SETTINGS_SURFACE_STYLE: CSSProperties = {
@@ -14,7 +24,15 @@ const SETTINGS_SURFACE_STYLE: CSSProperties = {
   background: '#161616',
 };
 
-type SettingsKey = 'preferences' | 'account' | 'workspace' | 'websites' | 'billing';
+type SettingsKey =
+  | 'overview'
+  | 'preferences'
+  | 'account'
+  | 'workspace'
+  | 'websites'
+  | 'integrations'
+  | 'billing'
+  | 'security';
 
 export function SettingsPageLayout({
   activeKey,
@@ -29,10 +47,10 @@ export function SettingsPageLayout({
   const { renderUrl } = useNavigation();
   const items = [
     {
-      id: 'preferences' as const,
-      label: t(labels.preferences),
-      path: renderUrl('/app/settings/preferences', false),
-      icon: <Settings2 />,
+      id: 'overview' as const,
+      label: 'Overview',
+      path: renderUrl('/app/settings', false),
+      icon: <Gauge />,
     },
     {
       id: 'workspace' as const,
@@ -47,16 +65,34 @@ export function SettingsPageLayout({
       icon: <Globe2 />,
     },
     {
+      id: 'integrations' as const,
+      label: 'Integrations',
+      path: renderUrl('/app/settings/integrations', false),
+      icon: <Network />,
+    },
+    {
       id: 'billing' as const,
       label: 'Plan and usage',
       path: renderUrl('/app/settings/billing', false),
       icon: <CreditCard />,
     },
     {
+      id: 'security' as const,
+      label: 'Security',
+      path: renderUrl('/app/settings/security', false),
+      icon: <Lock />,
+    },
+    {
       id: 'account' as const,
       label: 'Account',
       path: renderUrl('/app/settings/account', false),
       icon: <UserRound />,
+    },
+    {
+      id: 'preferences' as const,
+      label: t(labels.preferences),
+      path: renderUrl('/app/settings/preferences', false),
+      icon: <Settings2 />,
     },
   ];
 

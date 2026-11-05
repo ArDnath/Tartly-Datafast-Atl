@@ -265,7 +265,7 @@ function ExportDataForm({ websiteId, close }: { websiteId: string; close: () => 
       url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `talivia-${format === 'backup' ? 'backup' : 'reports'}-${websiteId}.zip`;
+      link.download = `${BRAND.name.toLowerCase()}-${format === 'backup' ? 'backup' : 'reports'}-${websiteId}.zip`;
       link.style.display = 'none';
       document.body.appendChild(link);
       link.click();

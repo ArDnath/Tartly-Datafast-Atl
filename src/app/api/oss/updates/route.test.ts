@@ -48,6 +48,7 @@ describe('self-hosted update check', () => {
   });
 
   test('sends a stable installation and pseudonymous actor from the server', async () => {
+    vi.stubEnv('OSS_UPDATE_URL', 'https://updates.example.test/api/oss/updates');
     const remote = vi.fn(async (_url: string, _options: RequestInit) =>
       Response.json({ latest: '1.1.0', updateAvailable: true }),
     );
@@ -58,7 +59,7 @@ describe('self-hosted update check', () => {
     expect(response.status).toBe(200);
     expect(remote).toHaveBeenCalledOnce();
     const [url, options] = remote.mock.calls[0];
-    expect(url).toBe('https://talivia.com/api/oss/updates');
+    expect(url).toBe('https://updates.example.test/api/oss/updates');
     const body = JSON.parse(options.body as string);
     expect(body).toMatchObject({
       installationId: '84459196-cb05-4607-8869-81e9565b0c48',
@@ -76,5 +77,20 @@ describe('self-hosted update check', () => {
     const response = await POST(request());
     expect(response.status).toBe(403);
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  test('does not send installation telemetry when no update service is configured', async () => {
+    const remote = vi.fn();
+    vi.stubGlobal('fetch', remote);
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      latest: null,
+      releaseUrl: null,
+      updateAvailable: false,
+    });
+    expect(remote).not.toHaveBeenCalled();
   });
 });

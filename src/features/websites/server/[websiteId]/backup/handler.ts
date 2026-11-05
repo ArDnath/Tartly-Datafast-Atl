@@ -1,4 +1,5 @@
 import { createTaliviaBackup } from '@/features/websites/server/imports';
+import { BRAND } from '@/lib/brand';
 import { getQueryFilters, parseRequest } from '@/lib/request';
 import { badRequest, unauthorized } from '@/lib/response';
 import { withDateRange } from '@/lib/schema';
@@ -29,7 +30,7 @@ export async function GET(
 
   const range = { startDate: filters.startDate, endDate: filters.endDate };
   const backup = await createTaliviaBackup(websiteId, range);
-  const fileName = `talivia-backup-${websiteId}-${range.startDate.toISOString().slice(0, 10)}.zip`;
+  const fileName = `${BRAND.name.toLowerCase()}-backup-${websiteId}-${range.startDate.toISOString().slice(0, 10)}.zip`;
 
   await recordAuditEvent({
     auth,

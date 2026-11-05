@@ -26,12 +26,12 @@ const LEMONSQUEEZY_STORES_URL = 'https://app.lemonsqueezy.com/settings/stores';
 const LEMONSQUEEZY_API_KEYS_URL = 'https://app.lemonsqueezy.com/settings/api';
 const POLAR_SETTINGS_URL = 'https://polar.sh/dashboard';
 const PAYMENT_GUIDES = {
-  stripe: 'https://talivia.com/docs/revenue-guides/stripe',
-  yolfi: 'https://talivia.com/docs/revenue-guides/yolfi',
-  dodo: 'https://talivia.com/docs/revenue-guides/dodo-payments',
-  lemonsqueezy: 'https://talivia.com/docs/revenue-guides/lemonsqueezy',
-  polar: 'https://talivia.com/docs/revenue-guides/polar',
-  manual: 'https://talivia.com/docs/revenue-guides/manual',
+  stripe: '/docs/revenue-guides/stripe',
+  yolfi: '/docs/revenue-guides/yolfi',
+  dodo: '/docs/revenue-guides/dodo-payments',
+  lemonsqueezy: '/docs/revenue-guides/lemonsqueezy',
+  polar: '/docs/revenue-guides/polar',
+  manual: '/docs/revenue-guides/manual',
 } as const;
 
 const PAYMENT_SECTION_STYLE: CSSProperties = {

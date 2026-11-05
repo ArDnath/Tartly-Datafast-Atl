@@ -20,6 +20,7 @@ const DOMAIN_MODULES = [
   'analytics',
   'app-shell',
   'auth',
+  'docs',
   'legacy',
   'marketing',
   'onboarding',

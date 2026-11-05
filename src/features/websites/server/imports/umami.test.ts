@@ -77,5 +77,5 @@ test('explains why a Talivia report export cannot be imported as raw Umami data'
 
   await expect(
     parseUmamiArchive('talivia-data.zip', await archive.generateAsync({ type: 'nodebuffer' })),
-  ).rejects.toThrow('Talivia report export');
+  ).rejects.toThrow('legacy report export');
 });

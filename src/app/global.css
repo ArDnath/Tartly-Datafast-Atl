@@ -226,7 +226,7 @@ html {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #d8e6ff;
+  color: #f2b4cb;
   line-height: inherit;
   text-decoration: none;
   transition: color 140ms ease;
@@ -236,7 +236,7 @@ html {
 .talivia-inline-external-link:hover,
 .talivia-inline-external-link[data-hovered],
 .talivia-inline-external-link:focus-visible {
-  color: #abc3ee;
+  color: #f7d2e0;
 }
 
 .talivia-inline-external-link-text {
@@ -457,7 +457,7 @@ html {
 .talivia-auth-shell button.bg-primary:hover,
 .talivia-auth-shell button[data-variant="primary"]:hover,
 .talivia-auth-shell button[type="submit"]:hover {
-  background: #2f72ff !important;
+  background: #e8e8ea !important;
 }
 
 .talivia-auth-google-wrap {
@@ -1557,23 +1557,23 @@ button.breakdown-sort-button[data-pressed] {
 }
 
 .talivia-session-activity-day[data-level="1"] {
-  border-color: rgba(59, 130, 246, 0.22);
-  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(242, 180, 203, 0.22);
+  background: rgba(242, 180, 203, 0.18);
 }
 
 .talivia-session-activity-day[data-level="2"] {
-  border-color: rgba(59, 130, 246, 0.32);
-  background: rgba(59, 130, 246, 0.34);
+  border-color: rgba(242, 180, 203, 0.32);
+  background: rgba(242, 180, 203, 0.32);
 }
 
 .talivia-session-activity-day[data-level="3"] {
-  border-color: rgba(59, 130, 246, 0.44);
-  background: rgba(59, 130, 246, 0.54);
+  border-color: rgba(242, 180, 203, 0.48);
+  background: rgba(242, 180, 203, 0.52);
 }
 
 .talivia-session-activity-day[data-level="4"] {
-  border-color: rgba(59, 130, 246, 0.68);
-  background: #3b82ff;
+  border-color: rgba(242, 180, 203, 0.72);
+  background: #f2b4cb;
 }
 
 .talivia-session-activity-day-empty {
@@ -2829,5 +2829,41 @@ select:-webkit-autofill:focus {
 
   .website-section-tabs {
     display: flex;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Accessibility baseline
+ * Keyboard focus always uses the single blush signal; motion is optional.
+ * ------------------------------------------------------------------------- */
+:where(a, button, input, select, textarea, summary, [role="button"], [tabindex]):focus-visible {
+  outline: 2px solid rgba(242, 180, 203, 0.78);
+  outline-offset: 2px;
+}
+
+.talivia-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }

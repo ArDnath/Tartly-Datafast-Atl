@@ -2,7 +2,7 @@ import { createHmac, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { checkAuth } from '@/lib/auth';
 import { secret } from '@/lib/crypto';
-import { OSS_UPDATE_URL, OSS_VERSION } from '@/lib/oss-version';
+import { getOssUpdateUrl, OSS_VERSION } from '@/lib/oss-version';
 import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -42,6 +42,14 @@ export async function POST(request: Request) {
   }
 
   const { siteOrigin, sourcePath, clientUserAgent } = parsed.data;
+  const updateUrl = getOssUpdateUrl();
+
+  // Hosted deployments do not report installation telemetry to a third party
+  // unless the operator explicitly configures an update service.
+  if (!updateUrl) {
+    return noStore({ latest: null, releaseUrl: null, updateAvailable: false });
+  }
+
   let origin: URL;
   try {
     origin = new URL(siteOrigin);
@@ -70,7 +78,7 @@ export async function POST(request: Request) {
     ]);
 
     const actorId = createHmac('sha256', secret()).update(auth.user.id).digest('hex');
-    const response = await fetch(OSS_UPDATE_URL, {
+    const response = await fetch(updateUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({

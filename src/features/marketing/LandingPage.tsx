@@ -14,6 +14,7 @@ export function LandingPage() {
         </Link>
         <nav className={styles.navLinks} aria-label="Main">
           <Link href="/pricing">Pricing</Link>
+          <Link href="/docs">Docs</Link>
           <Link href="/login">Sign in</Link>
           <Link href="/signup" className={styles.navCta}>
             Get started
@@ -169,6 +170,8 @@ export function LandingPage() {
         </span>
         <nav aria-label="Footer">
           <Link href="/pricing">Pricing</Link>
+          {' · '}
+          <Link href="/docs">Docs</Link>
           {' · '}
           <Link href="/signup">Sign up</Link>
           {' · '}

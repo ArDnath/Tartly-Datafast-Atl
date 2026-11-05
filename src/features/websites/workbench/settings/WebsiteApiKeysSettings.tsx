@@ -127,7 +127,7 @@ export function WebsiteApiKeysSettings({ websiteId }: { websiteId: string }) {
           border
           borderRadius
           padding="4"
-          style={{ borderColor: 'rgba(59, 130, 255, 0.42)', background: '#3b82ff14' }}
+          style={{ borderColor: 'rgba(242, 180, 203, 0.34)', background: 'rgba(242, 180, 203, 0.08)' }}
         >
           <Label>Copy this key now</Label>
           <Text color="muted">
@@ -202,7 +202,7 @@ export function WebsiteApiKeysSettings({ websiteId }: { websiteId: string }) {
 
       <Text color="muted">
         See the{' '}
-        <InlineExternalLink href="https://talivia.com/docs/revenue-guides/manual">
+        <InlineExternalLink href="/docs/revenue-guides/manual">
           Manual Payment API guide
         </InlineExternalLink>{' '}
         for the request format and attribution fields.

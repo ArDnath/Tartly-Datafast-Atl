@@ -80,6 +80,7 @@ export function PricingPage() {
         <nav className={styles.navLinks} aria-label="Main">
           <a href="#plans">Pricing</a>
           <a href="#faq">FAQ</a>
+          <Link href="/docs">Docs</Link>
           <Link href="/login" className={styles.navCta}>
             Sign in
           </Link>

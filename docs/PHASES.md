@@ -4,7 +4,7 @@
 - **Repository:** <https://github.com/talivia-group/talivia> (MIT), forked locally at
   `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-05
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 app restructure shipped (single `/app` workbench, feature-module source layout, revenue-first home, landing) and the server layer is now fully extracted into feature modules (UI-17). Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 restructure and polish shipped: single `/app` workbench, feature-module source/server layout, revenue-first home, landing, a real Settings overview with Integrations and Security, a public docs shell with brand-safe revenue guides, and an accessibility/motion pass. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
 
 ## Overall progress
 
@@ -13,11 +13,11 @@
 - Overall percent (average of phases 0–11): **59%**
 - Build state at last check: **green** (`pnpm build` exit 0 with local
   PostgreSQL running; `tsc --noEmit` clean; `biome lint` clean). Full test run:
-  **614 passed / 0 failed** under `TZ=UTC`.
-- Runtime smoke: all 19 website workbench routes return 200 on the production
-  build with an authenticated session; unknown sub-routes return 404. The new
-  `/app/settings/billing` route is in the production build. The legacy
-  `/websites/*` and `/settings/*` URLs redirect to `/app/*`.
+  **620 passed / 0 failed** under `TZ=UTC`.
+- Runtime smoke: the new public docs routes return 200, and `/app/settings`,
+  `/app/settings/integrations`, `/app/settings/security`, `/app/settings/websites`,
+  and `/app/settings/billing` return 200 with an authenticated session. The
+  legacy `/websites/*` and `/settings/*` URLs still redirect to `/app/*`.
 - Database: local PostgreSQL has all 7 migrations applied, including durable
   auth sessions, hashed email/reset tokens, rate-limit buckets, removal of the
   bootstrap admin, and monthly usage periods.
@@ -48,7 +48,7 @@ No third plan, no free tier, no hidden limits.
 | 6 | Plans, pricing economics, usage | IN_PROGRESS | 75% | 2026-11-04 | — | live concurrency proof; owner approval of limits; notice emails |
 | 7 | Analytics validation, integrations, replay | NOT_STARTED | 0% | — | — | none |
 | 8 | Onboarding and developer experience | IN_PROGRESS | 40% | 2026-11-04 | — | guides, activation, MCP |
-| 9 | Rebrand and product UI | IN_PROGRESS | 85% | 2026-11-04 | — | billing page (Phase 5), remaining brand copy, a11y pass |
+| 9 | Rebrand and product UI | IN_PROGRESS | 95% | 2026-11-04 | — | MRR-by-channel, rename demonstration, a11y contrast tooling |
 | 10 | Compliance, abuse, email, operations | NOT_STARTED | 0% | — | — | legal review |
 | 11 | Hardening, QA, deployment, launch | NOT_STARTED | 0% | — | — | hosting + domain |
 | 12 | Go-to-market | NOT_STARTED | 0% | — | — | product live |
@@ -708,21 +708,28 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 - [x] One branding config (`src/lib/brand.ts`): name, tagline, logo, colors,
       domain, support/no-reply emails, legal entity. Placeholder: RevenueLens. —
       proof: file exists; used by pricing, onboarding, login, top nav, metadata.
-- [ ] Remove/replace customer-facing Talivia names, logos, copy, favicons,
+- [x] Remove/replace customer-facing Talivia names, logos, copy, favicons,
       metadata, emails, docs links. Keep MIT notice in `LICENSE`; add
-      `THIRD_PARTY_NOTICES`. — **partial**: logo/favicons/manifest/login/nav/
-      metadata/intl are rebranded; settings copy and `THIRD_PARTY_NOTICES`
-      remain.
+      `THIRD_PARTY_NOTICES`. — proof: brand mark/favicons/manifest/login/nav/
+      metadata/intl/settings/imports are rebranded; the old `talivia.com`
+      documentation links are replaced with the local `/docs` guides; admin
+      update checks no longer phone the upstream service unless
+      `OSS_UPDATE_URL` is configured. Remaining `Talivia` strings are internal
+      identifiers (cron/redis/tracker types) and the compatibility import
+      format; `THIRD_PARTY_NOTICES` keeps the upstream attribution required by
+      the MIT license.
 - [ ] Revenue-first screens: revenue by source, revenue per visitor,
       conversion rate, MRR by channel; onboarding; billing; usage; workspace
       settings; empty states; mobile. — **onboarding + pricing done**; the
       revenue-first overview and billing/usage screens are not built.
-- [ ] Landing page, pricing page (driven by plan config), docs shell, login
-      and signup. — **pricing page done** (`/pricing`), login rebranded; no
-      landing/signup/docs shell yet.
+- [x] Landing page, pricing page (driven by plan config), docs shell, login
+      and signup. — proof: landing (`/`), pricing (`/pricing`), a public docs
+      shell at `/docs` with provider guides, and the shared auth screens are
+      live and driven by `BRAND`/`PLANS`.
 - [ ] Accessibility basics; dark mode (the product is dark by default). —
-      onboarding/pricing have labels, focus, reduced motion; app-wide audit
-      pending.
+      **partial:** global keyboard focus rings, a reduced-motion override, the
+      new settings/docs screens, and onboarding/pricing have labels/focus;
+      a contrast-tool pass remains in Phase 11.
 
 ### Additional UI steps (owner-requested)
 
@@ -760,11 +767,14 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       states, upgrade path. — **usage shipped** at `/app/settings/billing`
       (plan, reset date, event/replay bars, grace/limit states, website/member
       limits, upgrade link). Invoice/renewal history waits for Phase 5.
-- [ ] **UI-10 — Settings:** workspace, members, websites, integrations,
-      security; consistent empty/error/loading states. — **workspace/members/
-      invitations, Plan & usage, and Websites done**; the settings hub now has
-      a real index and grouped nav (`/app/settings` → workspace). Integrations/
-      security states still pending.
+- [x] **UI-10 — Settings:** workspace, members, websites, integrations,
+      security; consistent empty/error/loading states. — proof: `/app/settings`
+      is now a real overview instead of a redirect; grouped nav covers
+      Overview, Workspace, Websites, Integrations, Plan and usage, Security,
+      Account, and Preferences. Integrations shows per-website provider
+      connection state from the real API; Security carries verification,
+      password, session, and account-deletion states. Workspace/members/
+      invitations and Plan & usage remain in place.
 - [x] **UI-11 — Auth screens:** login, signup, verify, reset in the same shell.
       — login, signup, invite acceptance, `/verify-email`, `/forgot-password`,
       and `/reset-password` use the same auth shell.
@@ -806,20 +816,27 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       dependency direction, and `src/lib/app-structure.test.ts` enforces thin
       route files plus server-module presence. — proof: build, typecheck,
       lint, 22 API route suites (126 tests), and the full suite are green.
-- [ ] **UI-13 — Motion + polish pass:** page transitions, hover lift, focus
-      rings, skeletons, reduced motion, mobile.
+- [x] **UI-13 — Motion + polish pass:** page transitions, hover lift, focus
+      rings, skeletons, reduced motion, mobile. — proof: global keyboard
+      `:focus-visible` rings, a global reduced-motion override, blush-only
+      signal states (auth hover, external links, activity heatmap, API-key
+      reveal), working loading/empty states on the new settings pages, and the
+      responsive docs/settings layouts at 860 px and below.
+- [x] **UI-18 — Brand-safe documentation shell:** public `/docs` and
+      `/docs/revenue-guides/[slug]` pages replace the upstream help-centre
+      links. Guides for Stripe, Dodo Payments, Lemon Squeezy, Polar, Yolfi, and
+      the manual payment API are generated from one content module, link only
+      to official provider pages, and are covered by `content.test.ts`.
 - [ ] **UI-14 — Temporary rename demonstration:** change brand config and show
       name/logo/colors/emails update everywhere.
 
 ### Acceptance criteria
 
-- [ ] Repo-wide search for the original brand finds nothing customer-facing
-      (allowed exceptions listed). — **partial**: onboarding, API-key, data
-      import/export, share branding, top nav, 404, and landing copy are now
-      brand-config driven or renamed. About 59 `Talivia` strings remain,
-      mostly provider-setup copy in `WebsiteRevenueSettings.tsx`, the
-      backup-format parser (kept for compatibility), internal type names, and
-      comments.
+- [x] Repo-wide search for the original brand finds nothing customer-facing
+      (allowed exceptions listed). — proof: no `talivia.com` links remain in
+      application code; provider guides, imports, backup filenames, and update
+      notices are brand-safe. Internal compatibility identifiers and the
+      upstream MIT attribution in `THIRD_PARTY_NOTICES` are intentionally kept.
 - [ ] Changing the brand config changes name, logo, colors, emails everywhere
       (demonstrated with a temporary rename). — not yet demonstrated.
 - [x] Onboarding motion matches the Tartly constants and respects reduced
@@ -954,15 +971,27 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
    entitlements/masking/retention jobs.
 6. **Phase 8 finish:** framework guides, activation events/admin funnel,
    `llms.txt`, MCP/CLI verification.
-7. **Phase 9 finish:** remaining provider-setup brand copy, MRR-by-channel on
-   the portfolio overview, billing/usage screens (blocked on Phases 5–6),
-   integrations/security settings states, a11y/contrast pass, temporary rename
-   demo.
+7. **Phase 9 finish:** MRR-by-channel on the portfolio overview, the temporary
+   rename demonstration, and the Phase 11 contrast-tool pass. Billing history
+   waits for Phase 5.
 8. **Phase 10:** legal drafts, abuse protection, transactional email, ops.
 9. **Phase 11:** security review, load test, CI, deployment/runbook.
 10. **Phase 12:** go-to-market.
 
 ## Changelog
+
+- 2026-11-05 — **Phase 9 restructure + polish completion:** `/app/settings` is
+  a real overview (not a redirect) with grouped navigation; new Integrations
+  and Security settings surfaces report real provider connection state,
+  verification state, password/session policy, and account deletion. Added a
+  public docs shell (`/docs` + `/docs/revenue-guides/[slug]`) with guides for
+  Stripe, Dodo Payments, Lemon Squeezy, Polar, Yolfi, and the manual API; all
+  old `talivia.com` help links now resolve locally. Rebranded legacy import
+  copy and backup filenames, stopped upstream update telemetry unless
+  `OSS_UPDATE_URL` is set, moved remaining blue chrome to the blush signal, and
+  added global focus-visible and reduced-motion rules. `app-route` now accepts
+  the new settings paths and the structure test includes the docs domain.
+  Build, typecheck, lint, and **620/620 tests** pass.
 
 - 2026-11-05 — **Complete server restructure (Phase 9 / UI-17):** all 119 API
   route handlers moved out of `src/app/api` into feature modules

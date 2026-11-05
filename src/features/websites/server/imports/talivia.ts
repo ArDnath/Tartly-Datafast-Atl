@@ -9,14 +9,14 @@ export async function parseTaliviaBackup(
   archive: Buffer,
 ): Promise<ParsedAnalyticsImport> {
   if (!isZip(archive)) {
-    throw new Error('Talivia backups must be uploaded as a .zip file.');
+    throw new Error('Activity backups must be uploaded as a .zip file.');
   }
 
   const zip = await JSZip.loadAsync(archive);
   const manifestFile = zip.file('manifest.json');
 
   if (!manifestFile) {
-    throw new Error('This zip is not a Talivia backup. The manifest.json file is missing.');
+    throw new Error('This zip is not a compatible activity backup. The manifest.json file is missing.');
   }
 
   let manifest: Record<string, unknown>;
@@ -24,11 +24,11 @@ export async function parseTaliviaBackup(
   try {
     manifest = JSON.parse(await manifestFile.async('text'));
   } catch {
-    throw new Error('The Talivia backup manifest is not valid JSON.');
+    throw new Error('The activity backup manifest is not valid JSON.');
   }
 
   if (manifest.format !== TALIVIA_BACKUP_FORMAT) {
-    throw new Error('This Talivia backup uses an unsupported format.');
+    throw new Error('This activity backup uses an unsupported format.');
   }
 
   const parsed = await parseUmamiArchive(fileName, archive, { allowTaliviaBackup: true });

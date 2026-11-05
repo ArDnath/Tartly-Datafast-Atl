@@ -226,13 +226,18 @@ blocked on Phase 5 (platform billing); the rest is tracked in `docs/PHASES.md`.
 | Brand config | `src/lib/brand.ts` |
 | Brand mark/wordmark | `src/components/brand/BrandMark.tsx` |
 | Global tokens | `src/app/global.css` |
-| Landing page | `src/app/page.tsx`, `Landing.module.css` |
+| Landing page | `src/features/marketing/LandingPage.tsx`, `Landing.module.css` |
+| Pricing page | `src/features/marketing/PricingPage.tsx`, `Pricing.module.css` |
+| Documentation shell | `src/features/docs/DocsPage.tsx`, `Docs.module.css` |
+| Revenue guides | `src/features/docs/content.ts` |
 | App shell / top nav | `src/features/app-shell/App.tsx`, `TopNav.tsx` |
 | Portfolio overview | `src/features/portfolio/AppEntryPage.tsx` |
+| Settings overview | `src/features/settings/SettingsHomePage.tsx` |
+| Integrations settings | `src/features/settings/integrations/` |
+| Security settings | `src/features/settings/security/` |
 | Website workbench | `src/features/websites/workbench/` |
 | Website workbench nav | `src/features/websites/workbench/WebsiteSectionNav.tsx` |
 | Workspace and website settings | `src/features/settings/` |
-| Pricing page | `src/app/pricing/PricingPage.tsx`, `Pricing.module.css` |
 | Onboarding flow | `src/features/onboarding/OnboardingFlow.tsx`, `Onboarding.module.css` |
 | Plan config | `src/lib/plans.ts` |
 | Workspace permissions | `src/lib/workspace-auth.ts` |
@@ -256,6 +261,7 @@ src/features/
   analytics/                 ingestion, realtime, report/metric handlers
   app-shell/                 signed-in shell, top nav, notices
   auth/                      login, signup, verify, reset, invite, logout
+  docs/                      public documentation shell and revenue guides
   legacy/                    frozen boards, links, pixels
   marketing/                 landing and pricing
   onboarding/                welcome flow, website setup flow

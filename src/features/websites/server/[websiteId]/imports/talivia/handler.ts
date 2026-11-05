@@ -17,7 +17,7 @@ export async function POST(
 
   const file = (await request.formData()).get('file');
   if (!file || typeof file === 'string') {
-    return badRequest({ message: 'Choose a Talivia backup file to import.' });
+    return badRequest({ message: 'Choose a compatible activity backup file to import.' });
   }
 
   return importAnalyticsFile({

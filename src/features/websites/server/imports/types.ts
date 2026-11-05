@@ -3,8 +3,9 @@ import { BRAND } from '@/lib/brand';
 export const ANALYTICS_IMPORT_SOURCES = {
   talivia: {
     id: 'talivia',
-    name: 'Talivia backup',
-    description: 'Restore raw Talivia sessions, page views, events, and properties.',
+    name: 'Legacy activity backup',
+    description:
+      'Restore raw sessions, page views, events, and properties from a compatible activity backup.',
     acceptedFiles: '.zip',
     kind: 'raw',
   },

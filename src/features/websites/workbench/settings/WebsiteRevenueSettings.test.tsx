@@ -114,7 +114,7 @@ test('payment settings show selectable provider cards and Polar setup', async ()
   expect(screen.getByText('Link payments with traffic')).toBeInTheDocument();
   expect(screen.getByRole('link', { name: /Open the Stripe attribution guide/i })).toHaveAttribute(
     'href',
-    'https://talivia.com/docs/revenue-guides/stripe',
+    '/docs/revenue-guides/stripe',
   );
   expect(screen.queryByText('Stripe Checkout API')).not.toBeInTheDocument();
   expect(screen.queryByText('Complete')).not.toBeInTheDocument();
@@ -167,7 +167,7 @@ test('payment settings show selectable provider cards and Polar setup', async ()
   expect(screen.getByPlaceholderText('Yolfi API key')).toBeInTheDocument();
   expect(screen.getByRole('link', { name: /Open the Yolfi attribution guide/i })).toHaveAttribute(
     'href',
-    'https://talivia.com/docs/revenue-guides/yolfi',
+    '/docs/revenue-guides/yolfi',
   );
   expect(screen.queryByText('Yolfi payment metadata')).not.toBeInTheDocument();
 
@@ -185,7 +185,7 @@ test('payment settings show selectable provider cards and Polar setup', async ()
   expect(screen.getByText('Enable write access')).toBeInTheDocument();
   expect(
     screen.getByRole('link', { name: /Open the Dodo Payments attribution guide/i }),
-  ).toHaveAttribute('href', 'https://talivia.com/docs/revenue-guides/dodo-payments');
+  ).toHaveAttribute('href', '/docs/revenue-guides/dodo-payments');
   expect(screen.queryByText('payment.succeeded')).not.toBeInTheDocument();
   expect(screen.queryByText('refund.succeeded')).not.toBeInTheDocument();
 
@@ -220,7 +220,7 @@ test('payment settings show selectable provider cards and Polar setup', async ()
   expect(screen.getByText(/Checkout Read, Orders Read, Organization Read/i)).toBeInTheDocument();
   expect(screen.getByRole('link', { name: /Open the Polar attribution guide/i })).toHaveAttribute(
     'href',
-    'https://talivia.com/docs/revenue-guides/polar',
+    '/docs/revenue-guides/polar',
   );
   await user.type(
     screen.getByPlaceholderText('Paste your authentication token'),
@@ -241,7 +241,7 @@ test('payment settings show selectable provider cards and Polar setup', async ()
   expect(screen.getAllByText('Manual payment API').length).toBeGreaterThan(0);
   expect(screen.getByRole('link', { name: /Open the Manual Payment API guide/i })).toHaveAttribute(
     'href',
-    'https://talivia.com/docs/revenue-guides/manual',
+    '/docs/revenue-guides/manual',
   );
   expect(screen.queryByText('Record a manual payment')).not.toBeInTheDocument();
 });
