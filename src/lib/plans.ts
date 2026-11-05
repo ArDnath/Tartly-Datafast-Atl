@@ -109,11 +109,10 @@ export const PLANS: readonly Plan[] = [
 const PLAN_MAP = new Map<PlanId, Plan>(PLANS.map(plan => [plan.id, plan]));
 
 /**
- * Install-verification allowance for a workspace with no active paid
- * subscription. This is NOT a free plan: it exists only so onboarding can
- * verify the tracker before checkout, and it is capped per calendar month.
- * After it is consumed, billable ingestion pauses until the workspace
- * subscribes.
+ * One-time install-verification allowance for a workspace with no active paid
+ * subscription. This is NOT a free plan and never resets: it exists only so
+ * onboarding can verify the tracker before checkout. After it is consumed,
+ * billable ingestion pauses until the workspace subscribes.
  */
 export const SETUP_EVENT_ALLOWANCE = 1_000;
 

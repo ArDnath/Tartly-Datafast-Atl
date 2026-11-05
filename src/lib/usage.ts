@@ -175,6 +175,60 @@ export async function reserveEventUsage(
   };
 }
 
+/** Reserve one event from the one-time setup allowance. Never resets. */
+export async function reserveSetupEventUsage(
+  workspaceId: string,
+  limit: number = SETUP_EVENT_ALLOWANCE,
+): Promise<ReserveResult> {
+  const safeLimit = Math.max(0, limit);
+
+  if (safeLimit <= 0) {
+    return { allowed: false, used: 0, limit: 0, hardLimit: 0 };
+  }
+
+  const rows = await prisma.client.$queryRaw<Array<{ setup_events_count: number }>>`
+    UPDATE workspace
+    SET setup_events_count = setup_events_count + 1,
+        updated_at = now()
+    WHERE workspace_id = ${workspaceId}
+      AND deleted_at IS NULL
+      AND suspended_at IS NULL
+      AND setup_events_count < ${safeLimit}
+    RETURNING setup_events_count
+  `;
+
+  if (rows.length > 0) {
+    return {
+      allowed: true,
+      used: Number(rows[0].setup_events_count),
+      limit: safeLimit,
+      hardLimit: safeLimit,
+    };
+  }
+
+  const current = await prisma.client.workspace.findUnique({
+    where: { id: workspaceId },
+    select: { setupEventsCount: true },
+  });
+
+  return {
+    allowed: false,
+    used: current?.setupEventsCount ?? safeLimit,
+    limit: safeLimit,
+    hardLimit: safeLimit,
+  };
+}
+
+/** Release a setup reservation when the event write failed. */
+export async function releaseSetupEventUsage(workspaceId: string): Promise<void> {
+  await prisma.client.$executeRaw`
+    UPDATE workspace
+    SET setup_events_count = GREATEST(0, setup_events_count - 1)
+    WHERE workspace_id = ${workspaceId}
+      AND setup_events_count > 0
+  `;
+}
+
 /** Release a reservation when the event write failed. */
 export async function releaseEventUsage(
   workspaceId: string,
@@ -384,6 +438,7 @@ export async function getWorkspaceUsage(
         id: true,
         planId: true,
         subscriptionStatus: true,
+        setupEventsCount: true,
         platformSubscription: {
           select: {
             planId: true,
@@ -451,7 +506,7 @@ export async function getWorkspaceUsage(
     periodEnd,
     resetAt: periodEnd,
     events: createUsageMeter(
-      period?.eventsCount ?? 0,
+      active ? (period?.eventsCount ?? 0) : workspace.setupEventsCount,
       active ? plan.eventsPerMonth : SETUP_EVENT_ALLOWANCE,
       active ? EVENT_GRACE : 0,
     ),

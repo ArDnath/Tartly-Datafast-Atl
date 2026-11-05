@@ -200,7 +200,7 @@ export function UsageSettingsPage() {
         <Row justifyContent="space-between" alignItems="baseline" gap="3" wrap="wrap">
           <Heading size="lg">Plan and usage</Heading>
           <Text size="sm" color="muted">
-            Resets {formatDate(usage.resetAt)}
+            {isSetup ? 'One-time setup allowance' : `Resets ${formatDate(usage.resetAt)}`}
           </Text>
         </Row>
         <Text color="muted">
@@ -279,9 +279,9 @@ export function UsageSettingsPage() {
         {isSetup && (
           <Text size="sm" color="muted">
             This workspace has no paid subscription. It can collect{' '}
-            {eventAllowance.toLocaleString('en-US')} setup events this period so you can verify the
-            tracker. After that, billable ingestion pauses until you choose Starter or Pro. This is
-            not a free plan.
+            {eventAllowance.toLocaleString('en-US')} setup events once so you can verify the
+            tracker. After that, billable ingestion pauses until you choose Starter or Pro. The
+            allowance does not reset. This is not a free plan.
           </Text>
         )}
         <Text size="sm" color="muted">

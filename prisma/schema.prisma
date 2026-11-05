@@ -29,6 +29,7 @@ model Workspace {
   deletedAt          DateTime? @map("deleted_at") @db.Timestamptz(6)
   suspendedAt        DateTime? @map("suspended_at") @db.Timestamptz(6)
   suspensionReason   String?   @map("suspension_reason") @db.VarChar(500)
+  setupEventsCount   Int       @default(0) @map("setup_events_count")
 
   owner                User                  @relation("WorkspaceOwner", fields: [ownerId], references: [id])
   memberships          WorkspaceMembership[]

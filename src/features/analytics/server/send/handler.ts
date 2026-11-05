@@ -27,7 +27,14 @@ import {
 } from '@/features/analytics/lib/tracking-identity';
 import { safeDecodeURI, safeDecodeURIComponent } from '@/lib/url';
 import { SETUP_EVENT_ALLOWANCE } from '@/lib/plans';
-import { EVENT_GRACE, isBillableEvent, releaseEventUsage, reserveEventUsage } from '@/lib/usage';
+import {
+  EVENT_GRACE,
+  isBillableEvent,
+  releaseEventUsage,
+  releaseSetupEventUsage,
+  reserveEventUsage,
+  reserveSetupEventUsage,
+} from '@/lib/usage';
 import { isTrackerOriginAllowed } from '@/features/analytics/lib/tracker-origin';
 import {
   ensureVisitorContext,
@@ -90,6 +97,7 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   let reservedWorkspaceId: string | null = null;
+  let reservedUsageKind: 'plan' | 'setup' | null = null;
   let eventCommitted = false;
 
   try {
@@ -229,14 +237,9 @@ export async function POST(request: Request) {
       }
 
       if (isBillableEvent(eventType)) {
-        const eventLimit = entitlements.active
-          ? entitlements.plan.eventsPerMonth
-          : SETUP_EVENT_ALLOWANCE;
-        const reservation = await reserveEventUsage(
-          workspaceId,
-          eventLimit,
-          entitlements.active ? EVENT_GRACE : 0,
-        );
+        const reservation = entitlements.active
+          ? await reserveEventUsage(workspaceId, entitlements.plan.eventsPerMonth, EVENT_GRACE)
+          : await reserveSetupEventUsage(workspaceId, SETUP_EVENT_ALLOWANCE);
 
         if (!reservation.allowed) {
           return json({
@@ -248,6 +251,7 @@ export async function POST(request: Request) {
         }
 
         reservedWorkspaceId = workspaceId;
+        reservedUsageKind = entitlements.active ? 'plan' : 'setup';
       }
     }
 
@@ -548,7 +552,11 @@ export async function POST(request: Request) {
       // A failed write must not consume allowance. This is best-effort: the
       // original error is still the one returned to the client.
       try {
-        await releaseEventUsage(reservedWorkspaceId);
+        if (reservedUsageKind === 'setup') {
+          await releaseSetupEventUsage(reservedWorkspaceId);
+        } else {
+          await releaseEventUsage(reservedWorkspaceId);
+        }
       } catch {
         // Ignore release failures; the counter is repaired by the next write
         // or the period rollover.

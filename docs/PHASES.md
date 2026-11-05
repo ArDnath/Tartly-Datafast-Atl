@@ -30,7 +30,7 @@
 - Overall percent (average of phases 0–12): **94%**
 - Build state at last check: **green** — `tsc --noEmit`, `biome lint`, and the
   full suite pass; the production build is exercised by `pnpm gate` and CI.
-  Latest local full run: **769 passed / 0 failed / 1 gated skip**, plus the
+  Latest local full run: **774 passed / 0 failed / 1 gated skip**, plus the
   explicit 48-assertion PostgreSQL analytics smoke and the recorded load probe.
 - GitHub CI: **green on `main`** for the last merged phase. CI starts
   PostgreSQL 17, runs `pnpm build-db`, lint, typecheck, the full suite,
@@ -582,8 +582,8 @@ migration connections.
 - **ASSUMED:** annual product IDs are optional; the UI disables an annual price
   until its product exists.
 - **RESOLVED:** registration still stores Starter as the setup plan, but a
-  workspace without an active subscription is capped at the 1,000-event setup
-  allowance (`SETUP_EVENT_ALLOWANCE`), not the Starter 50,000. Onboarding can
+  workspace without an active subscription is capped at the one-time 1,000-event
+  setup allowance (`SETUP_EVENT_ALLOWANCE`), not the Starter 50,000. Onboarding can
   create a website and verify the tracker, then ingestion returns
   `subscription_required` at the cap. Replay is disabled. This closes the
   "free Starter forever" leak without blocking activation.
@@ -659,11 +659,13 @@ migration connections.
 ### Decisions made
 
 - Prices fixed by owner: Starter $7.99, Pro $14.99; no free tier.
-- A workspace without an active subscription gets a 1,000-event setup
+- A workspace without an active subscription gets a one-time 1,000-event setup
   allowance, not the Starter plan. It exists only to verify the tracker before
   checkout; at the cap, ingestion returns `subscription_required`. Replay is
-  disabled. Verified live on 2026-11-06 (1,000 accepted, the 1,001st rejected
-  with `limit: 1000, used: 1000`).
+  disabled. Verified live on 2026-11-06 (counter set to 999, event 1,000
+  accepted, event 1,001 rejected with `limit: 1000, used: 1000`; the counter
+  never resets). Stored in `workspace.setup_events_count` via migration
+  `20261106130000_setup_allowance`, not in `usage_period`.
 - Website limits fixed by owner: Starter 1, Pro 20.
 - Starter excludes replay to protect margin at 100 customers; Pro gets 2,000
   replays/month with 30-day replay retention.
@@ -1371,6 +1373,16 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 
 ## Changelog
 
+- 2026-11-06 — **One-time setup allowance:** replaced the monthly setup cap with
+  a `workspace.setup_events_count` counter (migration
+  `20261106130000_setup_allowance`), so an unsubscribed workspace cannot farm
+  1,000 free events every month. `reserveSetupEventUsage` increments atomically
+  and fails closed; `releaseSetupEventUsage` refunds a failed write. The usage
+  page now says the allowance is one-time and does not reset. Live proof:
+  counter set to 999, event 1,000 accepted, event 1,001 returned
+  `subscription_required` with `limit 1000 / used 1000`. Full suite **774
+  passed / 1 gated skip**; production build green.
+
 - 2026-11-06 — **Live operational smoke:** exercised verification, password
   reset, platform-admin search, user suspension, session revocation, workspace
   suspension, audit rows, and the setup allowance on the production build
@@ -1382,7 +1394,7 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
   Dodo/provider webhooks remain **UNVERIFIED**.
 
 - 2026-11-06 — **Closed the free-usage leak and fixed the operator route:** a
-  workspace with no active paid subscription now receives a **1,000-event setup
+  workspace with no active paid subscription now receives a **one-time 1,000-event setup
   allowance**, not the full Starter 50,000. At the cap the collector returns
   `subscription_required`, writes no event, and disables replay; the usage page
   labels the setup meter and links to checkout. Verified live: 1,000 events
@@ -1410,7 +1422,7 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
   any session write, with a regression test. Added OpenAPI 3.1 (`openapi.yaml`),
   graceful shutdown (`scripts/start-server.mjs`), bcrypt cost 12 with
   rehash-on-login, comparison pages, `sitemap.xml`, `robots.txt`, and
-  `security.txt`. Local full suite: **769 passed / 1 gated skip**; production
+  `security.txt`. Local full suite: **774 passed / 1 gated skip**; production
   build green.
 
 - 2026-11-06 — **Phase 10/11 production readiness and Phase 12 GTM:** added the
