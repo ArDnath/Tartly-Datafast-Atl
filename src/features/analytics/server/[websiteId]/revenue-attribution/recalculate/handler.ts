@@ -2,7 +2,8 @@ import { z } from 'zod';
 import { parseRequest } from '@/lib/request';
 import { badRequest, json, unauthorized } from '@/lib/response';
 import { canUpdateWebsite } from '@/permissions';
-import { recalculateRevenueAttribution, recordAuditEvent } from '@/queries/prisma';
+import { recalculateRevenueAttribution } from '@/features/payments/server/queries/payment';
+import { recordAuditEvent } from '@/queries/prisma';
 
 const schema = z
   .object({

@@ -1,5 +1,8 @@
 import type { Auth } from '@/lib/types';
-import { getBoard, getLink, getPixel, getTeamUser } from '@/queries/prisma';
+import { getBoard } from '@/queries/prisma/board';
+import { getLink } from '@/queries/prisma/link';
+import { getPixel } from '@/queries/prisma/pixel';
+import { getTeamUser } from '@/queries/prisma';
 
 /**
  * Read access for the frozen board/link/pixel features. These entities are

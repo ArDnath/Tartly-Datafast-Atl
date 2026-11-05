@@ -9,7 +9,7 @@ import { verifyPolarSignature } from '@/features/payments/server/webhooks/polar-
 import prisma from '@/lib/prisma';
 import { decryptProviderSecret } from '@/features/payments/server/provider-secrets';
 import { badRequest, json, notFound, serverError, unauthorized } from '@/lib/response';
-import { recordPayment, recordRefund, recordSubscriptionState } from '@/queries/prisma';
+import { recordPayment, recordRefund, recordSubscriptionState } from '@/features/payments/server/queries/payment';
 
 function getString(value: unknown) {
   return typeof value === 'string' && value ? value : undefined;

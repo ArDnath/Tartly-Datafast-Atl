@@ -45,7 +45,7 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
-vi.mock('@/queries/sql', () => ({
+vi.mock('@/features/analytics/server/queries/sql', () => ({
   createSession: vi.fn(async () => {
     mocks.order.push('session');
   }),

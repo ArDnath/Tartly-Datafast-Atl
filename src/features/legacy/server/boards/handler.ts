@@ -3,7 +3,7 @@ import { legacyFeatureDisabled } from '@/features/legacy/lib/legacy-features';
 import { getQueryFilters, parseRequest } from '@/lib/request';
 import { json } from '@/lib/response';
 import { pagingParams, searchParams } from '@/lib/schema';
-import { getUserBoards } from '@/queries/prisma';
+import { getUserBoards } from '@/queries/prisma/board';
 
 export async function GET(request: Request) {
   const schema = z.object({

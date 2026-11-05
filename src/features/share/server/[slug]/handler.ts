@@ -5,7 +5,9 @@ import prisma from '@/lib/prisma';
 import redis from '@/lib/redis';
 import { json, notFound } from '@/lib/response';
 import type { WhiteLabel } from '@/lib/types';
-import { getLink, getPixel, getShareByCode, getWebsite } from '@/queries/prisma';
+import { getLink } from '@/queries/prisma/link';
+import { getPixel } from '@/queries/prisma/pixel';
+import { getShareByCode, getWebsite } from '@/queries/prisma';
 
 async function getAccountId(entity: { userId?: string; teamId?: string }): Promise<string | null> {
   if (entity.userId) {

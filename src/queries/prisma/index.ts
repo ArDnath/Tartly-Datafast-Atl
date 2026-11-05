@@ -1,23 +1,19 @@
-export * from './attribution';
+/**
+ * Shared Prisma repositories.
+ *
+ * Domain-owned repositories live in `src/features/<domain>/server/queries`.
+ * Only repositories required by the shared authorization, request, or
+ * analytics kernel stay here.
+ */
 export * from './audit';
 export * from './board';
-export * from './dashboardBreakdown';
-export * from './historicalMetrics';
 export * from './link';
-export * from './payment';
 export * from './pixel';
-export * from './report';
-export * from './revenueAttribution';
-export * from './portfolioMrr';
-export * from './revenueDiagnostics';
-export * from './revenueJourney';
-export * from './revenueSetup';
+export * from './providerWebhookCleanup';
 export * from './segment';
-export * from './sessionReplay';
 export * from './share';
 export * from './teamUser';
 export * from './user';
 export * from './website';
-export * from './websiteImport';
+export * from './websiteCurrency';
 export * from './websiteMember';
-export * from './websiteOverview';

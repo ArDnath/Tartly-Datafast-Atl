@@ -1,8 +1,8 @@
 import Stripe from 'stripe';
 import { BRAND } from '@/lib/brand';
 import { hash } from '@/lib/crypto';
-import { formatStripeAmount } from '@/lib/stripe-amount';
-import type { RecordPaymentInput } from '@/queries/prisma/payment';
+import { formatStripeAmount } from '@/features/payments/lib/stripe-amount';
+import type { RecordPaymentInput } from '@/features/payments/server/queries/payment';
 
 export const STRIPE_WEBHOOK_EVENTS = [
   'checkout.session.completed',
@@ -319,4 +319,4 @@ export function mapStripeCheckoutSessionToPaymentInput({
   };
 }
 
-export { formatStripeAmount } from '@/lib/stripe-amount';
+export { formatStripeAmount } from '@/features/payments/lib/stripe-amount';

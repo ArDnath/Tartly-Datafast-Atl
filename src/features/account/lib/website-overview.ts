@@ -1,10 +1,10 @@
-import { DEFAULT_CURRENCY, EVENT_TYPE } from './constants';
+import { DEFAULT_CURRENCY, EVENT_TYPE } from '@/lib/constants';
 import {
   classifyRevenueChannel,
   REVENUE_CHANNELS,
   REVENUE_CHANNEL_LABELS,
   type RevenueChannel,
-} from './dashboard-breakdown';
+} from '@/features/analytics/lib/dashboard-breakdown';
 
 export const WEBSITE_OVERVIEW_EXCLUDED_EVENT_TYPES = [
   EVENT_TYPE.customEvent,

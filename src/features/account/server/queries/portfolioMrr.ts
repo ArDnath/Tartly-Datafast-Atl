@@ -4,7 +4,7 @@ import {
   mergePortfolioMrrRows,
   type PortfolioMrrByChannel,
   type PortfolioMrrRow,
-} from '@/lib/website-overview';
+} from '@/features/account/lib/website-overview';
 
 const ACTIVE_SUBSCRIPTION_STATUSES = ['active', 'trialing', 'past_due'];
 

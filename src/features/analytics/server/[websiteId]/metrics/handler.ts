@@ -9,7 +9,7 @@ import {
   getEventMetrics,
   getPageviewMetrics,
   getSessionMetrics,
-} from '@/queries/sql';
+} from '@/features/analytics/server/queries/sql';
 
 export async function GET(
   request: Request,

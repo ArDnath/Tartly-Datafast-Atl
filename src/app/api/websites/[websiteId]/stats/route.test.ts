@@ -1,8 +1,9 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { parseRequest } from '@/lib/request';
 import { canViewWebsite } from '@/permissions';
-import { getHistoricalOverview, getRevenueOverviewReport } from '@/queries/prisma';
-import { getActiveVisitors, getSessionStats, getWebsiteStats } from '@/queries/sql';
+import { getHistoricalOverview } from '@/features/analytics/server/queries/historicalMetrics';
+import { getRevenueOverviewReport } from '@/features/analytics/server/queries/revenueAttribution';
+import { getActiveVisitors, getSessionStats, getWebsiteStats } from '@/features/analytics/server/queries/sql';
 import { GET } from './route';
 
 vi.mock('@/lib/request', () => ({
@@ -20,17 +21,20 @@ vi.mock('@/permissions', () => ({
   canViewWebsite: vi.fn(),
 }));
 
-vi.mock('@/queries/sql', () => ({
+vi.mock('@/features/analytics/server/queries/sql', () => ({
   getActiveVisitors: vi.fn(),
   getSessionStats: vi.fn(),
   getWebsiteStats: vi.fn(),
 }));
 
-vi.mock('@/queries/prisma', () => ({
+vi.mock('@/features/analytics/server/queries/historicalMetrics', () => ({
   getHistoricalOverview: vi.fn(),
-  getRevenueOverviewReport: vi.fn(),
   mergeHistoricalChart: vi.fn((native: unknown[]) => native),
   mergeHistoricalStats: vi.fn((native: Record<string, unknown>) => native),
+}));
+
+vi.mock('@/features/analytics/server/queries/revenueAttribution', () => ({
+  getRevenueOverviewReport: vi.fn(),
 }));
 
 beforeEach(() => {

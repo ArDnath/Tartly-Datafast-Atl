@@ -3,7 +3,7 @@ import { getQueryFilters, parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { filterParams, timezoneParam } from '@/lib/schema';
 import { canViewWebsite } from '@/permissions';
-import { getEventDataValues } from '@/queries/sql';
+import { getEventDataValues } from '@/features/analytics/server/queries/sql';
 
 export async function GET(
   request: Request,

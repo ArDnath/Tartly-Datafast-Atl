@@ -100,11 +100,12 @@ headers.
 ## Project layout
 
 ```text
-src/app/          route files only (pages, layouts, route handlers)
-src/features/     product UI by domain (app shell, portfolio, analytics
-                  workbench, websites/settings, onboarding, legacy features)
-src/lib/          shared server/client libraries
-src/queries/      tenant-scoped database queries
+src/app/          route files only (pages, layouts, thin route handlers)
+src/features/     product modules by domain, each owning UI, hooks, lib,
+                  server handlers, and server/queries data access
+src/lib/          cross-cutting services shared by every domain
+src/queries/      small shared repository kernel (authorization, request,
+                  auth, billing contracts)
 prisma/           schema and forward-only migrations
 docs/             phase tracker, design system, tenancy, pricing, operations
 ```

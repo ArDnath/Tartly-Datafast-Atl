@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { getQueryFilters, parseRequest } from '@/lib/request';
 import { canViewWebsite } from '@/permissions';
-import { getDashboardBreakdownReport } from '@/queries/prisma';
+import { getDashboardBreakdownReport } from '@/features/analytics/server/queries/dashboardBreakdown';
 import { GET } from './route';
 
 vi.mock('@/lib/request', () => ({
@@ -13,7 +13,7 @@ vi.mock('@/permissions', () => ({
   canViewWebsite: vi.fn(),
 }));
 
-vi.mock('@/queries/prisma', () => ({
+vi.mock('@/features/analytics/server/queries/dashboardBreakdown', () => ({
   getDashboardBreakdownReport: vi.fn(),
 }));
 

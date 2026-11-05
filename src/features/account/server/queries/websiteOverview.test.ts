@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import prisma from '@/lib/prisma';
-import { getUserWebsites } from './website';
+import { getUserWebsites } from '@/queries/prisma/website';
 import { getUserWebsiteOverview } from './websiteOverview';
 
 vi.mock('@/lib/prisma', () => ({
@@ -11,7 +11,7 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
-vi.mock('./website', () => ({
+vi.mock('@/queries/prisma/website', () => ({
   getUserWebsites: vi.fn(),
 }));
 

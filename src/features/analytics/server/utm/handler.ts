@@ -3,7 +3,7 @@ import { getQueryFilters, parseRequest, setWebsiteDate } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { reportResultSchema } from '@/lib/schema';
 import { canViewWebsite } from '@/permissions';
-import { getUTM, type UTMParameters } from '@/queries/sql';
+import { getUTM, type UTMParameters } from '@/features/analytics/server/queries/sql';
 
 export async function POST(request: Request) {
   const { auth, body, error } = await parseRequest(request, reportResultSchema);

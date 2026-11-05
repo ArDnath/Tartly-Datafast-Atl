@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 
-vi.mock('./websiteCurrency', () => ({
+vi.mock('@/queries/prisma/websiteCurrency', () => ({
   normalizeWebsiteCurrencyAmount: vi.fn(async ({ amount, currency }) => ({
     amount: Number(amount).toFixed(4),
     currency: currency.toUpperCase(),

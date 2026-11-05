@@ -3,7 +3,7 @@ import { getQueryFilters, parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { filterParams, pagingParams, searchParams, withDateRange } from '@/lib/schema';
 import { canViewWebsite } from '@/permissions';
-import { getRevenueSessions } from '@/queries/sql/reports/getRevenueSessions';
+import { getRevenueSessions } from '@/features/analytics/server/queries/sql/reports/getRevenueSessions';
 
 export async function GET(
   request: Request,

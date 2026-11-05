@@ -3,7 +3,7 @@ import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { timezoneParam } from '@/lib/schema';
 import { canViewWebsite } from '@/permissions';
-import { getWebsiteSession } from '@/queries/sql';
+import { getWebsiteSession } from '@/features/analytics/server/queries/sql';
 
 export async function GET(
   request: Request,

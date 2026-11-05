@@ -17,9 +17,9 @@ interface BackfillPolarRevenueInput {
   now?: Date;
   listOrders?: typeof listPolarOrders;
   listSubscriptions?: typeof listPolarSubscriptions;
-  recordPayment?: typeof import('@/queries/prisma/payment').recordPayment;
-  recordRefund?: typeof import('@/queries/prisma/payment').recordRefund;
-  recordSubscription?: typeof import('@/queries/prisma/payment').recordSubscriptionState;
+  recordPayment?: typeof import('@/features/payments/server/queries/payment').recordPayment;
+  recordRefund?: typeof import('@/features/payments/server/queries/payment').recordRefund;
+  recordSubscription?: typeof import('@/features/payments/server/queries/payment').recordSubscriptionState;
 }
 
 function subDays(date: Date, days: number) {
@@ -51,10 +51,10 @@ export async function backfillPolarRevenue({
     throw new Error('Polar API environment is unavailable.');
   }
 
-  const paymentRecorder = recordPayment || (await import('@/queries/prisma/payment')).recordPayment;
-  const refundRecorder = recordRefund || (await import('@/queries/prisma/payment')).recordRefund;
+  const paymentRecorder = recordPayment || (await import('@/features/payments/server/queries/payment')).recordPayment;
+  const refundRecorder = recordRefund || (await import('@/features/payments/server/queries/payment')).recordRefund;
   const subscriptionRecorder =
-    recordSubscription || (await import('@/queries/prisma/payment')).recordSubscriptionState;
+    recordSubscription || (await import('@/features/payments/server/queries/payment')).recordSubscriptionState;
   const createdGte = subDays(now, POLAR_BACKFILL_DAYS);
   const orders = sortByCreatedAt(
     await listOrders({ apiKey, organizationId, environment, createdGte }),

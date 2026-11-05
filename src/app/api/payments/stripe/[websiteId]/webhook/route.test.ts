@@ -40,8 +40,11 @@ vi.mock('@/features/payments/server/providers/stripe-provider', () => ({
   ),
   mapStripeCheckoutSessionToPaymentInput: vi.fn(),
 }));
-vi.mock('@/queries/prisma', () => ({
+vi.mock('@/features/payments/server/queries/attribution', () => ({
   normalizeEmailHash: vi.fn(),
+}));
+
+vi.mock('@/features/payments/server/queries/payment', () => ({
   recalculatePaymentAttribution: vi.fn(),
   recordPayment: vi.fn(),
   recordPaymentDispute: vi.fn(),
@@ -53,13 +56,8 @@ const { fetchWebsite } = await import('@/lib/load');
 const { default: prisma } = await import('@/lib/prisma');
 const { mapStripeCheckoutSessionToPaymentInput } = await import('@/features/payments/server/providers/stripe-provider');
 const { verifyStripeSignature } = await import('@/features/payments/server/webhooks/stripe-webhook');
-const {
-  normalizeEmailHash,
-  recalculatePaymentAttribution,
-  recordPayment,
-  recordRefund,
-  recordSubscriptionState,
-} = await import('@/queries/prisma');
+const { normalizeEmailHash } = await import('@/features/payments/server/queries/attribution');
+const { recalculatePaymentAttribution, recordPayment, recordRefund, recordSubscriptionState } = await import('@/features/payments/server/queries/payment')
 
 // Committed fixture secret; never a real merchant key
 const YOLFI_FIXTURE_KEY = 'yolfi_test_fixture_key';

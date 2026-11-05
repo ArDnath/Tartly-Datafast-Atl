@@ -267,29 +267,35 @@ domain module under `src/features`:
 src/app/                     routes only (pages + thin API re-exports)
 src/features/
   account/                   /api/me profile, password, owned websites,
-                             account/security/preference settings, local users
+                             account/security/preference settings, local users,
+                             server/queries for portfolio overview and MRR
   analytics/                 workbench shell + reports/sessions/events/replay/
-                             realtime/cohorts/compare/segments, ingestion, lib/
+                             realtime/cohorts/compare/segments, ingestion, lib/,
+                             server/queries (the SQL engine + Prisma reports)
   app-shell/                 signed-in shell, top nav, notices
   auth/                      login, signup, verify, reset, invite, logout, lib/
   billing/                   plan and usage settings screen
   docs/                      public documentation shell and revenue guides
-  legacy/                    frozen boards, links, pixels, lib/
+  legacy/                    frozen boards, links, pixels, public pixel/link
+                             collection handlers, lib/
   marketing/                 landing and pricing
   onboarding/                welcome flow, website setup flow
   payments/                  provider connections, webhooks, integration
-                             settings, lib/
+                             settings, lib/, server/queries
   portfolio/                 /app home (all websites)
   settings/                  settings shell, grouped nav, overview
   share/                     public share shell
   system/                    health and OSS updates, cron, lib/
-  websites/                  website CRUD, settings, imports, API keys, members
+  websites/                  website CRUD, settings, imports, API keys, members,
+                             server/queries
   workspaces/                workspace, member, invitation, usage APIs,
                              workspace settings, lib/
+src/queries/                 small shared repository kernel only
 ```
 
-Each domain that serves HTTP has a `server/` directory. API routes under
-`src/app/api` re-export handlers from `src/features/<domain>/server`. See
+Each domain that serves HTTP has a `server/` directory, and each domain that
+owns database access has `server/queries/`. API routes under `src/app/api`
+re-export handlers from `src/features/<domain>/server`. See
 `docs/ARCHITECTURE.md`.
 
 `src/components` keeps shared design-system primitives only (`common`, `charts`,
@@ -299,14 +305,16 @@ Each domain that serves HTTP has a `server/` directory. API routes under
 
 Rules:
 
-- A route file stays thin: parse params, fetch/verify the tenant, render a
-  feature component.
+- A route file stays thin: parse params, mount a feature component, or re-export
+  a feature handler. It never imports `@/queries`, `@/lib/prisma`, or
+  `@/lib/redis` directly.
 - Cross-feature imports go through `@/features/...`; do not reach into another
   feature with `../../`.
 - Shared layers must not import a feature. `src/lib/app-structure.test.ts`
-  enforces both directions, plus a `src/lib` shared-module allowlist and a
-  `src/store` allowlist. Domain helpers belong in
-  `src/features/<domain>/lib`; domain stores belong beside the feature.
+  enforces both directions, plus `src/lib`, `src/queries`, and `src/store`
+  allowlists. Domain helpers and repositories belong in
+  `src/features/<domain>/lib` and `src/features/<domain>/server/queries`; domain
+  stores belong beside the feature.
 - The old `/websites/*` and `/settings/*` URLs are compatibility redirects in
   `next.config.ts`; the canonical product routes are `/app/*`.
 - `src/features/legacy` is quarantined, not a pattern to copy. New work must not

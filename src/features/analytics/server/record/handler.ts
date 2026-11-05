@@ -10,7 +10,7 @@ import { parseRequest } from '@/lib/request';
 import { badRequest, forbidden, json, serverError } from '@/lib/response';
 import { releaseReplaySession, reserveReplaySession } from '@/lib/usage';
 import { getWebsite } from '@/queries/prisma';
-import { saveRecording } from '@/queries/sql';
+import { saveRecording } from '@/features/analytics/server/queries/sql';
 
 const schema = z.object({
   type: z.literal('record'),

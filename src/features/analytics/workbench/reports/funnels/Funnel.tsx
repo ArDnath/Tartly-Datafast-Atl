@@ -7,7 +7,7 @@ import { ReportEditButton } from '@/features/analytics/components/input/ReportEd
 import { ChangeLabel } from '@/features/analytics/components/metrics/ChangeLabel';
 import { useResultQuery } from '@/features/analytics/hooks/useResultQuery';
 import { formatLongNumber } from '@/lib/format';
-import type { FunnelResult } from '@/queries/sql/reports/getFunnel';
+import type { FunnelResult } from '@/features/analytics/server/queries/sql/reports/getFunnel';
 import { FunnelEditForm } from './FunnelEditForm';
 
 interface FunnelProps {

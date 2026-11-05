@@ -2,7 +2,7 @@ import type {
   RecordPaymentInput,
   RecordRefundInput,
   RecordSubscriptionStateInput,
-} from '@/queries/prisma/payment';
+} from '@/features/payments/server/queries/payment';
 import { BRAND } from '@/lib/brand';
 import { hash } from '@/lib/crypto';
 

@@ -2,7 +2,7 @@ import { legacyFeatureDisabled } from '@/features/legacy/lib/legacy-features';
 import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { canViewBoard } from '@/features/legacy/lib/permissions';
-import { getBoard } from '@/queries/prisma';
+import { getBoard } from '@/queries/prisma/board';
 
 export async function GET(request: Request, { params }: { params: Promise<{ boardId: string }> }) {
   const { auth, error } = await parseRequest(request);

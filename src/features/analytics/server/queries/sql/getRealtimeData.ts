@@ -1,7 +1,7 @@
 import type { QueryFilters } from '@/lib/types';
-import { getRealtimeActivity } from '@/queries/sql/getRealtimeActivity';
-import { getPageviewStats } from '@/queries/sql/pageviews/getPageviewStats';
-import { getSessionStats } from '@/queries/sql/sessions/getSessionStats';
+import { getRealtimeActivity } from '@/features/analytics/server/queries/sql/getRealtimeActivity';
+import { getPageviewStats } from '@/features/analytics/server/queries/sql/pageviews/getPageviewStats';
+import { getSessionStats } from '@/features/analytics/server/queries/sql/sessions/getSessionStats';
 
 function increment(data: object, key: string) {
   if (key) {

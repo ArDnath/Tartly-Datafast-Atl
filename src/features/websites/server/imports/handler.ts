@@ -1,13 +1,8 @@
 import { createHash } from 'node:crypto';
 import { uuid } from '@/lib/crypto';
 import { badRequest, json, serverError } from '@/lib/response';
-import {
-  createWebsiteImport,
-  getLatestWebsiteImport,
-  getWebsiteImportByChecksum,
-  recordAuditEvent,
-  updateWebsiteImport,
-} from '@/queries/prisma';
+import { createWebsiteImport, getLatestWebsiteImport, getWebsiteImportByChecksum, updateWebsiteImport } from '@/features/websites/server/queries/websiteImport';
+import { recordAuditEvent } from '@/queries/prisma';
 import { importHistoricalMetrics, importRawAnalyticsData } from './service';
 import type {
   AnalyticsImportKind,

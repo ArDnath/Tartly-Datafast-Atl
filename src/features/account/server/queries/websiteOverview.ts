@@ -12,8 +12,8 @@ import {
   mergeWebsiteOverview,
   WEBSITE_OVERVIEW_EXCLUDED_EVENT_TYPES,
   type WebsiteOverviewMetricRow,
-} from '@/lib/website-overview';
-import { getUserWebsites } from './website';
+} from '@/features/account/lib/website-overview';
+import { getUserWebsites } from '@/queries/prisma/website';
 import { getPortfolioMrrByChannel } from './portfolioMrr';
 
 const WEBSITE_OVERVIEW_CHART_MAX_POINTS = 120;

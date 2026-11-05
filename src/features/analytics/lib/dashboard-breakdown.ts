@@ -5,7 +5,7 @@ import {
   SHOPPING_DOMAINS,
   SOCIAL_DOMAINS,
   VIDEO_DOMAINS,
-} from './constants';
+} from '@/lib/constants';
 
 export const REVENUE_CHANNELS = [
   'paidAds',

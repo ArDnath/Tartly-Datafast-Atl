@@ -24,14 +24,9 @@ import { anyObjectParam, urlOrPathParam } from '@/lib/schema';
 import { getTrackingSessionId, getTrackingVisitorId } from '@/lib/tracking-identity';
 import { safeDecodeURI, safeDecodeURIComponent } from '@/lib/url';
 import { isBillableEvent, releaseEventUsage, reserveEventUsage } from '@/lib/usage';
-import {
-  ensureVisitorContext,
-  savePaymentDetectionEvent,
-  upsertCustomerIdentityLink,
-  upsertVisitorContext,
-} from '@/queries/prisma';
+import { ensureVisitorContext, savePaymentDetectionEvent, upsertCustomerIdentityLink, upsertVisitorContext } from '@/features/payments/server/queries/attribution';
 import { getWebsiteAttributionRuntimeConfig } from '@/queries/prisma/website';
-import { createSession, saveEvent, saveSessionData, updateSessionDistinctId } from '@/queries/sql';
+import { createSession, saveEvent, saveSessionData, updateSessionDistinctId } from '@/features/analytics/server/queries/sql';
 
 const schema = z.object({
   type: z.enum(['event', 'identify', 'performance', 'linker']),

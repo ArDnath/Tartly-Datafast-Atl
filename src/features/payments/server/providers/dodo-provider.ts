@@ -1,6 +1,6 @@
 import DodoPayments from 'dodopayments';
 import { BRAND } from '@/lib/brand';
-import type { RecordPaymentInput, RecordRefundInput } from '@/queries/prisma/payment';
+import type { RecordPaymentInput, RecordRefundInput } from '@/features/payments/server/queries/payment';
 import { hash } from '@/lib/crypto';
 
 export const DODO_REVENUE_WEBHOOK_EVENTS = ['payment.succeeded', 'refund.succeeded'] as const;

@@ -4,7 +4,7 @@ import { json, unauthorized } from '@/lib/response';
 import { pagingParams, withDateRange } from '@/lib/schema';
 import { requireWorkspaceAccess } from '@/lib/workspace-auth';
 import { getWebsiteAccess } from '@/permissions';
-import { getUserWebsiteOverview } from '@/queries/prisma';
+import { getUserWebsiteOverview } from '@/features/account/server/queries/websiteOverview';
 
 export async function GET(request: Request) {
   const schema = withDateRange({

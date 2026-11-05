@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { parseRequest } from '@/lib/request';
 import { canViewReport } from '@/features/analytics/lib/report-permissions';
-import { getReport } from '@/queries/prisma';
+import { getReport } from '@/features/analytics/server/queries/report';
 import { GET } from './route';
 
 vi.mock('@/lib/request', () => ({
@@ -14,7 +14,7 @@ vi.mock('@/features/analytics/lib/report-permissions', () => ({
   canViewReport: vi.fn(),
 }));
 
-vi.mock('@/queries/prisma', () => ({
+vi.mock('@/features/analytics/server/queries/report', () => ({
   deleteReport: vi.fn(),
   getReport: vi.fn(),
   updateReport: vi.fn(),

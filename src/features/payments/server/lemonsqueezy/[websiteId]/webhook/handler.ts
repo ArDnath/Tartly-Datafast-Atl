@@ -4,12 +4,8 @@ import { fetchWebsite } from '@/lib/load';
 import prisma from '@/lib/prisma';
 import { decryptProviderSecret } from '@/features/payments/server/provider-secrets';
 import { badRequest, json, notFound, serverError, unauthorized } from '@/lib/response';
-import {
-  normalizeEmailHash,
-  recordPayment,
-  recordRefund,
-  recordSubscriptionState,
-} from '@/queries/prisma';
+import { normalizeEmailHash } from '@/features/payments/server/queries/attribution';
+import { recordPayment, recordRefund, recordSubscriptionState } from '@/features/payments/server/queries/payment';
 
 function getString(value: unknown) {
   if (typeof value === 'number') {

@@ -3,7 +3,7 @@ import clickhouse from '@/lib/clickhouse';
 import { uuid } from '@/lib/crypto';
 import prisma from '@/lib/prisma';
 import { normalizeWebsiteCurrencyAmounts } from '@/queries/prisma/websiteCurrency';
-import { createSession, saveEvent, saveSessionData } from '@/queries/sql';
+import { createSession, saveEvent, saveSessionData } from '@/features/analytics/server/queries/sql';
 import type {
   AnalyticsImportSummary,
   ImportedDataValue,

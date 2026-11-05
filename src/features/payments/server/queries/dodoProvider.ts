@@ -17,8 +17,8 @@ interface BackfillDodoRevenueInput {
   now?: Date;
   listPayments?: typeof listDodoSucceededPayments;
   listRefunds?: typeof listDodoSucceededRefunds;
-  recordPayment?: typeof import('@/queries/prisma/payment').recordPayment;
-  recordRefund?: typeof import('@/queries/prisma/payment').recordRefund;
+  recordPayment?: typeof import('@/features/payments/server/queries/payment').recordPayment;
+  recordRefund?: typeof import('@/features/payments/server/queries/payment').recordRefund;
 }
 
 function subDays(date: Date, days: number) {
@@ -47,8 +47,8 @@ export async function backfillDodoRevenue({
     throw new Error('Dodo API key environment is unavailable.');
   }
 
-  const paymentRecorder = recordPayment || (await import('@/queries/prisma/payment')).recordPayment;
-  const refundRecorder = recordRefund || (await import('@/queries/prisma/payment')).recordRefund;
+  const paymentRecorder = recordPayment || (await import('@/features/payments/server/queries/payment')).recordPayment;
+  const refundRecorder = recordRefund || (await import('@/features/payments/server/queries/payment')).recordRefund;
   const createdGte = subDays(now, DODO_BACKFILL_DAYS);
   const payments = sortByCreatedAt(await listPayments({ apiKey, createdGte }));
   let importedPayments = 0;

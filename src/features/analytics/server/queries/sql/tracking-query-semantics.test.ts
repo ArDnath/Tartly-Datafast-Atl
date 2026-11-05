@@ -8,11 +8,11 @@ function source(path: string) {
 
 test('public visitor metrics count durable visitors rather than rolling sessions', () => {
   const visitorMetricFiles = [
-    'src/queries/sql/getActiveVisitors.ts',
-    'src/queries/sql/getChannelMetrics.ts',
-    'src/queries/sql/getWeeklyTraffic.ts',
-    'src/queries/sql/sessions/getSessionMetrics.ts',
-    'src/queries/sql/sessions/getSessionStats.ts',
+    'src/features/analytics/server/queries/sql/getActiveVisitors.ts',
+    'src/features/analytics/server/queries/sql/getChannelMetrics.ts',
+    'src/features/analytics/server/queries/sql/getWeeklyTraffic.ts',
+    'src/features/analytics/server/queries/sql/sessions/getSessionMetrics.ts',
+    'src/features/analytics/server/queries/sql/sessions/getSessionStats.ts',
   ];
 
   for (const file of visitorMetricFiles) {
@@ -29,9 +29,9 @@ test('public visitor metrics count durable visitors rather than rolling sessions
 test('cohorts, retention, goals, and funnels follow a visitor across sessions', () => {
   const prismaFilters = source('src/lib/prisma.ts');
   const clickhouseFilters = source('src/lib/clickhouse.ts');
-  const retention = source('src/queries/sql/reports/getRetention.ts');
-  const goal = source('src/queries/sql/reports/getGoal.ts');
-  const funnel = source('src/queries/sql/reports/getFunnel.ts');
+  const retention = source('src/features/analytics/server/queries/sql/reports/getRetention.ts');
+  const goal = source('src/features/analytics/server/queries/sql/reports/getGoal.ts');
+  const funnel = source('src/features/analytics/server/queries/sql/reports/getFunnel.ts');
 
   expect(prismaFilters).toContain('on cohort.visitor_id = website_event.visitor_id');
   expect(clickhouseFilters).toContain('on cohort.cohort_visitor_id = website_event.visitor_id');

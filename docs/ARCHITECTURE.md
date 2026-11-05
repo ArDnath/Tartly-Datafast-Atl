@@ -18,12 +18,13 @@ src/features/<domain>/       product domains
   lib/                       domain helpers, contracts, and constants
   store/                     domain-only client state, where it exists
   server/**/handler.ts       request handlers and domain server logic
-  server/queries/            domain-only data access, where it exists
+  server/queries/            domain Prisma repositories and the analytics SQL engine
 src/components/              shared design-system primitives only
   brand, charts, common, input, svg, hooks
 src/lib/                     cross-cutting services (auth, db, email, plans,
                              brand, usage, crypto, request/response)
-src/queries/                 shared analytics engine and cross-domain data access
+src/queries/                 shared kernel repositories required by auth,
+                             tenant authorization, request parsing, and billing
 src/permissions/             central tenant authorization
 src/store/                   shared application state
 ```
@@ -49,6 +50,11 @@ app  ->  features  ->  components / lib / queries / permissions / store
   new domain helper belongs in `src/features/<domain>/lib`, and a domain store
   belongs in `src/features/<domain>/store`. Adding a module to the shared
   allowlist is an explicit architectural decision.
+- `src/queries` is likewise allowlisted. Domain repositories belong in
+  `src/features/<domain>/server/queries`; only repositories required by the
+  shared authorization, request, auth, or billing kernel stay in
+  `src/queries/prisma`. The analytics SQL engine lives in
+  `src/features/analytics/server/queries/sql`.
 - Cross-feature imports go through `@/features/<domain>` barrels or explicit
   paths. Do not reach into another feature with `../../`.
 
@@ -102,8 +108,13 @@ Rules enforced by `src/lib/app-structure.test.ts`:
   (`brand`, `charts`, `common`, `hooks`, `input`, `svg`).
 - `src/lib` contains only the explicit shared-module allowlist and `src/store`
   contains only `app.ts`.
+- `src/queries` contains only the shared repository allowlist; domain
+  repositories live under `src/features/<domain>/server/queries`, and
+  `src/queries/sql` no longer exists.
 - Domain helpers live under `src/features/<domain>/lib`, and the structure test
   names the modules that completed the restructure.
+- The route layer never imports `@/queries`, `@/lib/prisma`, or `@/lib/redis`
+  directly; it mounts feature screens or re-exports feature handlers.
 - Shared layers (`components`, `lib`, `permissions`, `queries`, `store`) never
   import a product feature.
 
@@ -129,17 +140,20 @@ Three layers are intentionally shared rather than copied into every feature:
   helpers, date-range and URL state, formatting, i18n messages, dialogs, and
   grid state. Domain query hooks live in `src/features/<domain>/hooks/` and are
   exported through that feature's `hooks/index.ts`.
-- `src/queries` — the preserved analytics SQL engine plus cross-domain Prisma
-  repositories. Tenant authorization (`src/permissions`) and the analytics
-  engine depend on this layer, so it stays below features instead of moving up
-  into one domain. Domain-only data access belongs in
-  `src/features/<domain>/server/queries/`.
+- `src/queries` — the small shared data kernel. It keeps only repositories that
+  the shared layers need: website/user/share/team/member authorization reads,
+  billing-adjacent website currency, usage audit, provider webhook cleanup, and
+  the segment resolver used by `src/lib/request`. Every other Prisma repository
+  now lives in its owning feature's `server/queries`, and the inherited
+  analytics SQL engine lives in `src/features/analytics/server/queries/sql`.
+  This keeps the dependency arrow pointing down while giving each domain its
+  data access.
 - `src/permissions` and `src/lib/workspace-auth.ts` — the one central
   authorization boundary. Never duplicate tenant checks in a feature.
 
-This is the modular-monolith trade-off: domain behaviour is owned by features,
-shared infrastructure stays shared, and the dependency arrow never points from
-shared code back into product features.
+This is the modular-monolith trade-off: domain behaviour and its data access are
+owned by features, a small shared kernel stays shared, and the dependency arrow
+never points from shared code back into product features.
 
 ## Domain UI, hooks, and data access
 
@@ -173,6 +187,14 @@ The restructure moved the remaining domain-specific UI out of `src/components`:
 | website API keys and domain normalization | `src/features/websites/lib` |
 | legacy feature gate | `src/features/legacy/lib` |
 | OSS version/update helpers | `src/features/system/lib` |
+| analytics Prisma reports and the whole SQL engine | `src/features/analytics/server/queries` (`sql/` plus report, revenue, dashboard, historical, replay) |
+| payment and payment-attribution repositories | `src/features/payments/server/queries` |
+| portfolio MRR and website overview repositories | `src/features/account/server/queries` |
+| website import repository | `src/features/websites/server/queries` |
+| Stripe minor-unit formatting | `src/features/payments/lib/stripe-amount.ts` |
+| revenue channel classification and overview metrics | `src/features/analytics/lib/dashboard-breakdown.ts` and `src/features/account/lib/website-overview.ts` |
+| public pixel/link collection handlers | `src/features/legacy/server/collect` |
+| website shell resolution | `src/features/analytics/workbench/WebsiteLayoutRoute.tsx` |
 | dead dashboard/website/cache stores and the unused refresh button | deleted |
 
 Only primitives remain in `src/components`: `common` (links, panels, tables,
@@ -182,13 +204,13 @@ shared locale/timezone/date-range/user shell state.
 
 The shared `src/lib` allowlist is enforced by the structure test. It keeps
 cross-cutting infrastructure (auth sessions, CSRF, rate limits, Prisma,
-crypto, email, plans/usage, branding, request/response) plus the data
-contracts the preserved analytics engine reads (`payment-status`,
-`paymentCustomer`, `tracking-identity`, `dashboard-breakdown`,
-`website-overview`, `currency-exchange`, `reporting-currency`, `board-types`).
-Those contracts stay shared because `src/queries` is below features; moving
-them upward would invert the dependency arrow. Provider-specific request
-handling and UI still live in `src/features/payments`.
+crypto, email, plans/usage, branding, request/response) plus the contracts that
+cross feature boundaries (`payment-status`, `paymentCustomer`,
+`tracking-identity`, `currency-exchange`, `reporting-currency`,
+`share-sections`, `share-redaction`, and the frozen `board-types`). Those
+contracts stay shared because both analytics and payments, or both the shared
+request layer and a feature, read them. Provider-specific request handling and
+UI still live in `src/features/payments`.
 
 The settings surface is now a shell plus domain-owned screens. `features/settings`
 contains only `SettingsLayout`, `SettingsPageLayout`, and `SettingsHomePage`;
@@ -205,10 +227,12 @@ mounts the analytics workbench shell, and the website settings route renders the
 `websites` settings surface inside it. This keeps analytical screens and their
 handlers together instead of burying them in the site-management domain.
 
-`src/queries/sql` stays in place deliberately: it is the inherited analytics
-engine described in `docs/TENANCY.md`, and multiple features plus tenant
-authorization read through it. Moving it into one feature would invert the
-dependency direction without improving isolation.
+The analytics SQL engine lives in `src/features/analytics/server/queries/sql`.
+It is still the inherited engine described in `docs/TENANCY.md`; only its
+location changed. `websites` imports it for imports, exports, and backups, which
+is an allowed feature-to-feature dependency. The shared `src/lib/request.ts`
+does not read SQL directly, and the tenant-scoped session cache now lives beside
+the engine in `src/features/analytics/server/queries/session-cache.ts`.
 
 `src/features/legacy` is intentionally tiny. Public share pages still render the
 link and pixel detail screens, so their provider, panels, controls, and four
@@ -218,11 +242,12 @@ handlers remain only to return a consistent `legacy-feature-disabled` response.
 `src/lib/app-structure.test.ts` pins this surface.
 
 The portfolio MRR panel is served by `/api/me/websites/overview`. The Prisma
-query (`src/queries/prisma/portfolioMrr.ts`) reads active subscriptions in the
-authorized workspace and falls back to the earliest attributed payment when the
-subscription has no visitor. Channel classification and currency-safe grouping
-are pure functions in `src/lib/dashboard-breakdown.ts` and
-`src/lib/website-overview.ts`, so they stay below features and are unit tested.
+query (`src/features/account/server/queries/portfolioMrr.ts`) reads active
+subscriptions in the authorized workspace and falls back to the earliest
+attributed payment when the subscription has no visitor. Channel classification
+and currency-safe grouping are pure functions in
+`src/features/analytics/lib/dashboard-breakdown.ts` and
+`src/features/account/lib/website-overview.ts`, unit tested beside their owners.
 
 ## Security boundary
 
@@ -241,11 +266,14 @@ weakening the shared website/workspace check.
 ## Why this shape
 
 - One deployable, one database, no new infrastructure.
-- The analytics engine (`src/queries/sql`, `src/tracker`, `src/recorder`,
-  attribution and payment integrations) is preserved.
+- The analytics engine (`src/features/analytics/server/queries/sql`,
+  `src/tracker`, `src/recorder`, attribution and payment integrations) is
+  preserved.
 - A route file is now readable in seconds, and domain logic can be tested
   without importing the router.
-- Analytics widgets, share widgets, domain selectors, and query hooks live with
-  the feature that owns their behaviour instead of in a catch-all shared folder.
+- Analytics widgets, share widgets, domain selectors, query hooks, and
+  repositories live with the feature that owns their behaviour instead of in
+  catch-all shared folders.
 - Shared code cannot silently depend on a product feature; the structure test
-  fails the build if that arrow reverses.
+  fails the build if that arrow reverses or if a domain repository drifts back
+  into `src/queries`.

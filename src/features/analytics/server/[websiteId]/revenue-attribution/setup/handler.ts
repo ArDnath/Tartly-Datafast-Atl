@@ -1,7 +1,7 @@
 import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { canViewWebsite } from '@/permissions';
-import { getRevenueSetupChecklist } from '@/queries/prisma';
+import { getRevenueSetupChecklist } from '@/features/analytics/server/queries/revenueSetup';
 
 export async function GET(
   request: Request,

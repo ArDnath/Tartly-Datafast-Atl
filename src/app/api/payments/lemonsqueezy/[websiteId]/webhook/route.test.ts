@@ -2,7 +2,7 @@ import { beforeEach, expect, test, vi } from 'vitest';
 import { verifyLemonSqueezySignature } from '@/features/payments/server/webhooks/lemonsqueezy-webhook';
 import { fetchWebsite } from '@/lib/load';
 import prisma from '@/lib/prisma';
-import { recordPayment, recordRefund, recordSubscriptionState } from '@/queries/prisma';
+import { recordPayment, recordRefund, recordSubscriptionState } from '@/features/payments/server/queries/payment';
 import { POST } from './route';
 
 vi.mock('@/features/payments/server/webhooks/lemonsqueezy-webhook', () => ({
@@ -27,8 +27,11 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
-vi.mock('@/queries/prisma', () => ({
+vi.mock('@/features/payments/server/queries/attribution', () => ({
   normalizeEmailHash: vi.fn(),
+}));
+
+vi.mock('@/features/payments/server/queries/payment', () => ({
   recordPayment: vi.fn(),
   recordRefund: vi.fn(),
   recordSubscriptionState: vi.fn(),

@@ -9,7 +9,8 @@ import {
   yolfiEventDate,
 } from '@/features/payments/server/subscription-event-ordering';
 import { verifyYolfiSignature } from '@/features/payments/server/webhooks/yolfi-webhook';
-import { normalizeEmailHash, recordPayment, recordSubscriptionState } from '@/queries/prisma';
+import { normalizeEmailHash } from '@/features/payments/server/queries/attribution';
+import { recordPayment, recordSubscriptionState } from '@/features/payments/server/queries/payment';
 
 function stringValue(value: unknown) {
   return typeof value === 'string' && value ? value : undefined;

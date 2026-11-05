@@ -4,7 +4,7 @@
 - **Repository:** <https://github.com/talivia-group/talivia> (MIT), forked locally at
   `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-05
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 is complete: the source restructure (app, server, domain UI/hooks/lib/store) is finished and enforced, the dead legacy dashboard UI is pruned, the portfolio now shows MRR by first-touch channel, and the brand/contrast locks are automated. A final domain split now moves the whole website analytics workbench and its handlers into `features/analytics`, leaving `features/websites` as site management only. The settings catch-all is gone too: `features/settings` is now the shell and overview only, while account/security/preferences, workspace, website list, integrations, and plan/usage screens live with their owning domains. `src/permissions` is now the shared website/entity authorization boundary only; report, local-user, and frozen legacy permission checks live with their features. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 is complete: the source restructure (app, server, domain UI/hooks/lib/store) is finished and enforced, the dead legacy dashboard UI is pruned, the portfolio now shows MRR by first-touch channel, and the brand/contrast locks are automated. A final domain split now moves the whole website analytics workbench and its handlers into `features/analytics`, leaving `features/websites` as site management only. The settings catch-all is gone too: `features/settings` is now the shell and overview only, while account/security/preferences, workspace, website list, integrations, and plan/usage screens live with their owning domains. `src/permissions` is now the shared website/entity authorization boundary only; report, local-user, and frozen legacy permission checks live with their features. The last shared catch-alls are gone: every domain Prisma repository now lives in `features/<domain>/server/queries`, the analytics SQL engine lives in `features/analytics/server/queries/sql`, the public pixel/link collection handlers and the website shell resolver moved out of `src/app`, and `src/queries` is a small allowlisted authorization/request kernel. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
 
 ## Overall progress
 
@@ -12,10 +12,8 @@
 - Phases complete: **3 full, 3 with caveats** (Phase 2: copy-with-data rehearsal; Phase 4: live Resend delivery)
 - Overall percent (average of phases 0–11): **59%**
 - Build state at last check: **green** (`next build` exit 0 with
-  `SKIP_DB_CHECK=1`; the local PostgreSQL instance on :5433 was down after a
-  harness restart, so the DB check/migration step could not run; `tsc --noEmit`
-  clean; `biome lint` clean). Full test run:
-  **642 passed / 0 failed** under `TZ=UTC`.
+  `SKIP_DB_CHECK=1`; `tsc --noEmit` clean; `biome lint` clean). Full test run:
+  **645 passed / 0 failed** under `TZ=UTC`.
 - Runtime smoke: the new public docs routes return 200, and `/app/settings`,
   `/app/settings/integrations`, `/app/settings/security`, `/app/settings/websites`,
   and `/app/settings/billing` return 200 with an authenticated session. The
@@ -913,6 +911,21 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       legacy update/delete checks were deleted. Route tests mock the owning
       feature module, and `app-structure.test.ts` enforces the permissions
       allowlist. — proof: typecheck, lint, and **642/642 tests** pass.
+- [x] **UI-25 — Data-layer and router completion (new):** every domain Prisma
+      repository moved from `src/queries/prisma` into
+      `features/<domain>/server/queries` (`analytics`, `payments`, `websites`,
+      `account`); the whole inherited analytics SQL engine moved to
+      `features/analytics/server/queries/sql`; the tenant-scoped session cache
+      moved beside it; `dashboard-breakdown`, `website-overview`, `stripe-amount`,
+      and `board-types` moved into their owning feature libs. The public pixel
+      and link collectors moved to `features/legacy/server/collect`, the
+      website shell resolver moved into the analytics workbench, and the route
+      layer no longer imports `@/queries`, `@/lib/prisma`, or `@/lib/redis`.
+      `src/queries` is now a small allowlisted shared kernel (authorization,
+      request parsing, auth, billing contracts, legacy entity lookups).
+      `app-structure.test.ts` pins the shared query allowlist, the domain query
+      directories, and the route-layer data-access ban. — proof: typecheck and
+      lint clean, `next build` success, **645/645 tests** pass.
 
 ### Acceptance criteria
 
@@ -1065,12 +1078,30 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
    and enforced by the structure test. Settings ownership is complete:
    `features/settings` is the shell only, and each domain owns its settings
    screen. Permission ownership is likewise complete: `src/permissions` is the
-   shared website/entity boundary only. Billing history waits for Phase 5.
+   shared website/entity boundary only. Data ownership is complete too: domain
+   repositories and the analytics SQL engine live in feature `server/queries`,
+   and `src/queries` is a small shared kernel. Billing history waits for
+   Phase 5.
 8. **Phase 10:** legal drafts, abuse protection, transactional email, ops.
 9. **Phase 11:** security review, load test, CI, deployment/runbook.
 10. **Phase 12:** go-to-market.
 
 ## Changelog
+
+- 2026-11-05 — **Data-layer and router completion (Phase 9 / UI-25):** moved
+  every domain Prisma repository out of `src/queries/prisma` into
+  `features/<domain>/server/queries` and moved the entire analytics SQL engine
+  to `features/analytics/server/queries/sql`. The tenant-scoped session cache
+  now sits beside the engine; `dashboard-breakdown`, `website-overview`,
+  `stripe-amount`, and `board-types` moved into their owning feature libs.
+  Public pixel/link collectors moved to `features/legacy/server/collect` and the
+  website shell resolver to `features/analytics/workbench`, so the route layer
+  no longer reads data directly. `src/queries` is now an allowlisted shared
+  kernel (website/user/share/team/member authorization, segment resolution,
+  billing currency/audit/cleanup, legacy entity lookups). `app-structure.test.ts`
+  pins the kernel, the domain query directories, and the route-layer ban.
+  Typecheck and lint clean; `next build` succeeds with `SKIP_DB_CHECK=1`;
+  **645/645 tests** pass.
 
 - 2026-11-05 — **Permission ownership restructure (Phase 9 / UI-24):**
   `src/permissions` now holds only the central website/entity authorization

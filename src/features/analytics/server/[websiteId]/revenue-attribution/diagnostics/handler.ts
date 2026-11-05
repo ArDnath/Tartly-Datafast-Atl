@@ -3,7 +3,7 @@ import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { withDateRange } from '@/lib/schema';
 import { canViewWebsite } from '@/permissions';
-import { getRevenueDiagnosticsReport } from '@/queries/prisma';
+import { getRevenueDiagnosticsReport } from '@/features/analytics/server/queries/revenueDiagnostics';
 
 function getDateRange(query: Record<string, any>) {
   return {

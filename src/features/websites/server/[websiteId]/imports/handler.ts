@@ -1,7 +1,7 @@
 import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { canUpdateWebsite } from '@/permissions';
-import { getWebsiteImports } from '@/queries/prisma';
+import { getWebsiteImports } from '@/features/websites/server/queries/websiteImport';
 
 export async function GET(
   request: Request,

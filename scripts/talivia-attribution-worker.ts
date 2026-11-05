@@ -2,7 +2,7 @@
 /* eslint-disable no-console */
 import 'dotenv/config';
 import prisma from '../src/lib/prisma';
-import { recalculatePaymentAttribution } from '../src/queries/prisma/payment';
+import { recalculatePaymentAttribution } from '../src/features/payments/server/queries/payment';
 
 const PAID_PAYMENT_STATUSES = [
   'paid',

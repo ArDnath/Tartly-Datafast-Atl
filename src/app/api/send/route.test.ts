@@ -5,13 +5,9 @@ import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import { fetchWebsite } from '@/lib/load';
 import { parseRequest } from '@/lib/request';
 import { releaseEventUsage, reserveEventUsage } from '@/lib/usage';
-import {
-  ensureVisitorContext,
-  upsertCustomerIdentityLink,
-  upsertVisitorContext,
-} from '@/queries/prisma';
+import { ensureVisitorContext, upsertCustomerIdentityLink, upsertVisitorContext } from '@/features/payments/server/queries/attribution';
 import { getWebsiteAttributionRuntimeConfig } from '@/queries/prisma/website';
-import { createSession, saveEvent, updateSessionDistinctId } from '@/queries/sql';
+import { createSession, saveEvent, updateSessionDistinctId } from '@/features/analytics/server/queries/sql';
 import { POST } from './route';
 
 vi.mock('@/features/analytics/lib/collector-cache', () => ({
@@ -54,7 +50,7 @@ vi.mock('@/lib/request', () => ({
   parseRequest: vi.fn(),
 }));
 
-vi.mock('@/queries/prisma', () => ({
+vi.mock('@/features/payments/server/queries/attribution', () => ({
   ensureVisitorContext: vi.fn(),
   savePaymentDetectionEvent: vi.fn(),
   upsertCustomerIdentityLink: vi.fn(),
@@ -65,7 +61,7 @@ vi.mock('@/queries/prisma/website', () => ({
   getWebsiteAttributionRuntimeConfig: vi.fn(),
 }));
 
-vi.mock('@/queries/sql', () => ({
+vi.mock('@/features/analytics/server/queries/sql', () => ({
   createSession: vi.fn(),
   saveEvent: vi.fn(),
   saveSessionData: vi.fn(),

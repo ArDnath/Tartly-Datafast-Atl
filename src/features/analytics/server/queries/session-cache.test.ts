@@ -9,9 +9,9 @@ const redis = vi.hoisted(() => ({
 
 vi.mock('@/lib/redis', () => ({ default: redis }));
 vi.mock('@/queries/prisma', () => ({ getWebsite: vi.fn() }));
-vi.mock('@/queries/sql', () => ({ getWebsiteSession: vi.fn() }));
+vi.mock('@/features/analytics/server/queries/sql', () => ({ getWebsiteSession: vi.fn() }));
 
-const { fetchSession } = await import('./load');
+const { fetchSession } = await import('./session-cache');
 
 beforeEach(() => {
   vi.clearAllMocks();

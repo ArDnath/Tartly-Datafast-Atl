@@ -12,7 +12,7 @@ import {
 import { useDashboardBreakdownQuery } from '@/features/analytics/hooks/useDashboardBreakdownQuery';
 import { useWebsiteExpandedMetricsQuery } from '@/features/analytics/hooks/useWebsiteExpandedMetricsQuery';
 import { SESSION_COLUMNS } from '@/lib/constants';
-import type { DashboardBreakdownRow } from '@/lib/dashboard-breakdown';
+import type { DashboardBreakdownRow } from '@/features/analytics/lib/dashboard-breakdown';
 import { formatLongCurrency, formatLongNumber, formatShortTime } from '@/lib/format';
 
 export interface MetricsExpandedTableProps {

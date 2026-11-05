@@ -2,7 +2,7 @@ import { getQueryFilters, parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { reportResultSchema } from '@/lib/schema';
 import { canViewWebsite } from '@/permissions';
-import { getJourney } from '@/queries/sql';
+import { getJourney } from '@/features/analytics/server/queries/sql';
 
 export async function POST(request: Request) {
   const { auth, body, error } = await parseRequest(request, reportResultSchema);

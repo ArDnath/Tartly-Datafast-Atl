@@ -4,7 +4,8 @@ import { BRAND } from '@/lib/brand';
 import { fetchWebsite } from '@/lib/load';
 import { parseRequest } from '@/lib/request';
 import { badRequest, forbidden, json, unauthorized } from '@/lib/response';
-import { normalizeEmailHash, recordPayment } from '@/queries/prisma';
+import { normalizeEmailHash } from '@/features/payments/server/queries/attribution';
+import { recordPayment } from '@/features/payments/server/queries/payment';
 
 const schema = z.object({
   websiteId: z.uuid(),

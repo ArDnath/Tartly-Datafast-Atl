@@ -133,11 +133,49 @@ const SHARED_LIB_MODULES = new Set([
 const SHARED_STORE_MODULES = new Set(['app.ts']);
 
 /**
+ * `src/queries` is the shared data kernel. Domain repositories live in
+ * `src/features/<domain>/server/queries`, and the analytics SQL engine lives in
+ * `src/features/analytics/server/queries/sql`. Only repositories needed by the
+ * shared authorization, request, auth, or billing kernel stay here.
+ */
+const SHARED_QUERY_MODULES = new Set([
+  'audit.ts',
+  'board.ts',
+  'index.ts',
+  'link.ts',
+  'pixel.ts',
+  'providerWebhookCleanup.ts',
+  'segment.ts',
+  'share.ts',
+  'teamUser.ts',
+  'user.ts',
+  'website.ts',
+  'websiteCurrency.ts',
+  'websiteMember.ts',
+]);
+
+/**
  * `src/permissions` is the central tenant authorization boundary. Domain-only
  * permission checks (reports, local users, frozen legacy entities) live with
  * their feature; only website/entity authorization stays shared.
  */
 const SHARED_PERMISSIONS_MODULES = new Set(['entity.ts', 'index.ts', 'website.ts']);
+
+const DOMAIN_QUERY_MODULES: Record<string, string[]> = {
+  account: ['portfolioMrr.ts', 'websiteOverview.ts'],
+  analytics: [
+    'dashboardBreakdown.ts',
+    'historicalMetrics.ts',
+    'report.ts',
+    'revenueAttribution.ts',
+    'revenueDiagnostics.ts',
+    'revenueJourney.ts',
+    'revenueSetup.ts',
+    'sessionReplay.ts',
+  ],
+  payments: ['attribution.ts', 'payment.ts'],
+  websites: ['websiteImport.ts'],
+};
 
 function walk(directory: string): string[] {
   return readdirSync(directory).flatMap(entry => {
@@ -229,6 +267,70 @@ describe('application source layout', () => {
     expect(domainStores).toEqual([]);
   });
 
+  test('src/queries contains the shared data kernel only', () => {
+    expect(existsSync(join(SRC, 'queries/sql'))).toBe(false);
+
+    const modules = readdirSync(join(SRC, 'queries/prisma')).filter(
+      entry => !entry.includes('.test.') && statSync(join(SRC, 'queries/prisma', entry)).isFile(),
+    );
+
+    expect(modules.filter(entry => !SHARED_QUERY_MODULES.has(entry)).sort()).toEqual([]);
+
+    for (const module of [
+      'attribution.ts',
+      'dashboardBreakdown.ts',
+      'historicalMetrics.ts',
+      'payment.ts',
+      'portfolioMrr.ts',
+      'report.ts',
+      'revenueAttribution.ts',
+      'revenueDiagnostics.ts',
+      'revenueJourney.ts',
+      'revenueSetup.ts',
+      'sessionReplay.ts',
+      'websiteImport.ts',
+      'websiteOverview.ts',
+    ]) {
+      expect(
+        existsSync(join(SRC, 'queries/prisma', module)),
+        `${module} should live in its feature's server/queries directory`,
+      ).toBe(false);
+    }
+  });
+
+  test('domain repositories live in their feature server layer', () => {
+    for (const [domain, modules] of Object.entries(DOMAIN_QUERY_MODULES)) {
+      for (const module of modules) {
+        expect(
+          existsSync(join(FEATURES_ROOT, domain, 'server/queries', module)),
+          `missing src/features/${domain}/server/queries/${module}`,
+        ).toBe(true);
+      }
+    }
+
+    expect(
+      existsSync(join(FEATURES_ROOT, 'analytics/server/queries/sql/index.ts')),
+      'the analytics SQL engine should live under features/analytics/server/queries/sql',
+    ).toBe(true);
+    expect(
+      existsSync(join(FEATURES_ROOT, 'analytics/server/queries/session-cache.ts')),
+      'the tenant-scoped session cache should live with analytics queries',
+    ).toBe(true);
+  });
+
+  test('the route layer never reads data directly', () => {
+    const violations = walk(APP_ROOT)
+      .filter(file => /\.(ts|tsx)$/.test(file) && !file.includes('.test.'))
+      .flatMap(file => {
+        const content = readFileSync(file, 'utf8');
+        return /from '@\/queries\/|from '@\/lib\/prisma'|from '@\/lib\/redis'/.test(content)
+          ? [relative(APP_ROOT, file)]
+          : [];
+      });
+
+    expect(violations).toEqual([]);
+  });
+
   test('src/permissions contains central tenant authorization only', () => {
     const modules = readdirSync(join(SRC, 'permissions')).filter(
       entry => !entry.includes('.test.') && statSync(join(SRC, 'permissions', entry)).isFile(),
@@ -248,15 +350,22 @@ describe('application source layout', () => {
     const expected = [
       'account/hooks/useUsersQuery.ts',
       'account/lib/permissions.ts',
+      'account/lib/website-overview.ts',
+      'account/server/queries/portfolioMrr.ts',
+      'account/server/queries/websiteOverview.ts',
       'account/server/users/handler.ts',
       'account/settings/ProfilePage.tsx',
       'account/settings/SecuritySettingsPage.tsx',
       'account/settings/preferences/PreferencesPage.tsx',
       'analytics/lib/attribution-query.ts',
       'analytics/lib/collector-cache.ts',
+      'analytics/lib/dashboard-breakdown.ts',
       'analytics/lib/dashboard-overview.ts',
       'analytics/lib/report-permissions.ts',
+      'analytics/server/queries/session-cache.ts',
+      'analytics/server/queries/sql/index.ts',
       'analytics/workbench/WebsiteLayout.tsx',
+      'analytics/workbench/WebsiteLayoutRoute.tsx',
       'analytics/workbench/WebsiteHeader.tsx',
       'analytics/workbench/WebsitePage.tsx',
       'analytics/workbench/WebsiteSectionNav.tsx',
@@ -267,11 +376,17 @@ describe('application source layout', () => {
       'billing/UsageSettingsPage.tsx',
       'legacy/lib/legacy-features.ts',
       'legacy/lib/permissions.ts',
+      'legacy/server/collect/link/handler.ts',
+      'legacy/server/collect/pixel/handler.ts',
       'payments/lib/payment-detection.ts',
+      'payments/lib/stripe-amount.ts',
+      'payments/server/queries/attribution.ts',
+      'payments/server/queries/payment.ts',
       'payments/settings/IntegrationsSettingsPage.tsx',
       'system/lib/oss-version.ts',
       'websites/lib/api-key.ts',
       'websites/lib/website-domain.ts',
+      'websites/server/queries/websiteImport.ts',
       'websites/settings/WebsiteSettingsPage.tsx',
       'websites/settings/WebsitesSettingsPage.tsx',
       'workspaces/lib/workspace-invitations.ts',
@@ -281,6 +396,15 @@ describe('application source layout', () => {
 
     for (const path of expected) {
       expect(existsSync(join(FEATURES_ROOT, path)), `missing src/features/${path}`).toBe(true);
+    }
+
+    for (const stale of [
+      'src/lib/dashboard-breakdown.ts',
+      'src/lib/website-overview.ts',
+      'src/lib/stripe-amount.ts',
+      'src/lib/load.test.ts',
+    ]) {
+      expect(existsSync(join(process.cwd(), stale)), `${stale} should have moved`).toBe(false);
     }
 
     // The analytics workbench (reports, sessions, events, replay, realtime) and

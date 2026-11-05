@@ -1,6 +1,8 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { ENTITY_TYPE } from '@/lib/constants';
-import { getLink, getPixel, getShareByCode, getWebsite } from '@/queries/prisma';
+import { getLink } from '@/queries/prisma/link';
+import { getPixel } from '@/queries/prisma/pixel';
+import { getShareByCode, getWebsite } from '@/queries/prisma';
 import { GET } from './route';
 
 vi.mock('@/lib/prisma', () => ({
@@ -19,9 +21,15 @@ vi.mock('@/lib/redis', () => ({
   },
 }));
 
-vi.mock('@/queries/prisma', () => ({
+vi.mock('@/queries/prisma/link', () => ({
   getLink: vi.fn(),
+}));
+
+vi.mock('@/queries/prisma/pixel', () => ({
   getPixel: vi.fn(),
+}));
+
+vi.mock('@/queries/prisma', () => ({
   getShareByCode: vi.fn(),
   getWebsite: vi.fn(),
 }));

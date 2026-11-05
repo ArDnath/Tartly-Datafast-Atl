@@ -3,11 +3,7 @@ import { WEBSITE_MEMBER_ROLES } from '@/lib/constants';
 import { parseRequest } from '@/lib/request';
 import { badRequest, json, ok, unauthorized } from '@/lib/response';
 import { canManageWebsiteMembers } from '@/permissions';
-import {
-  deleteWebsiteMember,
-  getWebsiteMemberById,
-  updateWebsiteMember,
-} from '@/queries/prisma';
+import { deleteWebsiteMember, getWebsiteMemberById, updateWebsiteMember } from '@/queries/prisma';
 
 const roleParam = z.enum([WEBSITE_MEMBER_ROLES.viewer, WEBSITE_MEMBER_ROLES.member]);
 

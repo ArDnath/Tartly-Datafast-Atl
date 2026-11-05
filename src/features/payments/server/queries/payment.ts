@@ -2,12 +2,12 @@ import type { Visitor } from '@/generated/prisma/client';
 import { REVENUE_PAYMENT_STATUSES } from '@/lib/payment-status';
 import prisma from '@/lib/prisma';
 import { isUniqueConstraintError } from '@/lib/prisma-error';
-import { formatStripeAmount } from '@/lib/stripe-amount';
+import { formatStripeAmount } from '@/features/payments/lib/stripe-amount';
 import { getTrackingSessionId } from '@/lib/tracking-identity';
 import {
   normalizeWebsiteCurrencyAmount,
   normalizeWebsiteCurrencyAmountInTransaction,
-} from './websiteCurrency';
+} from '@/queries/prisma/websiteCurrency';
 
 export interface RecordPaymentInput {
   websiteId: string;

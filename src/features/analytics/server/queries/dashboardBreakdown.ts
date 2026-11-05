@@ -14,11 +14,11 @@ import {
   type DashboardBreakdownRow,
   type DashboardBreakdownTrafficRow,
   mergeDashboardBreakdownRows,
-} from '@/lib/dashboard-breakdown';
+} from '@/features/analytics/lib/dashboard-breakdown';
 import { REVENUE_PAYMENT_STATUSES } from '@/lib/payment-status';
 import prisma from '@/lib/prisma';
 import type { QueryFilters } from '@/lib/types';
-import { getChannelMetrics, getPageviewMetrics, getSessionMetrics } from '@/queries/sql';
+import { getChannelMetrics, getPageviewMetrics, getSessionMetrics } from './sql';
 
 export interface DashboardBreakdownReportInput {
   filters: QueryFilters;

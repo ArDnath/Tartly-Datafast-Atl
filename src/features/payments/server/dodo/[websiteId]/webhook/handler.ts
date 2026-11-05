@@ -12,7 +12,7 @@ import { fetchWebsite } from '@/lib/load';
 import prisma from '@/lib/prisma';
 import { decryptProviderSecret } from '@/features/payments/server/provider-secrets';
 import { badRequest, json, notFound, serverError, unauthorized } from '@/lib/response';
-import { recordPayment, recordRefund } from '@/queries/prisma';
+import { recordPayment, recordRefund } from '@/features/payments/server/queries/payment';
 
 async function getDodoConnection(websiteId: string) {
   return prisma.client.paymentProviderConnection.findFirst({

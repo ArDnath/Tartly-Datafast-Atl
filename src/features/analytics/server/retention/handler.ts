@@ -2,7 +2,7 @@ import { getQueryFilters, parseRequest, setWebsiteDate } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { reportResultSchema } from '@/lib/schema';
 import { canViewWebsite } from '@/permissions';
-import { getRetention, type RetentionParameters } from '@/queries/sql';
+import { getRetention, type RetentionParameters } from '@/features/analytics/server/queries/sql';
 
 export async function POST(request: Request) {
   const { auth, body, error } = await parseRequest(request, reportResultSchema);

@@ -4,7 +4,7 @@ import { badRequest, json, unauthorized } from '@/lib/response';
 import { fieldsParam, searchParams, withDateRange } from '@/lib/schema';
 import { canViewWebsite } from '@/permissions';
 import { getWebsiteSegments } from '@/queries/prisma';
-import { getValues } from '@/queries/sql';
+import { getValues } from '@/features/analytics/server/queries/sql';
 
 export async function GET(
   request: Request,

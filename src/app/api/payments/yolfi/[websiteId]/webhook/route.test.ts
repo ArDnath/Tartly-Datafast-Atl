@@ -15,8 +15,11 @@ vi.mock('@/lib/prisma', () => ({
     },
   },
 }));
-vi.mock('@/queries/prisma', () => ({
+vi.mock('@/features/payments/server/queries/attribution', () => ({
   normalizeEmailHash: vi.fn(() => 'email-hash'),
+}));
+
+vi.mock('@/features/payments/server/queries/payment', () => ({
   recordPayment: vi.fn(),
   recordSubscriptionState: vi.fn(),
 }));
@@ -27,7 +30,7 @@ vi.mock('@/features/payments/server/provider-secrets', () => ({
 
 const { fetchWebsite } = await import('@/lib/load');
 const { default: prisma } = await import('@/lib/prisma');
-const { recordPayment, recordSubscriptionState } = await import('@/queries/prisma');
+const { recordPayment, recordSubscriptionState } = await import('@/features/payments/server/queries/payment')
 const { verifyYolfiSignature } = await import('@/features/payments/server/webhooks/yolfi-webhook');
 const { decryptProviderSecret } = await import('@/features/payments/server/provider-secrets');
 const body = JSON.stringify({

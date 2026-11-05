@@ -1,6 +1,6 @@
 import { REVENUE_PAYMENT_STATUSES } from '@/lib/payment-status';
 import prisma from '@/lib/prisma';
-import { normalizeHostname } from './website';
+import { normalizeHostname } from '@/queries/prisma/website';
 
 type ChecklistStatus = 'complete' | 'pending' | 'warning';
 

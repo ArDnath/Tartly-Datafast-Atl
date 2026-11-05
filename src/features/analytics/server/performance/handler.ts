@@ -2,8 +2,8 @@ import { getQueryFilters, parseRequest, setWebsiteDate } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { reportResultSchema } from '@/lib/schema';
 import { canViewWebsite } from '@/permissions';
-import { getPerformance, type PerformanceParameters } from '@/queries/sql/reports/getPerformance';
-import { getPerformanceMetrics } from '@/queries/sql/reports/getPerformanceMetrics';
+import { getPerformance, type PerformanceParameters } from '@/features/analytics/server/queries/sql/reports/getPerformance';
+import { getPerformanceMetrics } from '@/features/analytics/server/queries/sql/reports/getPerformanceMetrics';
 
 export async function POST(request: Request) {
   const { auth, body, error } = await parseRequest(request, reportResultSchema);

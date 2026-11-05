@@ -3,7 +3,7 @@ import { fetchWebsite } from '@/lib/load';
 import { serializePolarCredential } from '@/features/payments/server/providers/polar-provider';
 import { verifyPolarSignature } from '@/features/payments/server/webhooks/polar-webhook';
 import prisma from '@/lib/prisma';
-import { recordPayment, recordRefund, recordSubscriptionState } from '@/queries/prisma';
+import { recordPayment, recordRefund, recordSubscriptionState } from '@/features/payments/server/queries/payment';
 import { POST } from './route';
 
 vi.mock('@/lib/load', () => ({ fetchWebsite: vi.fn() }));
@@ -23,7 +23,7 @@ vi.mock('@/lib/prisma', () => ({
     },
   },
 }));
-vi.mock('@/queries/prisma', () => ({
+vi.mock('@/features/payments/server/queries/payment', () => ({
   recordPayment: vi.fn(),
   recordRefund: vi.fn(),
   recordSubscriptionState: vi.fn(),

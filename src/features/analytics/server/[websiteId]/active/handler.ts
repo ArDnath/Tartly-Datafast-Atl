@@ -1,7 +1,7 @@
 import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { canViewWebsite } from '@/permissions';
-import { getActiveVisitors } from '@/queries/sql';
+import { getActiveVisitors } from '@/features/analytics/server/queries/sql';
 
 export async function GET(
   request: Request,

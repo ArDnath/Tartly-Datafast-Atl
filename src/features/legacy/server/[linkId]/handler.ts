@@ -2,7 +2,7 @@ import { legacyFeatureDisabled } from '@/features/legacy/lib/legacy-features';
 import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { canViewLink } from '@/features/legacy/lib/permissions';
-import { getLink } from '@/queries/prisma';
+import { getLink } from '@/queries/prisma/link';
 
 export async function GET(request: Request, { params }: { params: Promise<{ linkId: string }> }) {
   const { auth, error } = await parseRequest(request);
