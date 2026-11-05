@@ -1,7 +1,8 @@
 import { uuid } from '@/lib/crypto';
+import { billingSubscriptionHasAccess } from '@/lib/billing-lifecycle';
 import prisma from '@/lib/prisma';
 import { isUniqueConstraintError } from '@/lib/prisma-error';
-import { getPlan, getPlanOrNull, type Plan } from '@/lib/plans';
+import { getPlan, getPlanOrNull, SETUP_EVENT_ALLOWANCE, type Plan } from '@/lib/plans';
 
 /**
  * Usage metering and plan enforcement.
@@ -43,6 +44,10 @@ export interface WorkspaceUsageSnapshot {
   planId: string | null;
   plan: Plan;
   subscriptionStatus: string;
+  /** True only when the provider confirms paid access. */
+  active: boolean;
+  /** True when the workspace only has the install-verification allowance. */
+  setup: boolean;
   periodStart: Date;
   periodEnd: Date;
   resetAt: Date;
@@ -380,7 +385,12 @@ export async function getWorkspaceUsage(
         planId: true,
         subscriptionStatus: true,
         platformSubscription: {
-          select: { planId: true, lifecycleStatus: true },
+          select: {
+            planId: true,
+            lifecycleStatus: true,
+            cancelAtPeriodEnd: true,
+            currentPeriodEnd: true,
+          },
         },
       },
     }),
@@ -417,21 +427,38 @@ export async function getWorkspaceUsage(
 
   const planId = workspace.platformSubscription?.planId ?? workspace.planId;
   const plan = getPlanOrNull(planId) || getPlan('starter');
+  const subscriptionStatus =
+    workspace.platformSubscription?.lifecycleStatus ?? workspace.subscriptionStatus;
+  const active = workspace.platformSubscription
+    ? billingSubscriptionHasAccess(
+        {
+          lifecycleStatus: workspace.platformSubscription.lifecycleStatus,
+          cancelAtPeriodEnd: workspace.platformSubscription.cancelAtPeriodEnd,
+          currentPeriodEnd: workspace.platformSubscription.currentPeriodEnd,
+        },
+        now,
+      )
+    : workspace.subscriptionStatus === 'active' || workspace.subscriptionStatus === 'trialing';
 
   return {
     workspaceId: workspace.id,
     planId,
     plan,
-    subscriptionStatus:
-      workspace.platformSubscription?.lifecycleStatus ?? workspace.subscriptionStatus,
+    subscriptionStatus,
+    active,
+    setup: !active,
     periodStart,
     periodEnd,
     resetAt: periodEnd,
-    events: createUsageMeter(period?.eventsCount ?? 0, plan.eventsPerMonth, EVENT_GRACE),
+    events: createUsageMeter(
+      period?.eventsCount ?? 0,
+      active ? plan.eventsPerMonth : SETUP_EVENT_ALLOWANCE,
+      active ? EVENT_GRACE : 0,
+    ),
     replays: createUsageMeter(
       period?.replaySessionsCount ?? 0,
-      plan.replaySessionsPerMonth,
-      REPLAY_GRACE,
+      active ? plan.replaySessionsPerMonth : 0,
+      active ? REPLAY_GRACE : 0,
     ),
     websites: { used: websiteCount, limit: plan.websiteLimit },
     members: { used: memberCount + pendingInvites, limit: plan.memberLimit },

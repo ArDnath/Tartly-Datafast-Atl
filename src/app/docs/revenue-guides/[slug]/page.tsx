@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { BRAND } from '@/lib/brand';
 import { DocsPage } from '@/features/docs/DocsPage';
 import { getRevenueGuide } from '@/features/docs/content';
 
@@ -24,11 +23,11 @@ export async function generateMetadata({
   const guide = getRevenueGuide(slug);
 
   if (!guide) {
-    return { title: `Not found | ${BRAND.name}` };
+    return { title: 'Not found' };
   }
 
   return {
-    title: `${guide.title} revenue guide | ${BRAND.name}`,
+    title: `${guide.title} revenue guide`,
     description: guide.summary,
   };
 }

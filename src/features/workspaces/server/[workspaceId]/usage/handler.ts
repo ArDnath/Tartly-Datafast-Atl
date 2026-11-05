@@ -48,6 +48,8 @@ export async function GET(
       features: usage.plan.features,
     },
     subscriptionStatus: usage.subscriptionStatus,
+    active: usage.active,
+    setup: usage.setup,
     periodStart: usage.periodStart.toISOString(),
     periodEnd: usage.periodEnd.toISOString(),
     resetAt: usage.resetAt.toISOString(),

@@ -142,8 +142,9 @@ export function LandingPage() {
             <details className={styles.faqItem}>
               <summary>Is there a free tier?</summary>
               <p>
-                No. There are exactly two paid plans: Starter and Pro. That keeps the product funded
-                without inventing usage limits later.
+                No. There are exactly two paid plans: Starter and Pro. A new workspace gets a
+                1,000-event setup allowance so you can verify the tracker before checkout; after
+                that, ingestion pauses until you subscribe. It is not an ongoing free plan.
               </p>
             </details>
             <details className={styles.faqItem}>

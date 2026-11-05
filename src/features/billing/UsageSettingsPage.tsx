@@ -27,6 +27,8 @@ interface WorkspaceUsageResponse {
     features: readonly string[];
   };
   subscriptionStatus: string;
+  active: boolean;
+  setup: boolean;
   periodStart: string;
   periodEnd: string;
   resetAt: string;
@@ -187,8 +189,10 @@ export function UsageSettingsPage() {
   }
 
   const usage = usageQuery.data;
-  const isPaid = usage.subscriptionStatus === 'active' || usage.subscriptionStatus === 'trialing';
+  const isPaid = usage.active;
   const isPro = usage.plan.id === 'pro';
+  const isSetup = usage.setup;
+  const eventAllowance = isSetup ? usage.events.limit : usage.plan.eventsPerMonth;
 
   return (
     <Column gap="5">
@@ -219,7 +223,7 @@ export function UsageSettingsPage() {
           <Text size="sm" color="muted">
             {isPaid
               ? `Subscription ${usage.subscriptionStatus}.`
-              : 'No paid subscription is on file for this workspace yet.'}
+              : `Setup allowance only: ${eventAllowance.toLocaleString('en-US')} events while you verify the tracker. No paid subscription is on file.`}
           </Text>
           <Link
             href="/pricing"
@@ -235,7 +239,7 @@ export function UsageSettingsPage() {
               textDecoration: 'none',
             }}
           >
-            {isPro ? 'Compare plans' : 'Upgrade to Pro'}
+            {isSetup ? 'Choose a plan' : isPro ? 'Compare plans' : 'Upgrade to Pro'}
           </Link>
         </Column>
 
@@ -255,7 +259,11 @@ export function UsageSettingsPage() {
       </Grid>
 
       <Column border padding="4" gap="4" style={SURFACE}>
-        <UsageBar label="Billable events" meter={usage.events} unit="events" />
+        <UsageBar
+          label={isSetup ? 'Setup events (until you subscribe)' : 'Billable events'}
+          meter={usage.events}
+          unit="events"
+        />
         <div style={{ borderTop: '1px solid #ffffff0d' }} />
         <UsageBar label="Replay sessions" meter={usage.replays} unit="sessions" />
       </Column>
@@ -268,6 +276,14 @@ export function UsageSettingsPage() {
 
       <Column gap="2">
         <Text weight="bold">What happens next</Text>
+        {isSetup && (
+          <Text size="sm" color="muted">
+            This workspace has no paid subscription. It can collect{' '}
+            {eventAllowance.toLocaleString('en-US')} setup events this period so you can verify the
+            tracker. After that, billable ingestion pauses until you choose Starter or Pro. This is
+            not a free plan.
+          </Text>
+        )}
         <Text size="sm" color="muted">
           At 80% you get an in-app notice. At 100% the grace allowance starts. When the grace
           allowance ends, billable ingestion pauses until {formatDate(usage.resetAt)}; analytics,

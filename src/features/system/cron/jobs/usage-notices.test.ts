@@ -22,6 +22,7 @@ function period(overrides: Record<string, unknown> = {}) {
     workspace: {
       name: 'Acme',
       planId: 'starter',
+      subscriptionStatus: 'active',
       platformSubscription: null,
       owner: { username: 'owner@example.com', deletedAt: null, suspendedAt: null },
     },
@@ -86,6 +87,7 @@ describe('usage notices job', () => {
         workspace: {
           name: 'Suspended',
           planId: 'starter',
+          subscriptionStatus: 'active',
           platformSubscription: null,
           owner: { username: 'owner@example.com', deletedAt: null, suspendedAt: null },
         },
@@ -95,6 +97,7 @@ describe('usage notices job', () => {
         workspace: {
           name: 'Owner suspended',
           planId: 'starter',
+          subscriptionStatus: 'active',
           platformSubscription: null,
           owner: { username: 'owner@example.com', deletedAt: null, suspendedAt: new Date() },
         },
@@ -125,11 +128,17 @@ describe('usage notices job', () => {
   test('uses the provider plan when platform billing is active', async () => {
     const client = createClient([
       period({
-        eventsCount: 300_000,
+        eventsCount: 450_000,
         workspace: {
           name: 'Acme',
           planId: 'starter',
-          platformSubscription: { planId: 'pro' },
+          subscriptionStatus: 'incomplete',
+          platformSubscription: {
+            planId: 'pro',
+            lifecycleStatus: 'ACTIVE',
+            cancelAtPeriodEnd: false,
+            currentPeriodEnd: new Date('2026-12-15T00:00:00.000Z'),
+          },
           owner: { username: 'owner@example.com', deletedAt: null, suspendedAt: null },
         },
       }),
@@ -138,6 +147,7 @@ describe('usage notices job', () => {
 
     await runUsageNoticeJob({ ...options, client, send });
 
-    expect(send).not.toHaveBeenCalled();
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send.mock.calls[0][0]).toMatchObject({ level: 'warning', limit: 500_000 });
   });
 });
