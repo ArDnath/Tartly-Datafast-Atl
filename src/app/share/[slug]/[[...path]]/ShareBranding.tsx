@@ -1,7 +1,8 @@
 'use client';
 import { Icon, Row, Text } from '@talivia/react-zen';
+import { BrandMark } from '@/components/brand/BrandMark';
 import { useShare } from '@/components/hooks';
-import { Logo } from '@/components/svg';
+import { BRAND } from '@/lib/brand';
 
 const LOGO_SIZE = { sm: 24, md: 32, lg: 40 };
 const TEXT_SIZE = { sm: 'sm', md: 'base', lg: 'lg' } as const;
@@ -9,7 +10,7 @@ const TEXT_SIZE = { sm: 'sm', md: 'base', lg: 'lg' } as const;
 export function ShareBranding({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const share = useShare();
   const logoDomain = share?.whiteLabel?.domainName || '/';
-  const logoName = share?.whiteLabel?.displayName || 'Talivia';
+  const logoName = share?.whiteLabel?.displayName || BRAND.name;
   const logoImage = share?.whiteLabel?.logoUrl;
   const height = LOGO_SIZE[size];
 
@@ -20,7 +21,7 @@ export function ShareBranding({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
           <img src={logoImage} alt={logoName} style={{ height }} />
         ) : (
           <Icon>
-            <Logo />
+            <BrandMark size={height} />
           </Icon>
         )}
         <Text size={TEXT_SIZE[size]} weight="bold">

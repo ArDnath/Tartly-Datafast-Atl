@@ -211,9 +211,11 @@ The phase tracker expands Phase 9 with UI-1 … UI-14. The sequence is:
 13. **Accessibility pass** — focus, contrast, labels, reduced motion.
 14. **Temporary rename demo** — prove the brand config is the only source.
 
-Current status: pricing, onboarding shell/steps, and the auth screens (login,
-signup, invite, verify, forgot/reset) are implemented; the remaining screens
-are tracked in `docs/PHASES.md`.
+Current status: pricing, onboarding shell/steps, auth screens (login, signup,
+invite, verify, forgot/reset), the app shell, the revenue-first portfolio home,
+the website workbench navigation, and the marketing landing are implemented.
+Billing/usage screens remain blocked on the platform-billing and metering
+phases; the rest is tracked in `docs/PHASES.md`.
 
 ---
 
@@ -223,7 +225,11 @@ are tracked in `docs/PHASES.md`.
 | --- | --- |
 | Brand config | `src/lib/brand.ts` |
 | Brand mark/wordmark | `src/components/brand/BrandMark.tsx` |
-| Global Talivia tokens | `src/app/global.css` |
+| Global tokens | `src/app/global.css` |
+| Landing page | `src/app/page.tsx`, `Landing.module.css` |
+| App shell / top nav | `src/app/(main)/App.tsx`, `TopNav.tsx` |
+| Portfolio overview | `src/app/(main)/app/AppEntryPage.tsx` |
+| Website workbench nav | `src/app/(main)/websites/[websiteId]/WebsiteSectionNav.tsx` |
 | Pricing page | `src/app/pricing/PricingPage.tsx`, `Pricing.module.css` |
 | Onboarding flow | `src/app/onboarding/OnboardingFlow.tsx`, `Onboarding.module.css` |
 | Plan config | `src/lib/plans.ts` |

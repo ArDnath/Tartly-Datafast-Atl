@@ -18,7 +18,7 @@ import { ChevronRight, Edit, Globe2 } from '@/components/icons';
 import { DateFilter } from '@/components/input/DateFilter';
 import { DEFAULT_CURRENCY, ROLES } from '@/lib/constants';
 import { getDateRangeValue } from '@/lib/date';
-import { formatLongCurrency, formatLongNumber } from '@/lib/format';
+import { formatCurrency, formatLongCurrency, formatLongNumber } from '@/lib/format';
 import { WebsiteAddButton } from '../websites/WebsiteAddButton';
 import { WebsiteFirstRunPanel } from '../websites/WebsiteFirstRunPanel';
 
@@ -293,6 +293,49 @@ function SummaryMetric({ value, label }: { value: string; label: string }) {
   );
 }
 
+function PortfolioMetric({
+  label,
+  value,
+  hint,
+  signal,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  signal?: boolean;
+}) {
+  return (
+    <Column
+      gap="1"
+      paddingX="4"
+      paddingY="4"
+      style={{
+        minHeight: 104,
+        borderRadius: 14,
+        border: `1px solid ${signal ? 'rgba(242, 180, 203, 0.22)' : OVERVIEW_CARD_BORDER}`,
+        background: OVERVIEW_CARD_BACKGROUND,
+      }}
+    >
+      <Text size="sm" color="muted">
+        {label}
+      </Text>
+      <Text
+        size="xl"
+        weight="bold"
+        style={{
+          fontVariantNumeric: 'tabular-nums',
+          color: signal ? '#f2b4cb' : undefined,
+        }}
+      >
+        {value}
+      </Text>
+      <Text size="sm" color="muted">
+        {hint}
+      </Text>
+    </Column>
+  );
+}
+
 function WebsiteCard({ website }: { website: WebsiteOverview }) {
   const { renderUrl } = useNavigation();
   const { locale } = useLocale();
@@ -364,12 +407,12 @@ function WebsiteCard({ website }: { website: WebsiteOverview }) {
 
             <Row alignItems="center" gap="4" minWidth="0" style={{ whiteSpace: 'nowrap' }}>
               <SummaryMetric
-                value={formatLongNumber(metrics.visitors)}
-                label={t(labels.visitors)}
-              />
-              <SummaryMetric
                 value={formatLongCurrency(metrics.revenue, currency, locale)}
                 label={t(labels.revenue)}
+              />
+              <SummaryMetric
+                value={formatLongNumber(metrics.visitors)}
+                label={t(labels.visitors)}
               />
             </Row>
           </Column>
@@ -413,12 +456,34 @@ export function AppEntryPage() {
   const { data, isLoading, error } = useWebsiteOverviewQuery();
   const isInitialLoading = isLoading && !data;
   const websites = (data?.data || []) as WebsiteOverview[];
+  const { locale } = useLocale();
   const showActions = user?.role !== ROLES.viewOnly;
   const showDateStepButtons = !isAllTime && !isCustomRange;
   const disableForward = isAfter(dateRange.endDate, new Date());
   const dateValue = Number(offset)
     ? getDateRangeValue(dateRange.startDate, dateRange.endDate)
     : dateRange.value;
+
+  const totalRevenue = websites.reduce(
+    (sum, website) => sum + Number(website.metrics.revenue || 0),
+    0,
+  );
+  const totalVisitors = websites.reduce(
+    (sum, website) => sum + Number(website.metrics.visitors || 0),
+    0,
+  );
+  const totalPayments = websites.reduce(
+    (sum, website) => sum + Number(website.metrics.payments || 0),
+    0,
+  );
+  const currencies = new Set(
+    websites.map(website => website.metrics.currency || DEFAULT_CURRENCY),
+  );
+  const singleCurrency = currencies.size <= 1;
+  const portfolioCurrency = [...currencies][0] || DEFAULT_CURRENCY;
+  const revenuePerVisitor = totalVisitors ? totalRevenue / totalVisitors : 0;
+  const purchaseRate = totalVisitors ? (totalPayments / totalVisitors) * 100 : 0;
+  const hasSites = websites.length > 0;
 
   const handleDateChange = (date: string) => {
     patch({ date, offset: undefined, unit: undefined, page: undefined });
@@ -467,6 +532,64 @@ export function AppEntryPage() {
           </Row>
           {showActions && <WebsiteAddButton />}
         </Row>
+
+        {hasSites && (
+          <>
+            <Grid
+              columns={{
+                base: '1fr',
+                sm: 'repeat(2, minmax(0, 1fr))',
+                xl: 'repeat(4, minmax(0, 1fr))',
+              }}
+              gap="3"
+            >
+              <PortfolioMetric
+                label="Revenue"
+                value={
+                  singleCurrency
+                    ? formatCurrency(totalRevenue, portfolioCurrency, locale)
+                    : 'Mixed'
+                }
+                hint={
+                  singleCurrency
+                    ? `Across ${websites.length} website${websites.length === 1 ? '' : 's'}`
+                    : 'Sites report in different currencies'
+                }
+                signal
+              />
+              <PortfolioMetric
+                label="Revenue per visitor"
+                value={
+                  singleCurrency
+                    ? formatCurrency(revenuePerVisitor, portfolioCurrency, locale)
+                    : '—'
+                }
+                hint="Revenue divided by unique visitors"
+              />
+              <PortfolioMetric
+                label="Purchase rate"
+                value={`${purchaseRate.toFixed(2)}%`}
+                hint="Payments divided by unique visitors"
+              />
+              <PortfolioMetric
+                label="Visitors"
+                value={formatLongNumber(totalVisitors)}
+                hint={`${formatLongNumber(totalPayments)} payments in range`}
+              />
+            </Grid>
+
+            <Row alignItems="baseline" justifyContent="space-between" gap="3" wrap="wrap">
+              <Column gap="1" minWidth="0">
+                <Text size="lg" weight="bold">
+                  Revenue by website
+                </Text>
+                <Text size="sm" color="muted">
+                  Money leads. Visitors and payments are supporting context.
+                </Text>
+              </Column>
+            </Row>
+          </>
+        )}
 
         {websites.length === 0 && showActions ? (
           <WebsiteFirstRunPanel />

@@ -1,12 +1,7 @@
-import type { Metadata } from 'next';
-import { RevenueDiagnosticsPage } from '@/app/(main)/websites/[websiteId]/(reports)/revenue-diagnostics/RevenueDiagnosticsPage';
+import { redirect } from 'next/navigation';
 
 export default async function ({ params }: { params: Promise<{ websiteId: string }> }) {
   const { websiteId } = await params;
 
-  return <RevenueDiagnosticsPage websiteId={websiteId} />;
+  redirect(`/app/${websiteId}/diagnostics`);
 }
-
-export const metadata: Metadata = {
-  title: 'Revenue diagnostics',
-};
