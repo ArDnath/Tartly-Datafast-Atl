@@ -1,6 +1,6 @@
 import { parseRequest } from '@/lib/request';
 import { badRequest, json } from '@/lib/response';
-import { InvitationError, revokeWorkspaceInvitation } from '@/lib/workspace-invitations';
+import { InvitationError, revokeWorkspaceInvitation } from '@/features/workspaces/lib/workspace-invitations';
 
 export async function DELETE(
   request: Request,

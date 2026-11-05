@@ -1,6 +1,6 @@
 import { parseRequest } from '@/lib/request';
 import { badRequest, json, unauthorized } from '@/lib/response';
-import { acceptWorkspaceInvitation, InvitationError } from '@/lib/workspace-invitations';
+import { acceptWorkspaceInvitation, InvitationError } from '@/features/workspaces/lib/workspace-invitations';
 
 export async function POST(
   request: Request,

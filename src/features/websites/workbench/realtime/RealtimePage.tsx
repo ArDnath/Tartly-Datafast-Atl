@@ -8,7 +8,7 @@ import { useMobile } from '@/components/hooks';
 import { RealtimeChart } from '@/features/analytics/components/metrics/RealtimeChart';
 import { WorldMap } from '@/features/analytics/components/metrics/WorldMap';
 import { useRealtimeQuery } from '@/features/analytics/hooks/useRealtimeQuery';
-import { percentFilter } from '@/lib/filters';
+import { percentFilter } from '@/features/analytics/lib/filters';
 import { RealtimeCountries } from './RealtimeCountries';
 import { RealtimeHeader } from './RealtimeHeader';
 import { RealtimeLog } from './RealtimeLog';

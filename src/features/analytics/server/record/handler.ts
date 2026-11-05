@@ -1,9 +1,9 @@
 import { isbot } from 'isbot';
 import { serializeError } from 'serialize-error';
 import { z } from 'zod';
-import { parseCollectorCacheToken } from '@/lib/collector-cache';
+import { parseCollectorCacheToken } from '@/features/analytics/lib/collector-cache';
 import { secret } from '@/lib/crypto';
-import { getClientInfo, hasBlockedIp } from '@/lib/detect';
+import { getClientInfo, hasBlockedIp } from '@/features/analytics/lib/detect';
 import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import { planHasFeature } from '@/lib/plans';
 import { parseRequest } from '@/lib/request';

@@ -8,7 +8,7 @@ import { sendEmailVerificationEmail } from '@/lib/email';
 import { getPublicOrigin } from '@/lib/get-base-url';
 import { getIpAddress } from '@/lib/ip';
 import { consumeRateLimit, hashRateLimitSubject, rateLimitKey } from '@/lib/rate-limit';
-import { RegistrationError, registerAccount } from '@/lib/registration';
+import { RegistrationError, registerAccount } from '@/features/auth/server/registration';
 import { parseRequest } from '@/lib/request';
 import { appConfigurationError, badRequest, forbidden, json, tooManyRequests } from '@/lib/response';
 

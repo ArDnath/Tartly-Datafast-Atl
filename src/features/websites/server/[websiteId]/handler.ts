@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { parseRequest } from '@/lib/request';
 import { badRequest, json, ok, serverError, unauthorized } from '@/lib/response';
-import { getWebsiteNameFromDomain, normalizeWebsiteDomainInput } from '@/lib/website-domain';
+import { getWebsiteNameFromDomain, normalizeWebsiteDomainInput } from '@/features/websites/lib/website-domain';
 import {
   canDeleteWebsite,
   canUpdateWebsite,

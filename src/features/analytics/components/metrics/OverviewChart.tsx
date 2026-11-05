@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Chart } from '@/components/charts/Chart';
 import { ChartTooltip } from '@/components/charts/ChartTooltip';
 import { useLocale, useMessages } from '@/components/hooks/index';
-import { getMobileChartTicks } from '@/lib/chart-axis';
+import { getMobileChartTicks } from '@/features/analytics/lib/chart-axis';
 import { renderDateLabels, renderNumberLabels } from '@/lib/charts';
 import { CHART_FONT_FAMILY } from '@/lib/constants';
 import { formatDate, generateTimeSeries } from '@/lib/date';

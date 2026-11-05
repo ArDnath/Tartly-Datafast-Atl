@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { useMessages, useUpdateQuery } from '@/components/hooks';
 import { useWebsite } from '@/features/websites/hooks/useWebsite';
 import { DOMAIN_REGEX } from '@/lib/constants';
-import { normalizeWebsiteDomainInput } from '@/lib/website-domain';
+import { normalizeWebsiteDomainInput } from '@/features/websites/lib/website-domain';
 
 export function WebsiteEditForm({
   websiteId,

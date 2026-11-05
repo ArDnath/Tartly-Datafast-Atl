@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { APP_SECRET_CONFIGURATION_ERROR_CODE } from '@/lib/app-config';
-import { sanitizeAuthReturnUrl } from '@/lib/auth-return-url';
+import { sanitizeAuthReturnUrl } from '@/features/auth/lib/auth-return-url';
 import type { ApiError } from '@/lib/types';
 import { LoginForm } from './LoginForm';
 

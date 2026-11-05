@@ -1,6 +1,6 @@
 import { parseRequest } from '@/lib/request';
 import { json, notFound } from '@/lib/response';
-import { previewWorkspaceInvitation } from '@/lib/workspace-invitations';
+import { previewWorkspaceInvitation } from '@/features/workspaces/lib/workspace-invitations';
 
 export async function GET(
   request: Request,

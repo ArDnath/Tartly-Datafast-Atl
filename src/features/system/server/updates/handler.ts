@@ -2,7 +2,7 @@ import { createHmac, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { checkAuth } from '@/lib/auth';
 import { secret } from '@/lib/crypto';
-import { getOssUpdateUrl, OSS_VERSION } from '@/lib/oss-version';
+import { getOssUpdateUrl, OSS_VERSION } from '@/features/system/lib/oss-version';
 import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';

@@ -6,7 +6,7 @@ import {
   createWorkspaceInvitation,
   InvitationError,
   listWorkspaceInvitations,
-} from '@/lib/workspace-invitations';
+} from '@/features/workspaces/lib/workspace-invitations';
 
 const createSchema = z.object({
   email: z.email().max(320),

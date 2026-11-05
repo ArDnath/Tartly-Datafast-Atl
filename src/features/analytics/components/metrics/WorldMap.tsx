@@ -6,7 +6,7 @@ import { useCountryNames, useLocale, useMessages } from '@/components/hooks/inde
 import { useWebsiteMetricsQuery } from '@/features/analytics/hooks/useWebsiteMetricsQuery';
 import { VISUALIZATION_COLORS } from '@/lib/colors';
 import { ISO_COUNTRIES, MAP_FILE } from '@/lib/constants';
-import { percentFilter } from '@/lib/filters';
+import { percentFilter } from '@/features/analytics/lib/filters';
 import { formatLongNumber } from '@/lib/format';
 
 export interface WorldMapProps extends ColumnProps {

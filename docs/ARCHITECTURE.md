@@ -15,6 +15,8 @@ src/features/<domain>/       product domains
   *.tsx                      screens and domain UI
   components/                domain-specific widgets and inputs
   hooks/                     domain client state and React Query hooks
+  lib/                       domain helpers, contracts, and constants
+  store/                     domain-only client state, where it exists
   server/**/handler.ts       request handlers and domain server logic
   server/queries/            domain-only data access, where it exists
 src/components/              shared design-system primitives only
@@ -23,7 +25,7 @@ src/lib/                     cross-cutting services (auth, db, email, plans,
                              brand, usage, crypto, request/response)
 src/queries/                 shared analytics engine and cross-domain data access
 src/permissions/             central tenant authorization
-src/store/                   shared client state
+src/store/                   shared application state
 ```
 
 Dependency direction:
@@ -37,11 +39,16 @@ app  ->  features  ->  components / lib / queries / permissions / store
   static Next config (`dynamic`, `runtime`).
 - `src/features` owns product behaviour. Server handlers live in
   `src/features/<domain>/server/**` and are the only place request logic runs.
-  Domain UI lives in `components/` and domain hooks in `hooks/`.
+  Domain UI lives in `components/`, domain hooks in `hooks/`, and domain
+  helpers in `lib/`.
 - `src/components`, `src/lib`, `src/queries`, `src/permissions`, and `src/store`
   are shared. Features may import them; they must not import `src/features` or
   `src/app`. `src/components` is limited to the shared component directories
   listed above.
+- `src/lib` and `src/store` are allowlisted. They are not dumping grounds: a
+  new domain helper belongs in `src/features/<domain>/lib`, and a domain store
+  belongs in `src/features/<domain>/store`. Adding a module to the shared
+  allowlist is an explicit architectural decision.
 - Cross-feature imports go through `@/features/<domain>` barrels or explicit
   paths. Do not reach into another feature with `../../`.
 
@@ -92,14 +99,20 @@ Rules enforced by `src/lib/app-structure.test.ts`:
 - Legacy `/websites/*` and `/settings/*` route groups do not exist.
 - `src/components` contains only the shared design-system directories
   (`brand`, `charts`, `common`, `hooks`, `input`, `svg`).
+- `src/lib` contains only the explicit shared-module allowlist and `src/store`
+  contains only `app.ts`.
+- Domain helpers live under `src/features/<domain>/lib`, and the structure test
+  names the modules that completed the restructure.
 - Shared layers (`components`, `lib`, `permissions`, `queries`, `store`) never
   import a product feature.
 
 ## Adding a feature
 
 1. Create `src/features/<domain>/` with the screen or feature UI.
-2. Put domain widgets in `components/` and domain query hooks in `hooks/`.
-3. Put request logic in `src/features/<domain>/server/`.
+2. Put domain widgets in `components/`, domain query hooks in `hooks/`, and
+   domain helpers in `lib/`.
+3. Put request logic in `src/features/<domain>/server/`. Domain-only client
+   state goes in `store/`, not `src/store`.
 4. Add a route page that parses params and renders the feature.
 5. Add `src/app/api/**/route.ts` that re-exports the handler.
 6. Add a test beside the handler (`src/app/api/**/route.test.ts` remains the
@@ -143,10 +156,29 @@ The restructure moved the remaining domain-specific UI out of `src/components`:
 | `PaymentProviderLogo` | `src/features/payments/components` |
 | domain React Query hooks | `src/features/<domain>/hooks` |
 | cron scheduler and jobs | `src/features/system/cron` |
+| collector cache, cross-domain linker, attribution query, dashboard overview, bot/client detection, analytics filters and chart helpers | `src/features/analytics/lib` |
+| payment return detection | `src/features/payments/lib` |
+| auth return URL and transactional registration | `src/features/auth/lib` and `src/features/auth/server` |
+| workspace invitations and member management | `src/features/workspaces/lib` |
+| website API keys and domain normalization | `src/features/websites/lib` |
+| legacy feature gate | `src/features/legacy/lib` |
+| OSS version/update helpers | `src/features/system/lib` |
+| dead dashboard/website/cache stores and the unused refresh button | deleted |
 
 Only primitives remain in `src/components`: `common` (links, panels, tables,
 empty/error states), `charts`, `input` (date picker and menu primitives),
-`svg`, `brand`, and generic hooks.
+`svg`, `brand`, and generic hooks. `src/store` contains only `app.ts`, the
+shared locale/timezone/date-range/user shell state.
+
+The shared `src/lib` allowlist is enforced by the structure test. It keeps
+cross-cutting infrastructure (auth sessions, CSRF, rate limits, Prisma,
+crypto, email, plans/usage, branding, request/response) plus the data
+contracts the preserved analytics engine reads (`payment-status`,
+`paymentCustomer`, `tracking-identity`, `dashboard-breakdown`,
+`website-overview`, `currency-exchange`, `reporting-currency`, `board-types`).
+Those contracts stay shared because `src/queries` is below features; moving
+them upward would invert the dependency arrow. Provider-specific request
+handling and UI still live in `src/features/payments`.
 
 `src/queries/sql` stays in place deliberately: it is the inherited analytics
 engine described in `docs/TENANCY.md`, and multiple features plus tenant

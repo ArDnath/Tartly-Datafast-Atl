@@ -1,4 +1,4 @@
-import { calculateOverviewMetrics } from '@/lib/dashboard-overview';
+import { calculateOverviewMetrics } from '@/features/analytics/lib/dashboard-overview';
 import { getCompareDate } from '@/lib/date';
 import { getQueryFilters, parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';

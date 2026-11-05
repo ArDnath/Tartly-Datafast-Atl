@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { getLocation } from './detect';
-import { getIpAddress } from './ip';
+import { getIpAddress } from '@/lib/ip';
 
 const IP = '127.0.0.1';
 

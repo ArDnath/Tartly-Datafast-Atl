@@ -1,6 +1,6 @@
 import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
-import { listWorkspaceMembers } from '@/lib/workspace-members';
+import { listWorkspaceMembers } from '@/features/workspaces/lib/workspace-members';
 
 export async function GET(
   request: Request,

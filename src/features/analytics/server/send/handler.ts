@@ -1,23 +1,23 @@
 import { isbot } from 'isbot';
 import { serializeError } from 'serialize-error';
 import { z } from 'zod';
-import { getFilteredAttributionQuery } from '@/lib/attribution-query';
+import { getFilteredAttributionQuery } from '@/features/analytics/lib/attribution-query';
 import {
   type CollectorCachePayload,
   createCollectorCacheToken,
   parseCollectorCacheToken,
-} from '@/lib/collector-cache';
+} from '@/features/analytics/lib/collector-cache';
 import { COLLECTION_TYPE, EVENT_TYPE } from '@/lib/constants';
 import {
   CROSS_DOMAIN_LINKER_TTL_MS,
   createCrossDomainLinker,
   parseCrossDomainLinker,
-} from '@/lib/cross-domain-linker';
+} from '@/features/analytics/lib/cross-domain-linker';
 import { getSalt, secret, uuid } from '@/lib/crypto';
-import { getClientInfo, hasBlockedIp } from '@/lib/detect';
+import { getClientInfo, hasBlockedIp } from '@/features/analytics/lib/detect';
 import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import { fetchWebsite } from '@/lib/load';
-import { getPaymentReturnDetection } from '@/lib/payment-detection';
+import { getPaymentReturnDetection } from '@/features/payments/lib/payment-detection';
 import { parseRequest } from '@/lib/request';
 import { badRequest, forbidden, json, serverError } from '@/lib/response';
 import { anyObjectParam, urlOrPathParam } from '@/lib/schema';

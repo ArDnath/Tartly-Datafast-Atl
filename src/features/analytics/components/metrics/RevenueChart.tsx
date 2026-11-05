@@ -4,7 +4,7 @@ import { BarChart } from '@/components/charts/BarChart';
 import { useLocale } from '@/components/hooks/index';
 import { renderDateLabels } from '@/lib/charts';
 import { generateTimeSeries } from '@/lib/date';
-import { METRIC_COLORS } from '@/lib/metric-colors';
+import { METRIC_COLORS } from '@/features/analytics/lib/metric-colors';
 
 export interface RevenueChartProps {
   data: { x: string; t: string; y: number; count: number }[];

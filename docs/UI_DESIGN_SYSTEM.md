@@ -262,21 +262,21 @@ domain module under `src/features`:
 src/app/                     routes only (pages + thin API re-exports)
 src/features/
   account/                   /api/me profile, password, owned websites
-  analytics/                 ingestion, realtime, report/metric handlers
+  analytics/                 ingestion, realtime, report/metric handlers, lib/
   app-shell/                 signed-in shell, top nav, notices
-  auth/                      login, signup, verify, reset, invite, logout
+  auth/                      login, signup, verify, reset, invite, logout, lib/
   docs/                      public documentation shell and revenue guides
-  legacy/                    frozen boards, links, pixels
+  legacy/                    frozen boards, links, pixels, lib/
   marketing/                 landing and pricing
   onboarding/                welcome flow, website setup flow
-  payments/                  provider connections and webhooks
+  payments/                  provider connections, webhooks, lib/
   portfolio/                 /app home (all websites)
   settings/                  workspace, websites, plan and usage, account
   share/                     public share shell
-  system/                    health and OSS updates
-  websites/                  website list helpers + the workbench
+  system/                    health and OSS updates, cron, lib/
+  websites/                  website list helpers + the workbench, lib/
     workbench/               overview, reports, sessions, events, replay, settings
-  workspaces/                workspace, member, invitation, usage APIs
+  workspaces/                workspace, member, invitation, usage APIs, lib/
 ```
 
 Each domain that serves HTTP has a `server/` directory. API routes under
@@ -295,7 +295,9 @@ Rules:
 - Cross-feature imports go through `@/features/...`; do not reach into another
   feature with `../../`.
 - Shared layers must not import a feature. `src/lib/app-structure.test.ts`
-  enforces both directions.
+  enforces both directions, plus a `src/lib` shared-module allowlist and a
+  `src/store` allowlist. Domain helpers belong in
+  `src/features/<domain>/lib`; domain stores belong beside the feature.
 - The old `/websites/*` and `/settings/*` URLs are compatibility redirects in
   `next.config.ts`; the canonical product routes are `/app/*`.
 - `src/features/legacy` is quarantined, not a pattern to copy. New work must not

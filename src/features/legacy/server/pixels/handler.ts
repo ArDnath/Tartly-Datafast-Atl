@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { legacyFeatureDisabled } from '@/lib/legacy-features';
+import { legacyFeatureDisabled } from '@/features/legacy/lib/legacy-features';
 import { getQueryFilters, parseRequest } from '@/lib/request';
 import { json } from '@/lib/response';
 import { pagingParams, searchParams } from '@/lib/schema';

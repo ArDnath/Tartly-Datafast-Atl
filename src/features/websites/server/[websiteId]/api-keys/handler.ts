@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createApiKeyToken, hashApiKey } from '@/lib/api-key';
+import { createApiKeyToken, hashApiKey } from '@/features/websites/lib/api-key';
 import prisma from '@/lib/prisma';
 import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';

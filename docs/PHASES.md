@@ -4,7 +4,7 @@
 - **Repository:** <https://github.com/talivia-group/talivia> (MIT), forked locally at
   `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-05
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 restructure and polish shipped: single `/app` workbench, feature-module source/server layout, a complete domain restructure of UI, hooks, and cron into `src/features`, revenue-first home, landing, a real Settings overview with Integrations and Security, a public docs shell with brand-safe revenue guides, and an accessibility/motion pass. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 restructure and polish shipped: single `/app` workbench, feature-module source/server layout, a complete domain restructure of UI, hooks, cron, and domain helpers into `src/features`, revenue-first home, landing, a real Settings overview with Integrations and Security, a public docs shell with brand-safe revenue guides, and an accessibility/motion pass. The shared `src/lib`/`src/store` layers now have enforced allowlists. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
 
 ## Overall progress
 
@@ -13,7 +13,7 @@
 - Overall percent (average of phases 0–11): **59%**
 - Build state at last check: **green** (`pnpm build` exit 0 with local
   PostgreSQL running; `tsc --noEmit` clean; `biome lint` clean). Full test run:
-  **622 passed / 0 failed** under `TZ=UTC`.
+  **625 passed / 0 failed** under `TZ=UTC`.
 - Runtime smoke: the new public docs routes return 200, and `/app/settings`,
   `/app/settings/integrations`, `/app/settings/security`, `/app/settings/websites`,
   and `/app/settings/billing` return 200 with an authenticated session. The
@@ -48,7 +48,7 @@ No third plan, no free tier, no hidden limits.
 | 6 | Plans, pricing economics, usage | IN_PROGRESS | 75% | 2026-11-04 | — | live concurrency proof; owner approval of limits; notice emails |
 | 7 | Analytics validation, integrations, replay | NOT_STARTED | 0% | — | — | none |
 | 8 | Onboarding and developer experience | IN_PROGRESS | 40% | 2026-11-04 | — | guides, activation, MCP |
-| 9 | Rebrand and product UI | IN_PROGRESS | 95% | 2026-11-04 | — | MRR-by-channel, rename demonstration, a11y contrast tooling |
+| 9 | Rebrand and product UI | IN_PROGRESS | 96% | 2026-11-04 | — | MRR-by-channel, rename demonstration, a11y contrast tooling |
 | 10 | Compliance, abuse, email, operations | NOT_STARTED | 0% | — | — | legal review |
 | 11 | Hardening, QA, deployment, launch | NOT_STARTED | 0% | — | — | hosting + domain |
 | 12 | Go-to-market | NOT_STARTED | 0% | — | — | product live |
@@ -848,6 +848,19 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       build/typecheck/lint green, **622/622 tests** pass.
 - [ ] **UI-14 — Temporary rename demonstration:** change brand config and show
       name/logo/colors/emails update everywhere.
+- [x] **UI-20 — Shared-layer restructure completion (new):** the last domain
+      helpers moved out of `src/lib` into their feature modules:
+      `analytics/lib` (collector cache, cross-domain linker, attribution query,
+      dashboard overview, client detection, filters, metric colors, chart
+      axis), `payments/lib` (payment return detection), `auth/lib` +
+      `auth/server` (return URL, registration), `workspaces/lib` (invitations,
+      members), `websites/lib` (API keys, domain normalization), `legacy/lib`
+      (feature gate), and `system/lib` (OSS version). Deleted the unused
+      dashboard/websites/cache stores and the unused refresh button, leaving
+      `src/store` with only shared app state. `app-structure.test.ts` now
+      enforces a shared `src/lib` allowlist, a `src/store` allowlist, and the
+      presence of the moved domain helpers. — proof: typecheck and lint clean,
+      **625/625 tests** pass.
 
 ### Acceptance criteria
 
@@ -992,13 +1005,24 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
    `llms.txt`, MCP/CLI verification.
 7. **Phase 9 finish:** MRR-by-channel on the portfolio overview, the temporary
    rename demonstration, and the Phase 11 contrast-tool pass. The source
-   restructure (app, server, domain UI/hooks) is complete. Billing history
-   waits for Phase 5.
+   restructure (app, server, domain UI/hooks/lib/store) is complete and
+   enforced by the structure test. Billing history waits for Phase 5.
 8. **Phase 10:** legal drafts, abuse protection, transactional email, ops.
 9. **Phase 11:** security review, load test, CI, deployment/runbook.
 10. **Phase 12:** go-to-market.
 
 ## Changelog
+
+- 2026-11-05 — **Shared-layer restructure completion (Phase 9 / UI-20):** moved
+  every remaining feature-owned helper out of `src/lib` into
+  `src/features/<domain>/lib` (analytics tracking/collector/chart helpers,
+  payment detection, auth return URL and registration, workspace invitations
+  and members, website API keys and domain normalization, legacy gate, OSS
+  version). Deleted unused dashboard/websites/cache stores and the unused
+  refresh button; `src/store` now holds only shared app state. Extended
+  `app-structure.test.ts` with `src/lib` and `src/store` allowlists plus
+  domain-helper presence checks, and updated `ARCHITECTURE.md`. Build,
+  typecheck, lint, and **625/625 tests** pass.
 
 - 2026-11-05 — **Complete domain restructure (Phase 9 / UI-19):** moved the last
   119 domain files out of `src/components` and `src/lib` into feature modules.

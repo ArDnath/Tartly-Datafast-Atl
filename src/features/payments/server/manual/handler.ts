@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { authenticateApiKey } from '@/lib/api-key';
+import { authenticateApiKey } from '@/features/websites/lib/api-key';
 import { BRAND } from '@/lib/brand';
 import { fetchWebsite } from '@/lib/load';
 import { parseRequest } from '@/lib/request';

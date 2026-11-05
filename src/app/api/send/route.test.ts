@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest';
-import { parseCollectorCacheToken } from '@/lib/collector-cache';
-import { getClientInfo } from '@/lib/detect';
+import { parseCollectorCacheToken } from '@/features/analytics/lib/collector-cache';
+import { getClientInfo } from '@/features/analytics/lib/detect';
 import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import { fetchWebsite } from '@/lib/load';
 import { parseRequest } from '@/lib/request';
@@ -14,12 +14,12 @@ import { getWebsiteAttributionRuntimeConfig } from '@/queries/prisma/website';
 import { createSession, saveEvent, updateSessionDistinctId } from '@/queries/sql';
 import { POST } from './route';
 
-vi.mock('@/lib/collector-cache', () => ({
+vi.mock('@/features/analytics/lib/collector-cache', () => ({
   createCollectorCacheToken: vi.fn(() => 'collector-cache'),
   parseCollectorCacheToken: vi.fn(),
 }));
 
-vi.mock('@/lib/cross-domain-linker', () => ({
+vi.mock('@/features/analytics/lib/cross-domain-linker', () => ({
   CROSS_DOMAIN_LINKER_TTL_MS: 300000,
   createCrossDomainLinker: vi.fn(() => 'cross-domain-linker'),
   parseCrossDomainLinker: vi.fn(),
@@ -31,7 +31,7 @@ vi.mock('@/lib/crypto', () => ({
   uuid: vi.fn(() => '11111111-1111-4111-8111-111111111111'),
 }));
 
-vi.mock('@/lib/detect', () => ({
+vi.mock('@/features/analytics/lib/detect', () => ({
   getClientInfo: vi.fn(),
   hasBlockedIp: vi.fn(() => false),
 }));

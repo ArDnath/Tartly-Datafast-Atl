@@ -7,7 +7,7 @@ import { Maximize } from '@/components/icons';
 import { ListTable, type ListTableProps } from '@/features/analytics/components/metrics/ListTable';
 import { MetricLabel } from '@/features/analytics/components/metrics/MetricLabel';
 import { useWebsiteMetricsQuery } from '@/features/analytics/hooks/useWebsiteMetricsQuery';
-import { percentFilter } from '@/lib/filters';
+import { percentFilter } from '@/features/analytics/lib/filters';
 
 export interface MetricsTableProps extends ListTableProps {
   websiteId: string;

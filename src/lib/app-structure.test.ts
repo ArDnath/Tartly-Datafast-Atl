@@ -61,6 +61,79 @@ const SHARED_ROOTS = ['components', 'lib', 'permissions', 'queries', 'store'];
 /** Shared design-system / infrastructure directories under src/components. */
 const SHARED_COMPONENT_DIRS = ['brand', 'charts', 'common', 'hooks', 'input', 'svg'];
 
+/**
+ * `src/lib` is the cross-cutting infrastructure layer. Domain helpers belong
+ * in `src/features/<domain>/lib`. The allowlist covers only modules that are
+ * genuinely shared between domains, the analytics engine, or tenant
+ * authorization. Adding a new file here is a deliberate architectural change.
+ */
+const SHARED_LIB_MODULES = new Set([
+  'app-config.ts',
+  'app-route.ts',
+  'auth-cookie.ts',
+  'auth-session.ts',
+  'auth-tokens.ts',
+  'auth-user.ts',
+  'auth.ts',
+  'board-types.ts',
+  'brand.ts',
+  'charts.ts',
+  'clickhouse.ts',
+  'colors.ts',
+  'constants.ts',
+  'crypto.ts',
+  'csrf.ts',
+  'currency-exchange.ts',
+  'dashboard-breakdown.ts',
+  'data.ts',
+  'date.ts',
+  'db-retry.ts',
+  'db.ts',
+  'email.ts',
+  'entitlements.ts',
+  'entity.ts',
+  'fetch.ts',
+  'format.ts',
+  'generate.ts',
+  'get-base-url.ts',
+  'ip.ts',
+  'jwt.ts',
+  'kafka.ts',
+  'lang.ts',
+  'load.ts',
+  'params.ts',
+  'password.ts',
+  'payment-status.ts',
+  'paymentCustomer.ts',
+  'plans.ts',
+  'platform-admin.ts',
+  'prisma-error.ts',
+  'prisma.ts',
+  'rate-limit.ts',
+  'react.ts',
+  'redact.ts',
+  'redis.ts',
+  'reporting-currency.ts',
+  'request.ts',
+  'response.ts',
+  'schema.ts',
+  'share-redaction.ts',
+  'share-sections.ts',
+  'sql.ts',
+  'storage.ts',
+  'stripe-amount.ts',
+  'tracking-identity.ts',
+  'types.ts',
+  'url.ts',
+  'usage.ts',
+  'utils.ts',
+  'website-overview.ts',
+  'workspace-auth.ts',
+]);
+
+/** Shared client state. Domain stores belong in `src/features/<domain>/store`. */
+const SHARED_STORE_MODULES = new Set(['app.ts']);
+
 function walk(directory: string): string[] {
   return readdirSync(directory).flatMap(entry => {
     const path = join(directory, entry);
@@ -131,6 +204,45 @@ describe('application source layout', () => {
       .sort();
 
     expect(directories).toEqual(SHARED_COMPONENT_DIRS);
+  });
+
+  test('src/lib contains shared infrastructure only', () => {
+    const modules = readdirSync(join(SRC, 'lib')).filter(
+      entry => !entry.includes('.test.') && statSync(join(SRC, 'lib', entry)).isFile(),
+    );
+
+    const domainModules = modules.filter(entry => !SHARED_LIB_MODULES.has(entry)).sort();
+
+    expect(domainModules).toEqual([]);
+  });
+
+  test('src/store contains shared client state only', () => {
+    const modules = readdirSync(join(SRC, 'store'));
+
+    const domainStores = modules.filter(entry => !SHARED_STORE_MODULES.has(entry)).sort();
+
+    expect(domainStores).toEqual([]);
+  });
+
+  test('domain helpers live in their feature module', () => {
+    const expected = [
+      'analytics/lib/attribution-query.ts',
+      'analytics/lib/collector-cache.ts',
+      'analytics/lib/dashboard-overview.ts',
+      'auth/lib/auth-return-url.ts',
+      'auth/server/registration.ts',
+      'legacy/lib/legacy-features.ts',
+      'payments/lib/payment-detection.ts',
+      'system/lib/oss-version.ts',
+      'websites/lib/api-key.ts',
+      'websites/lib/website-domain.ts',
+      'workspaces/lib/workspace-invitations.ts',
+      'workspaces/lib/workspace-members.ts',
+    ];
+
+    for (const path of expected) {
+      expect(existsSync(join(FEATURES_ROOT, path)), `missing src/features/${path}`).toBe(true);
+    }
   });
 
   test('shared layers never import a product feature', () => {

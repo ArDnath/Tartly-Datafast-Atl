@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { parseRequest } from '@/lib/request';
 import { badRequest, json } from '@/lib/response';
-import { MemberError, removeWorkspaceMember, updateWorkspaceMemberRole } from '@/lib/workspace-members';
+import { MemberError, removeWorkspaceMember, updateWorkspaceMemberRole } from '@/features/workspaces/lib/workspace-members';
 
 const updateSchema = z.object({
   role: z.enum(['ADMIN', 'MEMBER', 'VIEWER']),

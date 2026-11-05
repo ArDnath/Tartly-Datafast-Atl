@@ -4,7 +4,7 @@ import { getWorkspaceEntitlements, getWebsiteLimit } from '@/lib/entitlements';
 import { getQueryFilters, parseRequest } from '@/lib/request';
 import { badRequest, json, unauthorized } from '@/lib/response';
 import { pagingParams, searchParams } from '@/lib/schema';
-import { getWebsiteNameFromDomain, normalizeWebsiteDomainInput } from '@/lib/website-domain';
+import { getWebsiteNameFromDomain, normalizeWebsiteDomainInput } from '@/features/websites/lib/website-domain';
 import { canCreateWebsite } from '@/permissions';
 import { requireWorkspaceAccess } from '@/lib/workspace-auth';
 import { createWebsite } from '@/queries/prisma';

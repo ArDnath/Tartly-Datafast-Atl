@@ -7,7 +7,7 @@ import { ListTable } from '@/features/analytics/components/metrics/ListTable';
 import { MetricCard } from '@/features/analytics/components/metrics/MetricCard';
 import { MetricsBar } from '@/features/analytics/components/metrics/MetricsBar';
 import { useResultQuery } from '@/features/analytics/hooks/useResultQuery';
-import { percentFilter } from '@/lib/filters';
+import { percentFilter } from '@/features/analytics/lib/filters';
 import { formatLongNumber } from '@/lib/format';
 
 export interface AttributionProps {
