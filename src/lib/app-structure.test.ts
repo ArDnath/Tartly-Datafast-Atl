@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { basename, join, relative } from 'node:path';
 import { describe, expect, test } from 'vitest';
 
@@ -16,16 +16,42 @@ const ROUTE_FILE = /^(page|layout|template|loading|error|global-error|not-found|
 const ROUTE_LOCAL_COMPONENTS = new Set(['Providers.tsx']);
 
 const DOMAIN_MODULES = [
+  'account',
+  'analytics',
   'app-shell',
-  'portfolio',
-  'websites',
-  'settings',
-  'onboarding',
   'auth',
-  'marketing',
-  'share',
   'legacy',
+  'marketing',
+  'onboarding',
+  'payments',
+  'portfolio',
+  'settings',
+  'share',
+  'system',
+  'websites',
+  'workspaces',
 ];
+
+/**
+ * Server domains own the request handlers behind the thin API routes. The
+ * route file may only re-export HTTP methods and declare static Next config.
+ */
+const SERVER_MODULES = [
+  'account',
+  'analytics',
+  'auth',
+  'legacy',
+  'payments',
+  'share',
+  'system',
+  'websites',
+  'workspaces',
+  'settings/profile',
+];
+
+const RE_EXPORT_ONLY = /^export \{ [A-Z, ]+ \} from '@\/features\/[^']+';?$/;
+const NEXT_CONFIG =
+  /^export const (dynamic|runtime|revalidate|fetchCache|preferredRegion) = ['"][^'"]+['"];?$/;
 
 function walk(directory: string): string[] {
   return readdirSync(directory).flatMap(entry => {
@@ -61,6 +87,32 @@ describe('application source layout', () => {
         existsSync(join(APP_ROOT, '(main)', legacy)),
         `legacy route group src/app/(main)/${legacy} should not exist`,
       ).toBe(false);
+    }
+  });
+
+  test('API route files are thin re-exports from feature server modules', () => {
+    for (const module of SERVER_MODULES) {
+      expect(existsSync(join(FEATURES_ROOT, module, 'server')), `missing server for ${module}`).toBe(
+        true,
+      );
+    }
+
+    const apiFiles = walk(join(APP_ROOT, 'api')).filter(
+      file => basename(file) === 'route.ts' && !file.includes('.test.'),
+    );
+
+    expect(apiFiles.length).toBeGreaterThan(0);
+
+    for (const file of apiFiles) {
+      const content = readFileSync(file, 'utf8')
+        .split('\n')
+        .map(line => line.trim())
+        .filter(Boolean);
+
+      expect(
+        content.every(line => RE_EXPORT_ONLY.test(line) || NEXT_CONFIG.test(line)),
+        `API route is not a thin re-export: ${relative(APP_ROOT, file)}`,
+      ).toBe(true);
     }
   });
 });

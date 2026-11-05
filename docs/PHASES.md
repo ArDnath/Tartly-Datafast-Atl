@@ -4,7 +4,7 @@
 - **Repository:** <https://github.com/talivia-group/talivia> (MIT), forked locally at
   `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-05
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 app restructure shipped (single `/app` workbench, feature-module source layout, revenue-first home, landing). Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 app restructure shipped (single `/app` workbench, feature-module source layout, revenue-first home, landing) and the server layer is now fully extracted into feature modules (UI-17). Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
 
 ## Overall progress
 
@@ -794,6 +794,16 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       route files; `docs/UI_DESIGN_SYSTEM.md` §6 records the layout;
       `src/lib/app-structure.test.ts` enforces it; build, typecheck, lint, and
       613 tests are green.
+- [x] **UI-17 — Complete server restructure (new):** every one of the 119 API
+      route files is now a thin adapter that re-exports HTTP handlers from a
+      feature `server` module. Handlers moved into `account`, `analytics`,
+      `auth`, `legacy`, `payments`, `share`, `system`, `websites`, and
+      `workspaces`; the Prisma/analytics query layer, permissions, and shared
+      UI remain cross-cutting. `docs/ARCHITECTURE.md` defines the module
+      boundaries and dependency direction, and `src/lib/app-structure.test.ts`
+      enforces thin route files plus server-module presence. — proof: build,
+      typecheck, lint, 22 API route suites (126 tests), and the full suite are
+      green.
 - [ ] **UI-13 — Motion + polish pass:** page transitions, hover lift, focus
       rings, skeletons, reduced motion, mobile.
 - [ ] **UI-14 — Temporary rename demonstration:** change brand config and show
@@ -952,6 +962,14 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 
 ## Changelog
 
+- 2026-11-05 — **Complete server restructure (Phase 9 / UI-17):** all 119 API
+  route handlers moved out of `src/app/api` into feature modules
+  (`features/{account,analytics,auth,legacy,payments,share,system,websites,workspaces}/server`).
+  Route files now contain only HTTP-method re-exports and static Next config.
+  Added `docs/ARCHITECTURE.md` (layer boundaries, dependency direction, route
+  contract), extended `src/lib/app-structure.test.ts` to enforce thin API
+  routes and server-module presence, and updated the UI design-system map.
+  Build, typecheck, lint, 126 API tests, and the full suite pass.
 - 2026-11-05 — **Complete source restructure (Phase 9):** `src/app` is now the
   routing layer only. Product UI moved into `src/features` domain modules:
   `app-shell` (shell/top nav/notices), `portfolio` (all-websites home),

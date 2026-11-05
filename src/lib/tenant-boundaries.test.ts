@@ -55,6 +55,24 @@ function relativePath(path: string) {
   return relative(ROOT, path);
 }
 
+/**
+ * Route files are thin re-exports; the authorization helper now lives in the
+ * feature server module the route points at. Follow the re-export so the
+ * static boundary check keeps covering the real handler logic.
+ */
+function handlerSource(routePath: string): string {
+  const route = readFileSync(routePath, 'utf8');
+  const match = route.match(/from '@\/(features\/[^']+)';/);
+
+  if (!match) {
+    return route;
+  }
+
+  const handlerPath = join(process.cwd(), 'src', `${match[1]}.ts`);
+
+  return readFileSync(handlerPath, 'utf8');
+}
+
 // Routes that are scoped by the authenticated user's own ID (never by an
 // arbitrary tenant ID) and therefore do not need a website helper.
 const SELF_SCOPED = new Set(['workspaces/route.ts']);
@@ -67,7 +85,7 @@ describe('tenant-scoped API routes', () => {
       // the ADMIN check inside each function.
       .filter(path => !relativePath(path).includes('invitations'))
       .filter(path => {
-        const source = readFileSync(path, 'utf8');
+        const source = handlerSource(path);
 
         return !AUTHORIZATION_HELPERS.some(helper => source.includes(helper));
       });

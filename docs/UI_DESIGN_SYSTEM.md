@@ -250,19 +250,28 @@ pricing, marketing). Every product surface with more than one file lives in a
 domain module under `src/features`:
 
 ```
-src/app/                     routes only
+src/app/                     routes only (pages + thin API re-exports)
 src/features/
+  account/                   /api/me profile, password, owned websites
+  analytics/                 ingestion, realtime, report/metric handlers
   app-shell/                 signed-in shell, top nav, notices
+  auth/                      login, signup, verify, reset, invite, logout
+  legacy/                    frozen boards, links, pixels
+  marketing/                 landing and pricing
+  onboarding/                welcome flow, website setup flow
+  payments/                  provider connections and webhooks
   portfolio/                 /app home (all websites)
+  settings/                  workspace, websites, plan and usage, account
+  share/                     public share shell
+  system/                    health and OSS updates
   websites/                  website list helpers + the workbench
     workbench/               overview, reports, sessions, events, replay, settings
-  settings/                  workspace, websites, plan and usage, account
-  onboarding/                welcome flow, website setup flow
-  auth/                      login, signup, verify, reset, invite, logout
-  marketing/                 landing and pricing
-  share/                     public share shell
-  legacy/                    frozen boards, links, pixels
+  workspaces/                workspace, member, invitation, usage APIs
 ```
+
+Each domain that serves HTTP has a `server/` directory. API routes under
+`src/app/api` re-export handlers from `src/features/<domain>/server`. See
+`docs/ARCHITECTURE.md`.
 
 Rules:
 
