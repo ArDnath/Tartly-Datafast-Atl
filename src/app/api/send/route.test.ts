@@ -1,8 +1,10 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { parseCollectorCacheToken } from '@/lib/collector-cache';
 import { getClientInfo } from '@/lib/detect';
+import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import { fetchWebsite } from '@/lib/load';
 import { parseRequest } from '@/lib/request';
+import { releaseEventUsage, reserveEventUsage } from '@/lib/usage';
 import {
   ensureVisitorContext,
   upsertCustomerIdentityLink,
@@ -36,6 +38,16 @@ vi.mock('@/lib/detect', () => ({
 
 vi.mock('@/lib/load', () => ({
   fetchWebsite: vi.fn(),
+}));
+
+vi.mock('@/lib/entitlements', () => ({
+  getWorkspaceEntitlements: vi.fn(),
+}));
+
+vi.mock('@/lib/usage', () => ({
+  isBillableEvent: (eventType: number) => eventType >= 1 && eventType <= 4,
+  reserveEventUsage: vi.fn(),
+  releaseEventUsage: vi.fn(),
 }));
 
 vi.mock('@/lib/request', () => ({
@@ -165,4 +177,74 @@ test('identify links and updates a session when called with only a user id', asy
     '11111111-1111-4111-8111-111111111111',
     'user-123',
   );
+});
+
+test('pauses billable ingestion when the workspace hard limit is reached', async () => {
+  const workspaceId = '6b7c2d44-8f25-4b50-8d4f-9f0f3b1f1b1b';
+
+  vi.mocked(fetchWebsite).mockResolvedValue({ id: websiteId, workspaceId } as any);
+  vi.mocked(getWorkspaceEntitlements).mockResolvedValue({
+    plan: { eventsPerMonth: 50_000 },
+  } as any);
+  vi.mocked(reserveEventUsage).mockResolvedValue({
+    allowed: false,
+    used: 51_000,
+    limit: 50_000,
+    hardLimit: 51_000,
+  });
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        website: websiteId,
+        visitorId: 'v_visitor',
+        sessionId: 's_session',
+        hostname: 'shop.example',
+        url: 'https://shop.example/pricing',
+      },
+    },
+  } as any);
+
+  const response = await POST(new Request('https://collector.example/api/send', { method: 'POST' }));
+  const body = await response.json();
+
+  expect(body).toMatchObject({ ok: false, reason: 'usage_limit_reached' });
+  expect(saveEvent).not.toHaveBeenCalled();
+  expect(releaseEventUsage).not.toHaveBeenCalled();
+});
+
+test('releases the reservation when the event write fails', async () => {
+  const workspaceId = '6b7c2d44-8f25-4b50-8d4f-9f0f3b1f1b1b';
+  const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+  vi.mocked(fetchWebsite).mockResolvedValue({ id: websiteId, workspaceId } as any);
+  vi.mocked(getWorkspaceEntitlements).mockResolvedValue({
+    plan: { eventsPerMonth: 50_000 },
+  } as any);
+  vi.mocked(reserveEventUsage).mockResolvedValue({
+    allowed: true,
+    used: 1,
+    limit: 50_000,
+    hardLimit: 51_000,
+  });
+  vi.mocked(saveEvent).mockRejectedValueOnce(new Error('write failed'));
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        website: websiteId,
+        visitorId: 'v_visitor',
+        sessionId: 's_session',
+        hostname: 'shop.example',
+        url: 'https://shop.example/pricing',
+      },
+    },
+  } as any);
+
+  const response = await POST(new Request('https://collector.example/api/send', { method: 'POST' }));
+
+  expect(response.status).toBe(500);
+  expect(releaseEventUsage).toHaveBeenCalledWith(workspaceId);
+
+  consoleLog.mockRestore();
 });

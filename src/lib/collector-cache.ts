@@ -5,6 +5,11 @@ export interface CollectorCachePayload {
   websiteId: string;
   visitorId: string;
   sessionId: string;
+  /**
+   * Tenant for usage metering. Optional so tokens issued before metering was
+   * introduced keep working; the collector falls back to one website lookup.
+   */
+  workspaceId?: string;
 }
 
 export function createCollectorCacheToken(

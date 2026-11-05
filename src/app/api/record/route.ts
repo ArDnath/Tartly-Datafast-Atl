@@ -4,8 +4,11 @@ import { z } from 'zod';
 import { parseCollectorCacheToken } from '@/lib/collector-cache';
 import { secret } from '@/lib/crypto';
 import { getClientInfo, hasBlockedIp } from '@/lib/detect';
+import { getWorkspaceEntitlements } from '@/lib/entitlements';
+import { planHasFeature } from '@/lib/plans';
 import { parseRequest } from '@/lib/request';
 import { badRequest, forbidden, json, serverError } from '@/lib/response';
+import { releaseReplaySession, reserveReplaySession } from '@/lib/usage';
 import { getWebsite } from '@/queries/prisma';
 import { saveRecording } from '@/queries/sql';
 
@@ -19,6 +22,9 @@ const schema = z.object({
 });
 
 export async function POST(request: Request) {
+  let reservedReplay: { workspaceId: string; sessionId: string } | null = null;
+  let recordingCommitted = false;
+
   try {
     const { body, error } = await parseRequest(request, schema, { skipAuth: true });
 
@@ -69,6 +75,38 @@ export async function POST(request: Request) {
       return forbidden();
     }
 
+    // Replay is a plan entitlement and is metered per session, separately
+    // from billable events. Starter has no replay entitlement.
+    if (!website.workspaceId) {
+      return json({ ok: false, reason: 'workspace_required' });
+    }
+
+    const entitlements = await getWorkspaceEntitlements(website.workspaceId);
+
+    if (!entitlements?.plan || !planHasFeature(entitlements.plan, 'session_replay')) {
+      return json({ ok: false, reason: 'replay_not_in_plan' });
+    }
+
+    const replayUsage = await reserveReplaySession({
+      workspaceId: website.workspaceId,
+      websiteId,
+      sessionId,
+      limit: entitlements.plan.replaySessionsPerMonth,
+    });
+
+    if (!replayUsage.allowed) {
+      return json({
+        ok: false,
+        reason: 'usage_limit_reached',
+        limit: replayUsage.limit,
+        used: replayUsage.used,
+      });
+    }
+
+    if (replayUsage.metered) {
+      reservedReplay = { workspaceId: website.workspaceId, sessionId };
+    }
+
     // Compute timestamps from events
     const eventTimestamps = events
       .map((e: any) => Number(e?.timestamp))
@@ -94,8 +132,18 @@ export async function POST(request: Request) {
       endedAt,
     });
 
+    recordingCommitted = true;
+
     return json({ ok: true });
   } catch (e) {
+    if (reservedReplay && !recordingCommitted) {
+      try {
+        await releaseReplaySession(reservedReplay);
+      } catch {
+        // Best effort; the session stays counted rather than blocking replay.
+      }
+    }
+
     const error = serializeError(e);
 
     // eslint-disable-next-line no-console
