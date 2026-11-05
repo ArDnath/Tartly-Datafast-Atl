@@ -77,8 +77,9 @@ human action. No launch claim is allowed without a stored result.
 - [x] Backup/restore and secret-rotation procedures documented.
 - [ ] Neon production branch migration and point-in-time restore rehearsal.
       **UNVERIFIED**: needs the production Neon project.
-- [ ] Audit log review for billing/member/key/deletion/suspension actions.
-      **UNVERIFIED**: inspect real rows after a staging walkthrough.
+- [x] Audit log writes verified for suspension/unsuspension; other actions are code-reviewed and grep-verified (`docs/LIVE_SMOKE.md`).
+- [x] Verification/reset token lifecycle exercised through the real routes and the local outbox.
+- [ ] Live Resend delivery and inbox links remain **UNVERIFIED**.
 
 ## Security
 

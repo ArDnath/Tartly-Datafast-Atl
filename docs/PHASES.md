@@ -30,7 +30,7 @@
 - Overall percent (average of phases 0–12): **94%**
 - Build state at last check: **green** — `tsc --noEmit`, `biome lint`, and the
   full suite pass; the production build is exercised by `pnpm gate` and CI.
-  Latest local full run: **767 passed / 0 failed / 1 gated skip**, plus the
+  Latest local full run: **769 passed / 0 failed / 1 gated skip**, plus the
   explicit 48-assertion PostgreSQL analytics smoke and the recorded load probe.
 - GitHub CI: **green on `main`** for the last merged phase. CI starts
   PostgreSQL 17, runs `pnpm build-db`, lint, typecheck, the full suite,
@@ -1210,7 +1210,10 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       payment failure, templates. — proof: `src/lib/email.ts`,
       `src/features/system/cron/jobs/usage-notices.ts` (daily 04:00 UTC,
       once-per-period idempotency), payment-failure hook in
-      `features/billing/server/service.ts`; dev outbox fallback.
+      `features/billing/server/service.ts`; dev outbox fallback. Live local
+      proof in `docs/LIVE_SMOKE.md`: verification resend, verify, forgot,
+      reset, and login with the new password all passed through the real routes
+      and `.dev-emails/outbox.log`.
 - [x] Operations: structured logging, error tracking hook, uptime/health,
       Neon + event-store backup/restore, secrets rotation, audit log for
       billing/member/key/deletion actions. — proof: `src/lib/logger.ts`
@@ -1230,7 +1233,10 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       tests for login/register/reset.
 - [x] Audit log entries exist for all listed actions. — proof: `grep` finds
       `recordAuditEvent` in billing, member, invite, API key, website,
-      import/export, account, suspension, and attribution retry handlers.
+      import/export, account, suspension, and attribution retry handlers. The
+      live smoke read back four real suspension audit rows
+      (`user.suspended`, `user.unsuspended`, `workspace.suspended`,
+      `workspace.unsuspended`) in `docs/LIVE_SMOKE.md`.
 - [ ] Live Resend delivery. **UNVERIFIED**: needs `RESEND_API_KEY` and a verified
       sending domain.
 - [ ] Lawyer review of the drafts. **UNVERIFIED**: needs qualified counsel.
@@ -1365,6 +1371,16 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 
 ## Changelog
 
+- 2026-11-06 — **Live operational smoke:** exercised verification, password
+  reset, platform-admin search, user suspension, session revocation, workspace
+  suspension, audit rows, and the setup allowance on the production build
+  (`docs/LIVE_SMOKE.md`). Suspension caught a real bug: the entitlement lookup
+  filtered `deletedAt` but not `suspendedAt`, so a suspended workspace could
+  still ingest. Fixed in `src/lib/entitlements.ts` and pinned by a new test;
+  the same request now returns 403 `workspace-unavailable` before any write.
+  Verification/reset links were captured from the local outbox; live Resend and
+  Dodo/provider webhooks remain **UNVERIFIED**.
+
 - 2026-11-06 — **Closed the free-usage leak and fixed the operator route:** a
   workspace with no active paid subscription now receives a **1,000-event setup
   allowance**, not the full Starter 50,000. At the cap the collector returns
@@ -1394,7 +1410,7 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
   any session write, with a regression test. Added OpenAPI 3.1 (`openapi.yaml`),
   graceful shutdown (`scripts/start-server.mjs`), bcrypt cost 12 with
   rehash-on-login, comparison pages, `sitemap.xml`, `robots.txt`, and
-  `security.txt`. Local full suite: **767 passed / 1 gated skip**; production
+  `security.txt`. Local full suite: **769 passed / 1 gated skip**; production
   build green.
 
 - 2026-11-06 — **Phase 10/11 production readiness and Phase 12 GTM:** added the
