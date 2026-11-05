@@ -14,6 +14,7 @@ import {
   type WebsiteOverviewMetricRow,
 } from '@/lib/website-overview';
 import { getUserWebsites } from './website';
+import { getPortfolioMrrByChannel } from './portfolioMrr';
 
 const WEBSITE_OVERVIEW_CHART_MAX_POINTS = 120;
 const WEBSITE_OVERVIEW_CHART_UNITS = ['minute', 'hour', 'day', 'month', 'year'] as const;
@@ -104,7 +105,7 @@ export async function getUserWebsiteOverview(
   const chartBuckets = getChartBuckets(startDate, endDate, unit, timezone);
   const { getDateSQL } = prisma;
 
-  const [visitorRows, trafficRows, revenueRows, chartVisitorRows, chartRevenueRows] =
+  const [visitorRows, trafficRows, revenueRows, chartVisitorRows, chartRevenueRows, mrrByChannel] =
     await Promise.all([
       prisma.rawQuery(
         `
@@ -219,6 +220,7 @@ export async function getUserWebsiteOverview(
           endDate,
         },
       ),
+      getPortfolioMrrByChannel(websiteIds),
     ]);
 
   const rows: WebsiteOverviewMetricRow[] = [
@@ -240,5 +242,6 @@ export async function getUserWebsiteOverview(
       process.env.DEFAULT_CURRENCY || DEFAULT_CURRENCY,
       charts,
     ),
+    mrrByChannel,
   };
 }

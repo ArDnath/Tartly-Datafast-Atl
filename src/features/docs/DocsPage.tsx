@@ -155,10 +155,10 @@ function DocsOverview() {
           Two billing contexts
         </h2>
         <p className={styles.body}>
-          Payment providers connected here are <strong>analytics integrations</strong>: they let
-          RevenueLens measure the revenue your customers generate. They are not used to charge your
-          RevenueLens subscription. Platform billing is separate and will appear under Plan and
-          usage when it ships.
+          Payment providers connected here are <strong>analytics integrations</strong>: they let{' '}
+          {BRAND.name} measure the revenue your customers generate. They are not used to charge
+          your {BRAND.name} subscription. Platform billing is separate and will appear under Plan
+          and usage when it ships.
         </p>
       </section>
     </article>

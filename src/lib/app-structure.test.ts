@@ -236,6 +236,7 @@ describe('application source layout', () => {
       'system/lib/oss-version.ts',
       'websites/lib/api-key.ts',
       'websites/lib/website-domain.ts',
+      'websites/workbench/settings/WebsiteSettingsPage.tsx',
       'workspaces/lib/workspace-invitations.ts',
       'workspaces/lib/workspace-members.ts',
     ];
@@ -243,6 +244,39 @@ describe('application source layout', () => {
     for (const path of expected) {
       expect(existsSync(join(FEATURES_ROOT, path)), `missing src/features/${path}`).toBe(true);
     }
+  });
+
+  test('legacy keeps only the share-rendered link and pixel surfaces', () => {
+    const allowed = new Set([
+      'hooks/index.ts',
+      'hooks/useLink.ts',
+      'hooks/useLinkQuery.ts',
+      'hooks/usePixel.ts',
+      'hooks/usePixelQuery.ts',
+      'lib/legacy-features.ts',
+      'links/LinkProvider.tsx',
+      'links/[linkId]/LinkControls.tsx',
+      'links/[linkId]/LinkHeader.tsx',
+      'links/[linkId]/LinkMetricsBar.tsx',
+      'links/[linkId]/LinkPage.tsx',
+      'links/[linkId]/LinkPanels.tsx',
+      'pixels/PixelProvider.tsx',
+      'pixels/[pixelId]/PixelControls.tsx',
+      'pixels/[pixelId]/PixelHeader.tsx',
+      'pixels/[pixelId]/PixelMetricsBar.tsx',
+      'pixels/[pixelId]/PixelPage.tsx',
+      'pixels/[pixelId]/PixelPanels.tsx',
+    ]);
+
+    const unexpected = walk(join(FEATURES_ROOT, 'legacy'))
+      .map(path => relative(join(FEATURES_ROOT, 'legacy'), path))
+      .filter(path => !path.includes('.test.'))
+      .filter(path => !path.startsWith('server/'))
+      .filter(path => !allowed.has(path))
+      .sort();
+
+    expect(unexpected).toEqual([]);
+    expect(existsSync(join(FEATURES_ROOT, 'settings/websites/[websiteId]'))).toBe(false);
   });
 
   test('shared layers never import a product feature', () => {

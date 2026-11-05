@@ -8,6 +8,7 @@ export * from './payment';
 export * from './pixel';
 export * from './report';
 export * from './revenueAttribution';
+export * from './portfolioMrr';
 export * from './revenueDiagnostics';
 export * from './revenueJourney';
 export * from './revenueSetup';

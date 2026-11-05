@@ -61,7 +61,7 @@ app  ->  features  ->  components / lib / queries / permissions / store
 | `app-shell` | signed-in shell, top nav, notices, workspace switcher, user menu |
 | `auth` | login, signup, verification, reset, logout, auth query hooks |
 | `docs` | public documentation shell and provider revenue guides |
-| `legacy` | frozen boards, links, pixels, their APIs, selectors, and query hooks |
+| `legacy` | frozen boards/links/pixels APIs and the share-rendered link/pixel pages; list, edit, and board UI are deleted |
 | `marketing` | landing and pricing |
 | `onboarding` | onboarding canvas and website setup |
 | `payments` | provider connections, manual payments, provider webhooks, provider clients/backfills, credential encryption, payment provider UI |
@@ -152,10 +152,11 @@ The restructure moved the remaining domain-specific UI out of `src/components`:
 | analytics filters and selectors | `src/features/analytics/components/input` |
 | `WebsiteSelect` | `src/features/websites/components` |
 | `WorkspaceSwitcher`, `UserButton` | `src/features/app-shell/components` |
-| board/link/pixel selectors | `src/features/legacy/components/input` |
+| board/link/pixel selectors | deleted with the dead legacy dashboard UI |
 | `PaymentProviderLogo` | `src/features/payments/components` |
 | domain React Query hooks | `src/features/<domain>/hooks` |
 | cron scheduler and jobs | `src/features/system/cron` |
+| route-param-shaped `settings/websites/[websiteId]` | `src/features/websites/workbench/settings` |
 | collector cache, cross-domain linker, attribution query, dashboard overview, bot/client detection, analytics filters and chart helpers | `src/features/analytics/lib` |
 | payment return detection | `src/features/payments/lib` |
 | auth return URL and transactional registration | `src/features/auth/lib` and `src/features/auth/server` |
@@ -184,6 +185,20 @@ handling and UI still live in `src/features/payments`.
 engine described in `docs/TENANCY.md`, and multiple features plus tenant
 authorization read through it. Moving it into one feature would invert the
 dependency direction without improving isolation.
+
+`src/features/legacy` is intentionally tiny. Public share pages still render the
+link and pixel detail screens, so their provider, panels, controls, and four
+query hooks remain. Boards, list pages, edit forms, the board component
+registry, and the old selectors had no route and were deleted; the legacy API
+handlers remain only to return a consistent `legacy-feature-disabled` response.
+`src/lib/app-structure.test.ts` pins this surface.
+
+The portfolio MRR panel is served by `/api/me/websites/overview`. The Prisma
+query (`src/queries/prisma/portfolioMrr.ts`) reads active subscriptions in the
+authorized workspace and falls back to the earliest attributed payment when the
+subscription has no visitor. Channel classification and currency-safe grouping
+are pure functions in `src/lib/dashboard-breakdown.ts` and
+`src/lib/website-overview.ts`, so they stay below features and are unit tested.
 
 ## Security boundary
 

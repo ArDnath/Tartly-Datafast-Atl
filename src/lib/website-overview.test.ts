@@ -2,6 +2,7 @@ import { expect, test } from 'vitest';
 import {
   createSqlInList,
   createWebsiteOverviewChart,
+  mergePortfolioMrrRows,
   mergeWebsiteOverview,
 } from './website-overview';
 
@@ -83,4 +84,36 @@ test('createWebsiteOverviewChart preserves hourly buckets for filtered mini char
     { date: '2026-06-22T06:00:00Z', visitors: 3, revenue: 0, payments: 0 },
     { date: '2026-06-22T07:00:00Z', visitors: 0, revenue: 42, payments: 1 },
   ]);
+});
+
+test('mergePortfolioMrrRows groups subscriptions by first-touch channel', () => {
+  const mrr = mergePortfolioMrrRows([
+    { source: 'google', medium: 'organic', mrr: 20, subscriptions: 1, currency: 'usd' },
+    { source: 'google', medium: 'organic', mrr: 10, subscriptions: 1, currency: 'usd' },
+    { source: 'newsletter', medium: 'email', mrr: 15, subscriptions: 1, currency: 'USD' },
+    { source: null, medium: null, mrr: 5, subscriptions: 1, currency: 'USD' },
+  ]);
+
+  expect(mrr.currency).toBe('USD');
+  expect(mrr.totalMrr).toBe(50);
+  expect(mrr.channels.map(row => [row.channel, row.mrr, row.subscriptions])).toEqual([
+    ['organicSearch', 30, 2],
+    ['email', 15, 1],
+    ['direct', 5, 1],
+  ]);
+});
+
+test('mergePortfolioMrrRows refuses to invent a total across currencies', () => {
+  const mrr = mergePortfolioMrrRows([
+    { source: 'google', medium: 'organic', mrr: 20, subscriptions: 1, currency: 'USD' },
+    { source: 'facebook', medium: 'social', mrr: 10, subscriptions: 1, currency: 'EUR' },
+  ]);
+
+  expect(mrr.totalMrr).toBeNull();
+  expect(mrr.currency).toBeNull();
+  expect(mrr.channels.map(row => row.currency)).toEqual(['USD', 'EUR']);
+});
+
+test('mergePortfolioMrrRows returns an empty shape without active subscriptions', () => {
+  expect(mergePortfolioMrrRows([])).toEqual({ totalMrr: 0, currency: null, channels: [] });
 });

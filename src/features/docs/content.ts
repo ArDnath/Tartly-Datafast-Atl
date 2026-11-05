@@ -3,6 +3,8 @@
  * exists in this repository. Dynamic status pages, dashboards, and SDKs are
  * linked, not copied.
  */
+import { BRAND } from '@/lib/brand';
+
 export interface DocsGuide {
   slug: string;
   title: string;
@@ -27,16 +29,16 @@ export const REVENUE_GUIDES: DocsGuide[] = [
     summary: 'Read-only reporting from Stripe Checkout, Payment Intents, and subscriptions.',
     recommendedFor: 'Most SaaS checkouts using Stripe Checkout, Payment Links, or Billing.',
     connectSteps: [
-      'Create a restricted Stripe key with the permissions RevenueLens requests. Do not use the full secret key.',
-      'Paste the restricted key on the website settings page. RevenueLens validates it and creates a signed webhook.',
-      'RevenueLens imports recent checkout, invoice, payment, refund, and subscription events for the website.',
+      `Create a restricted Stripe key with the permissions ${BRAND.name} requests. Do not use the full secret key.`,
+      `Paste the restricted key on the website settings page. ${BRAND.name} validates it and creates a signed webhook.`,
+      `${BRAND.name} imports recent checkout, invoice, payment, refund, and subscription events for the website.`,
     ],
     attribution:
       'Checkout Sessions and Payment Intents use the session identifier in metadata. Payment Links can be matched directly from the tracked click or through the return URL. Subscriptions inherit metadata from the original checkout and invoices.',
     officialLinks: [
       {
         label: 'Create a restricted key in Stripe',
-        url: 'https://dashboard.stripe.com/apikeys/create?name=RevenueLens',
+        url: `https://dashboard.stripe.com/apikeys/create?name=${encodeURIComponent(BRAND.name)}`,
       },
       { label: 'Stripe API reference', url: 'https://docs.stripe.com/api' },
     ],
@@ -49,12 +51,12 @@ export const REVENUE_GUIDES: DocsGuide[] = [
     summary: 'Payments, refunds, and subscriptions from Dodo Payments.',
     recommendedFor: 'Products already selling through Dodo Payments.',
     connectSteps: [
-      'Create a Dodo API key for the environment you want to connect and enable write access so RevenueLens can manage its webhook.',
-      'Paste the key on the website settings page. RevenueLens validates the account, creates the environment-specific webhook, and imports recent history.',
+      `Create a Dodo API key for the environment you want to connect and enable write access so ${BRAND.name} can manage its webhook.`,
+      `Paste the key on the website settings page. ${BRAND.name} validates the account, creates the environment-specific webhook, and imports recent history.`,
       'Keep the connection active. Refunds and disputes are reconciled from later webhook events.',
     ],
     attribution:
-      'Payment Links clicked on a tracked page are matched automatically. Checkout Sessions, Overlay Checkout, and Inline Checkout need the RevenueLens session identifier in payment metadata.',
+      `Payment Links clicked on a tracked page are matched automatically. Checkout Sessions, Overlay Checkout, and Inline Checkout need the ${BRAND.name} session identifier in payment metadata.`,
     officialLinks: [
       { label: 'Create a Dodo API key', url: 'https://app.dodopayments.com/developer/api-keys' },
       { label: 'Dodo Payments documentation', url: 'https://docs.dodopayments.com' },
@@ -70,10 +72,10 @@ export const REVENUE_GUIDES: DocsGuide[] = [
     connectSteps: [
       'Find your Store ID in Lemon Squeezy.',
       'Create an API key and paste both values on the website settings page.',
-      'RevenueLens validates the store, stores the key securely, and creates the signed revenue webhook.',
+      `${BRAND.name} validates the store, stores the key securely, and creates the signed revenue webhook.`,
     ],
     attribution:
-      'Pass the RevenueLens session identifier in the checkout custom data. Orders and subscription invoices keep that custom data so renewals stay attributed.',
+      `Pass the ${BRAND.name} session identifier in the checkout custom data. Orders and subscription invoices keep that custom data so renewals stay attributed.`,
     officialLinks: [
       { label: 'Find your Lemon Squeezy store', url: 'https://app.lemonsqueezy.com/settings/stores' },
       { label: 'Create a Lemon Squeezy API key', url: 'https://app.lemonsqueezy.com/settings/api' },
@@ -89,11 +91,11 @@ export const REVENUE_GUIDES: DocsGuide[] = [
     recommendedFor: 'Products using Polar Checkout, Checkout Links, or Embedded Checkout.',
     connectSteps: [
       'Create a Polar Organization Access Token with Checkout Read, Orders Read, Organization Read, Products Read, Subscription Read, and Webhook Write.',
-      'Paste the token on the website settings page. RevenueLens detects the organization and environment, validates permissions, creates a signed webhook, and imports recent history.',
+      `Paste the token on the website settings page. ${BRAND.name} detects the organization and environment, validates permissions, creates a signed webhook, and imports recent history.`,
       'Keep the token scoped to the organization whose revenue you want to measure.',
     ],
     attribution:
-      'Pass the RevenueLens session identifier in order or checkout metadata. Checkout Links can also be matched through their return URL.',
+      `Pass the ${BRAND.name} session identifier in order or checkout metadata. Checkout Links can also be matched through their return URL.`,
     officialLinks: [
       { label: 'Open the Polar dashboard', url: 'https://polar.sh/dashboard' },
       { label: 'Polar documentation', url: 'https://docs.polar.sh' },
@@ -108,7 +110,7 @@ export const REVENUE_GUIDES: DocsGuide[] = [
     recommendedFor: 'Products using Yolfi paylinks or subscriptions.',
     connectSteps: [
       'Copy an organization API key from Yolfi.',
-      'Paste the key on the website settings page. RevenueLens creates the analytics webhook and stores its signing secret.',
+      `Paste the key on the website settings page. ${BRAND.name} creates the analytics webhook and stores its signing secret.`,
       'Add the website and session metadata when creating Yolfi payments so revenue can be matched to the original visit.',
     ],
     attribution:

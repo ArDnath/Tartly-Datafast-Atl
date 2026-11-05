@@ -19,8 +19,7 @@ import { PaymentProviderLogo } from '@/features/payments/components/PaymentProvi
 import { BRAND } from '@/lib/brand';
 import { REPORTING_CURRENCIES, type ReportingCurrency } from '@/lib/reporting-currency';
 
-const STRIPE_RESTRICTED_KEY_URL =
-  'https://dashboard.stripe.com/apikeys/create?name=RevenueLens&permissions%5B%5D=rak_charge_read&permissions%5B%5D=rak_subscription_read&permissions%5B%5D=rak_customer_read&permissions%5B%5D=rak_payment_intent_read&permissions%5B%5D=rak_checkout_session_read&permissions%5B%5D=rak_invoice_read&permissions%5B%5D=rak_webhook_write&permissions%5B%5D=rak_product_read';
+const STRIPE_RESTRICTED_KEY_URL = `https://dashboard.stripe.com/apikeys/create?name=${encodeURIComponent(BRAND.name)}&permissions%5B%5D=rak_charge_read&permissions%5B%5D=rak_subscription_read&permissions%5B%5D=rak_customer_read&permissions%5B%5D=rak_payment_intent_read&permissions%5B%5D=rak_checkout_session_read&permissions%5B%5D=rak_invoice_read&permissions%5B%5D=rak_webhook_write&permissions%5B%5D=rak_product_read`;
 const DODO_API_KEY_URL = 'https://app.dodopayments.com/developer/api-keys';
 const LEMONSQUEEZY_STORES_URL = 'https://app.lemonsqueezy.com/settings/stores';
 const LEMONSQUEEZY_API_KEYS_URL = 'https://app.lemonsqueezy.com/settings/api';

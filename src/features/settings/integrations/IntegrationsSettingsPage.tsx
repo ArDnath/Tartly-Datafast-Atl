@@ -8,6 +8,7 @@ import { useApi, useNavigation } from '@/components/hooks';
 import { useWebsiteOverviewQuery } from '@/features/portfolio/hooks/useWebsiteOverviewQuery';
 import { WebsiteAddButton } from '@/features/websites/WebsiteAddButton';
 import { useActiveWorkspace } from '@/features/workspaces/hooks/useActiveWorkspace';
+import { BRAND } from '@/lib/brand';
 
 interface WebsiteRow {
   id: string;
@@ -122,8 +123,8 @@ export function IntegrationsSettingsPage() {
         <Column gap="1">
           <Heading size="lg">Integrations</Heading>
           <Text color="muted">
-            These are analytics integrations: customer payment providers that let RevenueLens
-            measure their revenue. Platform billing for your RevenueLens subscription is separate
+            These are analytics integrations: customer payment providers that let {BRAND.name}{' '}
+            measure their revenue. Platform billing for your {BRAND.name} subscription is separate
             and lives under Plan and usage.
           </Text>
         </Column>
@@ -138,7 +139,7 @@ export function IntegrationsSettingsPage() {
         </Text>
         <Text size="sm" color="muted">
           Provider credentials are encrypted at rest and never returned to the browser. Webhook
-          secrets are created by RevenueLens where the provider supports it.
+          secrets are created by {BRAND.name} where the provider supports it.
         </Text>
       </Column>
 

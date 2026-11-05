@@ -516,7 +516,7 @@ export function OnboardingFlow() {
                 }
                 subtitle={
                   verifyState?.installed
-                    ? 'The tracker is live. RevenueLens is now recording visits for this website.'
+                    ? `The tracker is live. ${BRAND.name} is now recording visits for this website.`
                     : 'Open your site in another tab. This page checks every 3 seconds.'
                 }
               />
@@ -584,7 +584,7 @@ export function OnboardingFlow() {
             <>
               <StepHeading
                 title="Connect your payments"
-                subtitle="RevenueLens can show which channels produce revenue once a provider is connected."
+                subtitle={`${BRAND.name} can show which channels produce revenue once a provider is connected.`}
               />
               <Reveal index={1} className={styles.providerGrid}>
                 {['Stripe', 'Dodo Payments', 'Polar', 'Lemon Squeezy'].map(provider => (

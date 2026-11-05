@@ -1,5 +1,5 @@
 'use client';
-import { WebsiteSettingsPage } from '@/features/settings/websites/[websiteId]/WebsiteSettingsPage';
+import { WebsiteSettingsPage } from '@/features/websites/workbench/settings/WebsiteSettingsPage';
 
 export function SettingsPage({ websiteId }: { websiteId: string }) {
   return <WebsiteSettingsPage websiteId={websiteId} />;

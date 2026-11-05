@@ -1,3 +1,156 @@
+import {
+  EMAIL_DOMAINS,
+  PAID_AD_PARAMS,
+  SEARCH_DOMAINS,
+  SHOPPING_DOMAINS,
+  SOCIAL_DOMAINS,
+  VIDEO_DOMAINS,
+} from './constants';
+
+export const REVENUE_CHANNELS = [
+  'paidAds',
+  'paidSearch',
+  'paidSocial',
+  'paidShopping',
+  'paidVideo',
+  'organicSearch',
+  'organicSocial',
+  'organicShopping',
+  'organicVideo',
+  'email',
+  'affiliate',
+  'sms',
+  'referral',
+  'direct',
+  'unattributed',
+] as const;
+
+export type RevenueChannel = (typeof REVENUE_CHANNELS)[number];
+
+export const REVENUE_CHANNEL_LABELS: Record<RevenueChannel, string> = {
+  paidAds: 'Paid ads',
+  paidSearch: 'Paid search',
+  paidSocial: 'Paid social',
+  paidShopping: 'Paid shopping',
+  paidVideo: 'Paid video',
+  organicSearch: 'Organic search',
+  organicSocial: 'Organic social',
+  organicShopping: 'Organic shopping',
+  organicVideo: 'Organic video',
+  email: 'Email',
+  affiliate: 'Affiliate',
+  sms: 'SMS',
+  referral: 'Referral',
+  direct: 'Direct',
+  unattributed: 'Unattributed',
+};
+
+export interface RevenueChannelInput {
+  source?: string | null;
+  medium?: string | null;
+  referrerDomain?: string | null;
+  urlQuery?: string | null;
+}
+
+const PAID_MEDIUM_TOKENS = ['ppc', 'cpc', 'cpm', 'paid', 'retargeting', 'display', 'adwords'];
+
+function normalize(value?: string | null) {
+  return (value || '').toLowerCase().trim();
+}
+
+function matchesDomain(value: string, domains: string[]) {
+  const tokens = value.split(/[\s./]+/).filter(Boolean);
+
+  return domains.some(domain => {
+    const base = domain.replace(/\.+$/, '');
+
+    return value.includes(base) || tokens.includes(base.split('.')[0]);
+  });
+}
+
+/**
+ * First-touch channel classification used by the portfolio MRR panel. It mirrors
+ * the ordering of the SQL channel expression in the per-website breakdown, but
+ * reads the visitor's stored first-touch fields instead of joining events.
+ */
+export function classifyRevenueChannel({
+  source,
+  medium,
+  referrerDomain,
+  urlQuery,
+}: RevenueChannelInput): RevenueChannel {
+  const sourceValue = normalize(source);
+  const mediumValue = normalize(medium);
+  const referrerValue = normalize(referrerDomain);
+  const queryValue = normalize(urlQuery);
+  const combined = `${sourceValue} ${referrerValue}`.trim();
+  const hasPaidMedium = PAID_MEDIUM_TOKENS.some(token => mediumValue.includes(token));
+  const hasPaidQuery = PAID_AD_PARAMS.some(param => queryValue.includes(param.toLowerCase()));
+  const isPaid = hasPaidMedium || hasPaidQuery;
+
+  if (!sourceValue && !referrerValue) {
+    return 'direct';
+  }
+
+  if (isPaid) {
+    if (matchesDomain(combined, SEARCH_DOMAINS) || mediumValue.includes('search')) {
+      return 'paidSearch';
+    }
+
+    if (matchesDomain(combined, SOCIAL_DOMAINS)) {
+      return 'paidSocial';
+    }
+
+    if (matchesDomain(combined, SHOPPING_DOMAINS)) {
+      return 'paidShopping';
+    }
+
+    if (matchesDomain(combined, VIDEO_DOMAINS)) {
+      return 'paidVideo';
+    }
+
+    return 'paidAds';
+  }
+
+  if (mediumValue.includes('affiliate')) {
+    return 'affiliate';
+  }
+
+  if (mediumValue.includes('sms') || sourceValue.includes('sms')) {
+    return 'sms';
+  }
+
+  if (matchesDomain(combined, SEARCH_DOMAINS) || mediumValue.includes('organic')) {
+    return 'organicSearch';
+  }
+
+  if (matchesDomain(combined, SOCIAL_DOMAINS)) {
+    return 'organicSocial';
+  }
+
+  if (
+    matchesDomain(combined, EMAIL_DOMAINS) ||
+    mediumValue.includes('mail') ||
+    mediumValue.includes('email')
+  ) {
+    return 'email';
+  }
+
+  if (matchesDomain(combined, SHOPPING_DOMAINS) || mediumValue.includes('shop')) {
+    return 'organicShopping';
+  }
+
+  if (matchesDomain(combined, VIDEO_DOMAINS) || mediumValue.includes('video')) {
+    return 'organicVideo';
+  }
+
+  if (referrerValue) {
+    return 'referral';
+  }
+
+  return sourceValue ? 'referral' : 'unattributed';
+}
+
 export interface DashboardBreakdownTrafficRow {
   x: string | null;
   y: number | string;

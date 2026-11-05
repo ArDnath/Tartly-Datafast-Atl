@@ -59,6 +59,20 @@ interface WebsiteOverview {
   }[];
 }
 
+interface MrrChannelRow {
+  channel: string;
+  label: string;
+  mrr: number;
+  subscriptions: number;
+  currency?: string | null;
+}
+
+interface PortfolioMrr {
+  totalMrr: number | null;
+  currency?: string | null;
+  channels: MrrChannelRow[];
+}
+
 function formatDateLabel(date: string) {
   const parsedDate = new Date(date.includes(' ') ? date.replace(' ', 'T') : date);
 
@@ -336,6 +350,93 @@ function PortfolioMetric({
   );
 }
 
+function MrrByChannelPanel({ mrr }: { mrr?: PortfolioMrr }) {
+  const { locale } = useLocale();
+
+  if (!mrr?.channels.length) {
+    return null;
+  }
+
+  const hasSingleCurrency = !!mrr.currency;
+  const totalMrr = mrr.totalMrr || 0;
+
+  return (
+    <Column
+      gap="3"
+      paddingX="4"
+      paddingY="4"
+      style={{
+        borderRadius: 16,
+        border: `1px solid ${OVERVIEW_CARD_BORDER}`,
+        background: OVERVIEW_CARD_BACKGROUND,
+      }}
+    >
+      <Row alignItems="baseline" justifyContent="space-between" gap="3" wrap="wrap">
+        <Column gap="1" minWidth="0">
+          <Text size="lg" weight="bold">
+            MRR by channel
+          </Text>
+          <Text size="sm" color="muted">
+            Active subscriptions by the channel that first brought the customer in.
+          </Text>
+        </Column>
+        <Text
+          size="xl"
+          weight="bold"
+          style={{ color: '#f2b4cb', fontVariantNumeric: 'tabular-nums' }}
+        >
+          {hasSingleCurrency ? formatLongCurrency(totalMrr, mrr.currency as string, locale) : 'Mixed'}
+        </Text>
+      </Row>
+
+      <Column gap="3">
+        {mrr.channels.map(row => {
+          const share = totalMrr > 0 ? Math.max(2, (row.mrr / totalMrr) * 100) : 0;
+
+          return (
+            <Column key={row.channel} gap="1">
+              <Row alignItems="baseline" justifyContent="space-between" gap="3">
+                <Text size="sm">{row.label}</Text>
+                <Row alignItems="baseline" gap="3">
+                  <Text size="sm" color="muted" wrap="nowrap">
+                    {row.subscriptions} {row.subscriptions === 1 ? 'subscription' : 'subscriptions'}
+                  </Text>
+                  <Text
+                    size="sm"
+                    weight="bold"
+                    wrap="nowrap"
+                    style={{ fontVariantNumeric: 'tabular-nums' }}
+                  >
+                    {row.currency ? formatLongCurrency(row.mrr, row.currency, locale) : '—'}
+                  </Text>
+                </Row>
+              </Row>
+              <div
+                aria-hidden="true"
+                style={{
+                  height: 4,
+                  borderRadius: 999,
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    width: `${share}%`,
+                    height: '100%',
+                    borderRadius: 999,
+                    background: 'rgba(242, 180, 203, 0.72)',
+                  }}
+                />
+              </div>
+            </Column>
+          );
+        })}
+      </Column>
+    </Column>
+  );
+}
+
 function WebsiteCard({ website }: { website: WebsiteOverview }) {
   const { renderUrl } = useNavigation();
   const { locale } = useLocale();
@@ -456,6 +557,7 @@ export function AppEntryPage() {
   const { data, isLoading, error } = useWebsiteOverviewQuery();
   const isInitialLoading = isLoading && !data;
   const websites = (data?.data || []) as WebsiteOverview[];
+  const mrrByChannel = (data as { mrrByChannel?: PortfolioMrr } | undefined)?.mrrByChannel;
   const { locale } = useLocale();
   const showActions = user?.role !== ROLES.viewOnly;
   const showDateStepButtons = !isAllTime && !isCustomRange;
@@ -573,6 +675,8 @@ export function AppEntryPage() {
                 hint={`${formatLongNumber(totalPayments)} payments in range`}
               />
             </Grid>
+
+            <MrrByChannelPanel mrr={mrrByChannel} />
 
             <Row alignItems="baseline" justifyContent="space-between" gap="3" wrap="wrap">
               <Column gap="1" minWidth="0">

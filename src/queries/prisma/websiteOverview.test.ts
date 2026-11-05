@@ -30,6 +30,7 @@ test('getUserWebsiteOverview uses hourly buckets for last 24 hour mini charts', 
     .mockResolvedValueOnce([])
     .mockResolvedValueOnce([])
     .mockResolvedValueOnce([{ websiteId: WEBSITE_ID, date: '2026-06-21T18:00:00Z', visitors: 3 }])
+    .mockResolvedValueOnce([])
     .mockResolvedValueOnce([]);
 
   const result = await getUserWebsiteOverview('user-1', {

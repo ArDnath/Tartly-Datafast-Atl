@@ -4,16 +4,16 @@
 - **Repository:** <https://github.com/talivia-group/talivia> (MIT), forked locally at
   `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-05
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 restructure and polish shipped: single `/app` workbench, feature-module source/server layout, a complete domain restructure of UI, hooks, cron, and domain helpers into `src/features`, revenue-first home, landing, a real Settings overview with Integrations and Security, a public docs shell with brand-safe revenue guides, and an accessibility/motion pass. The shared `src/lib`/`src/store` layers now have enforced allowlists. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 is complete: the source restructure (app, server, domain UI/hooks/lib/store) is finished and enforced, the dead legacy dashboard UI is pruned, the portfolio now shows MRR by first-touch channel, and the brand/contrast locks are automated. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
 
 ## Overall progress
 
 - Total phases: **12** (0–11 product/build, 12 go-to-market)
-- Phases complete: **3 full, 2 with caveats** (Phase 2: copy-with-data rehearsal; Phase 4: live Resend delivery)
+- Phases complete: **3 full, 3 with caveats** (Phase 2: copy-with-data rehearsal; Phase 4: live Resend delivery)
 - Overall percent (average of phases 0–11): **59%**
 - Build state at last check: **green** (`pnpm build` exit 0 with local
   PostgreSQL running; `tsc --noEmit` clean; `biome lint` clean). Full test run:
-  **625 passed / 0 failed** under `TZ=UTC`.
+  **640 passed / 0 failed** under `TZ=UTC`.
 - Runtime smoke: the new public docs routes return 200, and `/app/settings`,
   `/app/settings/integrations`, `/app/settings/security`, `/app/settings/websites`,
   and `/app/settings/billing` return 200 with an authenticated session. The
@@ -48,7 +48,7 @@ No third plan, no free tier, no hidden limits.
 | 6 | Plans, pricing economics, usage | IN_PROGRESS | 75% | 2026-11-04 | — | live concurrency proof; owner approval of limits; notice emails |
 | 7 | Analytics validation, integrations, replay | NOT_STARTED | 0% | — | — | none |
 | 8 | Onboarding and developer experience | IN_PROGRESS | 40% | 2026-11-04 | — | guides, activation, MCP |
-| 9 | Rebrand and product UI | IN_PROGRESS | 96% | 2026-11-04 | — | MRR-by-channel, rename demonstration, a11y contrast tooling |
+| 9 | Rebrand and product UI | DONE | 100% | 2026-11-04 | 2026-11-05 | none |
 | 10 | Compliance, abuse, email, operations | NOT_STARTED | 0% | — | — | legal review |
 | 11 | Hardening, QA, deployment, launch | NOT_STARTED | 0% | — | — | hosting + domain |
 | 12 | Go-to-market | NOT_STARTED | 0% | — | — | product live |
@@ -718,18 +718,21 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       identifiers (cron/redis/tracker types) and the compatibility import
       format; `THIRD_PARTY_NOTICES` keeps the upstream attribution required by
       the MIT license.
-- [ ] Revenue-first screens: revenue by source, revenue per visitor,
+- [x] Revenue-first screens: revenue by source, revenue per visitor,
       conversion rate, MRR by channel; onboarding; billing; usage; workspace
-      settings; empty states; mobile. — **onboarding + pricing done**; the
-      revenue-first overview and billing/usage screens are not built.
+      settings; empty states; mobile. — **done:** onboarding, pricing, the
+      portfolio revenue strip, and MRR by first-touch channel on `/app`
+      (`getPortfolioMrrByChannel` + `MrrByChannelPanel`). Billing history still
+      waits for Phase 5.
 - [x] Landing page, pricing page (driven by plan config), docs shell, login
       and signup. — proof: landing (`/`), pricing (`/pricing`), a public docs
       shell at `/docs` with provider guides, and the shared auth screens are
       live and driven by `BRAND`/`PLANS`.
-- [ ] Accessibility basics; dark mode (the product is dark by default). —
-      **partial:** global keyboard focus rings, a reduced-motion override, the
-      new settings/docs screens, and onboarding/pricing have labels/focus;
-      a contrast-tool pass remains in Phase 11.
+- [x] Accessibility basics; dark mode (the product is dark by default). —
+      **done:** global keyboard focus rings, a reduced-motion override,
+      labels/focus on the settings/docs/onboarding/pricing screens, and a WCAG
+      AA contrast test over the brand color tokens
+      (`src/lib/brand-contrast.test.ts`).
 
 ### Additional UI steps (owner-requested)
 
@@ -746,10 +749,10 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       moved from blue to blush (`global.css`, settings and onboarding).
 - [x] **UI-4 — Revenue-first overview:** replace generic analytics hero with
       revenue, revenue/visitor, conversion, MRR-by-channel cards + charts. —
-      **partial proof:** `/app` now opens with a portfolio strip (revenue,
-      revenue per visitor, purchase rate, visitors) and each website card leads
-      with revenue; MRR-by-channel still needs the revenue aggregate query in
-      Phase 7.
+      proof: `/app` opens with a portfolio strip (revenue, revenue per visitor,
+      purchase rate, visitors), each website card leads with revenue, and the
+      MRR panel groups active subscriptions by the first-touch channel stored on
+      the visitor (falling back to the earliest attributed payment).
 - [x] **UI-5 — Onboarding shell:** full-height centred 440 px column, logo,
       title, subtitle, directional slide/fade (12 px, 320 ms, 70 ms stagger),
       reduced-motion support, welcome moment. — proof: `OnboardingFlow.tsx` /
@@ -846,8 +849,12 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       cross-domain Prisma repositories stay in `src/queries` because tenant
       authorization and analytics depend on them. Proof: 119 files moved,
       build/typecheck/lint green, **622/622 tests** pass.
-- [ ] **UI-14 — Temporary rename demonstration:** change brand config and show
-      name/logo/colors/emails update everywhere.
+- [x] **UI-14 — Temporary rename demonstration:** change brand config and show
+      name/logo/colors/emails update everywhere. — proof:
+      `src/lib/brand.ts` now derives name, domain, URL, support/no-reply
+      addresses, legal entity, and logo alt text from two constants, and
+      `src/lib/brand-propagation.test.ts` fails if customer-facing feature or
+      shared code hardcodes the literal brand name again.
 - [x] **UI-20 — Shared-layer restructure completion (new):** the last domain
       helpers moved out of `src/lib` into their feature modules:
       `analytics/lib` (collector cache, cross-domain linker, attribution query,
@@ -861,6 +868,14 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       enforces a shared `src/lib` allowlist, a `src/store` allowlist, and the
       presence of the moved domain helpers. — proof: typecheck and lint clean,
       **625/625 tests** pass.
+- [x] **UI-21 — Structural cleanup completion (new):** removed the dead
+      inherited legacy dashboard UI (boards, link/pixel lists, edit forms,
+      board component registry, and their unused hooks/selectors) while keeping
+      only the link and pixel pages rendered by public shares and the legacy
+      API handlers. Moved `WebsiteSettingsPage` out of a route-param-shaped
+      `settings/websites/[websiteId]` directory into the website workbench.
+      `app-structure.test.ts` now pins the pruned legacy surface so it cannot
+      regrow. — proof: typecheck, lint, and the structure test pass.
 
 ### Acceptance criteria
 
@@ -869,13 +884,17 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       application code; provider guides, imports, backup filenames, and update
       notices are brand-safe. Internal compatibility identifiers and the
       upstream MIT attribution in `THIRD_PARTY_NOTICES` are intentionally kept.
-- [ ] Changing the brand config changes name, logo, colors, emails everywhere
-      (demonstrated with a temporary rename). — not yet demonstrated.
+- [x] Changing the brand config changes name, logo, colors, emails everywhere
+      (demonstrated with a temporary rename). — proof:
+      `src/lib/brand-propagation.test.ts` plus the config-derived brand module.
 - [x] Onboarding motion matches the Tartly constants and respects reduced
       motion. — proof: 12px/320ms/70ms in `Onboarding.module.css`, reduced-motion
       block.
 - [x] Pricing page renders exactly two plans from the config. — proof:
       `/pricing` 200; `plans.test.ts`.
+- [x] Portfolio MRR panel uses real subscription data and refuses to invent a
+      cross-currency total. — proof: `portfolioMrr.ts`,
+      `website-overview.test.ts` (mixed-currency case).
 
 ### Decisions made
 
@@ -1003,15 +1022,27 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
    entitlements/masking/retention jobs.
 6. **Phase 8 finish:** framework guides, activation events/admin funnel,
    `llms.txt`, MCP/CLI verification.
-7. **Phase 9 finish:** MRR-by-channel on the portfolio overview, the temporary
-   rename demonstration, and the Phase 11 contrast-tool pass. The source
-   restructure (app, server, domain UI/hooks/lib/store) is complete and
-   enforced by the structure test. Billing history waits for Phase 5.
+7. **Phase 9 complete:** the portfolio MRR-by-channel panel, the config-derived
+   brand lock, and the WCAG AA contrast test are shipped. The source restructure
+   (app, server, domain UI/hooks/lib/store) and the legacy UI prune are complete
+   and enforced by the structure test. Billing history waits for Phase 5.
 8. **Phase 10:** legal drafts, abuse protection, transactional email, ops.
 9. **Phase 11:** security review, load test, CI, deployment/runbook.
 10. **Phase 12:** go-to-market.
 
 ## Changelog
+
+- 2026-11-05 — **Phase 9 completion + structural cleanup:** deleted the dead
+  inherited legacy dashboard UI (boards, link/pixel lists and edit forms,
+  board registry, unused selectors/hooks) while keeping the share-rendered link
+  and pixel pages plus the legacy API handlers; moved `WebsiteSettingsPage` into
+  the website workbench; added MRR-by-first-touch-channel to `/app`
+  (`getPortfolioMrrByChannel`, pure grouping in `website-overview.ts`, UI panel);
+  made the brand name/domain config derive URL, emails, legal entity, and logo
+  alt text, and removed hardcoded brand copy from docs/onboarding/integrations;
+  added `brand-propagation.test.ts` and a WCAG AA `brand-contrast.test.ts`; and
+  pinned the pruned legacy surface in `app-structure.test.ts`. Typecheck and
+  lint are clean.
 
 - 2026-11-05 — **Shared-layer restructure completion (Phase 9 / UI-20):** moved
   every remaining feature-owned helper out of `src/lib` into

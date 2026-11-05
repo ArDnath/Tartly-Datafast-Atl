@@ -212,10 +212,13 @@ The phase tracker expands Phase 9 with UI-1 … UI-14. The sequence is:
 14. **Temporary rename demo** — prove the brand config is the only source.
 
 Current status: pricing, onboarding shell/steps, auth screens (login, signup,
-invite, verify, forgot/reset), the app shell, the revenue-first portfolio home,
-the website workbench navigation, the Plan and usage screen, and the marketing
-landing are implemented. Invoice history and subscription lifecycle UI remain
-blocked on Phase 5 (platform billing); the rest is tracked in `docs/PHASES.md`.
+invite, verify, forgot/reset), the app shell, the revenue-first portfolio home
+(including MRR by first-touch channel), the website workbench navigation, the
+Plan and usage screen, and the marketing landing are implemented. The brand
+config lock and the token contrast test are automated; the temporary rename demo
+is therefore a test rather than a manual theme flip. Invoice history and
+subscription lifecycle UI remain blocked on Phase 5 (platform billing); the rest
+is tracked in `docs/PHASES.md`.
 
 ---
 

@@ -1,4 +1,10 @@
 import { DEFAULT_CURRENCY, EVENT_TYPE } from './constants';
+import {
+  classifyRevenueChannel,
+  REVENUE_CHANNELS,
+  REVENUE_CHANNEL_LABELS,
+  type RevenueChannel,
+} from './dashboard-breakdown';
 
 export const WEBSITE_OVERVIEW_EXCLUDED_EVENT_TYPES = [
   EVENT_TYPE.customEvent,
@@ -112,8 +118,7 @@ export function createWebsiteOverviewChart(
   return chart;
 }
 
-export function mergeWebsiteOverview<TWebsite extends { id: string }>(
-  websites: TWebsite[],
+export function mergeWebsiteOverview<TWebsite extends { id: string }>(  websites: TWebsite[],
   rows: WebsiteOverviewMetricRow[],
   defaultCurrency = DEFAULT_CURRENCY,
   charts?: Map<string, WebsiteOverviewChartPoint[]>,
@@ -138,4 +143,100 @@ export function mergeWebsiteOverview<TWebsite extends { id: string }>(
     metrics: metrics.get(website.id) ?? createMetrics(defaultCurrency),
     chart: charts?.get(website.id) ?? [],
   }));
+}
+
+export interface PortfolioMrrRow {
+  source?: string | null;
+  medium?: string | null;
+  referrerDomain?: string | null;
+  mrr: number | string;
+  subscriptions: number | string;
+  currency?: string | null;
+}
+
+export interface PortfolioMrrChannel {
+  channel: RevenueChannel;
+  label: string;
+  mrr: number;
+  subscriptions: number;
+  currency: string | null;
+}
+
+export interface PortfolioMrrByChannel {
+  totalMrr: number | null;
+  currency: string | null;
+  channels: PortfolioMrrChannel[];
+}
+
+function normalizeCurrency(value?: string | null) {
+  return value ? value.toUpperCase() : null;
+}
+
+function pickSingleCurrency(currencies: Set<string>) {
+  return currencies.size === 1 ? [...currencies][0] : null;
+}
+
+/**
+ * Groups current subscription MRR by the subscriber's first-touch channel.
+ * Amounts are only totalled when every subscription shares one currency; a
+ * mixed-currency workspace returns `null` totals rather than an invented sum.
+ */
+export function mergePortfolioMrrRows(rows: PortfolioMrrRow[]): PortfolioMrrByChannel {
+  if (!rows.length) {
+    return { totalMrr: 0, currency: null, channels: [] };
+  }
+
+  const channels = new Map<
+    RevenueChannel,
+    { mrr: number; subscriptions: number; currencies: Set<string> }
+  >();
+  const allCurrencies = new Set<string>();
+
+  for (const row of rows) {
+    const channel = classifyRevenueChannel({
+      source: row.source,
+      medium: row.medium,
+      referrerDomain: row.referrerDomain,
+    });
+    const entry = channels.get(channel) ?? {
+      mrr: 0,
+      subscriptions: 0,
+      currencies: new Set<string>(),
+    };
+    const currency = normalizeCurrency(row.currency);
+
+    entry.mrr += toNumber(row.mrr);
+    entry.subscriptions += toNumber(row.subscriptions);
+
+    if (currency) {
+      entry.currencies.add(currency);
+      allCurrencies.add(currency);
+    }
+
+    channels.set(channel, entry);
+  }
+
+  const channelRows = REVENUE_CHANNELS.flatMap(channel => {
+    const entry = channels.get(channel);
+
+    if (!entry) {
+      return [];
+    }
+
+    return [
+      {
+        channel,
+        label: REVENUE_CHANNEL_LABELS[channel],
+        mrr: entry.mrr,
+        subscriptions: entry.subscriptions,
+        currency: pickSingleCurrency(entry.currencies),
+      },
+    ];
+  }).sort((a, b) => b.mrr - a.mrr || a.label.localeCompare(b.label));
+
+  return {
+    totalMrr: allCurrencies.size <= 1 ? channelRows.reduce((sum, row) => sum + row.mrr, 0) : null,
+    currency: pickSingleCurrency(allCurrencies),
+    channels: channelRows,
+  };
 }

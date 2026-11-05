@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { mergeDashboardBreakdownRows } from './dashboard-breakdown';
+import { classifyRevenueChannel, mergeDashboardBreakdownRows } from './dashboard-breakdown';
 
 test('mergeDashboardBreakdownRows combines visitors and revenue rows with percents', () => {
   const rows = mergeDashboardBreakdownRows({
@@ -64,4 +64,23 @@ test('mergeDashboardBreakdownRows keeps unattributed revenue separate and sorts 
     revenuePerVisitor: 0,
     conversionRate: 0,
   });
+});
+
+test('classifyRevenueChannel separates paid, organic, email, referral, and direct', () => {
+  expect(classifyRevenueChannel({ source: 'google', medium: 'organic' })).toBe('organicSearch');
+  expect(
+    classifyRevenueChannel({ source: 'google', medium: 'cpc', urlQuery: 'gclid=abc' }),
+  ).toBe('paidSearch');
+  expect(classifyRevenueChannel({ source: 'facebook', medium: 'social' })).toBe('organicSocial');
+  expect(classifyRevenueChannel({ source: 'newsletter', medium: 'email' })).toBe('email');
+  expect(classifyRevenueChannel({ referrerDomain: 'partner.dev' })).toBe('referral');
+  expect(classifyRevenueChannel({ source: 'producthunt' })).toBe('referral');
+  expect(classifyRevenueChannel({})).toBe('direct');
+});
+
+test('classifyRevenueChannel treats ad-click parameters as paid even without a medium', () => {
+  expect(classifyRevenueChannel({ source: 'unknown', urlQuery: 'utm_source=x&gclid=123' })).toBe(
+    'paidAds',
+  );
+  expect(classifyRevenueChannel({ source: 'twitter', urlQuery: 'twclid=1' })).toBe('paidSocial');
 });
