@@ -1,5 +1,5 @@
 import { isBoardComponentSupportedByEntityType } from './boardComponentCompatibility';
-import type { Board, BoardComponentConfig, BoardParameters } from './types';
+import type { Board, BoardComponentConfig, BoardParameters } from '@/lib/types';
 
 export const BOARD_TYPES = {
   dashboard: 'dashboard',

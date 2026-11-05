@@ -1,11 +1,11 @@
 import { beforeEach, expect, test, vi } from 'vitest';
-import { verifyLemonSqueezySignature } from '@/lib/lemonsqueezy-webhook';
+import { verifyLemonSqueezySignature } from '@/features/payments/server/webhooks/lemonsqueezy-webhook';
 import { fetchWebsite } from '@/lib/load';
 import prisma from '@/lib/prisma';
 import { recordPayment, recordRefund, recordSubscriptionState } from '@/queries/prisma';
 import { POST } from './route';
 
-vi.mock('@/lib/lemonsqueezy-webhook', () => ({
+vi.mock('@/features/payments/server/webhooks/lemonsqueezy-webhook', () => ({
   verifyLemonSqueezySignature: vi.fn(),
 }));
 
@@ -13,7 +13,7 @@ vi.mock('@/lib/load', () => ({
   fetchWebsite: vi.fn(),
 }));
 
-vi.mock('@/lib/provider-secrets', () => ({
+vi.mock('@/features/payments/server/provider-secrets', () => ({
   decryptProviderSecret: vi.fn((value?: string | null) => value?.replace(/^enc:/, '')),
 }));
 

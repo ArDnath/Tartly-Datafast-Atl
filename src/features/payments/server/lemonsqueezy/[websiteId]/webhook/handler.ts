@@ -1,8 +1,8 @@
 import { serializeError } from 'serialize-error';
-import { verifyLemonSqueezySignature } from '@/lib/lemonsqueezy-webhook';
+import { verifyLemonSqueezySignature } from '@/features/payments/server/webhooks/lemonsqueezy-webhook';
 import { fetchWebsite } from '@/lib/load';
 import prisma from '@/lib/prisma';
-import { decryptProviderSecret } from '@/lib/provider-secrets';
+import { decryptProviderSecret } from '@/features/payments/server/provider-secrets';
 import { badRequest, json, notFound, serverError, unauthorized } from '@/lib/response';
 import {
   normalizeEmailHash,

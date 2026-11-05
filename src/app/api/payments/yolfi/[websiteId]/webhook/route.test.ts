@@ -20,16 +20,16 @@ vi.mock('@/queries/prisma', () => ({
   recordPayment: vi.fn(),
   recordSubscriptionState: vi.fn(),
 }));
-vi.mock('@/lib/yolfi-webhook', () => ({ verifyYolfiSignature: vi.fn() }));
-vi.mock('@/lib/provider-secrets', () => ({
+vi.mock('@/features/payments/server/webhooks/yolfi-webhook', () => ({ verifyYolfiSignature: vi.fn() }));
+vi.mock('@/features/payments/server/provider-secrets', () => ({
   decryptProviderSecret: vi.fn(() => 'endpoint-secret'),
 }));
 
 const { fetchWebsite } = await import('@/lib/load');
 const { default: prisma } = await import('@/lib/prisma');
 const { recordPayment, recordSubscriptionState } = await import('@/queries/prisma');
-const { verifyYolfiSignature } = await import('@/lib/yolfi-webhook');
-const { decryptProviderSecret } = await import('@/lib/provider-secrets');
+const { verifyYolfiSignature } = await import('@/features/payments/server/webhooks/yolfi-webhook');
+const { decryptProviderSecret } = await import('@/features/payments/server/provider-secrets');
 const body = JSON.stringify({
   id: 'evt_yolfi_payment_1',
   type: 'payment.confirmed',

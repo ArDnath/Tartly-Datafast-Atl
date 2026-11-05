@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 import { BRAND } from '@/lib/brand';
 import type { RecordPaymentInput } from '@/queries/prisma/payment';
-import { hash } from './crypto';
+import { hash } from '@/lib/crypto';
 
 export const STRIPE_WEBHOOK_EVENTS = [
   'checkout.session.completed',

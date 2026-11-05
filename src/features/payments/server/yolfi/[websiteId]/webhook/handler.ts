@@ -1,14 +1,14 @@
 import { serializeError } from 'serialize-error';
 import { fetchWebsite } from '@/lib/load';
 import prisma from '@/lib/prisma';
-import { decryptProviderSecret } from '@/lib/provider-secrets';
+import { decryptProviderSecret } from '@/features/payments/server/provider-secrets';
 import { badRequest, json, notFound, serverError, unauthorized } from '@/lib/response';
 import {
   shouldApplySubscriptionEvent,
   subscriptionEventPriority,
   yolfiEventDate,
-} from '@/lib/subscription-event-ordering';
-import { verifyYolfiSignature } from '@/lib/yolfi-webhook';
+} from '@/features/payments/server/subscription-event-ordering';
+import { verifyYolfiSignature } from '@/features/payments/server/webhooks/yolfi-webhook';
 import { normalizeEmailHash, recordPayment, recordSubscriptionState } from '@/queries/prisma';
 
 function stringValue(value: unknown) {

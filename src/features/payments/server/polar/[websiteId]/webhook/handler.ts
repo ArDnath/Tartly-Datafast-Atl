@@ -4,10 +4,10 @@ import {
   mapPolarOrderRefundToRefundInput,
   mapPolarOrderToPaymentInput,
   mapPolarSubscriptionToStateInput,
-} from '@/lib/polar-provider';
-import { verifyPolarSignature } from '@/lib/polar-webhook';
+} from '@/features/payments/server/providers/polar-provider';
+import { verifyPolarSignature } from '@/features/payments/server/webhooks/polar-webhook';
 import prisma from '@/lib/prisma';
-import { decryptProviderSecret } from '@/lib/provider-secrets';
+import { decryptProviderSecret } from '@/features/payments/server/provider-secrets';
 import { badRequest, json, notFound, serverError, unauthorized } from '@/lib/response';
 import { recordPayment, recordRefund, recordSubscriptionState } from '@/queries/prisma';
 

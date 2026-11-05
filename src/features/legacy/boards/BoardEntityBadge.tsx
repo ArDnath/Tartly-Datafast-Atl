@@ -1,7 +1,7 @@
 import { Icon, Row, Text } from '@talivia/react-zen';
 import { Favicon } from '@/components/common/Favicon';
 import { Grid2x2, Link } from '@/components/icons';
-import type { BoardEntityType } from '@/lib/boards';
+import type { BoardEntityType } from '@/features/legacy/boards/core/boards';
 
 export function BoardEntityBadge({
   type,

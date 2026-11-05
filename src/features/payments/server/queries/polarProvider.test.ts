@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { serializePolarCredential } from '@/lib/polar-provider';
+import { serializePolarCredential } from '@/features/payments/server/providers/polar-provider';
 import { backfillPolarRevenue } from './polarProvider';
 
 test('backfillPolarRevenue imports 30-day paid orders, cumulative refunds, and all subscriptions', async () => {

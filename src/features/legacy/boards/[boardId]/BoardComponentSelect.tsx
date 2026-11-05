@@ -21,7 +21,7 @@ import {
   getComponentEntity,
   isBoardComponentSupported,
   isOpenBoardType,
-} from '@/lib/boards';
+} from '@/features/legacy/boards/core/boards';
 import {
   type ComponentDefinition,
   type ConfigField,

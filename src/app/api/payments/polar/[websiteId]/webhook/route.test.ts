@@ -1,14 +1,14 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { fetchWebsite } from '@/lib/load';
-import { serializePolarCredential } from '@/lib/polar-provider';
-import { verifyPolarSignature } from '@/lib/polar-webhook';
+import { serializePolarCredential } from '@/features/payments/server/providers/polar-provider';
+import { verifyPolarSignature } from '@/features/payments/server/webhooks/polar-webhook';
 import prisma from '@/lib/prisma';
 import { recordPayment, recordRefund, recordSubscriptionState } from '@/queries/prisma';
 import { POST } from './route';
 
 vi.mock('@/lib/load', () => ({ fetchWebsite: vi.fn() }));
-vi.mock('@/lib/polar-webhook', () => ({ verifyPolarSignature: vi.fn() }));
-vi.mock('@/lib/provider-secrets', () => ({
+vi.mock('@/features/payments/server/webhooks/polar-webhook', () => ({ verifyPolarSignature: vi.fn() }));
+vi.mock('@/features/payments/server/provider-secrets', () => ({
   decryptProviderSecret: vi.fn((value?: string | null) => value?.replace(/^enc:/, '')),
 }));
 vi.mock('@/lib/prisma', () => ({

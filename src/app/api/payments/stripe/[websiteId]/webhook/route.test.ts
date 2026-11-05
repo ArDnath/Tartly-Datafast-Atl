@@ -26,13 +26,13 @@ vi.mock('@/lib/prisma', () => ({
     },
   },
 }));
-vi.mock('@/lib/provider-secrets', () => ({
+vi.mock('@/features/payments/server/provider-secrets', () => ({
   decryptProviderSecret: vi.fn(),
 }));
-vi.mock('@/lib/stripe-webhook', () => ({
+vi.mock('@/features/payments/server/webhooks/stripe-webhook', () => ({
   verifyStripeSignature: vi.fn(),
 }));
-vi.mock('@/lib/stripe-provider', () => ({
+vi.mock('@/features/payments/server/providers/stripe-provider', () => ({
   formatStripeAmount: vi.fn((amount: number, currency: string) =>
     currency.toLowerCase() === 'jpy'
       ? Number(amount || 0).toFixed(4)
@@ -51,8 +51,8 @@ vi.mock('@/queries/prisma', () => ({
 
 const { fetchWebsite } = await import('@/lib/load');
 const { default: prisma } = await import('@/lib/prisma');
-const { mapStripeCheckoutSessionToPaymentInput } = await import('@/lib/stripe-provider');
-const { verifyStripeSignature } = await import('@/lib/stripe-webhook');
+const { mapStripeCheckoutSessionToPaymentInput } = await import('@/features/payments/server/providers/stripe-provider');
+const { verifyStripeSignature } = await import('@/features/payments/server/webhooks/stripe-webhook');
 const {
   normalizeEmailHash,
   recalculatePaymentAttribution,

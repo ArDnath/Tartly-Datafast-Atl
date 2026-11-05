@@ -1,10 +1,10 @@
-import { deleteDodoWebhookEndpoint } from '@/lib/dodo-provider';
-import { deleteLemonSqueezyWebhookEndpoint } from '@/lib/lemonsqueezy-provider';
-import { deletePolarWebhookEndpoint, getPolarEnvironment } from '@/lib/polar-provider';
+import { deleteDodoWebhookEndpoint } from '@/features/payments/server/providers/dodo-provider';
+import { deleteLemonSqueezyWebhookEndpoint } from '@/features/payments/server/providers/lemonsqueezy-provider';
+import { deletePolarWebhookEndpoint, getPolarEnvironment } from '@/features/payments/server/providers/polar-provider';
 import prisma from '@/lib/prisma';
-import { decryptProviderSecret } from '@/lib/provider-secrets';
-import { deleteStripeWebhookEndpoint } from '@/lib/stripe-provider';
-import { deleteYolfiWebhookEndpoint } from '@/lib/yolfi-provider';
+import { decryptProviderSecret } from '@/features/payments/server/provider-secrets';
+import { deleteStripeWebhookEndpoint } from '@/features/payments/server/providers/stripe-provider';
+import { deleteYolfiWebhookEndpoint } from '@/features/payments/server/providers/yolfi-provider';
 
 const CLEANUP_LIMIT = 50;
 const STALE_LOCK_MS = 10 * 60 * 1000;

@@ -3,7 +3,7 @@ import { Loading, useToast } from '@talivia/react-zen';
 import { createContext, type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 import { useApi, useMessages, useModified, useNavigation } from '@/components/hooks';
-import { BOARD_TYPES, getBoardType } from '@/lib/boards';
+import { BOARD_TYPES, getBoardType } from '@/features/legacy/boards/core/boards';
 import { useBoardQuery } from '@/components/hooks/queries/useBoardQuery';
 import type { Board, BoardParameters } from '@/lib/types';
 import { getComponentDefinition } from './boardComponentRegistry';

@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { BRAND } from '@/lib/brand';
-import { hash } from './crypto';
+import { hash } from '@/lib/crypto';
 import {
   createStripeWebhookEndpoint,
   deleteStripeWebhookEndpoint,

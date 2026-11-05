@@ -798,12 +798,14 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       route files is now a thin adapter that re-exports HTTP handlers from a
       feature `server` module. Handlers moved into `account`, `analytics`,
       `auth`, `legacy`, `payments`, `share`, `system`, `websites`, and
-      `workspaces`; the Prisma/analytics query layer, permissions, and shared
-      UI remain cross-cutting. `docs/ARCHITECTURE.md` defines the module
-      boundaries and dependency direction, and `src/lib/app-structure.test.ts`
-      enforces thin route files plus server-module presence. — proof: build,
-      typecheck, lint, 22 API route suites (126 tests), and the full suite are
-      green.
+      `workspaces`. Payment provider clients, webhook verifiers, provider
+      credential handling, provider backfills, analytics import parsers, and
+      board definitions moved into their feature modules as well; the
+      Prisma/analytics query layer, permissions, and shared UI remain
+      cross-cutting. `docs/ARCHITECTURE.md` defines the module boundaries and
+      dependency direction, and `src/lib/app-structure.test.ts` enforces thin
+      route files plus server-module presence. — proof: build, typecheck,
+      lint, 22 API route suites (126 tests), and the full suite are green.
 - [ ] **UI-13 — Motion + polish pass:** page transitions, hover lift, focus
       rings, skeletons, reduced motion, mobile.
 - [ ] **UI-14 — Temporary rename demonstration:** change brand config and show
@@ -966,10 +968,14 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
   route handlers moved out of `src/app/api` into feature modules
   (`features/{account,analytics,auth,legacy,payments,share,system,websites,workspaces}/server`).
   Route files now contain only HTTP-method re-exports and static Next config.
-  Added `docs/ARCHITECTURE.md` (layer boundaries, dependency direction, route
-  contract), extended `src/lib/app-structure.test.ts` to enforce thin API
-  routes and server-module presence, and updated the UI design-system map.
-  Build, typecheck, lint, 126 API tests, and the full suite pass.
+  Payment provider clients/webhooks/backfills, provider credential handling,
+  analytics import parsers, and board definitions moved from `src/lib` and
+  `src/queries` into `features/payments`, `features/websites`, and
+  `features/legacy`. Added `docs/ARCHITECTURE.md` (layer boundaries,
+  dependency direction, route contract), extended
+  `src/lib/app-structure.test.ts` to enforce thin API routes and server-module
+  presence, and updated the UI design-system map. Build, typecheck, lint, 126
+  API tests, and the full suite pass.
 - 2026-11-05 — **Complete source restructure (Phase 9):** `src/app` is now the
   routing layer only. Product UI moved into `src/features` domain modules:
   `app-shell` (shell/top nav/notices), `portfolio` (all-websites home),

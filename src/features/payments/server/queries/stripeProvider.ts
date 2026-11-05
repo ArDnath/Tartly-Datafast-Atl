@@ -1,7 +1,7 @@
 import {
   listStripeCompletedCheckoutSessions,
   mapStripeCheckoutSessionToPaymentInput,
-} from '@/lib/stripe-provider';
+} from '@/features/payments/server/providers/stripe-provider';
 
 const STRIPE_BACKFILL_DAYS = 30;
 const STRIPE_BACKFILL_LIMIT = 100;
@@ -30,7 +30,7 @@ export async function backfillStripeCheckoutSessions({
   listSessions = listStripeCompletedCheckoutSessions,
   record,
 }: BackfillStripeCheckoutSessionsInput) {
-  const recordPaymentFn = record || (await import('./payment')).recordPayment;
+  const recordPaymentFn = record || (await import('@/queries/prisma/payment')).recordPayment;
   const sessions = await listSessions({
     apiKey,
     createdGte: subDays(now, STRIPE_BACKFILL_DAYS),

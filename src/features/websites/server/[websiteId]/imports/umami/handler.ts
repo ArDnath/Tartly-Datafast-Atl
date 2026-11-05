@@ -1,4 +1,4 @@
-import { importAnalyticsFile, parseUmamiArchive } from '@/lib/analytics-imports';
+import { importAnalyticsFile, parseUmamiArchive } from '@/features/websites/server/imports';
 import { parseRequest } from '@/lib/request';
 import { badRequest, unauthorized } from '@/lib/response';
 import { canUpdateWebsite } from '@/permissions';

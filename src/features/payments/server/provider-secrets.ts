@@ -1,4 +1,4 @@
-import { decrypt, encrypt, secret } from './crypto';
+import { decrypt, encrypt, secret } from '@/lib/crypto';
 
 const ENCRYPTED_PROVIDER_SECRET_PREFIX = 'enc:';
 

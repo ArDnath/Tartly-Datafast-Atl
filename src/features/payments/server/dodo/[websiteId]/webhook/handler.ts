@@ -6,11 +6,11 @@ import {
   mapDodoRefundToRefundInput,
   resolveDodoRefundDetails,
   shouldRecordDodoPayment,
-} from '@/lib/dodo-provider';
-import { unwrapDodoWebhook } from '@/lib/dodo-webhook';
+} from '@/features/payments/server/providers/dodo-provider';
+import { unwrapDodoWebhook } from '@/features/payments/server/webhooks/dodo-webhook';
 import { fetchWebsite } from '@/lib/load';
 import prisma from '@/lib/prisma';
-import { decryptProviderSecret } from '@/lib/provider-secrets';
+import { decryptProviderSecret } from '@/features/payments/server/provider-secrets';
 import { badRequest, json, notFound, serverError, unauthorized } from '@/lib/response';
 import { recordPayment, recordRefund } from '@/queries/prisma';
 

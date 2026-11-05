@@ -14,7 +14,7 @@ import { Panel } from '@/components/common/Panel';
 import { useMessages } from '@/components/hooks';
 import { useBoard } from '@/components/hooks/context/useBoard';
 import { Pencil, Plus, X } from '@/components/icons';
-import { getBoardEntity, getBoardType, getResolvedComponentEntity } from '@/lib/boards';
+import { getBoardEntity, getBoardType, getResolvedComponentEntity } from '@/features/legacy/boards/core/boards';
 import type { BoardComponentConfig } from '@/lib/types';
 import { getComponentDefinition } from '../boardComponentRegistry';
 import { BoardComponentRenderer } from './BoardComponentRenderer';

@@ -4,7 +4,7 @@ import type {
   RecordSubscriptionStateInput,
 } from '@/queries/prisma/payment';
 import { BRAND } from '@/lib/brand';
-import { hash } from './crypto';
+import { hash } from '@/lib/crypto';
 
 export const POLAR_REVENUE_WEBHOOK_EVENTS = [
   'order.paid',

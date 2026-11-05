@@ -1,5 +1,5 @@
-import { listYolfiCompletedPayments } from '@/lib/yolfi-provider';
-import { normalizeEmailHash } from './attribution';
+import { listYolfiCompletedPayments } from '@/features/payments/server/providers/yolfi-provider';
+import { normalizeEmailHash } from '@/queries/prisma/attribution';
 
 const YOLFI_BACKFILL_DAYS = 30;
 
@@ -44,9 +44,9 @@ export async function backfillYolfiRevenue({
   connectionId?: string;
   now?: Date;
   listPayments?: typeof listYolfiCompletedPayments;
-  recordPayment?: typeof import('./payment').recordPayment;
+  recordPayment?: typeof import('@/queries/prisma/payment').recordPayment;
 }) {
-  const paymentRecorder = recordPayment || (await import('./payment')).recordPayment;
+  const paymentRecorder = recordPayment || (await import('@/queries/prisma/payment')).recordPayment;
   const createdAfter = new Date(now.getTime() - YOLFI_BACKFILL_DAYS * 24 * 60 * 60 * 1000);
   const payments = await listPayments({ apiKey, createdAfter });
   const ordered = [...payments].sort(

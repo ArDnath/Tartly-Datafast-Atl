@@ -5,39 +5,39 @@ import {
   deleteDodoWebhookEndpoint,
   getDodoAccount,
   serializeDodoCredential,
-} from '@/lib/dodo-provider';
+} from '@/features/payments/server/providers/dodo-provider';
 import {
   createLemonSqueezyWebhookEndpoint,
   getLemonSqueezyStore,
   getLemonSqueezyTestMode,
-} from '@/lib/lemonsqueezy-provider';
+} from '@/features/payments/server/providers/lemonsqueezy-provider';
 import {
   createPolarWebhookEndpoint,
   deletePolarWebhookEndpoint,
   resolvePolarOrganization,
   serializePolarCredential,
   validatePolarReadAccess,
-} from '@/lib/polar-provider';
+} from '@/features/payments/server/providers/polar-provider';
 import prisma from '@/lib/prisma';
-import { encryptProviderSecret } from '@/lib/provider-secrets';
+import { encryptProviderSecret } from '@/features/payments/server/provider-secrets';
 import { parseRequest } from '@/lib/request';
 import {
   createStripeWebhookEndpoint,
   deleteStripeWebhookEndpoint,
   updateStripeWebhookEndpoint,
-} from '@/lib/stripe-provider';
+} from '@/features/payments/server/providers/stripe-provider';
 import {
   createYolfiAnalyticsEndpoint,
   deleteYolfiWebhookEndpoint,
   getYolfiOrganization,
   updateYolfiAnalyticsEndpoint,
-} from '@/lib/yolfi-provider';
+} from '@/features/payments/server/providers/yolfi-provider';
 import { canUpdateWebsite } from '@/permissions';
-import { backfillDodoRevenue } from '@/queries/prisma/dodoProvider';
-import { backfillPolarRevenue } from '@/queries/prisma/polarProvider';
+import { backfillDodoRevenue } from '@/features/payments/server/queries/dodoProvider';
+import { backfillPolarRevenue } from '@/features/payments/server/queries/polarProvider';
 import { enqueueProviderWebhookCleanup } from '@/queries/prisma/providerWebhookCleanup';
-import { backfillStripeCheckoutSessions } from '@/queries/prisma/stripeProvider';
-import { backfillYolfiRevenue } from '@/queries/prisma/yolfiProvider';
+import { backfillStripeCheckoutSessions } from '@/features/payments/server/queries/stripeProvider';
+import { backfillYolfiRevenue } from '@/features/payments/server/queries/yolfiProvider';
 import { DELETE, POST } from './route';
 
 vi.mock('@/lib/prisma', () => {
@@ -67,14 +67,14 @@ vi.mock('@/permissions', () => ({
   canViewWebsite: vi.fn(),
 }));
 
-vi.mock('@/lib/provider-secrets', () => ({
+vi.mock('@/features/payments/server/provider-secrets', () => ({
   encryptProviderSecret: vi.fn((value: string) => `enc:${value}`),
   decryptProviderSecret: vi.fn((value?: string | null) =>
     value?.startsWith('enc:') ? value.slice(4) : value || null,
   ),
 }));
 
-vi.mock('@/lib/stripe-provider', () => ({
+vi.mock('@/features/payments/server/providers/stripe-provider', () => ({
   createStripeWebhookEndpoint: vi.fn(),
   deleteStripeWebhookEndpoint: vi.fn(),
   isStripeRestrictedKey: vi.fn((value?: string | null) =>
@@ -83,15 +83,15 @@ vi.mock('@/lib/stripe-provider', () => ({
   updateStripeWebhookEndpoint: vi.fn(),
 }));
 
-vi.mock('@/lib/yolfi-provider', () => ({
+vi.mock('@/features/payments/server/providers/yolfi-provider', () => ({
   createYolfiAnalyticsEndpoint: vi.fn(),
   updateYolfiAnalyticsEndpoint: vi.fn(),
   deleteYolfiWebhookEndpoint: vi.fn(),
   getYolfiOrganization: vi.fn(),
 }));
 
-vi.mock('@/lib/dodo-provider', async importOriginal => {
-  const actual = await importOriginal<typeof import('@/lib/dodo-provider')>();
+vi.mock('@/features/payments/server/providers/dodo-provider', async importOriginal => {
+  const actual = await importOriginal<typeof import('@/features/payments/server/providers/dodo-provider')>();
 
   return {
     ...actual,
@@ -101,15 +101,15 @@ vi.mock('@/lib/dodo-provider', async importOriginal => {
   };
 });
 
-vi.mock('@/lib/lemonsqueezy-provider', () => ({
+vi.mock('@/features/payments/server/providers/lemonsqueezy-provider', () => ({
   createLemonSqueezyWebhookEndpoint: vi.fn(),
   deleteLemonSqueezyWebhookEndpoint: vi.fn(),
   getLemonSqueezyStore: vi.fn(),
   getLemonSqueezyTestMode: vi.fn(),
 }));
 
-vi.mock('@/lib/polar-provider', async importOriginal => {
-  const actual = await importOriginal<typeof import('@/lib/polar-provider')>();
+vi.mock('@/features/payments/server/providers/polar-provider', async importOriginal => {
+  const actual = await importOriginal<typeof import('@/features/payments/server/providers/polar-provider')>();
 
   return {
     ...actual,
@@ -121,19 +121,19 @@ vi.mock('@/lib/polar-provider', async importOriginal => {
   };
 });
 
-vi.mock('@/queries/prisma/stripeProvider', () => ({
+vi.mock('@/features/payments/server/queries/stripeProvider', () => ({
   backfillStripeCheckoutSessions: vi.fn(),
 }));
 
-vi.mock('@/queries/prisma/dodoProvider', () => ({
+vi.mock('@/features/payments/server/queries/dodoProvider', () => ({
   backfillDodoRevenue: vi.fn(),
 }));
 
-vi.mock('@/queries/prisma/polarProvider', () => ({
+vi.mock('@/features/payments/server/queries/polarProvider', () => ({
   backfillPolarRevenue: vi.fn(),
 }));
 
-vi.mock('@/queries/prisma/yolfiProvider', () => ({
+vi.mock('@/features/payments/server/queries/yolfiProvider', () => ({
   backfillYolfiRevenue: vi.fn(),
 }));
 

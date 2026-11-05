@@ -22,7 +22,7 @@ import {
   getBoardType,
   requiresBoardEntity,
   setBoardEntity,
-} from '@/lib/boards';
+} from '@/features/legacy/boards/core/boards';
 import type { Board } from '@/lib/types';
 
 interface BoardFormValues {

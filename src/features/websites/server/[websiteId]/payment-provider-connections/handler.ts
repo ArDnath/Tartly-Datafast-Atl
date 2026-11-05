@@ -8,7 +8,7 @@ import {
   getDodoEnvironment,
   isDodoApiKey,
   serializeDodoCredential,
-} from '@/lib/dodo-provider';
+} from '@/features/payments/server/providers/dodo-provider';
 import { BRAND } from '@/lib/brand';
 import { getBaseUrl } from '@/lib/get-base-url';
 import {
@@ -16,7 +16,7 @@ import {
   deleteLemonSqueezyWebhookEndpoint,
   getLemonSqueezyStore,
   getLemonSqueezyTestMode,
-} from '@/lib/lemonsqueezy-provider';
+} from '@/features/payments/server/providers/lemonsqueezy-provider';
 import {
   createPolarWebhookEndpoint,
   deletePolarWebhookEndpoint,
@@ -25,10 +25,10 @@ import {
   resolvePolarOrganization,
   updatePolarWebhookEndpoint,
   validatePolarReadAccess,
-} from '@/lib/polar-provider';
+} from '@/features/payments/server/providers/polar-provider';
 import prisma from '@/lib/prisma';
 import { isUniqueConstraintError } from '@/lib/prisma-error';
-import { decryptProviderSecret, encryptProviderSecret } from '@/lib/provider-secrets';
+import { decryptProviderSecret, encryptProviderSecret } from '@/features/payments/server/provider-secrets';
 import { parseRequest } from '@/lib/request';
 import { badRequest, json, unauthorized } from '@/lib/response';
 import {
@@ -36,19 +36,19 @@ import {
   deleteStripeWebhookEndpoint,
   isStripeRestrictedKey,
   updateStripeWebhookEndpoint,
-} from '@/lib/stripe-provider';
+} from '@/features/payments/server/providers/stripe-provider';
 import {
   createYolfiAnalyticsEndpoint,
   deleteYolfiWebhookEndpoint,
   getYolfiOrganization,
   updateYolfiAnalyticsEndpoint,
-} from '@/lib/yolfi-provider';
+} from '@/features/payments/server/providers/yolfi-provider';
 import { canUpdateWebsite, canViewWebsite } from '@/permissions';
-import { backfillDodoRevenue } from '@/queries/prisma/dodoProvider';
-import { backfillPolarRevenue } from '@/queries/prisma/polarProvider';
+import { backfillDodoRevenue } from '@/features/payments/server/queries/dodoProvider';
+import { backfillPolarRevenue } from '@/features/payments/server/queries/polarProvider';
 import { enqueueProviderWebhookCleanup } from '@/queries/prisma/providerWebhookCleanup';
-import { backfillStripeCheckoutSessions } from '@/queries/prisma/stripeProvider';
-import { backfillYolfiRevenue } from '@/queries/prisma/yolfiProvider';
+import { backfillStripeCheckoutSessions } from '@/features/payments/server/queries/stripeProvider';
+import { backfillYolfiRevenue } from '@/features/payments/server/queries/yolfiProvider';
 
 const schema = z.object({
   providerName: z.enum(['stripe', 'dodo', 'lemonsqueezy', 'polar', 'yolfi']),

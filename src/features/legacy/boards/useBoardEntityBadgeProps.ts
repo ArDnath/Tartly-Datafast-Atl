@@ -1,7 +1,7 @@
 import { useWebsiteQuery } from '@/components/hooks';
 import { useLinkQuery } from '@/components/hooks/queries/useLinkQuery';
 import { usePixelQuery } from '@/components/hooks/queries/usePixelQuery';
-import type { BoardEntityType } from '@/lib/boards';
+import type { BoardEntityType } from '@/features/legacy/boards/core/boards';
 
 export function useBoardEntityBadgeProps(
   entityType?: BoardEntityType,

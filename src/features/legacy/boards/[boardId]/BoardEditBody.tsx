@@ -5,7 +5,7 @@ import { Group, type GroupImperativeHandle, Panel, Separator } from 'react-resiz
 import { v4 as uuid } from 'uuid';
 import { useBoard } from '@/components/hooks/context/useBoard';
 import { GripHorizontal, Plus } from '@/components/icons';
-import { getBoardEntity, getBoardType, requiresBoardEntity } from '@/lib/boards';
+import { getBoardEntity, getBoardType, requiresBoardEntity } from '@/features/legacy/boards/core/boards';
 import { BoardEditRow } from './BoardEditRow';
 import { BUTTON_ROW_HEIGHT, MAX_ROW_HEIGHT, MIN_ROW_HEIGHT } from './boardConstants';
 

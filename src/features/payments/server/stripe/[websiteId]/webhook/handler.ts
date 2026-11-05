@@ -1,10 +1,10 @@
 import { serializeError } from 'serialize-error';
 import { fetchWebsite } from '@/lib/load';
 import prisma from '@/lib/prisma';
-import { decryptProviderSecret } from '@/lib/provider-secrets';
+import { decryptProviderSecret } from '@/features/payments/server/provider-secrets';
 import { badRequest, json, notFound, serverError, unauthorized } from '@/lib/response';
-import { formatStripeAmount, mapStripeCheckoutSessionToPaymentInput } from '@/lib/stripe-provider';
-import { verifyStripeSignature } from '@/lib/stripe-webhook';
+import { formatStripeAmount, mapStripeCheckoutSessionToPaymentInput } from '@/features/payments/server/providers/stripe-provider';
+import { verifyStripeSignature } from '@/features/payments/server/webhooks/stripe-webhook';
 
 import {
   normalizeEmailHash,

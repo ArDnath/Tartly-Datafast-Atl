@@ -50,7 +50,7 @@ app  ->  features  ->  components / lib / queries / permissions / store
 | `legacy` | frozen boards, links, pixels and their APIs |
 | `marketing` | landing and pricing |
 | `onboarding` | onboarding canvas and website setup |
-| `payments` | provider connections, manual payments, provider webhooks |
+| `payments` | provider connections, manual payments, provider webhooks, provider clients/backfills, credential encryption |
 | `portfolio` | `/app` all-websites home |
 | `settings` | workspace, websites, billing/usage, account, preferences |
 | `share` | public share shell and share APIs |
