@@ -1,7 +1,7 @@
 import clickhouse from '@/lib/clickhouse';
 import { DATA_TYPE } from '@/lib/constants';
 import { uuid } from '@/lib/crypto';
-import { flattenJSON, getStringValue } from '@/lib/data';
+import { flattenJSON, getStringValue } from '@/features/analytics/lib/data';
 import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
 import kafka from '@/lib/kafka';
 import prisma from '@/lib/prisma';

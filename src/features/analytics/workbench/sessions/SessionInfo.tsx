@@ -10,7 +10,7 @@ import {
   getPaymentCustomerKey,
   getPaymentCustomerLabel,
   type PaymentCustomerIdentity,
-} from '@/lib/paymentCustomer';
+} from '@/features/analytics/lib/paymentCustomer';
 import { getSessionSource, hasSessionSourceFavicon } from './sessionDisplay';
 
 export function SessionInfo({ data }) {

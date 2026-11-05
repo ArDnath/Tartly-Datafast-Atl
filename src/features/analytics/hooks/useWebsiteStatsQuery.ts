@@ -3,7 +3,7 @@ import { keepPreviousData } from '@tanstack/react-query';
 import { useApi } from '@/components/hooks/useApi';
 import { useDateParameters } from '@/components/hooks/useDateParameters';
 import { useFilterParameters } from '@/components/hooks/useFilterParameters';
-import type { PaymentCustomerIdentity } from '@/lib/paymentCustomer';
+import type { PaymentCustomerIdentity } from '@/features/analytics/lib/paymentCustomer';
 
 export interface WebsiteStatsData {
   pageviews: number;

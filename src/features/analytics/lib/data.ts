@@ -1,5 +1,5 @@
-import { DATA_TYPE, DATETIME_REGEX } from './constants';
-import type { DynamicDataType } from './types';
+import { DATA_TYPE, DATETIME_REGEX } from '@/lib/constants';
+import type { DynamicDataType } from '@/lib/types';
 
 export function flattenJSON(
   eventData: Record<string, any>,

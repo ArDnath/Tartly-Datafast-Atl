@@ -1,6 +1,6 @@
 import { DEFAULT_CURRENCY } from '@/lib/constants';
 import { REVENUE_PAYMENT_STATUSES } from '@/lib/payment-status';
-import { getPaymentCustomerLabel } from '@/lib/paymentCustomer';
+import { getPaymentCustomerLabel } from '@/features/analytics/lib/paymentCustomer';
 import prisma from '@/lib/prisma';
 
 export interface RevenueAttributionReportInput {

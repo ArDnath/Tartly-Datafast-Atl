@@ -1,6 +1,6 @@
 import { REVENUE_PAYMENT_STATUSES } from '@/lib/payment-status';
 import prisma from '@/lib/prisma';
-import { redactSensitiveValue } from '@/lib/redact';
+import { redactSensitiveValue } from '@/features/analytics/lib/redact';
 
 export interface RevenueJourneyReportInput {
   startDate: Date;

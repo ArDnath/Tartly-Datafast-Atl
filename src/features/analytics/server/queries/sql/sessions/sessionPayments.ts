@@ -3,7 +3,7 @@ import {
   getPaymentCustomerKey,
   hasPaymentCustomerIdentity,
   type PaymentCustomerIdentity,
-} from '@/lib/paymentCustomer';
+} from '@/features/analytics/lib/paymentCustomer';
 import prisma from '@/lib/prisma';
 import type { QueryFilters } from '@/lib/types';
 

@@ -7,7 +7,7 @@ import { useEscapeKey, useMessages } from '@/components/hooks';
 import { File } from '@/components/icons';
 import { Lightning } from '@/components/svg';
 import { useResultQuery } from '@/features/analytics/hooks/useResultQuery';
-import { objectToArray } from '@/lib/data';
+import { objectToArray } from '@/features/analytics/lib/data';
 import { formatLongNumber } from '@/lib/format';
 import styles from './Journey.module.css';
 

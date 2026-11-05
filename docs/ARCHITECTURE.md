@@ -193,6 +193,8 @@ The restructure moved the remaining domain-specific UI out of `src/components`:
 | website import repository | `src/features/websites/server/queries` |
 | Stripe minor-unit formatting | `src/features/payments/lib/stripe-amount.ts` |
 | revenue channel classification and overview metrics | `src/features/analytics/lib/dashboard-breakdown.ts` and `src/features/account/lib/website-overview.ts` |
+| event-data flattening, payment-customer labels, and redaction | `src/features/analytics/lib/{data,paymentCustomer,redact}.ts` |
+| random public-share slugs | `src/features/websites/lib/generate.ts` |
 | public pixel/link collection handlers | `src/features/legacy/server/collect` |
 | website shell resolution | `src/features/analytics/workbench/WebsiteLayoutRoute.tsx` |
 | dead dashboard/website/cache stores and the unused refresh button | deleted |
@@ -205,12 +207,12 @@ shared locale/timezone/date-range/user shell state.
 The shared `src/lib` allowlist is enforced by the structure test. It keeps
 cross-cutting infrastructure (auth sessions, CSRF, rate limits, Prisma,
 crypto, email, plans/usage, branding, request/response) plus the contracts that
-cross feature boundaries (`payment-status`, `paymentCustomer`,
-`tracking-identity`, `currency-exchange`, `reporting-currency`,
-`share-sections`, `share-redaction`, and the frozen `board-types`). Those
-contracts stay shared because both analytics and payments, or both the shared
-request layer and a feature, read them. Provider-specific request handling and
-UI still live in `src/features/payments`.
+cross feature boundaries (`payment-status`, `tracking-identity`,
+`currency-exchange`, `reporting-currency`, `share-sections`,
+`share-redaction`, and the frozen `board-types`). Those contracts stay shared
+because both analytics and payments, or both the shared request layer and a
+feature, read them. Provider-specific request handling and UI still live in
+`src/features/payments`.
 
 The settings surface is now a shell plus domain-owned screens. `features/settings`
 contains only `SettingsLayout`, `SettingsPageLayout`, and `SettingsHomePage`;
