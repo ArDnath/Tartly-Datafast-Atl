@@ -38,18 +38,20 @@ lookup filtered `deletedAt` but not `suspendedAt`. Fixed in `src/lib/entitlement
 and pinned by `src/lib/entitlements.test.ts`. After the fix, the same request
 returned 403 before any session or event write.
 
-## Setup allowance
+## One-time setup allowance
 
-Fresh account with no subscription:
+Fresh account with no subscription, `workspace.setup_events_count` set to 999:
 
 ```text
-1000 events accepted (10 concurrency, all HTTP 200)
+event 1000 -> 200 accepted; counter 1000
 event 1001 -> {"ok":false,"reason":"subscription_required","limit":1000,"used":1000}
-stored rows 1000 / usage 1000
+counter remains 1000; there is no monthly reset
 ```
 
-The smoke account was deleted afterwards. This closes the "free Starter
-forever" leak while still allowing install verification.
+The counter lives on the workspace, not `usage_period`, so an unsubscribed
+workspace cannot farm a fresh allowance each month. The smoke account was
+deleted afterwards. This closes the "free Starter forever" leak while still
+allowing install verification.
 
 ## Not covered
 

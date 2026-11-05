@@ -83,7 +83,11 @@ export async function POST(request: Request) {
 
     const entitlements = await getWorkspaceEntitlements(website.workspaceId);
 
-    if (!entitlements?.plan || !planHasFeature(entitlements.plan, 'session_replay')) {
+    if (
+      !entitlements?.plan ||
+      !entitlements.active ||
+      !planHasFeature(entitlements.plan, 'session_replay')
+    ) {
       return json({ ok: false, reason: 'replay_not_in_plan' });
     }
 

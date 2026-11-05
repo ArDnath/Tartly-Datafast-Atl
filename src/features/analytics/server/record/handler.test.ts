@@ -130,6 +130,23 @@ test('a plan without replay entitlement is rejected before a usage slot is reser
   expect(reserveReplaySession).not.toHaveBeenCalled();
 });
 
+test('a Pro plan without an active subscription cannot record replay', async () => {
+  vi.mocked(getWorkspaceEntitlements).mockResolvedValue({
+    workspaceId: 'workspace-1',
+    plan: getPlan('pro'),
+    planId: 'pro',
+    subscriptionStatus: 'incomplete',
+    active: false,
+    setup: true,
+  });
+
+  const response = await POST(recordRequest());
+
+  expect(await response.json()).toEqual({ ok: false, reason: 'replay_not_in_plan' });
+  expect(reserveReplaySession).not.toHaveBeenCalled();
+  expect(saveRecording).not.toHaveBeenCalled();
+});
+
 test('a Pro workspace records one session and meters it separately from events', async () => {
   const response = await POST(recordRequest());
 

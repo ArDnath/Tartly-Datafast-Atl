@@ -191,7 +191,7 @@ export function PricingPage() {
           <h2>Why no free plan?</h2>
           <p>
             A free plan would be paid for by the customers who do pay. Two honest paid plans keep
-            the product and the price sustainable. A new workspace gets a small setup allowance
+            the product and the price sustainable. A new workspace gets a one-time setup allowance
             (1,000 events) to verify the tracker before checkout; after that, ingestion pauses until
             you subscribe. It is not a free tier. You can cancel at the end of any period.
           </p>
@@ -203,8 +203,8 @@ export function PricingPage() {
         <details>
           <summary>Do I need a credit card to start?</summary>
           <p>
-            You can create a workspace and verify the tracker before paying. The setup allowance is
-            1,000 events; continued ingestion requires Starter or Pro.
+            You can create a workspace and verify the tracker before paying. The one-time setup
+            allowance is 1,000 events; continued ingestion requires Starter or Pro.
           </p>
         </details>
         <details>
