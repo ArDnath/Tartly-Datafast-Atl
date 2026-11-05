@@ -1,1 +1,1 @@
-export { GET } from '@/features/websites/server/[websiteId]/dashboard-breakdown/handler';
+export { GET } from '@/features/analytics/server/[websiteId]/dashboard-breakdown/handler';

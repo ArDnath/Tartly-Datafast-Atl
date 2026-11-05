@@ -12,7 +12,7 @@ import {
 import { useFilters, useFormat, useMessages, useUrlState } from '@/components/hooks/index';
 import { Bookmark, X } from '@/components/icons';
 import { useWebsiteSegmentQuery } from '@/features/analytics/hooks/useWebsiteSegmentQuery';
-import { SegmentEditForm } from '@/features/websites/workbench/segments/SegmentEditForm';
+import { SegmentEditForm } from '@/features/analytics/workbench/segments/SegmentEditForm';
 import { isSearchOperator } from '@/lib/params';
 
 export function FilterBar({ websiteId }: { websiteId?: string }) {

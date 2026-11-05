@@ -48,7 +48,7 @@ const SERVER_MODULES = [
   'system',
   'websites',
   'workspaces',
-  'settings/profile',
+  'settings/account',
 ];
 
 const RE_EXPORT_ONLY = /^export \{ [A-Z, ]+ \} from '@\/features\/[^']+';?$/;
@@ -227,6 +227,12 @@ describe('application source layout', () => {
       'analytics/lib/attribution-query.ts',
       'analytics/lib/collector-cache.ts',
       'analytics/lib/dashboard-overview.ts',
+      'analytics/workbench/WebsiteLayout.tsx',
+      'analytics/workbench/WebsiteHeader.tsx',
+      'analytics/workbench/WebsitePage.tsx',
+      'analytics/workbench/WebsiteSectionNav.tsx',
+      'analytics/workbench/reports/revenue/RevenuePage.tsx',
+      'analytics/workbench/sessions/SessionsPage.tsx',
       'auth/lib/auth-return-url.ts',
       'auth/server/registration.ts',
       'legacy/lib/legacy-features.ts',
@@ -234,7 +240,7 @@ describe('application source layout', () => {
       'system/lib/oss-version.ts',
       'websites/lib/api-key.ts',
       'websites/lib/website-domain.ts',
-      'websites/workbench/settings/WebsiteSettingsPage.tsx',
+      'websites/settings/WebsiteSettingsPage.tsx',
       'workspaces/lib/workspace-invitations.ts',
       'workspaces/lib/workspace-members.ts',
     ];
@@ -242,6 +248,21 @@ describe('application source layout', () => {
     for (const path of expected) {
       expect(existsSync(join(FEATURES_ROOT, path)), `missing src/features/${path}`).toBe(true);
     }
+
+    // The analytics workbench (reports, sessions, events, replay, realtime) and
+    // its request handlers belong to the analytics domain. `websites` keeps
+    // site management only: CRUD, settings, imports, API keys, members, shares.
+    expect(
+      existsSync(join(FEATURES_ROOT, 'websites/workbench')),
+      'website analytics workbench should live under features/analytics/workbench',
+    ).toBe(false);
+    expect(existsSync(join(FEATURES_ROOT, 'analytics/server/[websiteId]/stats/handler.ts'))).toBe(
+      true,
+    );
+    expect(
+      existsSync(join(FEATURES_ROOT, 'websites/server/[websiteId]/stats/handler.ts')),
+      'analytics handlers should live under features/analytics/server',
+    ).toBe(false);
   });
 
   test('legacy keeps only the share-rendered link and pixel surfaces', () => {

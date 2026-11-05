@@ -17,7 +17,7 @@ import { useState } from 'react';
 import { useApi, useMessages } from '@/components/hooks';
 import { DialogButton } from '@/components/input/DialogButton';
 import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
-import { PasswordChangeForm } from '@/features/settings/profile/PasswordChangeForm';
+import { PasswordChangeForm } from '@/features/settings/account/PasswordChangeForm';
 
 const CARD_STYLE = {
   background: '#161616',

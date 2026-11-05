@@ -1,1 +1,1 @@
-export { GET } from '@/features/websites/server/[websiteId]/daterange/handler';
+export { GET } from '@/features/analytics/server/[websiteId]/daterange/handler';

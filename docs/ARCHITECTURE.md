@@ -57,7 +57,7 @@ app  ->  features  ->  components / lib / queries / permissions / store
 | Domain | Owns |
 | --- | --- |
 | `account` | `/api/me` profile, password, owned websites |
-| `analytics` | ingestion (`send`, `record`, `batch`), heartbeat, realtime, report and metric endpoints; analytics widgets, filters, and analytics query hooks |
+| `analytics` | the signed-in website workbench (overview, reports, sessions, events, replay, realtime, cohorts, compare, segments), ingestion (`send`, `record`, `batch`), heartbeat, report/metric handlers, analytics widgets, filters, and query hooks |
 | `app-shell` | signed-in shell, top nav, notices, workspace switcher, user menu |
 | `auth` | login, signup, verification, reset, logout, auth query hooks |
 | `docs` | public documentation shell and provider revenue guides |
@@ -69,7 +69,7 @@ app  ->  features  ->  components / lib / queries / permissions / store
 | `settings` | workspace, websites, billing/usage, account, preferences, local-user admin |
 | `share` | public share shell, share widgets, and share APIs |
 | `system` | health, OSS update endpoints, and the cron scheduler/jobs |
-| `websites` | website CRUD, workbench reports, sessions, events, replays, settings, imports/exports, API keys, website selectors/context |
+| `websites` | website CRUD, website settings, imports/exports, API keys, members, shares, selectors/context |
 | `workspaces` | workspace CRUD, members, invitations, usage, active-workspace state |
 
 `src/features/legacy` is quarantined. Do not copy its patterns or add new
@@ -80,7 +80,7 @@ imports from it.
 Every `src/app/api/**/route.ts` is a thin adapter:
 
 ```ts
-export { GET, POST } from '@/features/websites/server/[websiteId]/stats/handler';
+export { GET, POST } from '@/features/analytics/server/[websiteId]/stats/handler';
 ```
 
 Static Next configuration stays in the route file:
@@ -156,7 +156,10 @@ The restructure moved the remaining domain-specific UI out of `src/components`:
 | `PaymentProviderLogo` | `src/features/payments/components` |
 | domain React Query hooks | `src/features/<domain>/hooks` |
 | cron scheduler and jobs | `src/features/system/cron` |
-| route-param-shaped `settings/websites/[websiteId]` | `src/features/websites/workbench/settings` |
+| route-param-shaped `settings/websites/[websiteId]` | `src/features/websites/settings` |
+| website analytics workbench (shell, overview, reports, sessions, events, replay, realtime, cohorts, compare, segments) | `src/features/analytics/workbench` |
+| website analytics request handlers | `src/features/analytics/server/[websiteId]` |
+| account settings UI (`/app/settings/account`) | `src/features/settings/account` |
 | collector cache, cross-domain linker, attribution query, dashboard overview, bot/client detection, analytics filters and chart helpers | `src/features/analytics/lib` |
 | payment return detection | `src/features/payments/lib` |
 | auth return URL and transactional registration | `src/features/auth/lib` and `src/features/auth/server` |
@@ -180,6 +183,13 @@ contracts the preserved analytics engine reads (`payment-status`,
 Those contracts stay shared because `src/queries` is below features; moving
 them upward would invert the dependency arrow. Provider-specific request
 handling and UI still live in `src/features/payments`.
+
+The workbench split is deliberate: `analytics` owns everything a customer does
+to read their traffic and revenue, while `websites` owns the site itself
+(creation, settings, API keys, members, sharing, imports). The route layout
+mounts the analytics workbench shell, and the website settings route renders the
+`websites` settings surface inside it. This keeps analytical screens and their
+handlers together instead of burying them in the site-management domain.
 
 `src/queries/sql` stays in place deliberately: it is the inherited analytics
 engine described in `docs/TENANCY.md`, and multiple features plus tenant

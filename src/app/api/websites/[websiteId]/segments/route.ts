@@ -1,1 +1,1 @@
-export { GET, POST } from '@/features/websites/server/[websiteId]/segments/handler';
+export { GET, POST } from '@/features/analytics/server/[websiteId]/segments/handler';

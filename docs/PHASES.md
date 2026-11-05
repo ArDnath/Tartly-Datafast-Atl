@@ -4,7 +4,7 @@
 - **Repository:** <https://github.com/talivia-group/talivia> (MIT), forked locally at
   `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-05
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 is complete: the source restructure (app, server, domain UI/hooks/lib/store) is finished and enforced, the dead legacy dashboard UI is pruned, the portfolio now shows MRR by first-touch channel, and the brand/contrast locks are automated. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 is complete: the source restructure (app, server, domain UI/hooks/lib/store) is finished and enforced, the dead legacy dashboard UI is pruned, the portfolio now shows MRR by first-touch channel, and the brand/contrast locks are automated. A final domain split now moves the whole website analytics workbench and its handlers into `features/analytics`, leaving `features/websites` as site management only. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
 
 ## Overall progress
 
@@ -879,6 +879,18 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       `settings/websites/[websiteId]` directory into the website workbench.
       `app-structure.test.ts` now pins the pruned legacy surface so it cannot
       regrow. — proof: typecheck, lint, and the structure test pass.
+- [x] **UI-22 — Complete analytics/websites domain split (new):** the whole
+      website analytics workbench moved from `features/websites/workbench` to
+      `features/analytics/workbench` (shell, header, nav, overview, reports,
+      sessions, events, replay, realtime, cohorts, compare, segments). The
+      matching analytics request handlers moved to
+      `features/analytics/server/[websiteId]`, so the thin API routes point at
+      the domain that owns them. `features/websites` now owns site management
+      only (CRUD, `settings/`, imports/exports, API keys, members, shares).
+      The account settings UI moved from `settings/profile` to
+      `settings/account`. `app-structure.test.ts` pins both sides of the split
+      so the workbench cannot drift back into `websites`. — proof: typecheck,
+      lint, structure/route tests, and the full suite are green.
 
 ### Acceptance criteria
 
@@ -1034,6 +1046,19 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 10. **Phase 12:** go-to-market.
 
 ## Changelog
+
+- 2026-11-05 — **Analytics/websites domain split (Phase 9 / UI-22):** the
+  entire website analytics workbench (shell, header, nav, overview, reports,
+  sessions, events, replay, realtime, cohorts, compare, segments) moved from
+  `src/features/websites/workbench` to `src/features/analytics/workbench`, and
+  the report/session/event/replay/metric/realtime request handlers moved to
+  `src/features/analytics/server/[websiteId]`. The thin API routes now point at
+  the analytics domain; `features/websites` keeps site management (CRUD,
+  settings, imports/exports, API keys, members, shares) with settings under
+  `features/websites/settings`. Account settings moved from `settings/profile`
+  to `settings/account`. `app-structure.test.ts` pins the new boundary, and
+  `docs/ARCHITECTURE.md` / `docs/UI_DESIGN_SYSTEM.md` / the README describe the
+  new layout. Typecheck, lint, structure/route tests, and the full suite pass.
 
 - 2026-11-05 — **Phase 9 completion + structural cleanup:** deleted the dead
   inherited legacy dashboard UI (boards, link/pixel lists and edit forms,

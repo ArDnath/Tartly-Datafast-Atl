@@ -1,1 +1,1 @@
-export { POST } from '@/features/websites/server/[websiteId]/revenue-attribution/retry/handler';
+export { POST } from '@/features/analytics/server/[websiteId]/revenue-attribution/retry/handler';

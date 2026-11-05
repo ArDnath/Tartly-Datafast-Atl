@@ -8,8 +8,8 @@ import { LinkHeader } from '@/features/legacy/links/[linkId]/LinkHeader';
 import { LinkMetricsBar } from '@/features/legacy/links/[linkId]/LinkMetricsBar';
 import { LinkPanels } from '@/features/legacy/links/[linkId]/LinkPanels';
 import { LinkProvider } from '@/features/legacy/links/LinkProvider';
-import { AnalyticsOverlayProvider } from '@/features/websites/workbench/AnalyticsOverlayProvider';
-import { WebsiteChart } from '@/features/websites/workbench/WebsiteChart';
+import { AnalyticsOverlayProvider } from '@/features/analytics/workbench/AnalyticsOverlayProvider';
+import { WebsiteChart } from '@/features/analytics/workbench/WebsiteChart';
 
 const excludedIds = ['path', 'entry', 'exit', 'title', 'language', 'screen', 'event'];
 

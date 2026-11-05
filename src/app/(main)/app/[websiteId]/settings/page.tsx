@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { SettingsPage } from '@/features/websites/workbench/settings/SettingsPage';
+import { SettingsPage } from '@/features/websites/settings/SettingsPage';
 
 export default async function ({ params }: { params: Promise<{ websiteId: string }> }) {
   const { websiteId } = await params;

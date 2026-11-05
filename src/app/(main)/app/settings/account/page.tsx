@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ProfilePage } from '@/features/settings/profile/ProfilePage';
+import { ProfilePage } from '@/features/settings/account/ProfilePage';
 
 export default function () {
   return <ProfilePage />;

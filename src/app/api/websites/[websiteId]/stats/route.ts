@@ -1,1 +1,1 @@
-export { GET } from '@/features/websites/server/[websiteId]/stats/handler';
+export { GET } from '@/features/analytics/server/[websiteId]/stats/handler';

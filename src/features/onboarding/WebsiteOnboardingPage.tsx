@@ -6,9 +6,9 @@ import { PageBody } from '@/components/common/PageBody';
 import { Panel } from '@/components/common/Panel';
 import { useMessages, useModified, useNavigation } from '@/components/hooks';
 import { BRAND } from '@/lib/brand';
-import { WebsiteEditForm } from '@/features/websites/workbench/settings/WebsiteEditForm';
-import { WebsiteRevenueConnect } from '@/features/websites/workbench/settings/WebsiteRevenueSettings';
-import { WebsiteTrackingCode } from '@/features/websites/workbench/settings/WebsiteTrackingCode';
+import { WebsiteEditForm } from '@/features/websites/settings/WebsiteEditForm';
+import { WebsiteRevenueConnect } from '@/features/websites/settings/WebsiteRevenueSettings';
+import { WebsiteTrackingCode } from '@/features/websites/settings/WebsiteTrackingCode';
 import { WebsiteAddForm } from '@/features/websites/WebsiteAddForm';
 import { WebsiteProvider } from '@/features/websites/WebsiteProvider';
 

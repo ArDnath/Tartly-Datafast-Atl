@@ -238,8 +238,8 @@ is tracked in `docs/PHASES.md`.
 | Settings overview | `src/features/settings/SettingsHomePage.tsx` |
 | Integrations settings | `src/features/settings/integrations/` |
 | Security settings | `src/features/settings/security/` |
-| Website workbench | `src/features/websites/workbench/` |
-| Website workbench nav | `src/features/websites/workbench/WebsiteSectionNav.tsx` |
+| Website workbench | `src/features/analytics/workbench/` |
+| Website workbench nav | `src/features/analytics/workbench/WebsiteSectionNav.tsx` |
 | Analytics widgets | `src/features/analytics/components/metrics/` |
 | Analytics filters/selectors | `src/features/analytics/components/input/` |
 | Share widgets | `src/features/share/components/` |
@@ -265,7 +265,8 @@ domain module under `src/features`:
 src/app/                     routes only (pages + thin API re-exports)
 src/features/
   account/                   /api/me profile, password, owned websites
-  analytics/                 ingestion, realtime, report/metric handlers, lib/
+  analytics/                 workbench shell + reports/sessions/events/replay/
+                             realtime/cohorts/compare/segments, ingestion, lib/
   app-shell/                 signed-in shell, top nav, notices
   auth/                      login, signup, verify, reset, invite, logout, lib/
   docs/                      public documentation shell and revenue guides
@@ -277,8 +278,7 @@ src/features/
   settings/                  workspace, websites, plan and usage, account
   share/                     public share shell
   system/                    health and OSS updates, cron, lib/
-  websites/                  website list helpers + the workbench, lib/
-    workbench/               overview, reports, sessions, events, replay, settings
+  websites/                  website CRUD, settings, imports, API keys, members
   workspaces/                workspace, member, invitation, usage APIs, lib/
 ```
 

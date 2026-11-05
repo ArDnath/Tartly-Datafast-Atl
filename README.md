@@ -101,8 +101,8 @@ headers.
 
 ```text
 src/app/          route files only (pages, layouts, route handlers)
-src/features/     product UI by domain (app shell, portfolio, workbench,
-                  settings, onboarding, quarantined legacy features)
+src/features/     product UI by domain (app shell, portfolio, analytics
+                  workbench, websites/settings, onboarding, legacy features)
 src/lib/          shared server/client libraries
 src/queries/      tenant-scoped database queries
 prisma/           schema and forward-only migrations

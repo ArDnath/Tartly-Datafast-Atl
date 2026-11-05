@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { FilterBar } from '@/features/analytics/components/input/FilterBar';
 import { render, screen } from '@/test/render';
 
-vi.mock('@/features/websites/workbench/segments/SegmentEditForm', () => ({
+vi.mock('@/features/analytics/workbench/segments/SegmentEditForm', () => ({
   SegmentEditForm: () => <button type="button">Save</button>,
 }));
 

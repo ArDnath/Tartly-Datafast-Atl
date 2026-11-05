@@ -8,8 +8,8 @@ import { PixelHeader } from '@/features/legacy/pixels/[pixelId]/PixelHeader';
 import { PixelMetricsBar } from '@/features/legacy/pixels/[pixelId]/PixelMetricsBar';
 import { PixelPanels } from '@/features/legacy/pixels/[pixelId]/PixelPanels';
 import { PixelProvider } from '@/features/legacy/pixels/PixelProvider';
-import { AnalyticsOverlayProvider } from '@/features/websites/workbench/AnalyticsOverlayProvider';
-import { WebsiteChart } from '@/features/websites/workbench/WebsiteChart';
+import { AnalyticsOverlayProvider } from '@/features/analytics/workbench/AnalyticsOverlayProvider';
+import { WebsiteChart } from '@/features/analytics/workbench/WebsiteChart';
 
 const excludedIds = ['path', 'entry', 'exit', 'title', 'language', 'screen', 'event'];
 
