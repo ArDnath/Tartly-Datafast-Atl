@@ -872,7 +872,10 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       inherited legacy dashboard UI (boards, link/pixel lists, edit forms,
       board component registry, and their unused hooks/selectors) while keeping
       only the link and pixel pages rendered by public shares and the legacy
-      API handlers. Moved `WebsiteSettingsPage` out of a route-param-shaped
+      API handlers. Deleted the unused segment list/edit chain (keeping the
+      filter-bar edit dialog), the orphaned metrics bars, profile/share headers,
+      two input primitives, and the empty/stale shared helpers. Moved
+      `WebsiteSettingsPage` out of a route-param-shaped
       `settings/websites/[websiteId]` directory into the website workbench.
       `app-structure.test.ts` now pins the pruned legacy surface so it cannot
       regrow. — proof: typecheck, lint, and the structure test pass.
@@ -1034,8 +1037,8 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 
 - 2026-11-05 — **Phase 9 completion + structural cleanup:** deleted the dead
   inherited legacy dashboard UI (boards, link/pixel lists and edit forms,
-  board registry, unused selectors/hooks) while keeping the share-rendered link
-  and pixel pages plus the legacy API handlers; moved `WebsiteSettingsPage` into
+  board registry, unused selectors/hooks) and the orphaned segment list/edit
+  chain, metrics bars, and dead shared helpers; moved `WebsiteSettingsPage` into
   the website workbench; added MRR-by-first-touch-channel to `/app`
   (`getPortfolioMrrByChannel`, pure grouping in `website-overview.ts`, UI panel);
   made the brand name/domain config derive URL, emails, legal entity, and logo
