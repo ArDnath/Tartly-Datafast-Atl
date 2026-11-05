@@ -49,6 +49,7 @@ vi.mock('@/lib/entitlements', () => ({
 }));
 
 vi.mock('@/lib/usage', () => ({
+  EVENT_GRACE: 1_000,
   isBillableEvent: (eventType: number) => eventType >= 1 && eventType <= 4,
   reserveEventUsage: vi.fn(),
   releaseEventUsage: vi.fn(),
@@ -188,6 +189,7 @@ test('pauses billable ingestion when the workspace hard limit is reached', async
 
   vi.mocked(fetchWebsite).mockResolvedValue({ id: websiteId, workspaceId } as any);
   vi.mocked(getWorkspaceEntitlements).mockResolvedValue({
+    active: true,
     plan: { eventsPerMonth: 50_000 },
   } as any);
   vi.mocked(reserveEventUsage).mockResolvedValue({
@@ -247,12 +249,52 @@ test('rejects a website whose workspace is unavailable before creating a session
   expect(reserveEventUsage).not.toHaveBeenCalled();
 });
 
+test('caps a setup-only workspace at the verification allowance', async () => {
+  const workspaceId = '6b7c2d44-8f25-4b50-8d4f-9f0f3b1f1b1b';
+
+  vi.mocked(fetchWebsite).mockResolvedValue({ id: websiteId, workspaceId } as any);
+  vi.mocked(getWorkspaceEntitlements).mockResolvedValue({
+    active: false,
+    setup: true,
+    plan: { eventsPerMonth: 50_000 },
+  } as any);
+  vi.mocked(reserveEventUsage).mockResolvedValue({
+    allowed: false,
+    used: 1_000,
+    limit: 1_000,
+    hardLimit: 1_000,
+  });
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        website: websiteId,
+        visitorId: 'v_visitor',
+        sessionId: 's_session',
+        hostname: 'shop.example',
+        url: 'https://shop.example/pricing',
+      },
+    },
+  } as any);
+
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
+  const body = await response.json();
+
+  expect(reserveEventUsage).toHaveBeenCalledWith(workspaceId, 1_000, 0);
+  expect(body).toMatchObject({ ok: false, reason: 'subscription_required', limit: 1_000 });
+  expect(createSession).not.toHaveBeenCalled();
+  expect(saveEvent).not.toHaveBeenCalled();
+});
+
 test('releases the reservation when the event write fails', async () => {
   const workspaceId = '6b7c2d44-8f25-4b50-8d4f-9f0f3b1f1b1b';
   const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
 
   vi.mocked(fetchWebsite).mockResolvedValue({ id: websiteId, workspaceId } as any);
   vi.mocked(getWorkspaceEntitlements).mockResolvedValue({
+    active: true,
     plan: { eventsPerMonth: 50_000 },
   } as any);
   vi.mocked(reserveEventUsage).mockResolvedValue({

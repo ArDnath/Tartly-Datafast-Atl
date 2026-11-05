@@ -26,7 +26,8 @@ import {
   getTrackingVisitorId,
 } from '@/features/analytics/lib/tracking-identity';
 import { safeDecodeURI, safeDecodeURIComponent } from '@/lib/url';
-import { isBillableEvent, releaseEventUsage, reserveEventUsage } from '@/lib/usage';
+import { SETUP_EVENT_ALLOWANCE } from '@/lib/plans';
+import { EVENT_GRACE, isBillableEvent, releaseEventUsage, reserveEventUsage } from '@/lib/usage';
 import { isTrackerOriginAllowed } from '@/features/analytics/lib/tracker-origin';
 import {
   ensureVisitorContext,
@@ -228,12 +229,19 @@ export async function POST(request: Request) {
       }
 
       if (isBillableEvent(eventType)) {
-        const reservation = await reserveEventUsage(workspaceId, entitlements.plan.eventsPerMonth);
+        const eventLimit = entitlements.active
+          ? entitlements.plan.eventsPerMonth
+          : SETUP_EVENT_ALLOWANCE;
+        const reservation = await reserveEventUsage(
+          workspaceId,
+          eventLimit,
+          entitlements.active ? EVENT_GRACE : 0,
+        );
 
         if (!reservation.allowed) {
           return json({
             ok: false,
-            reason: 'usage_limit_reached',
+            reason: entitlements.active ? 'usage_limit_reached' : 'subscription_required',
             limit: reservation.limit,
             used: reservation.used,
           });

@@ -20,6 +20,7 @@ test.each([
   '/app/settings/integrations',
   '/app/settings/security',
   '/app/settings/activation',
+  '/app/settings/admin',
   `/app/${WEBSITE_ID}`,
   `/app/${WEBSITE_ID}/settings`,
   `/app/${WEBSITE_ID}/revenue`,

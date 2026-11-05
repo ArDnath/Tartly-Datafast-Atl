@@ -64,6 +64,7 @@ function allowEntitlements(plan = getPlan('pro')) {
     planId: plan?.id ?? null,
     subscriptionStatus: 'active',
     active: true,
+    setup: false,
   });
 }
 

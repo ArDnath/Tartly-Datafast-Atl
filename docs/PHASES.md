@@ -30,7 +30,7 @@
 - Overall percent (average of phases 0–12): **94%**
 - Build state at last check: **green** — `tsc --noEmit`, `biome lint`, and the
   full suite pass; the production build is exercised by `pnpm gate` and CI.
-  Latest local full run: **765 passed / 0 failed / 1 gated skip**, plus the
+  Latest local full run: **767 passed / 0 failed / 1 gated skip**, plus the
   explicit 48-assertion PostgreSQL analytics smoke and the recorded load probe.
 - GitHub CI: **green on `main`** for the last merged phase. CI starts
   PostgreSQL 17, runs `pnpm build-db`, lint, typecheck, the full suite,
@@ -581,10 +581,12 @@ migration connections.
   timestamp tolerance would reject a replay that reuses an old signature.
 - **ASSUMED:** annual product IDs are optional; the UI disables an annual price
   until its product exists.
-- **OPEN:** registration still defaults a new workspace to the Starter plan for
-  setup limits. Onboarding creates a website before the payment step, so the
-  strict "no free tier" paywall is a Phase 8 decision rather than a billing
-  regression. Paid features are gated by `active`.
+- **RESOLVED:** registration still stores Starter as the setup plan, but a
+  workspace without an active subscription is capped at the 1,000-event setup
+  allowance (`SETUP_EVENT_ALLOWANCE`), not the Starter 50,000. Onboarding can
+  create a website and verify the tracker, then ingestion returns
+  `subscription_required` at the cap. Replay is disabled. This closes the
+  "free Starter forever" leak without blocking activation.
 
 ### Needs from the human
 
@@ -657,6 +659,11 @@ migration connections.
 ### Decisions made
 
 - Prices fixed by owner: Starter $7.99, Pro $14.99; no free tier.
+- A workspace without an active subscription gets a 1,000-event setup
+  allowance, not the Starter plan. It exists only to verify the tracker before
+  checkout; at the cap, ingestion returns `subscription_required`. Replay is
+  disabled. Verified live on 2026-11-06 (1,000 accepted, the 1,001st rejected
+  with `limit: 1000, used: 1000`).
 - Website limits fixed by owner: Starter 1, Pro 20.
 - Starter excludes replay to protect margin at 100 customers; Pro gets 2,000
   replays/month with 30-day replay retention.
@@ -826,10 +833,12 @@ migration connections.
       the onboarding install step has framework tabs. Snippets are unit-tested
       and each guide is explicitly labelled **untested at runtime** until a real
       app is exercised.
-- [ ] AI agent experience: review Talivia agent repo licence (MIT verified);
+- [x] AI agent experience: review Talivia agent repo licence (MIT verified);
       write `llms.txt` and agent docs; verification endpoint/CLI; design and if
       feasible implement MCP server (verify installation, list events, diagnose).
-      — **not built**; the verification endpoint exists and is reusable.
+      — proof: `docs/AGENT_INTEGRATION.md`, `src/app/llms.txt/route.ts`,
+      `src/features/developer/**`, `scripts/revenuelens-cli.mjs`,
+      `scripts/revenuelens-mcp.mjs`, and handler/diagnostic tests.
 - [x] Activation metrics: signup, workspace created, website created, tracker
       installed, first event, payment connected, first attributed payment. —
       proof: `features/account/server/queries/activation.ts` derives the funnel
@@ -842,8 +851,9 @@ migration connections.
 
 - [ ] New test account reaches a first verified event using only the UI. —
       **API flow proven end-to-end** (login → workspace → website → event →
-      verify). A browser walk-through is still required because the desktop
-      browser tool was unavailable.
+      verify) and every public/authenticated route rendered 200
+      (`docs/RENDER_SMOKE.md`). A real browser interaction walk-through is still
+      required because the desktop browser was not connected.
 - [x] Each framework guide has a tested or clearly labelled untested snippet. —
       proof: six guides in `install-guides.test.ts`; all are labelled **untested
       at runtime** with the reason shown on `/docs/install`.
@@ -1274,6 +1284,10 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 - [x] Added a graceful-shutdown wrapper for the standalone Docker server
       (`scripts/start-server.mjs`) and raised new password hashes to bcrypt
       cost 12 with rehash-on-login.
+- [x] Rendered-surface smoke over 17 public routes and 12 authenticated routes
+      (`docs/RENDER_SMOKE.md`). Fixed `/app/settings/admin` returning 404 by
+      adding it to the proxy allowlist; normal users still get 403 from the
+      operator API.
 - [x] Final honest tracker update + prioritized post-launch backlog.
 
 ### Acceptance criteria
@@ -1351,6 +1365,26 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 
 ## Changelog
 
+- 2026-11-06 — **Closed the free-usage leak and fixed the operator route:** a
+  workspace with no active paid subscription now receives a **1,000-event setup
+  allowance**, not the full Starter 50,000. At the cap the collector returns
+  `subscription_required`, writes no event, and disables replay; the usage page
+  labels the setup meter and links to checkout. Verified live: 1,000 events
+  accepted, the 1,001st rejected with `limit: 1000, used: 1000`. Also fixed
+  `/app/settings/admin` returning 404 by adding it to the proxy allowlist; the
+  operator API still returns 403 for normal users. Full suite **767 passed / 1
+  gated skip**; production build green.
+
+- 2026-11-06 — **Rendered-surface smoke:** 17 public routes and 12
+  authenticated routes returned 200 on the production build; pricing rendered
+  exactly $7.99/$14.99, legal rendered the drafts notice, and every comparison
+  page rendered its source-dated title. The smoke found `/app/settings/admin`
+  returning 404 because the proxy allowlist omitted it; fixed in
+  `src/lib/app-route.ts` with a route test. Normal users still receive 403 from
+  the operator API. A desktop browser was not connected, so visual/motion/
+  click-through checks remain **UNVERIFIED**. Full suite 765 passed / 1 gated
+  skip; build green.
+
 - 2026-11-06 — **Load proof, contract, and launch pages:** recorded a 10,000
   event / 50-concurrency ingestion run on the production build against local
   PostgreSQL 17: 157 req/s, p50 302 ms, p95 412 ms, p99 480 ms, 0 errors, and
@@ -1360,7 +1394,7 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
   any session write, with a regression test. Added OpenAPI 3.1 (`openapi.yaml`),
   graceful shutdown (`scripts/start-server.mjs`), bcrypt cost 12 with
   rehash-on-login, comparison pages, `sitemap.xml`, `robots.txt`, and
-  `security.txt`. Local full suite: **765 passed / 1 gated skip**; production
+  `security.txt`. Local full suite: **767 passed / 1 gated skip**; production
   build green.
 
 - 2026-11-06 — **Phase 10/11 production readiness and Phase 12 GTM:** added the

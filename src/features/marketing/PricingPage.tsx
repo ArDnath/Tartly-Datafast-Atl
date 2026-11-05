@@ -190,8 +190,10 @@ export function PricingPage() {
         <div>
           <h2>Why no free plan?</h2>
           <p>
-            A free tier would be paid for by the customers who do pay. Two honest paid plans keep
-            the product and the price sustainable. You can cancel at the end of any period.
+            A free plan would be paid for by the customers who do pay. Two honest paid plans keep
+            the product and the price sustainable. A new workspace gets a small setup allowance
+            (1,000 events) to verify the tracker before checkout; after that, ingestion pauses until
+            you subscribe. It is not a free tier. You can cancel at the end of any period.
           </p>
         </div>
       </section>
@@ -200,7 +202,10 @@ export function PricingPage() {
         <h2>Questions</h2>
         <details>
           <summary>Do I need a credit card to start?</summary>
-          <p>Yes. There is no free tier; billing starts when you subscribe.</p>
+          <p>
+            You can create a workspace and verify the tracker before paying. The setup allowance is
+            1,000 events; continued ingestion requires Starter or Pro.
+          </p>
         </details>
         <details>
           <summary>Can I change plans?</summary>

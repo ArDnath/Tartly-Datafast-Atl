@@ -14,8 +14,11 @@ human action. No launch claim is allowed without a stored result.
 - [x] Analytics surfaces: revenue, attribution, journeys, sessions, events,
       realtime, breakdown, goals, funnels, retention, cohorts, UTM,
       performance, compare, replays.
-- [ ] Real browser walkthrough of onboarding and replay masking.
-      **UNVERIFIED**: run a browser session against a deployed preview.
+- [x] Rendered-surface smoke: 17 public + 12 authenticated routes return 200
+      (`docs/RENDER_SMOKE.md`).
+- [ ] Real browser walkthrough of onboarding, motion, and replay masking.
+      **UNVERIFIED**: the desktop browser was not connected; run it against a
+      deployed preview.
 
 ## Tenant isolation and auth
 

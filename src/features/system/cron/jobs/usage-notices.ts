@@ -1,3 +1,4 @@
+import { billingSubscriptionHasAccess } from '@/lib/billing-lifecycle';
 import { getPublicOrigin } from '@/lib/get-base-url';
 import { sendUsageNoticeEmail, type UsageNoticeEmail } from '@/lib/email';
 import { getPlan, getPlanOrNull } from '@/lib/plans';
@@ -55,7 +56,15 @@ export async function runUsageNoticeJob({
         select: {
           name: true,
           planId: true,
-          platformSubscription: { select: { planId: true } },
+          subscriptionStatus: true,
+          platformSubscription: {
+            select: {
+              planId: true,
+              lifecycleStatus: true,
+              cancelAtPeriodEnd: true,
+              currentPeriodEnd: true,
+            },
+          },
           owner: {
             select: { username: true, deletedAt: true, suspendedAt: true },
           },
@@ -73,7 +82,25 @@ export async function runUsageNoticeJob({
       continue;
     }
 
-    const planId = workspace.platformSubscription?.planId ?? workspace.planId;
+    const subscription = workspace.platformSubscription;
+    const active = subscription
+      ? billingSubscriptionHasAccess(
+          {
+            lifecycleStatus: subscription.lifecycleStatus,
+            cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+            currentPeriodEnd: subscription.currentPeriodEnd,
+          },
+          now,
+        )
+      : workspace.subscriptionStatus === 'active' || workspace.subscriptionStatus === 'trialing';
+
+    // Setup-only workspaces have no paid plan. They get an in-app setup
+    // allowance message, not a plan-limit email that would be misleading.
+    if (!active) {
+      continue;
+    }
+
+    const planId = subscription?.planId ?? workspace.planId;
     const plan = getPlanOrNull(planId) || getPlan('starter');
     const status = getUsageStatus(period.eventsCount, plan.eventsPerMonth, EVENT_GRACE);
 

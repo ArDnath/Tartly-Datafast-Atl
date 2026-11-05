@@ -19,6 +19,8 @@ export interface WorkspaceEntitlements {
   subscriptionStatus: string;
   /** True only when the provider has confirmed paid access. */
   active: boolean;
+  /** True when `active` is false; the workspace may only use the setup allowance. */
+  setup: boolean;
 }
 
 export async function getWorkspaceEntitlements(
@@ -50,34 +52,38 @@ export async function getWorkspaceEntitlements(
 
   if (subscription) {
     const plan = getPlanOrNull(subscription.planId) || getPlan('starter');
+    const active = billingSubscriptionHasAccess(
+      {
+        lifecycleStatus: subscription.lifecycleStatus,
+        cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+        currentPeriodEnd: subscription.currentPeriodEnd,
+      },
+      now,
+    );
 
     return {
       workspaceId: workspace.id,
       plan,
       planId: subscription.planId,
       subscriptionStatus: subscription.lifecycleStatus,
-      active: billingSubscriptionHasAccess(
-        {
-          lifecycleStatus: subscription.lifecycleStatus,
-          cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
-          currentPeriodEnd: subscription.currentPeriodEnd,
-        },
-        now,
-      ),
+      active,
+      setup: !active,
     };
   }
 
   // Pre-billing workspaces have no subscription row. They keep their stored
   // plan for setup limits, but only an explicit legacy status counts as paid.
   const plan = getPlanOrNull(workspace.planId) || getPlan('starter');
+  const active =
+    workspace.subscriptionStatus === 'active' || workspace.subscriptionStatus === 'trialing';
 
   return {
     workspaceId: workspace.id,
     plan,
     planId: workspace.planId,
     subscriptionStatus: workspace.subscriptionStatus,
-    active:
-      workspace.subscriptionStatus === 'active' || workspace.subscriptionStatus === 'trialing',
+    active,
+    setup: !active,
   };
 }
 

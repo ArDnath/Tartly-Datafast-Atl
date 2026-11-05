@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { BRAND } from '@/lib/brand';
 import { LegalPage } from '@/features/marketing/legal/LegalPage';
 import { getLegalDocument } from '@/features/marketing/legal/legal-content';
 
@@ -13,11 +12,11 @@ export async function generateMetadata({
   const document = getLegalDocument(slug);
 
   if (!document) {
-    return { title: `Legal | ${BRAND.name}` };
+    return { title: 'Legal' };
   }
 
   return {
-    title: `${document.title} | ${BRAND.name}`,
+    title: document.title,
     description: document.summary,
   };
 }

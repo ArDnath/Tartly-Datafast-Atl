@@ -72,3 +72,22 @@ remain valid because they are already keyed by an absolute timestamp.
   unit tests are in place; CI runs tests before migrations, so a database
   concurrency test needs a separate job.
 - Owner approval of the proposed event, retention, replay, and member limits.
+
+## Setup allowance (no free tier)
+
+A workspace with no active paid subscription is capped at **1,000 billable
+events per calendar month** (`SETUP_EVENT_ALLOWANCE` in `src/lib/plans.ts`).
+This exists only so onboarding can verify the tracker before checkout. It is
+not a free plan:
+
+- replay is disabled;
+- the event limit is the setup allowance, not the Starter 50,000;
+- at 1,000 accepted events the collector returns
+  `{ ok: false, reason: "subscription_required" }` and writes no event;
+- the usage screen labels the meter "Setup events (until you subscribe)";
+- usage-limit emails are skipped for setup-only workspaces to avoid claiming a
+  paid plan allowance.
+
+A verified Stripe/Dodo subscription flips `active` to true and the normal plan
+allowance takes over. A deleted or suspended workspace returns `403` before any
+session or event write.

@@ -7,6 +7,6 @@ export default function () {
 }
 
 export const metadata: Metadata = {
-  title: `Tracker install guides | ${BRAND.name}`,
+  title: 'Tracker install guides',
   description: `Install the ${BRAND.name} tracker in Next.js, React, Vite, plain HTML, Astro, or Remix.`,
 };

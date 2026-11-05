@@ -47,6 +47,7 @@ vi.mock('@/lib/entitlements', () => ({
     plan: { name: 'Pro' },
     subscriptionStatus: 'active',
     active: true,
+    setup: false,
   })),
   getMemberLimit: vi.fn(() => 5),
 }));
