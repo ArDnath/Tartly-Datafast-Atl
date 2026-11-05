@@ -15,6 +15,7 @@ import redis from '@/lib/redis';
 import type { ShareTokenPayload } from '@/lib/types';
 import { ensureArray } from '@/lib/utils';
 import { getShare } from '@/queries/prisma/share';
+import { getShareableWebsite } from '@/queries/prisma/website';
 import { getUser } from '@/queries/prisma/user';
 
 const log = debug('talivia:auth');
@@ -122,15 +123,23 @@ export async function hasPermission(role: string, permission: string | string[])
 
 async function hasValidShareEntity(payload: ShareTokenPayload, entityId: string) {
   if (payload.shareType === ENTITY_TYPE.website) {
-    return payload.websiteId === entityId;
+    return payload.websiteId === entityId && Boolean(await getShareableWebsite(entityId));
   }
 
   if (payload.shareType === ENTITY_TYPE.pixel) {
-    return payload.pixelId === entityId && payload.websiteId === entityId;
+    return (
+      payload.pixelId === entityId &&
+      payload.websiteId === entityId &&
+      Boolean(await getShareableWebsite(entityId))
+    );
   }
 
   if (payload.shareType === ENTITY_TYPE.link) {
-    return payload.linkId === entityId && payload.websiteId === entityId;
+    return (
+      payload.linkId === entityId &&
+      payload.websiteId === entityId &&
+      Boolean(await getShareableWebsite(entityId))
+    );
   }
 
   return false;

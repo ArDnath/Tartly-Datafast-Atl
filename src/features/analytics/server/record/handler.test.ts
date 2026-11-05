@@ -130,6 +130,21 @@ test('a plan without replay entitlement is rejected before a usage slot is reser
   expect(reserveReplaySession).not.toHaveBeenCalled();
 });
 
+test('rejects a deleted website before reserving or saving replay', async () => {
+  vi.mocked(getWebsite).mockResolvedValue({
+    id: websiteId,
+    workspaceId: 'workspace-1',
+    replayEnabled: true,
+    deletedAt: new Date(),
+  } as any);
+
+  const response = await POST(recordRequest());
+
+  expect(response.status).toBe(400);
+  expect(reserveReplaySession).not.toHaveBeenCalled();
+  expect(saveRecording).not.toHaveBeenCalled();
+});
+
 test('a Pro plan without an active subscription cannot record replay', async () => {
   vi.mocked(getWorkspaceEntitlements).mockResolvedValue({
     workspaceId: 'workspace-1',

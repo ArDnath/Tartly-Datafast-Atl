@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     // Query directly to avoid stale Redis cache for recordingEnabled
     const website = await getWebsite(websiteId);
 
-    if (!website) {
+    if (!website || website.deletedAt) {
       return badRequest({ message: 'Website not found.' });
     }
 
