@@ -46,6 +46,29 @@
 - Database: local PostgreSQL has all migrations applied, including the newest
   `20261106120000_abuse_suspension` (user/workspace suspension).
 
+## Final engineering status (2026-11-06)
+
+The codebase is feature-complete for a controlled launch. The full suite, lint,
+typecheck, production build, PostgreSQL analytics smoke, local ingestion load
+probe, rendered-surface smoke, email-token lifecycle, suspension/audit flows,
+one-time setup allowance, and tenant-isolation suites are green. Nine additional
+phase/security PRs (#7–#15) were delivered through the feature-branch → PR →
+CI → merge loop.
+
+What remains is **external verification and approval**, not missing product
+code:
+
+1. Dodo test/live credentials and product IDs (`docs/PLATFORM_BILLING.md`).
+2. Resend API key and verified sending domain.
+3. Live webhook accounts for each analytics payment provider.
+4. A connected desktop browser for visual/motion/replay QA.
+5. A Neon production project with a restore rehearsal.
+6. A deployed-environment load test and hosting/DNS/TLS.
+7. Lawyer review of the legal drafts and confirmation of subprocessors.
+
+Do not claim these are done until the evidence is recorded here. No system
+shutdown or destructive action should be taken based on this tracker.
+
 ## Commercial contract (fixed by owner)
 
 Exactly two plans and **no free tier**:
