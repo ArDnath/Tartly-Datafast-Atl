@@ -3,7 +3,7 @@ import { checkAuth } from '@/lib/auth';
 import { checkPassword } from '@/lib/password';
 import { canCreateUser, canViewUsers } from '@/features/account/lib/permissions';
 import { createUser, getUserByUsername, getUsers } from '@/queries/prisma';
-import { GET, POST } from './route';
+import { GET, POST } from './handler';
 
 vi.mock('@/lib/auth', () => ({
   checkAuth: vi.fn(),

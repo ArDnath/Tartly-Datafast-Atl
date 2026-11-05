@@ -4,7 +4,7 @@ import { canViewWebsite } from '@/permissions';
 import { getHistoricalOverview } from '@/features/analytics/server/queries/historicalMetrics';
 import { getRevenueOverviewReport } from '@/features/analytics/server/queries/revenueAttribution';
 import { getActiveVisitors, getSessionStats, getWebsiteStats } from '@/features/analytics/server/queries/sql';
-import { GET } from './route';
+import { GET } from './handler';
 
 vi.mock('@/lib/request', () => ({
   getQueryFilters: vi.fn(async () => ({

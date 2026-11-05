@@ -4,7 +4,7 @@ import { serializePolarCredential } from '@/features/payments/server/providers/p
 import { verifyPolarSignature } from '@/features/payments/server/webhooks/polar-webhook';
 import prisma from '@/lib/prisma';
 import { recordPayment, recordRefund, recordSubscriptionState } from '@/features/payments/server/queries/payment';
-import { POST } from './route';
+import { POST } from './handler';
 
 vi.mock('@/lib/load', () => ({ fetchWebsite: vi.fn() }));
 vi.mock('@/features/payments/server/webhooks/polar-webhook', () => ({ verifyPolarSignature: vi.fn() }));

@@ -2,7 +2,7 @@ import { beforeEach, expect, test, vi } from 'vitest';
 import { getQueryFilters, parseRequest } from '@/lib/request';
 import { getWebsiteAccess } from '@/permissions';
 import { getUserWebsiteOverview } from '@/features/account/server/queries/websiteOverview';
-import { GET } from './route';
+import { GET } from './handler';
 
 vi.mock('@/lib/request', () => ({
   getQueryFilters: vi.fn(),

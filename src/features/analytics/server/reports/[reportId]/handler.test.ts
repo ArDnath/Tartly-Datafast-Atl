@@ -2,7 +2,7 @@ import { beforeEach, expect, test, vi } from 'vitest';
 import { parseRequest } from '@/lib/request';
 import { canViewReport } from '@/features/analytics/lib/report-permissions';
 import { getReport } from '@/features/analytics/server/queries/report';
-import { GET } from './route';
+import { GET } from './handler';
 
 vi.mock('@/lib/request', () => ({
   parseRequest: vi.fn(),

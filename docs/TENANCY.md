@@ -146,6 +146,6 @@ re-checks membership. Clearing the cookie shows all accessible workspaces.
   single-use tokens, brute-force limits, cross-site rejection.
 - `src/features/analytics/server/queries/session-cache.test.ts` — cached
   sessions are scoped by website.
-- `src/app/api/payments/stripe/[websiteId]/webhook/route.test.ts` and
+- `src/features/payments/server/stripe/[websiteId]/webhook/handler.test.ts` and
   `src/features/system/cron/jobs/provider-webhook-cleanup.test.ts` — webhook/job
   writes stay on the website/job they were queued for.

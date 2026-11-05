@@ -5,7 +5,7 @@ import {
 } from '@/lib/app-config';
 import { hashPassword } from '@/lib/password';
 import { getUserByUsername } from '@/queries/prisma';
-import { POST } from './route';
+import { POST } from './handler';
 
 vi.mock('@/lib/auth-user', async importOriginal => {
   const actual = await importOriginal<typeof import('@/lib/auth-user')>();

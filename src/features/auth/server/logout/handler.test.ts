@@ -2,7 +2,7 @@ import { beforeEach, expect, test, vi } from 'vitest';
 import { checkAuth } from '@/lib/auth';
 import { revokeAuthSession } from '@/lib/auth-session';
 import redis from '@/lib/redis';
-import { POST } from './route';
+import { POST } from './handler';
 
 vi.mock('@/lib/auth', () => ({
   checkAuth: vi.fn(),

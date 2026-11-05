@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { POST } from './route';
+import { POST } from './handler';
 
 vi.mock('@/lib/load', () => ({
   fetchWebsite: vi.fn(),

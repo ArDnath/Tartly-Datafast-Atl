@@ -3,7 +3,7 @@ import { checkAuth } from '@/lib/auth';
 import { revokeAllAuthSessions } from '@/lib/auth-session';
 import { checkPassword, hashPassword } from '@/lib/password';
 import { getUser, updateUser } from '@/queries/prisma';
-import { POST } from './route';
+import { POST } from './handler';
 
 vi.mock('@/lib/auth', () => ({
   checkAuth: vi.fn(),

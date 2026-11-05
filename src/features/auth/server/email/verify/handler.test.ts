@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { consumeEmailVerificationToken } from '@/lib/auth-tokens';
-import { POST } from './route';
+import { POST } from './handler';
 
 vi.mock('@/lib/auth-tokens', () => ({
   consumeEmailVerificationToken: vi.fn(),

@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { revokeAllAuthSessions } from '@/lib/auth-session';
 import { resetPasswordWithToken } from '@/lib/auth-tokens';
-import { POST } from './route';
+import { POST } from './handler';
 
 vi.mock('@/lib/auth-tokens', () => ({
   resetPasswordWithToken: vi.fn(),

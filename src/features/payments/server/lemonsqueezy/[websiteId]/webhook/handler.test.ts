@@ -3,7 +3,7 @@ import { verifyLemonSqueezySignature } from '@/features/payments/server/webhooks
 import { fetchWebsite } from '@/lib/load';
 import prisma from '@/lib/prisma';
 import { recordPayment, recordRefund, recordSubscriptionState } from '@/features/payments/server/queries/payment';
-import { POST } from './route';
+import { POST } from './handler';
 
 vi.mock('@/features/payments/server/webhooks/lemonsqueezy-webhook', () => ({
   verifyLemonSqueezySignature: vi.fn(),

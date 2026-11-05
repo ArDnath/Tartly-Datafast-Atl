@@ -2,7 +2,7 @@ import { beforeEach, expect, test, vi } from 'vitest';
 import { issuePasswordResetToken } from '@/lib/auth-tokens';
 import { sendPasswordResetEmail } from '@/lib/email';
 import { getUserByUsername } from '@/queries/prisma';
-import { POST } from './route';
+import { POST } from './handler';
 
 vi.mock('@/queries/prisma', () => ({
   getUserByUsername: vi.fn(),

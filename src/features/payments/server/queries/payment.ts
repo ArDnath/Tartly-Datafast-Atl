@@ -1,9 +1,9 @@
 import type { Visitor } from '@/generated/prisma/client';
-import { REVENUE_PAYMENT_STATUSES } from '@/lib/payment-status';
+import { REVENUE_PAYMENT_STATUSES } from '@/features/payments/lib/payment-status';
 import prisma from '@/lib/prisma';
 import { isUniqueConstraintError } from '@/lib/prisma-error';
 import { formatStripeAmount } from '@/features/payments/lib/stripe-amount';
-import { getTrackingSessionId } from '@/lib/tracking-identity';
+import { getTrackingSessionId } from '@/features/analytics/lib/tracking-identity';
 import {
   normalizeWebsiteCurrencyAmount,
   normalizeWebsiteCurrencyAmountInTransaction,

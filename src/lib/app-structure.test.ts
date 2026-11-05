@@ -84,7 +84,6 @@ const SHARED_LIB_MODULES = new Set([
   'crypto.ts',
   'csrf.ts',
   'currency-exchange.ts',
-  'dashboard-breakdown.ts',
   'date.ts',
   'db-retry.ts',
   'db.ts',
@@ -101,7 +100,6 @@ const SHARED_LIB_MODULES = new Set([
   'load.ts',
   'params.ts',
   'password.ts',
-  'payment-status.ts',
   'plans.ts',
   'platform-admin.ts',
   'prisma-error.ts',
@@ -115,13 +113,10 @@ const SHARED_LIB_MODULES = new Set([
   'share-redaction.ts',
   'share-sections.ts',
   'storage.ts',
-  'stripe-amount.ts',
-  'tracking-identity.ts',
   'types.ts',
   'url.ts',
   'usage.ts',
   'utils.ts',
-  'website-overview.ts',
   'workspace-auth.ts',
 ]);
 
@@ -190,11 +185,42 @@ describe('application source layout', () => {
     const unexpected = walk(APP_ROOT)
       .map(path => relative(APP_ROOT, path))
       .filter(path => !path.endsWith('.css'))
-      .filter(path => !path.includes('.test.'))
       .filter(path => !ROUTE_FILE.test(basename(path)))
       .filter(path => !ROUTE_LOCAL_COMPONENTS.has(path));
 
     expect(unexpected).toEqual([]);
+  });
+
+  test('route contract tests live beside their feature handlers', () => {
+    const testsInRouter = walk(APP_ROOT).filter(path => path.includes('.test.'));
+    expect(testsInRouter).toEqual([]);
+
+    for (const path of [
+      'account/server/password/handler.test.ts',
+      'account/server/users/handler.test.ts',
+      'account/server/websites/overview/handler.test.ts',
+      'analytics/server/reports/[reportId]/handler.test.ts',
+      'analytics/server/send/handler.test.ts',
+      'analytics/server/[websiteId]/dashboard-breakdown/handler.test.ts',
+      'analytics/server/[websiteId]/stats/handler.test.ts',
+      'auth/server/login/handler.test.ts',
+      'auth/server/logout/handler.test.ts',
+      'auth/server/email/verify/handler.test.ts',
+      'auth/server/password/forgot/handler.test.ts',
+      'auth/server/password/reset/handler.test.ts',
+      'payments/server/dodo/[websiteId]/webhook/handler.test.ts',
+      'payments/server/lemonsqueezy/[websiteId]/webhook/handler.test.ts',
+      'payments/server/polar/[websiteId]/webhook/handler.test.ts',
+      'payments/server/stripe/[websiteId]/webhook/handler.test.ts',
+      'payments/server/yolfi/[websiteId]/webhook/handler.test.ts',
+      'share/server/[slug]/handler.test.ts',
+      'system/server/updates/handler.test.ts',
+      'websites/server/[websiteId]/handler.test.ts',
+      'websites/server/[websiteId]/payment-provider-connections/handler.test.ts',
+      'workspaces/server/[workspaceId]/handler.test.ts',
+    ]) {
+      expect(existsSync(join(FEATURES_ROOT, path)), `missing src/features/${path}`).toBe(true);
+    }
   });
 
   test('every product domain has a feature module and no legacy route group exists', () => {
@@ -253,6 +279,10 @@ describe('application source layout', () => {
     const domainModules = modules.filter(entry => !SHARED_LIB_MODULES.has(entry)).sort();
 
     expect(domainModules).toEqual([]);
+
+    for (const module of SHARED_LIB_MODULES) {
+      expect(existsSync(join(SRC, 'lib', module)), `stale shared lib entry: ${module}`).toBe(true);
+    }
   });
 
   test('src/store contains shared client state only', () => {
@@ -261,6 +291,12 @@ describe('application source layout', () => {
     const domainStores = modules.filter(entry => !SHARED_STORE_MODULES.has(entry)).sort();
 
     expect(domainStores).toEqual([]);
+
+    for (const module of SHARED_STORE_MODULES) {
+      expect(existsSync(join(SRC, 'store', module)), `stale shared store entry: ${module}`).toBe(
+        true,
+      );
+    }
   });
 
   test('src/queries contains the shared data kernel only', () => {
@@ -271,6 +307,13 @@ describe('application source layout', () => {
     );
 
     expect(modules.filter(entry => !SHARED_QUERY_MODULES.has(entry)).sort()).toEqual([]);
+
+    for (const module of SHARED_QUERY_MODULES) {
+      expect(
+        existsSync(join(SRC, 'queries/prisma', module)),
+        `stale shared query entry: ${module}`,
+      ).toBe(true);
+    }
 
     for (const module of [
       'attribution.ts',
@@ -335,6 +378,13 @@ describe('application source layout', () => {
     const domainModules = modules.filter(entry => !SHARED_PERMISSIONS_MODULES.has(entry)).sort();
 
     expect(domainModules).toEqual([]);
+
+    for (const module of SHARED_PERMISSIONS_MODULES) {
+      expect(
+        existsSync(join(SRC, 'permissions', module)),
+        `stale permissions entry: ${module}`,
+      ).toBe(true);
+    }
     expect(existsSync(join(SRC, 'permissions/board.ts'))).toBe(false);
     expect(existsSync(join(SRC, 'permissions/link.ts'))).toBe(false);
     expect(existsSync(join(SRC, 'permissions/pixel.ts'))).toBe(false);
@@ -361,8 +411,19 @@ describe('application source layout', () => {
       'analytics/lib/redact.ts',
       'analytics/lib/dashboard-overview.ts',
       'analytics/lib/report-permissions.ts',
+      'analytics/lib/tracking-identity.ts',
       'analytics/server/queries/session-cache.ts',
       'analytics/server/queries/sql/index.ts',
+      'analytics/server/realtime/[websiteId]/handler.ts',
+      'analytics/server/reports/attribution/handler.ts',
+      'analytics/server/reports/breakdown/handler.ts',
+      'analytics/server/reports/funnel/handler.ts',
+      'analytics/server/reports/goal/handler.ts',
+      'analytics/server/reports/journey/handler.ts',
+      'analytics/server/reports/performance/handler.ts',
+      'analytics/server/reports/retention/handler.ts',
+      'analytics/server/reports/revenue/handler.ts',
+      'analytics/server/reports/utm/handler.ts',
       'analytics/workbench/WebsiteLayout.tsx',
       'analytics/workbench/WebsiteLayoutRoute.tsx',
       'analytics/workbench/WebsiteHeader.tsx',
@@ -378,6 +439,7 @@ describe('application source layout', () => {
       'legacy/server/collect/link/handler.ts',
       'legacy/server/collect/pixel/handler.ts',
       'payments/lib/payment-detection.ts',
+      'payments/lib/payment-status.ts',
       'payments/lib/stripe-amount.ts',
       'payments/server/queries/attribution.ts',
       'payments/server/queries/payment.ts',
@@ -402,6 +464,8 @@ describe('application source layout', () => {
       'src/lib/dashboard-breakdown.ts',
       'src/lib/website-overview.ts',
       'src/lib/stripe-amount.ts',
+      'src/lib/payment-status.ts',
+      'src/lib/tracking-identity.ts',
       'src/lib/data.ts',
       'src/lib/generate.ts',
       'src/lib/paymentCustomer.ts',

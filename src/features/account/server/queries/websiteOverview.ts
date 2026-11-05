@@ -3,7 +3,7 @@ import { utcToZonedTime } from 'date-fns-tz';
 import type { Website } from '@/generated/prisma/client';
 import { DEFAULT_CURRENCY } from '@/lib/constants';
 import { DATE_FUNCTIONS } from '@/lib/date';
-import { REVENUE_PAYMENT_STATUSES } from '@/lib/payment-status';
+import { REVENUE_PAYMENT_STATUSES } from '@/features/payments/lib/payment-status';
 import prisma from '@/lib/prisma';
 import type { QueryFilters } from '@/lib/types';
 import {

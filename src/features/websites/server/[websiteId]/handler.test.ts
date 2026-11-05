@@ -2,7 +2,7 @@ import { beforeEach, expect, test, vi } from 'vitest';
 import { parseRequest } from '@/lib/request';
 import { canViewWebsite, getWebsiteAccess } from '@/permissions';
 import { getWebsite } from '@/queries/prisma';
-import { GET } from './route';
+import { GET } from './handler';
 
 vi.mock('@/lib/request', () => ({
   parseRequest: vi.fn(),

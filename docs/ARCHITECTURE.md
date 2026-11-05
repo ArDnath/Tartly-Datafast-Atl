@@ -18,6 +18,7 @@ src/features/<domain>/       product domains
   lib/                       domain helpers, contracts, and constants
   store/                     domain-only client state, where it exists
   server/**/handler.ts       request handlers and domain server logic
+  server/**/handler.test.ts  route contract tests, beside their handler
   server/queries/            domain Prisma repositories and the analytics SQL engine
 src/components/              shared design-system primitives only
   brand, charts, common, input, svg, hooks
@@ -100,9 +101,14 @@ export const dynamic = 'force-dynamic';
 Rules enforced by `src/lib/app-structure.test.ts`:
 
 - `src/app` contains route conventions, CSS, and the root `Providers.tsx` only.
+  Route contract tests live beside their handler under
+  `src/features/<domain>/server/**/handler.test.ts`; the router has no tests.
 - API route files contain only re-exports from `@/features/**/server/**` plus
   static Next config.
 - Every server domain listed above has a `server/` directory.
+- Analytics report handlers mirror `/api/reports/*` under
+  `src/features/analytics/server/reports/`, and the realtime handler lives at
+  `src/features/analytics/server/realtime/[websiteId]/handler.ts`.
 - Legacy `/websites/*` and `/settings/*` route groups do not exist.
 - `src/components` contains only the shared design-system directories
   (`brand`, `charts`, `common`, `hooks`, `input`, `svg`).
@@ -127,8 +133,8 @@ Rules enforced by `src/lib/app-structure.test.ts`:
    state goes in `store/`, not `src/store`.
 4. Add a route page that parses params and renders the feature.
 5. Add `src/app/api/**/route.ts` that re-exports the handler.
-6. Add a test beside the handler (`src/app/api/**/route.test.ts` remains the
-   route contract test) or beside the domain module.
+6. Add a test beside the handler (`src/features/<domain>/server/**/handler.test.ts`
+   is the route contract test) or beside the domain module.
 7. Extend the domain lists and contract tests in `src/lib/app-structure.test.ts`
    if you add a new top-level domain.
 
@@ -182,6 +188,11 @@ The restructure moved the remaining domain-specific UI out of `src/components`:
 | plan and usage settings UI (`/app/settings/billing`) | `src/features/billing` |
 | collector cache, cross-domain linker, attribution query, dashboard overview, bot/client detection, analytics filters and chart helpers | `src/features/analytics/lib` |
 | payment return detection | `src/features/payments/lib` |
+| payment status classification (`REVENUE_PAYMENT_STATUSES`) | `src/features/payments/lib/payment-status.ts` |
+| tracking identity derivation | `src/features/analytics/lib/tracking-identity.ts` |
+| route contract tests | beside their handler under `src/features/<domain>/server/**` |
+| analytics report handlers (`/api/reports/*`) | `src/features/analytics/server/reports` |
+| realtime handler (`/api/realtime/[websiteId]`) | `src/features/analytics/server/realtime/[websiteId]` |
 | auth return URL and transactional registration | `src/features/auth/lib` and `src/features/auth/server` |
 | workspace invitations and member management | `src/features/workspaces/lib` |
 | website API keys and domain normalization | `src/features/websites/lib` |
@@ -207,12 +218,12 @@ shared locale/timezone/date-range/user shell state.
 The shared `src/lib` allowlist is enforced by the structure test. It keeps
 cross-cutting infrastructure (auth sessions, CSRF, rate limits, Prisma,
 crypto, email, plans/usage, branding, request/response) plus the contracts that
-cross feature boundaries (`payment-status`, `tracking-identity`,
-`currency-exchange`, `reporting-currency`, `share-sections`,
-`share-redaction`, and the frozen `board-types`). Those contracts stay shared
-because both analytics and payments, or both the shared request layer and a
-feature, read them. Provider-specific request handling and UI still live in
-`src/features/payments`.
+truly cross the shared boundary (`currency-exchange`, `reporting-currency`,
+`share-sections`, `share-redaction`, and the frozen `board-types` because the
+central entity lookup reads boards). Payment status classification and tracking
+identity derivation are domain helpers and now live in `features/payments/lib`
+and `features/analytics/lib`. Provider-specific request handling and UI still
+live in `src/features/payments`.
 
 The settings surface is now a shell plus domain-owned screens. `features/settings`
 contains only `SettingsLayout`, `SettingsPageLayout`, and `SettingsHomePage`;

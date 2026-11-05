@@ -19,7 +19,7 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
-import { POST } from './route';
+import { POST } from './handler';
 
 function request() {
   return new Request('http://localhost:3000/api/oss/updates', {

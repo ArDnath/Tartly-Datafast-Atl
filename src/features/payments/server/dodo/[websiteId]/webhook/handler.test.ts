@@ -3,7 +3,7 @@ import { unwrapDodoWebhook } from '@/features/payments/server/webhooks/dodo-webh
 import { fetchWebsite } from '@/lib/load';
 import prisma from '@/lib/prisma';
 import { recordPayment, recordRefund } from '@/features/payments/server/queries/payment';
-import { POST } from './route';
+import { POST } from './handler';
 
 vi.mock('@/features/payments/server/webhooks/dodo-webhook', () => ({
   unwrapDodoWebhook: vi.fn(),

@@ -1,5 +1,5 @@
 import { BRAND } from '@/lib/brand';
-import { REVENUE_PAYMENT_STATUSES } from '@/lib/payment-status';
+import { REVENUE_PAYMENT_STATUSES } from '@/features/payments/lib/payment-status';
 import prisma from '@/lib/prisma';
 import { redactSensitiveValue } from '@/features/analytics/lib/redact';
 

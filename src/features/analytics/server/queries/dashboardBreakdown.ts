@@ -15,7 +15,7 @@ import {
   type DashboardBreakdownTrafficRow,
   mergeDashboardBreakdownRows,
 } from '@/features/analytics/lib/dashboard-breakdown';
-import { REVENUE_PAYMENT_STATUSES } from '@/lib/payment-status';
+import { REVENUE_PAYMENT_STATUSES } from '@/features/payments/lib/payment-status';
 import prisma from '@/lib/prisma';
 import type { QueryFilters } from '@/lib/types';
 import { getChannelMetrics, getPageviewMetrics, getSessionMetrics } from './sql';

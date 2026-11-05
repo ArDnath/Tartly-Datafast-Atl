@@ -38,7 +38,7 @@ import { backfillPolarRevenue } from '@/features/payments/server/queries/polarPr
 import { enqueueProviderWebhookCleanup } from '@/queries/prisma/providerWebhookCleanup';
 import { backfillStripeCheckoutSessions } from '@/features/payments/server/queries/stripeProvider';
 import { backfillYolfiRevenue } from '@/features/payments/server/queries/yolfiProvider';
-import { DELETE, POST } from './route';
+import { DELETE, POST } from './handler';
 
 vi.mock('@/lib/prisma', () => {
   const client: any = {

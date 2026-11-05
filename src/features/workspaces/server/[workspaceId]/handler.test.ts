@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { parseRequest } from '@/lib/request';
 import { requireWorkspaceAccess } from '@/lib/workspace-auth';
-import { DELETE, GET, PATCH } from './route';
+import { DELETE, GET, PATCH } from './handler';
 
 vi.mock('@/lib/request', () => ({ parseRequest: vi.fn() }));
 vi.mock('@/lib/workspace-auth', () => ({ requireWorkspaceAccess: vi.fn() }));

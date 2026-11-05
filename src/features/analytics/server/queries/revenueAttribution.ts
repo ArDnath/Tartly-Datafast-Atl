@@ -1,5 +1,5 @@
 import { DEFAULT_CURRENCY } from '@/lib/constants';
-import { REVENUE_PAYMENT_STATUSES } from '@/lib/payment-status';
+import { REVENUE_PAYMENT_STATUSES } from '@/features/payments/lib/payment-status';
 import { getPaymentCustomerLabel } from '@/features/analytics/lib/paymentCustomer';
 import prisma from '@/lib/prisma';
 

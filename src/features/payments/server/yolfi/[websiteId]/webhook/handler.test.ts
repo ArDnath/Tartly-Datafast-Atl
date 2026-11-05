@@ -1,5 +1,5 @@
 import { beforeEach, expect, test, vi } from 'vitest';
-import { POST } from './route';
+import { POST } from './handler';
 
 vi.mock('@/lib/load', () => ({ fetchWebsite: vi.fn() }));
 vi.mock('@/lib/prisma', () => ({

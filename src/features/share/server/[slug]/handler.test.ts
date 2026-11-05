@@ -3,7 +3,7 @@ import { ENTITY_TYPE } from '@/lib/constants';
 import { getLink } from '@/queries/prisma/link';
 import { getPixel } from '@/queries/prisma/pixel';
 import { getShareByCode, getWebsite } from '@/queries/prisma';
-import { GET } from './route';
+import { GET } from './handler';
 
 vi.mock('@/lib/prisma', () => ({
   default: {

@@ -8,7 +8,7 @@ import { releaseEventUsage, reserveEventUsage } from '@/lib/usage';
 import { ensureVisitorContext, upsertCustomerIdentityLink, upsertVisitorContext } from '@/features/payments/server/queries/attribution';
 import { getWebsiteAttributionRuntimeConfig } from '@/queries/prisma/website';
 import { createSession, saveEvent, updateSessionDistinctId } from '@/features/analytics/server/queries/sql';
-import { POST } from './route';
+import { POST } from './handler';
 
 vi.mock('@/features/analytics/lib/collector-cache', () => ({
   createCollectorCacheToken: vi.fn(() => 'collector-cache'),

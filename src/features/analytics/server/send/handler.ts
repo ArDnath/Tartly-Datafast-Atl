@@ -21,7 +21,7 @@ import { getPaymentReturnDetection } from '@/features/payments/lib/payment-detec
 import { parseRequest } from '@/lib/request';
 import { badRequest, forbidden, json, serverError } from '@/lib/response';
 import { anyObjectParam, urlOrPathParam } from '@/lib/schema';
-import { getTrackingSessionId, getTrackingVisitorId } from '@/lib/tracking-identity';
+import { getTrackingSessionId, getTrackingVisitorId } from '@/features/analytics/lib/tracking-identity';
 import { safeDecodeURI, safeDecodeURIComponent } from '@/lib/url';
 import { isBillableEvent, releaseEventUsage, reserveEventUsage } from '@/lib/usage';
 import { ensureVisitorContext, savePaymentDetectionEvent, upsertCustomerIdentityLink, upsertVisitorContext } from '@/features/payments/server/queries/attribution';

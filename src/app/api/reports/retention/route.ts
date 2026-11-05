@@ -1,1 +1,1 @@
-export { POST } from '@/features/analytics/server/retention/handler';
+export { POST } from '@/features/analytics/server/reports/retention/handler';

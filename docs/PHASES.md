@@ -4,7 +4,7 @@
 - **Repository:** <https://github.com/talivia-group/talivia> (MIT), forked locally at
   `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-05
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 is complete: the source restructure (app, server, domain UI/hooks/lib/store) is finished and enforced, the dead legacy dashboard UI is pruned, the portfolio now shows MRR by first-touch channel, and the brand/contrast locks are automated. A final domain split now moves the whole website analytics workbench and its handlers into `features/analytics`, leaving `features/websites` as site management only. The settings catch-all is gone too: `features/settings` is now the shell and overview only, while account/security/preferences, workspace, website list, integrations, and plan/usage screens live with their owning domains. `src/permissions` is now the shared website/entity authorization boundary only; report, local-user, and frozen legacy permission checks live with their features. The last shared catch-alls are gone: every domain Prisma repository now lives in `features/<domain>/server/queries`, the analytics SQL engine lives in `features/analytics/server/queries/sql`, the public pixel/link collection handlers and the website shell resolver moved out of `src/app`, and `src/queries` is a small allowlisted authorization/request kernel. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 is complete: the source restructure (app, server, domain UI/hooks/lib/store) is finished and enforced, the dead legacy dashboard UI is pruned, the portfolio now shows MRR by first-touch channel, and the brand/contrast locks are automated. A final domain split now moves the whole website analytics workbench and its handlers into `features/analytics`, leaving `features/websites` as site management only. The settings catch-all is gone too: `features/settings` is now the shell and overview only, while account/security/preferences, workspace, website list, integrations, and plan/usage screens live with their owning domains. `src/permissions` is now the shared website/entity authorization boundary only; report, local-user, and frozen legacy permission checks live with their features. The last shared catch-alls are gone: every domain Prisma repository now lives in `features/<domain>/server/queries`, the analytics SQL engine lives in `features/analytics/server/queries/sql`, the public pixel/link collection handlers and the website shell resolver moved out of `src/app`, and `src/queries` is a small allowlisted authorization/request kernel. Route tests now live beside feature handlers, so `src/app` is test-free routing only, and the analytics report/realtime handlers mirror their API paths. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
 
 ## Overall progress
 
@@ -13,7 +13,7 @@
 - Overall percent (average of phases 0–11): **59%**
 - Build state at last check: **green** (`next build` exit 0 with
   `SKIP_DB_CHECK=1`; `tsc --noEmit` clean; `biome lint` clean). Full test run:
-  **645 passed / 0 failed** under `TZ=UTC`.
+  **646 passed / 0 failed** under `TZ=UTC`.
 - Runtime smoke: the new public docs routes return 200, and `/app/settings`,
   `/app/settings/integrations`, `/app/settings/security`, `/app/settings/websites`,
   and `/app/settings/billing` return 200 with an authenticated session. The
@@ -324,9 +324,10 @@ migration connections.
       `src/permissions/website.workspace.test.ts` (10 scenarios) plus the
       static route-boundary test.
 - [x] Webhook and background-job isolation tests. — proof:
-      `src/app/api/payments/stripe/[websiteId]/webhook/route.test.ts` asserts
-      connection lookup, payment write, and provider event write all use the
-      URL website; `src/lib/cron/jobs/provider-webhook-cleanup.test.ts` asserts
+      `src/features/payments/server/stripe/[websiteId]/webhook/handler.test.ts`
+      asserts connection lookup, payment write, and provider event write all use
+      the URL website;
+      `src/features/system/cron/jobs/provider-webhook-cleanup.test.ts` asserts
       each queued job uses only its own credentials and endpoint.
 - [x] CI step runs isolation suite on every push. — proof: the existing
       `pnpm test` step in `.github/workflows/ci.yml` includes every
@@ -927,6 +928,21 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       `app-structure.test.ts` pins the shared query allowlist, the domain query
       directories, and the route-layer data-access ban. — proof: typecheck and
       lint clean, `next build` success, **645/645 tests** pass.
+- [x] **UI-26 — Route and shared-lib ownership completion (new):** the router is
+      now test-free. Every API route contract test moved from
+      `src/app/api/**/route.test.ts` to the owning
+      `src/features/<domain>/server/**/handler.test.ts`, so `src/app` contains
+      route conventions, CSS, and `Providers.tsx` only. Analytics report
+      handlers were normalized to mirror `/api/reports/*` under
+      `features/analytics/server/reports/**`, and the realtime handler moved to
+      `features/analytics/server/realtime/[websiteId]/handler.ts`.
+      `REVENUE_PAYMENT_STATUSES` moved to `features/payments/lib` and tracking
+      identity derivation (with its test) moved to
+      `features/analytics/lib`, leaving both out of the shared `src/lib`
+      allowlist. The structure test now rejects any test file in the router,
+      checks that each shared allowlist entry exists (so stale entries cannot
+      hide), and pins the moved handler layout. — proof: typecheck and lint
+      clean; `next build` succeeds; full suite **646/646** passes.
 
 ### Acceptance criteria
 
@@ -1081,13 +1097,28 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
    screen. Permission ownership is likewise complete: `src/permissions` is the
    shared website/entity boundary only. Data ownership is complete too: domain
    repositories and the analytics SQL engine live in feature `server/queries`,
-   and `src/queries` is a small shared kernel. Billing history waits for
-   Phase 5.
+   and `src/queries` is a small shared kernel. Route ownership is complete:
+   API contract tests live beside feature handlers, `src/app` is test-free, and
+   analytics report/realtime handlers mirror their route paths. Billing history
+   waits for Phase 5.
 8. **Phase 10:** legal drafts, abuse protection, transactional email, ops.
 9. **Phase 11:** security review, load test, CI, deployment/runbook.
 10. **Phase 12:** go-to-market.
 
 ## Changelog
+
+- 2026-11-05 — **Route and shared-lib ownership completion (Phase 9 / UI-26):**
+  moved all 22 API route contract tests out of `src/app/api/**/route.test.ts`
+  and into `src/features/<domain>/server/**/handler.test.ts`, so the router is
+  now routes, CSS, and `Providers.tsx` only. Normalized analytics report
+  handlers under `features/analytics/server/reports/**` (including
+  `[reportId]`) and moved the realtime handler to
+  `features/analytics/server/realtime/[websiteId]`. Moved
+  `REVENUE_PAYMENT_STATUSES` to `features/payments/lib` and tracking identity
+  (plus its test) to `features/analytics/lib`, removing both from the shared
+  `src/lib` allowlist. The structure test now rejects tests in the router and
+  fails on stale allowlist entries. Typecheck and lint are clean; `next build`
+  succeeds with `SKIP_DB_CHECK=1`; the full suite passes **646/646**.
 
 - 2026-11-05 — **Data-layer and router completion (Phase 9 / UI-25):** moved
   every domain Prisma repository out of `src/queries/prisma` into
