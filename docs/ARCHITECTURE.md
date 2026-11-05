@@ -67,7 +67,7 @@ app  ->  features  ->  components / lib / queries / permissions / store
 | `analytics` | the signed-in website workbench (overview, reports, sessions, events, replay, realtime, cohorts, compare, segments), ingestion (`send`, `record`, `batch`), heartbeat, report/metric handlers and report permission checks, analytics widgets, filters, and query hooks |
 | `app-shell` | signed-in shell, top nav, notices, workspace switcher, user menu |
 | `auth` | login, signup, verification, reset, logout, auth query hooks |
-| `billing` | plan and usage settings screen (platform billing arrives in Phase 5) |
+| `billing` | platform subscription lifecycle, Dodo checkout/portal/cancel/change-plan, signed billing webhooks, invoices, and the plan/usage settings screen |
 | `docs` | public documentation shell and provider revenue guides |
 | `legacy` | frozen boards/links/pixels APIs and the share-rendered link/pixel pages, with their read permissions; list, edit, and board UI are deleted |
 | `marketing` | landing and pricing |
@@ -208,6 +208,8 @@ The restructure moved the remaining domain-specific UI out of `src/components`:
 | random public-share slugs | `src/features/websites/lib/generate.ts` |
 | public pixel/link collection handlers | `src/features/legacy/server/collect` |
 | website shell resolution | `src/features/analytics/workbench/WebsiteLayoutRoute.tsx` |
+| platform billing provider, webhook reducer, invoices, and billing UI | `src/features/billing` (`server/`, `components/`, `lib/`) |
+| shared subscription lifecycle and ordering rules | `src/lib/billing-lifecycle.ts` |
 | dead dashboard/website/cache stores and the unused refresh button | deleted |
 
 Only primitives remain in `src/components`: `common` (links, panels, tables,
@@ -261,6 +263,27 @@ attributed payment when the subscription has no visitor. Channel classification
 and currency-safe grouping are pure functions in
 `src/features/analytics/lib/dashboard-breakdown.ts` and
 `src/features/account/lib/website-overview.ts`, unit tested beside their owners.
+
+## Platform billing is a separate context
+
+`src/features/billing` charges workspace owners for RevenueLens (context A). It
+is deliberately independent of `src/features/payments`, which holds the
+customer's own Stripe/Dodo/etc. revenue connections (context B).
+
+- Billing credentials come from environment variables
+  (`DODO_PAYMENTS_*`); analytics provider credentials are encrypted per website.
+- The billing webhook lives at `/api/billing/webhook/dodo`; analytics webhooks
+  live at `/api/payments/<provider>/[websiteId]/webhook`. The signing secrets
+  are not interchangeable.
+- Billing state is stored in `billing_customer`, `platform_subscription`,
+  `billing_event`, `billing_invoice`, and `billing_subscription_change`, never
+  in the analytics `payment`/`subscription` tables.
+- `src/lib/entitlements.ts` reads `platform_subscription`; a checkout redirect
+  never grants access. `src/lib/billing-lifecycle.ts` is the shared pure
+  lifecycle/ordering contract used by billing and entitlements.
+
+See `docs/PLATFORM_BILLING.md` for the provider flow and the live-test
+checklist.
 
 ## Security boundary
 
