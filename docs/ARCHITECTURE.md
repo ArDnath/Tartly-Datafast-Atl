@@ -95,6 +95,24 @@ Rules enforced by `src/lib/app-structure.test.ts`:
 6. Extend the domain lists and contract tests in `src/lib/app-structure.test.ts`
    if you add a new top-level domain.
 
+## Shared client and data layers
+
+Three layers are intentionally shared rather than copied into every feature:
+
+- `src/components/hooks` — client state and React Query data hooks. Both
+  feature screens and shared analytics widgets consume them; moving them under
+  a feature would make shared components depend on a feature. Split a hook out
+  only when the widgets that use it move with it.
+- `src/queries` — the server data-access layer (Prisma repositories and the
+  analytics SQL engine). Domain-specific repositories live in feature server
+  modules; genuinely cross-domain repositories stay here.
+- `src/permissions` and `src/lib/workspace-auth.ts` — the one central
+  authorization boundary. Never duplicate tenant checks in a feature.
+
+This is the modular-monolith trade-off: domain behaviour is owned by features,
+shared infrastructure stays shared, and the dependency arrow never points from
+shared code back into product features.
+
 ## Security boundary
 
 The restructure is organizational only. Tenant isolation still runs through

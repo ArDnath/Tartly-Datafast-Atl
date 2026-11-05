@@ -10,10 +10,10 @@
 
 - Total phases: **12** (0–11 product/build, 12 go-to-market)
 - Phases complete: **3 full, 2 with caveats** (Phase 2: copy-with-data rehearsal; Phase 4: live Resend delivery)
-- Overall percent (average of phases 0–11): **58%**
+- Overall percent (average of phases 0–11): **59%**
 - Build state at last check: **green** (`pnpm build` exit 0 with local
   PostgreSQL running; `tsc --noEmit` clean; `biome lint` clean). Full test run:
-  **613 passed / 0 failed** under `TZ=UTC`.
+  **614 passed / 0 failed** under `TZ=UTC`.
 - Runtime smoke: all 19 website workbench routes return 200 on the production
   build with an authenticated session; unknown sub-routes return 404. The new
   `/app/settings/billing` route is in the production build. The legacy
@@ -48,7 +48,7 @@ No third plan, no free tier, no hidden limits.
 | 6 | Plans, pricing economics, usage | IN_PROGRESS | 75% | 2026-11-04 | — | live concurrency proof; owner approval of limits; notice emails |
 | 7 | Analytics validation, integrations, replay | NOT_STARTED | 0% | — | — | none |
 | 8 | Onboarding and developer experience | IN_PROGRESS | 40% | 2026-11-04 | — | guides, activation, MCP |
-| 9 | Rebrand and product UI | IN_PROGRESS | 80% | 2026-11-04 | — | billing page (Phase 5), remaining brand copy, a11y pass |
+| 9 | Rebrand and product UI | IN_PROGRESS | 85% | 2026-11-04 | — | billing page (Phase 5), remaining brand copy, a11y pass |
 | 10 | Compliance, abuse, email, operations | NOT_STARTED | 0% | — | — | legal review |
 | 11 | Hardening, QA, deployment, launch | NOT_STARTED | 0% | — | — | hosting + domain |
 | 12 | Go-to-market | NOT_STARTED | 0% | — | — | product live |
