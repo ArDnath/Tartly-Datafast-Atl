@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { BRAND } from '@/lib/brand';
 import { Suspense } from 'react';
 import { App } from './App';
 
@@ -12,8 +13,8 @@ export default function ({ children }) {
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | Talivia',
-    default: 'Talivia',
+    template: `%s | ${BRAND.name}`,
+    default: BRAND.name,
   },
   robots: {
     index: false,

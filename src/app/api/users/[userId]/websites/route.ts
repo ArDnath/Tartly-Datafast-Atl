@@ -2,12 +2,14 @@ import { z } from 'zod';
 import { getQueryFilters, parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { pagingParams, searchParams } from '@/lib/schema';
+import { requireWorkspaceAccess } from '@/lib/workspace-auth';
 import { getUserWebsites } from '@/queries/prisma/website';
 
 export async function GET(request: Request, { params }: { params: Promise<{ userId: string }> }) {
   const schema = z.object({
     ...pagingParams,
     ...searchParams,
+    workspaceId: z.uuid().optional(),
   });
 
   const { auth, query, error } = await parseRequest(request, schema);
@@ -17,12 +19,23 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
   }
 
   const { userId } = await params;
+  const { workspaceId, ...rest } = query;
 
-  if (!auth.user.isAdmin && auth.user.id !== userId) {
+  // A user can only list their own website collection. Tenant data is never
+  // reachable by swapping a user ID, even for platform admins.
+  if (auth.user.id !== userId) {
     return unauthorized();
   }
 
-  const filters = await getQueryFilters(query);
+  if (workspaceId) {
+    const access = await requireWorkspaceAccess(auth.user, workspaceId, 'VIEWER');
 
-  return json(await getUserWebsites(userId, filters));
+    if (!access) {
+      return unauthorized({ message: 'You cannot view this workspace.' });
+    }
+  }
+
+  const filters = await getQueryFilters(rest);
+
+  return json(await getUserWebsites(userId, filters, workspaceId));
 }

@@ -13,6 +13,7 @@ export * from './queries/useShareTokenQuery';
 export * from './queries/useUpdateQuery';
 export * from './queries/useUsersQuery';
 export * from './queries/useUserWebsitesQuery';
+export * from './queries/useWorkspacesQuery';
 export * from './queries/useWebsiteAttributionSettingsQuery';
 export * from './queries/useWebsiteMembersQuery';
 export * from './queries/useWebsiteOverviewQuery';
@@ -21,6 +22,7 @@ export * from './queries/useWebsiteSessionQuery';
 export * from './queries/useWebsiteSharesQuery';
 
 // Regular hooks
+export * from './useActiveWorkspace';
 export * from './useApi';
 export * from './useCountryNames';
 export * from './useDateParameters';

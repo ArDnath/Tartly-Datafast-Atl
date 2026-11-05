@@ -8,6 +8,9 @@ vi.mock('@/lib/prisma', () => ({
       user: {
         findUnique: vi.fn(),
       },
+      workspaceMembership: {
+        findMany: vi.fn(async () => []),
+      },
     },
     getSearchParameters: vi.fn(() => ({})),
     pagedQuery: vi.fn(async () => ({ data: [], count: 0 })),
@@ -30,6 +33,7 @@ test('getUserWebsites includes websites shared to the user by id or username', a
 
   expect(criteria.where.OR).toEqual([
     { userId: 'user-1' },
+    { workspaceId: { in: [] } },
     {
       members: {
         some: {
@@ -38,4 +42,15 @@ test('getUserWebsites includes websites shared to the user by id or username', a
       },
     },
   ]);
+});
+
+test('getUserWebsites includes workspace membership and narrows to an authorized workspace', async () => {
+  prismaMock.client.workspaceMembership.findMany.mockResolvedValue([{ workspaceId: 'workspace-a' }]);
+
+  await getUserWebsites('user-1', { search: 'taisly' } as any, 'workspace-a');
+
+  const [, criteria] = prismaMock.pagedQuery.mock.calls[0];
+
+  expect(criteria.where.workspaceId).toBe('workspace-a');
+  expect(criteria.where.OR).toContainEqual({ workspaceId: { in: ['workspace-a'] } });
 });

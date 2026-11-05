@@ -8,12 +8,15 @@ import {
   FormSubmitButton,
   Heading,
   Icon,
+  Text,
   TextField,
 } from '@talivia/react-zen';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMessages, useUpdateQuery } from '@/components/hooks';
-import { Logo } from '@/components/svg';
+import { BrandMark } from '@/components/brand/BrandMark';
 import { sanitizeAuthReturnUrl } from '@/lib/auth-return-url';
+import { BRAND } from '@/lib/brand';
 import { setClientAuthToken } from '@/lib/client';
 
 interface LoginFormProps {
@@ -46,9 +49,9 @@ export function LoginForm({ returnUrl, initialError }: LoginFormProps) {
   return (
     <Column className="talivia-auth-form" justifyContent="center" alignItems="center" gap="5">
       <Icon size="lg">
-        <Logo />
+        <BrandMark size={40} />
       </Icon>
-      <Heading>Talivia</Heading>
+      <Heading>{BRAND.name}</Heading>
       <Form
         className="talivia-auth-email-form"
         onSubmit={handleSubmit}
@@ -76,6 +79,9 @@ export function LoginForm({ returnUrl, initialError }: LoginFormProps) {
           </FormSubmitButton>
         </FormButtons>
       </Form>
+      <Text color="muted">
+        New to {BRAND.name}? <Link href="/signup">Create an account</Link>
+      </Text>
     </Column>
   );
 }

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Empty } from '@/components/common/Empty';
 import { Favicon } from '@/components/common/Favicon';
 import {
+  useActiveWorkspace,
   useLoginQuery,
   useMessages,
   useUserWebsitesQuery,
@@ -25,9 +26,10 @@ export function WebsiteSelect({
   const [name, setName] = useState<string>(website?.name);
   const [search, setSearch] = useState('');
   const { user } = useLoginQuery();
+  const { workspaceId } = useActiveWorkspace();
   const { data, isLoading } = useUserWebsitesQuery(
     { userId: user?.id },
-    { search, pageSize: 20 },
+    { search, pageSize: 20, ...(workspaceId ? { workspaceId } : {}) },
   );
   const listItems: { id: string; name: string; domain?: string }[] = data?.data || [];
 

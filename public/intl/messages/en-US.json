@@ -380,7 +380,7 @@
   "message": {
     "action-confirmation": "Type {confirmation} in the box below to confirm.",
     "active-users": "{x} current {x, plural, one {visitor} other {visitors}}",
-    "app-secret-invalid": "Talivia setup is incomplete: set APP_SECRET in .env to a random value of at least 32 bytes, then restart Talivia.",
+    "app-secret-invalid": "RevenueLens setup is incomplete: set APP_SECRET in .env to a random value of at least 32 bytes, then restart RevenueLens.",
     "bad-request": "Bad request",
     "collected-data": "Collected data",
     "confirm-delete": "Are you sure you want to delete {target}?",
@@ -409,7 +409,7 @@
     "member-not-found": "Website member not found.",
     "min-password-length": "Minimum length of {n} characters",
     "missing-coingecko-api-key": "COINGECKO_API_KEY is not configured.",
-    "new-version-available": "A new version of Talivia {version} is available!",
+    "new-version-available": "A new version of RevenueLens {version} is available!",
     "no-data-available": "No data available.",
     "no-event-data": "No event data is available.",
     "no-match-password": "Passwords do not match.",

@@ -4,8 +4,10 @@ import { IconLabel } from '@/components/common/IconLabel';
 import Link from '@/components/common/Link';
 import { useNavigation } from '@/components/hooks';
 import { UserButton } from '@/components/input/UserButton';
+import { WorkspaceSwitcher } from '@/components/input/WorkspaceSwitcher';
 import { Logo } from '@/components/svg';
 import { APP_LAYOUT_MAX_WIDTH } from '@/lib/constants';
+import { BRAND } from '@/lib/brand';
 
 export function TopNav({ showUser = true }: { showUser?: boolean }) {
   const { renderUrl } = useNavigation();
@@ -24,14 +26,15 @@ export function TopNav({ showUser = true }: { showUser?: boolean }) {
         <Row alignItems="center" gap="2" minWidth="0">
           <Link href={renderUrl('/app', false)} style={{ color: 'inherit', textDecoration: 'none' }}>
             <IconLabel icon={<Logo />}>
-              <Text weight="bold">Talivia</Text>
+              <Text weight="bold">{BRAND.name}</Text>
             </IconLabel>
           </Link>
         </Row>
         {showUser && (
-          <div style={{ marginLeft: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
+          <Row alignItems="center" gap="3" style={{ marginLeft: 'auto' }}>
+            <WorkspaceSwitcher />
             <UserButton />
-          </div>
+          </Row>
         )}
       </Row>
     </Row>
