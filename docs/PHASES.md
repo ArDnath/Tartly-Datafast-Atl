@@ -6,15 +6,16 @@
 - **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
   forked locally at `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-06
-- **Current phase:** Phase 10 (compliance, abuse, email, operations) and Phase 11
-  (hardening, deployment, launch readiness) are implemented and documented.
-  Phase 12 go-to-market docs are written. The remaining work is external
-  verification: live Dodo/Resend/provider credentials, a real browser
-  walkthrough, a recorded load test, a Neon production restore rehearsal,
-  hosting/DNS, and lawyer review. All are labelled **UNVERIFIED** with the exact
-  human action. The source restructure is finished and enforced: `src/app` is
-  routing only, every domain owns its UI/hooks/lib/server/queries, and
-  `src/lib`/`src/queries` are allowlisted shared kernels.
+- **Current phase:** Phases 10, 11, and 12 are implemented. A real local
+  ingestion run (10,000 events, 50 concurrent clients, 157 req/s, p95 412 ms,
+  0 errors) is recorded in `docs/LOAD_TEST.md`, and the run exposed and fixed a
+  deleted-workspace session leak. The remaining work is external verification:
+  live Dodo/Resend/provider credentials, a real browser walkthrough, a Neon
+  production restore rehearsal, hosting/DNS, and lawyer review. All are labelled
+  **UNVERIFIED** with the exact human action. The source restructure remains
+  enforced: `src/app` is routing only, every domain owns its
+  UI/hooks/lib/server/queries, and `src/lib`/`src/queries` are allowlisted
+  shared kernels.
 - **Mandatory engineering gate:** the two repository skills
   (`.opencode/skills/production-backend-readiness/SKILL.md`,
   `.opencode/skills/high-scale-low-cost-deployment/SKILL.md`) are binding.
@@ -26,11 +27,11 @@
 - Total phases: **13** (0–12 product/build, 12 go-to-market)
 - Phases complete: **8 full, 5 with caveats** (external credentials or measured
   proof still required)
-- Overall percent (average of phases 0–12): **91%**
+- Overall percent (average of phases 0–12): **94%**
 - Build state at last check: **green** — `tsc --noEmit`, `biome lint`, and the
   full suite pass; the production build is exercised by `pnpm gate` and CI.
-  Latest local full run: **741 passed / 0 failed / 1 gated skip** before the
-  Phase 10 additions; the new suites add 19 tests.
+  Latest local full run: **765 passed / 0 failed / 1 gated skip**, plus the
+  explicit 48-assertion PostgreSQL analytics smoke and the recorded load probe.
 - GitHub CI: **green on `main`** for the last merged phase. CI starts
   PostgreSQL 17, runs `pnpm build-db`, lint, typecheck, the full suite,
   `prisma migrate deploy`, the Phase 7 analytics smoke, a critical dependency
@@ -69,11 +70,11 @@ No third plan, no free tier, no hidden limits.
 | 4 | Authentication and account management | DONE_WITH_CAVEATS | 100% | 2026-11-05 | 2026-11-05 | live Resend send |
 | 5 | Platform billing (Dodo) | DONE_WITH_CAVEATS | 90% | 2026-11-05 | 2026-11-05 | live Dodo test mode |
 | 6 | Plans, pricing economics, usage | IN_PROGRESS | 90% | 2026-11-04 | — | live concurrency proof; owner approval of limits |
-| 7 | Analytics validation, integrations, replay | DONE_WITH_CAVEATS | 100% | 2026-11-05 | 2026-11-06 | live provider webhooks; ClickHouse; browser recorder runtime; load/concurrency |
+| 7 | Analytics validation, integrations, replay | DONE_WITH_CAVEATS | 100% | 2026-11-05 | 2026-11-06 | live provider webhooks; ClickHouse; real browser recorder runtime |
 | 8 | Onboarding and developer experience | DONE_WITH_CAVEATS | 100% | 2026-11-04 | 2026-11-06 | browser walkthrough |
 | 9 | Rebrand and product UI | DONE | 100% | 2026-11-04 | 2026-11-05 | none |
 | 10 | Compliance, abuse, email, operations | DONE_WITH_CAVEATS | 100% | 2026-11-06 | 2026-11-06 | lawyer review; live Resend delivery |
-| 11 | Hardening, QA, deployment, launch | DONE_WITH_CAVEATS | 85% | 2026-11-06 | 2026-11-06 | hosting/DNS; Neon restore; recorded load test |
+| 11 | Hardening, QA, deployment, launch | DONE_WITH_CAVEATS | 95% | 2026-11-06 | 2026-11-06 | hosting/DNS; Neon restore; browser walkthrough |
 | 12 | Go-to-market | DONE_WITH_CAVEATS | 100% | 2026-11-06 | 2026-11-06 | launch execution and day-of price re-verification |
 
 ---
@@ -643,10 +644,12 @@ migration connections.
       explains why none was needed. — prices were fixed by the owner; the doc
       adjusts **limits** (replay Pro-only, 90/180-day retention) to keep margin
       above 85%.
-- [ ] Concurrency test: parallel ingestion never under/overcounts. — the
-      counter is a single conditional SQL statement and the unit suite covers
-      reserve/reject/release, but a live parallel-ingestion test is not in CI
-      (CI runs tests before migrations). **Partial.**
+- [x] Concurrency test: parallel ingestion never under/overcounts. — proof:
+      `docs/LOAD_TEST.md` recorded 10,000 accepted events at 50 concurrent
+      clients, 0 errors, 10,001 stored rows and a matching 10,001 usage count.
+      The probe also found and fixed the pre-reservation session leak. This is
+      a single-node proof, not a distributed 1M-RPS proof; CI still does not run
+      a load test.
 - [x] Tests for 80%/100% thresholds, grace, month rollover. — proof:
       `src/lib/usage.test.ts` (thresholds, grace boundary, UTC month range,
       zero allowance, event/replay reservation, replay dedupe).
@@ -1264,14 +1267,22 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       project/domain.
 - [x] `docs/LAUNCH_CHECKLIST.md`, `docs/RUNBOOK.md`,
       `docs/BACKUP_AND_RECOVERY.md`, `docs/PRODUCTION_READINESS_AUDIT.md`.
+- [x] Published an OpenAPI 3.1 contract for the health, auth, account, developer,
+      operator, and billing surfaces (`openapi.yaml` + `src/lib/openapi.test.ts`).
+- [x] Added comparison pages, `sitemap.xml`, `robots.txt`, and
+      `.well-known/security.txt`; comparison prices are source-dated.
+- [x] Added a graceful-shutdown wrapper for the standalone Docker server
+      (`scripts/start-server.mjs`) and raised new password hashes to bcrypt
+      cost 12 with rehash-on-login.
 - [x] Final honest tracker update + prioritized post-launch backlog.
 
 ### Acceptance criteria
 
 - [x] CI green locally reproducible; isolation suite green; load-test numbers
-      recorded. — code/tests/CI are green. The recorded load numbers remain
-      **UNVERIFIED**: run `pnpm load:ingest` against a deployed environment and
-      store p50/p95/p99 + error rate.
+      recorded locally. — `docs/LOAD_TEST.md`: 10,000 events, 50 concurrency,
+      157 req/s, p95 412 ms, p99 480 ms, 0 errors, exact usage count.
+- [ ] Deployed-environment load test. **UNVERIFIED**: run the same probe against
+      staging and record network/Neon latency.
 - [ ] Launch checklist complete or each item has an owner and reason. — every
       open item is marked **UNVERIFIED** with the human action; see
       `docs/LAUNCH_CHECKLIST.md`.
@@ -1281,7 +1292,7 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 - Hosting account, domain/DNS, TLS.
 - Neon production project + point-in-time restore rehearsal.
 - Dodo live keys + product IDs; Resend key + domain.
-- Browser walkthrough and a recorded load test window.
+- Browser walkthrough and a deployed load-test window.
 
 ---
 
@@ -1339,6 +1350,18 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
    metric with a measured one.
 
 ## Changelog
+
+- 2026-11-06 — **Load proof, contract, and launch pages:** recorded a 10,000
+  event / 50-concurrency ingestion run on the production build against local
+  PostgreSQL 17: 157 req/s, p50 302 ms, p95 412 ms, p99 480 ms, 0 errors, and
+  an exact 10,001 stored rows / usage count (`docs/LOAD_TEST.md`). The probe
+  found a real bug — a deleted workspace created sessions before the usage
+  rejection — now fixed by resolving entitlements and reserving usage before
+  any session write, with a regression test. Added OpenAPI 3.1 (`openapi.yaml`),
+  graceful shutdown (`scripts/start-server.mjs`), bcrypt cost 12 with
+  rehash-on-login, comparison pages, `sitemap.xml`, `robots.txt`, and
+  `security.txt`. Local full suite: **765 passed / 1 gated skip**; production
+  build green.
 
 - 2026-11-06 — **Phase 10/11 production readiness and Phase 12 GTM:** added the
   binding engineering skills and `docs/ENGINEERING_STANDARDS.md`, `pnpm gate`,

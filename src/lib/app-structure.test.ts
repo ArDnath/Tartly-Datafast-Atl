@@ -12,7 +12,8 @@ const SRC = join(process.cwd(), 'src');
  * without touching the router. Providers is the single root exception because
  * it is mounted by the root layout rather than rendered by a route.
  */
-const ROUTE_FILE = /^(page|layout|template|loading|error|global-error|not-found|route)\.(ts|tsx)$/;
+const ROUTE_FILE =
+  /^(page|layout|template|loading|error|global-error|not-found|route|sitemap|robots|manifest|icon|apple-icon|opengraph-image|twitter-image)\.(ts|tsx)$/;
 
 const ROUTE_LOCAL_COMPONENTS = new Set(['Providers.tsx']);
 

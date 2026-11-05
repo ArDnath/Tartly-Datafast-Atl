@@ -205,6 +205,44 @@ export async function POST(request: Request) {
       }
     }
 
+    const eventType = linkId
+      ? EVENT_TYPE.linkEvent
+      : pixelId
+        ? EVENT_TYPE.pixelEvent
+        : name
+          ? EVENT_TYPE.customEvent
+          : EVENT_TYPE.pageView;
+
+    // Resolve entitlement and reserve the billable event BEFORE creating a
+    // session or visitor context. A deleted/suspended workspace must not leave
+    // orphan sessions, and a limit rejection must not write partial data.
+    // Legacy websites with no workspace keep the inherited behaviour.
+    if (websiteId && workspaceId) {
+      const entitlements = await getWorkspaceEntitlements(workspaceId);
+
+      if (!entitlements?.plan) {
+        return forbidden({
+          code: 'workspace-unavailable',
+          message: 'This website is not accepting events.',
+        });
+      }
+
+      if (isBillableEvent(eventType)) {
+        const reservation = await reserveEventUsage(workspaceId, entitlements.plan.eventsPerMonth);
+
+        if (!reservation.allowed) {
+          return json({
+            ok: false,
+            reason: 'usage_limit_reached',
+            limit: reservation.limit,
+            used: reservation.used,
+          });
+        }
+
+        reservedWorkspaceId = workspaceId;
+      }
+    }
+
     let visitorId: string | null = null;
     let sessionId: string;
 
@@ -324,35 +362,6 @@ export async function POST(request: Request) {
       }
 
       const ownedReferrer = isOwnedHostname(referrerDomain, [urlDomain, ...ownedDomains]);
-
-      const eventType = linkId
-        ? EVENT_TYPE.linkEvent
-        : pixelId
-          ? EVENT_TYPE.pixelEvent
-          : name
-            ? EVENT_TYPE.customEvent
-            : EVENT_TYPE.pageView;
-
-      // Reserve the billable event before writing it. Bot, blocked-IP, and
-      // invalid requests returned earlier, so they never consume allowance.
-      if (websiteId && workspaceId && isBillableEvent(eventType)) {
-        const entitlements = await getWorkspaceEntitlements(workspaceId);
-        const reservation = await reserveEventUsage(
-          workspaceId,
-          entitlements?.plan?.eventsPerMonth ?? 0,
-        );
-
-        if (!reservation.allowed) {
-          return json({
-            ok: false,
-            reason: 'usage_limit_reached',
-            limit: reservation.limit,
-            used: reservation.used,
-          });
-        }
-
-        reservedWorkspaceId = workspaceId;
-      }
 
       if (websiteId && visitorId && visitorToken) {
         visitor = await upsertVisitorContext({

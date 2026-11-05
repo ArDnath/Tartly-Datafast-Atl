@@ -173,6 +173,8 @@ export function LandingPage() {
           {' · '}
           <Link href="/docs">Docs</Link>
           {' · '}
+          <Link href="/alternatives">Compare</Link>
+          {' · '}
           <Link href="/signup">Sign up</Link>
           {' · '}
           <Link href="/login">Sign in</Link>
