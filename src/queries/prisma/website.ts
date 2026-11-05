@@ -23,6 +23,20 @@ export async function getWebsite(websiteId: string) {
   return website;
 }
 
+/**
+ * A website is publicly shareable only while it and its workspace are live.
+ * Legacy websites without a workspace keep the inherited behaviour.
+ */
+export async function getShareableWebsite(websiteId: string) {
+  return prisma.client.website.findFirst({
+    where: {
+      id: websiteId,
+      deletedAt: null,
+      OR: [{ workspaceId: null }, { workspace: { deletedAt: null, suspendedAt: null } }],
+    },
+  });
+}
+
 export async function getWebsites(criteria: Prisma.WebsiteFindManyArgs, filters: QueryFilters) {
   const { search } = filters;
   const { getSearchParameters, pagedQuery } = prisma;

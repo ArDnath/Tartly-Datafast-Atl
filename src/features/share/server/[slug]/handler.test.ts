@@ -2,7 +2,7 @@ import { beforeEach, expect, test, vi } from 'vitest';
 import { ENTITY_TYPE } from '@/lib/constants';
 import { getLink } from '@/queries/prisma/link';
 import { getPixel } from '@/queries/prisma/pixel';
-import { getShareByCode, getWebsite } from '@/queries/prisma';
+import { getShareableWebsite, getShareByCode } from '@/queries/prisma';
 import { GET } from './handler';
 
 vi.mock('@/lib/prisma', () => ({
@@ -31,7 +31,7 @@ vi.mock('@/queries/prisma/pixel', () => ({
 
 vi.mock('@/queries/prisma', () => ({
   getShareByCode: vi.fn(),
-  getWebsite: vi.fn(),
+  getShareableWebsite: vi.fn(),
 }));
 
 beforeEach(() => {
@@ -52,7 +52,7 @@ test('returns 404 for a legacy board share', async () => {
   });
 
   expect(response.status).toBe(404);
-  expect(getWebsite).not.toHaveBeenCalled();
+  expect(getShareableWebsite).not.toHaveBeenCalled();
   expect(getPixel).not.toHaveBeenCalled();
   expect(getLink).not.toHaveBeenCalled();
 });
@@ -65,7 +65,7 @@ test('still issues a token for a website share', async () => {
     shareType: ENTITY_TYPE.website,
     parameters: {},
   } as any);
-  vi.mocked(getWebsite).mockResolvedValue({
+  vi.mocked(getShareableWebsite).mockResolvedValue({
     id: 'website-1',
     userId: 'user-1',
   } as any);
@@ -86,4 +86,24 @@ test('still issues a token for a website share', async () => {
     parameters: {},
   });
   expect(body.token).toEqual(expect.any(String));
+});
+
+test('refuses a share for a suspended or deleted website', async () => {
+  vi.mocked(getShareByCode).mockResolvedValue({
+    id: 'share-website',
+    entityId: 'website-1',
+    slug: 'public-website',
+    shareType: ENTITY_TYPE.website,
+    parameters: {},
+  } as any);
+  vi.mocked(getShareableWebsite).mockResolvedValue(null);
+
+  const response = await GET(
+    new Request('https://analytics.example.com/api/share/public-website'),
+    {
+      params: Promise.resolve({ slug: 'public-website' }),
+    },
+  );
+
+  expect(response.status).toBe(404);
 });

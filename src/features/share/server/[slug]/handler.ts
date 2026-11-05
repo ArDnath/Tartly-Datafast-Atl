@@ -7,7 +7,7 @@ import { json, notFound } from '@/lib/response';
 import type { WhiteLabel } from '@/lib/types';
 import { getLink } from '@/queries/prisma/link';
 import { getPixel } from '@/queries/prisma/pixel';
-import { getShareByCode, getWebsite } from '@/queries/prisma';
+import { getShareableWebsite, getShareByCode } from '@/queries/prisma';
 
 async function getAccountId(entity: { userId?: string; teamId?: string }): Promise<string | null> {
   if (entity.userId) {
@@ -63,24 +63,26 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   let entity: { userId?: string; teamId?: string } | null = null;
 
   if (share.shareType === ENTITY_TYPE.website) {
-    entity = await getWebsite(share.entityId);
+    entity = await getShareableWebsite(share.entityId);
     if (!entity) return notFound();
     data.websiteId = share.entityId;
   } else if (share.shareType === ENTITY_TYPE.pixel) {
     entity = await getPixel(share.entityId);
-    if (!entity) return notFound();
+    if (!entity || !(await getShareableWebsite(share.entityId))) return notFound();
     data.websiteId = share.entityId;
     data.pixelId = share.entityId;
   } else if (share.shareType === ENTITY_TYPE.link) {
     entity = await getLink(share.entityId);
-    if (!entity) return notFound();
+    if (!entity || !(await getShareableWebsite(share.entityId))) return notFound();
     data.websiteId = share.entityId;
     data.linkId = share.entityId;
   } else {
     return notFound();
   }
 
-  data.token = createToken({ ...data, purpose: 'share', shareSlug: share.slug }, secret());
+  data.token = createToken({ ...data, purpose: 'share', shareSlug: share.slug }, secret(), {
+    expiresIn: '7d',
+  });
 
   const accountId = await getAccountId(entity);
 

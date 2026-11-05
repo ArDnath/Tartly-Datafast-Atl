@@ -4,10 +4,12 @@ import { secret } from '@/lib/crypto';
 import { createToken } from '@/lib/jwt';
 
 vi.mock('@/queries/prisma/share', () => ({ getShare: vi.fn() }));
+vi.mock('@/queries/prisma/website', () => ({ getShareableWebsite: vi.fn() }));
 vi.mock('@/queries/prisma/user', () => ({ getUser: vi.fn() }));
 vi.mock('@/lib/auth-session', () => ({ resolveAuthSession: vi.fn() }));
 
 const { getShare } = await import('@/queries/prisma/share');
+const { getShareableWebsite } = await import('@/queries/prisma/website');
 const { getUser } = await import('@/queries/prisma/user');
 const { resolveAuthSession } = await import('@/lib/auth-session');
 const { parseShareToken, checkAuth } = await import('./auth');
@@ -38,6 +40,7 @@ beforeEach(() => {
     shareType: ENTITY_TYPE.website,
     parameters: {},
   } as any);
+  vi.mocked(getShareableWebsite).mockResolvedValue({ id: 'website-1' } as any);
 });
 
 test('accepts a valid token for an active share record', async () => {
@@ -195,4 +198,11 @@ test('still accepts a signed bearer token for API clients', async () => {
   );
 
   expect(auth).toMatchObject({ source: 'bearer', user: { id: 'user-2' } });
+});
+
+test('rejects a share token when the website or workspace is no longer live', async () => {
+  vi.mocked(getShareableWebsite).mockResolvedValue(null);
+
+  await expect(parseShareToken(requestFor(validPayload))).resolves.toBeNull();
+  expect(getShareableWebsite).toHaveBeenCalledWith('website-1');
 });

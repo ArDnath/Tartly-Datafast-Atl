@@ -29,10 +29,38 @@ export async function authenticateApiKey(request: Request) {
       keyHash: hashApiKey(token),
       revokedAt: null,
     },
+    include: {
+      user: { select: { deletedAt: true, suspendedAt: true } },
+      website: {
+        select: {
+          deletedAt: true,
+          workspace: { select: { deletedAt: true, suspendedAt: true } },
+        },
+      },
+    },
   });
 
   if (!apiKey) {
     return null;
+  }
+
+  // A key is only as live as its owner and tenant. Suspending a user or a
+  // workspace must not leave a machine credential working.
+  if (apiKey.user && (apiKey.user.deletedAt || apiKey.user.suspendedAt)) {
+    return null;
+  }
+
+  if (apiKey.website) {
+    if (apiKey.website.deletedAt) {
+      return null;
+    }
+
+    if (
+      apiKey.website.workspace &&
+      (apiKey.website.workspace.deletedAt || apiKey.website.workspace.suspendedAt)
+    ) {
+      return null;
+    }
   }
 
   await prisma.client.apiKey.update({
