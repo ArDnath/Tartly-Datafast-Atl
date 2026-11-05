@@ -5,9 +5,13 @@ import { createToken } from '@/lib/jwt';
 
 vi.mock('@/queries/prisma/share', () => ({ getShare: vi.fn() }));
 vi.mock('@/queries/prisma/user', () => ({ getUser: vi.fn() }));
+vi.mock('@/lib/auth-session', () => ({ resolveAuthSession: vi.fn() }));
 
 const { getShare } = await import('@/queries/prisma/share');
-const { parseShareToken } = await import('./auth');
+const { getUser } = await import('@/queries/prisma/user');
+const { resolveAuthSession } = await import('@/lib/auth-session');
+const { parseShareToken, checkAuth } = await import('./auth');
+const { createSecureToken } = await import('./jwt');
 
 function requestFor(payload: Record<string, unknown>) {
   return new Request('https://analytics.example.com/api/websites/website-1/stats', {
@@ -138,4 +142,57 @@ test('rejects legacy board share tokens', async () => {
       }),
     ),
   ).resolves.toBeNull();
+});
+
+function cookieRequest(cookie: string) {
+  return new Request('https://app.example.com/api/me', {
+    headers: { cookie },
+  });
+}
+
+test('authenticates a request from the HttpOnly session cookie', async () => {
+  vi.mocked(resolveAuthSession).mockResolvedValue({ id: 'session-1', userId: 'user-1' });
+  vi.mocked(getUser).mockResolvedValue({
+    id: 'user-1',
+    username: 'owner@example.com',
+    role: 'user',
+    emailVerifiedAt: new Date('2026-01-01T00:00:00Z'),
+  } as any);
+
+  const auth = await checkAuth(cookieRequest('rl_session=session-token'));
+
+  expect(resolveAuthSession).toHaveBeenCalledWith('session-token');
+  expect(getUser).toHaveBeenCalledWith('user-1');
+  expect(auth).toMatchObject({
+    source: 'cookie',
+    sessionId: 'session-1',
+    sessionToken: 'session-token',
+    user: {
+      id: 'user-1',
+      isAdmin: false,
+    },
+  });
+});
+
+test('rejects an unknown cookie session', async () => {
+  vi.mocked(resolveAuthSession).mockResolvedValue(null);
+
+  await expect(checkAuth(cookieRequest('rl_session=expired'))).resolves.toBeNull();
+});
+
+test('still accepts a signed bearer token for API clients', async () => {
+  vi.mocked(getUser).mockResolvedValue({
+    id: 'user-2',
+    username: 'api@example.com',
+    role: 'user',
+  } as any);
+
+  const token = createSecureToken({ userId: 'user-2' }, secret());
+  const auth = await checkAuth(
+    new Request('https://app.example.com/api/me', {
+      headers: { authorization: `Bearer ${token}` },
+    }),
+  );
+
+  expect(auth).toMatchObject({ source: 'bearer', user: { id: 'user-2' } });
 });

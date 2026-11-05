@@ -16,8 +16,8 @@ checkout to a running app. It covers local, preview, and production.
 - Node.js 22.12+ or 24.x (`engines` in `package.json`).
 - pnpm 10.10+ (`corepack enable` can provide it).
 - PostgreSQL 17 (local Docker or Neon).
-- Optional: Redis (sessions/cache/rate limiting), ClickHouse + Kafka (large
-  event volumes), S3-compatible storage.
+- Optional: Redis (website/session caching and collector helpers), ClickHouse +
+  Kafka (large event volumes), S3-compatible storage.
 
 ---
 
@@ -50,9 +50,12 @@ Optional groups (see `.env.example`):
 - Analytics provider fallback secrets: `STRIPE_WEBHOOK_SECRET`,
   `LEMONSQUEEZY_WEBHOOK_SECRET`, `POLAR_WEBHOOK_SECRET`.
 - Platform billing (Phase 5): `DODO_PAYMENTS_*`.
-- Email (Phase 10): `RESEND_API_KEY`, `EMAIL_FROM`, and `APP_URL` (public origin
-  used in invitation/reset links). Without `RESEND_API_KEY`, links are logged to
-  the server console in development and returned once to the inviting admin.
+- Email: `RESEND_API_KEY`, `EMAIL_FROM`, and `APP_URL` (public origin used in
+  invitation, verification, and reset links). Without `RESEND_API_KEY`,
+  development writes messages to `.dev-emails/outbox.log`; the application log
+  never contains a token. Set `EMAIL_OUTBOX=true` to use the same outbox when
+  testing a production build locally. Set `COOKIE_SECURE=true` to force the
+  Secure cookie flag, or `false` to test a production build over local HTTP.
 - Tuning/flags: `SKIP_DB_CHECK`, `SKIP_DB_MIGRATION`, `DISABLE_BOT_CHECK`,
   `CLIENT_IP_HEADER`, `IGNORE_IP`, `LOG_QUERY`, `SALT_ROTATION`, etc.
 
@@ -89,9 +92,14 @@ POSTGRES_PORT=5433 docker compose up -d postgres
 The compose database is `talivia_oss`, user `talivia`, password `talivia`.
 These are local-only credentials, not production credentials.
 
-Open <http://localhost:3000>. The baseline migration creates the legacy
-`admin` / `admin` account, which Phase 4 removes. Until then, change it
-immediately in Settings if you expose the app beyond localhost.
+Open <http://localhost:3000> and create an account at `/signup`. The obsolete
+bootstrap `admin` / `admin` row is disabled by migration
+`20261104190000_remove_default_admin`; there is no default credential.
+
+Authentication uses durable PostgreSQL sessions behind an HttpOnly,
+SameSite=Lax cookie (`rl_session`). Password changes and resets revoke every
+session. Login, signup, password-reset, and resend endpoints are rate limited in
+PostgreSQL, so Redis is not required for brute-force protection.
 
 ### Option B — Neon development branch
 

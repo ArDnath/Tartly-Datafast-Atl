@@ -36,13 +36,11 @@ pnpm exec prisma migrate deploy
 pnpm dev
 ```
 
-打开 `http://localhost:3000`，使用以下信息登录：
+打开 `http://localhost:3000`，在 `/signup` 创建账户。系统没有默认账户或默认密码；
+迁移 `20261104190000_remove_default_admin` 会禁用过时的 `admin` 初始行。
 
-- 用户名：`admin`
-- 密码：`admin`
-
-登录后请立即在 **设置 → 账户** 中修改此初始密码。管理员可以在同一账户页面创建其他使用
-用户名和密码登录的账户，并更改其角色。系统绝不会显示密码哈希；每位用户需自行修改密码。
+会话保存在服务端，通过 HttpOnly、SameSite=Lax 的 Cookie 传递。修改或重置密码会撤销所有
+现有会话。
 
 常用检查命令：
 
@@ -96,8 +94,8 @@ docker compose up --build -d
 docker compose ps
 ```
 
-打开 `http://localhost:3000` 并立即修改初始 `admin` 密码。容器会在应用启动前自动执行开源版的
-数据库迁移。
+打开 `http://localhost:3000`，在 `/signup` 创建账户并完成引导。容器会在应用启动前自动执行
+数据库迁移；系统没有默认账户或默认密码。
 
 ## 备份与升级
 

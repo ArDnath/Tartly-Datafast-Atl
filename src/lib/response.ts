@@ -87,6 +87,23 @@ export function appConfigurationError() {
   });
 }
 
+export function tooManyRequests(error?: Record<string, any>, retryAfterSeconds?: number) {
+  const headers = new Headers({
+    'Content-Type': 'application/json',
+  });
+
+  if (retryAfterSeconds && retryAfterSeconds > 0) {
+    headers.set('Retry-After', String(Math.ceil(retryAfterSeconds)));
+  }
+
+  return new Response(
+    JSON.stringify({
+      error: { message: 'Too many requests', code: 'rate-limited', status: 429, ...error },
+    }),
+    { status: 429, headers },
+  );
+}
+
 export function paymentRequired(error?: Record<string, any>) {
   return Response.json(
     {

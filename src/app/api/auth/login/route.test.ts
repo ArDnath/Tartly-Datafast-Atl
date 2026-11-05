@@ -13,7 +13,8 @@ vi.mock('@/lib/auth-user', async importOriginal => {
   return {
     ...actual,
     createAuthResponse: vi.fn(async user => ({
-      token: 'signed-token',
+      expiresAt: new Date(Date.now() + 60_000),
+      sessionCookie: 'rl_session=signed-token; Path=/; HttpOnly; SameSite=Lax; Max-Age=60',
       user: {
         id: user.id,
         username: user.username,
@@ -26,6 +27,17 @@ vi.mock('@/lib/auth-user', async importOriginal => {
 
 vi.mock('@/queries/prisma', () => ({
   getUserByUsername: vi.fn(),
+}));
+
+vi.mock('@/lib/rate-limit', () => ({
+  consumeRateLimit: vi.fn(async () => ({
+    allowed: true,
+    limit: 10,
+    remaining: 9,
+    retryAfterSeconds: 0,
+  })),
+  hashRateLimitSubject: (value: string) => `hashed:${value}`,
+  rateLimitKey: (...parts: string[]) => parts.join(':'),
 }));
 
 function request(username: string, password: string) {
@@ -57,7 +69,6 @@ test('logs in with a normalized username and returns the existing auth payload',
   expect(response.status).toBe(200);
   expect(getUserByUsername).toHaveBeenCalledWith('admin', { includePassword: true });
   expect(body).toEqual({
-    token: 'signed-token',
     user: {
       id: '00000000-0000-4000-8000-000000000001',
       username: 'admin',
@@ -65,6 +76,15 @@ test('logs in with a normalized username and returns the existing auth payload',
       isAdmin: true,
     },
   });
+  expect(body.user).not.toHaveProperty('password');
+});
+
+test('sets an HttpOnly session cookie alongside the bearer token', async () => {
+  const response = await POST(request('owner@example.com', 'admin'));
+  const body = await response.json();
+
+  expect(response.headers.get('set-cookie')).toContain('rl_session=signed-token');
+  expect(response.headers.get('set-cookie')).toContain('HttpOnly');
   expect(body.user).not.toHaveProperty('password');
 });
 

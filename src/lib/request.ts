@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { isAppConfigurationError } from '@/lib/app-config';
 import { checkAuth } from '@/lib/auth';
+import { isSameOriginRequest, isUnsafeMethod } from '@/lib/csrf';
 import { DEFAULT_PAGE_SIZE, ENTITY_TYPE, FILTER_COLUMNS, OPERATORS } from '@/lib/constants';
 import { getAllowedUnits, getMinimumUnit, maxDate, parseDateRange } from '@/lib/date';
 import { fetchWebsite } from '@/lib/load';
@@ -69,6 +70,17 @@ export async function parseRequest(
 
     if (!error && !auth) {
       error = () => unauthorized();
+    } else if (
+      !error &&
+      auth?.source === 'cookie' &&
+      isUnsafeMethod(request.method) &&
+      !isSameOriginRequest(request)
+    ) {
+      error = () =>
+        forbidden({
+          message: 'Cross-site request rejected.',
+          code: 'csrf-rejected',
+        });
     } else if (!error && auth.shareToken && isPrivateSharePath(url.pathname)) {
       error = () =>
         forbidden({

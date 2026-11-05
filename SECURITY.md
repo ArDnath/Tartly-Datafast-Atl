@@ -8,7 +8,9 @@ reproduction steps, and any suggested mitigation.
 
 ## Self-hosting guidance
 
-- Replace the bootstrap `admin` password immediately.
+- There is no default account. Create the first account through `/signup` and
+  keep `/signup` rate limited at the edge if the deployment is public.
+- Serve authentication over HTTPS so the `Secure` session cookie is enforced.
 - Generate a long, random `APP_SECRET`, store it outside source control, and do not rotate it
   without a provider-secret migration plan.
 - Serve Talivia behind HTTPS and forward the original `Host` and protocol headers to the app.

@@ -657,3 +657,30 @@ test('a processed refund event is recovered when its refund row is missing', asy
     }),
   });
 });
+
+test('every write is scoped to the website in the webhook URL', async () => {
+  vi.mocked(fetchWebsite).mockImplementation(async (websiteId: string) => ({ id: websiteId }) as any);
+  vi.mocked(recordPayment).mockResolvedValue({
+    payment: { id: 'pay_site_2' },
+    paymentMatch: null,
+    attribution: { id: 'attr_site_2' },
+  } as any);
+
+  const response = await POST(
+    webhookRequest(INVOICE_PAID_EVENT, { 'stripe-signature': 'sig_test' }),
+    { params: Promise.resolve({ websiteId: 'site-2' }) },
+  );
+
+  expect(response.status).toBe(200);
+  expect(prisma.client.paymentProviderConnection.findFirst).toHaveBeenCalledWith(
+    expect.objectContaining({
+      where: expect.objectContaining({ websiteId: 'site-2' }),
+    }),
+  );
+  expect(recordPayment).toHaveBeenCalledWith(
+    expect.objectContaining({ websiteId: 'site-2' }),
+  );
+  expect(prisma.client.providerEvent.create).toHaveBeenCalledWith({
+    data: expect.objectContaining({ websiteId: 'site-2' }),
+  });
+});

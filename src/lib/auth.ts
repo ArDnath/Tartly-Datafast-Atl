@@ -8,6 +8,9 @@ import {
 } from '@/lib/constants';
 import { createAuthKey, secret } from '@/lib/crypto';
 import { createSecureToken, parseSecureToken, parseToken } from '@/lib/jwt';
+import { getSessionTokenFromRequest } from '@/lib/auth-cookie';
+import { isPlatformAdmin } from '@/lib/platform-admin';
+import { resolveAuthSession } from '@/lib/auth-session';
 import redis from '@/lib/redis';
 import type { ShareTokenPayload } from '@/lib/types';
 import { ensureArray } from '@/lib/utils';
@@ -24,27 +27,50 @@ export function getBearerToken(request: Request) {
 
 export async function checkAuth(request: Request) {
   const token = getBearerToken(request);
+  const sessionToken = getSessionTokenFromRequest(request);
   const payload = parseSecureToken(token, secret());
   const shareToken = await parseShareToken(request);
 
   let user = null;
+  let sessionId: string | undefined;
+  let source: 'cookie' | 'bearer' | 'share' = 'bearer';
   const { userId, authKey } = payload || {};
 
-  if (userId) {
+  // Prefer the HttpOnly cookie. A bearer token remains valid for API clients
+  // and for callers that explicitly send one.
+  if (sessionToken) {
+    const session = await resolveAuthSession(sessionToken);
+
+    if (session) {
+      user = await getUser(session.userId);
+      sessionId = session.id;
+      source = 'cookie';
+    }
+  }
+
+  if (!user && userId) {
     user = await getUser(userId);
-  } else if (redis.enabled && authKey) {
+    source = 'bearer';
+  } else if (!user && redis.enabled && authKey) {
     const key = await redis.client.get(authKey);
 
     if (key?.userId) {
       user = await getUser(key.userId);
+      source = 'bearer';
     }
+  }
+
+  if (!user && shareToken) {
+    source = 'share';
   }
 
   log({
     hasAuthToken: Boolean(token),
+    hasSessionCookie: Boolean(sessionToken),
     userId: user?.id,
     shareId: shareToken?.shareId,
     shareType: shareToken?.shareType,
+    source,
   });
 
   if (!user?.id && !shareToken) {
@@ -62,13 +88,17 @@ export async function checkAuth(request: Request) {
 
   if (user) {
     user.isAdmin = user.role === ROLES.admin;
+    user.isPlatformAdmin = isPlatformAdmin(user);
   }
 
   return {
     token,
     authKey,
+    sessionId,
+    sessionToken: sessionId ? sessionToken : undefined,
     shareToken,
     user,
+    source,
   };
 }
 

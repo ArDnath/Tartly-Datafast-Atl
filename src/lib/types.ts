@@ -29,8 +29,15 @@ export interface Auth {
     username: string;
     role: string;
     isAdmin: boolean;
+    isPlatformAdmin?: boolean;
+    emailVerifiedAt?: Date | null;
   };
   shareToken?: ShareTokenPayload;
+  /** Where the credential came from; used for CSRF decisions. */
+  source?: 'cookie' | 'bearer' | 'share';
+  sessionId?: string;
+  sessionToken?: string;
+  authKey?: string;
 }
 
 export interface Filter {

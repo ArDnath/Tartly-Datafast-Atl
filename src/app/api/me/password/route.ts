@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { clearSessionCookie } from '@/lib/auth-cookie';
+import { revokeAllAuthSessions } from '@/lib/auth-session';
 import { checkPassword, hashPassword } from '@/lib/password';
 import { parseRequest } from '@/lib/request';
 import { badRequest, ok } from '@/lib/response';
@@ -34,5 +36,12 @@ export async function POST(request: Request) {
 
   await updateUser(user.id, { password: hashPassword(body.newPassword) });
 
-  return ok();
+  // A password change invalidates every existing session, including this one.
+  // The client must sign in again with the new password.
+  await revokeAllAuthSessions(user.id);
+
+  const response = ok();
+  response.headers.set('Set-Cookie', clearSessionCookie());
+
+  return response;
 }

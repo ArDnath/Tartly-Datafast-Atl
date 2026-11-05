@@ -24,7 +24,9 @@ export async function fetchSession(websiteId: string, sessionId: string): Promis
 
   if (redis.enabled) {
     session = await redis.client.fetch(
-      `session:${sessionId}`,
+      // Include the website ID in the key: a session ID must never be
+      // resolvable through another tenant's cache entry.
+      `session:${websiteId}:${sessionId}`,
       () => getWebsiteSession(websiteId, sessionId),
       86400,
     );
@@ -32,7 +34,7 @@ export async function fetchSession(websiteId: string, sessionId: string): Promis
     session = await getWebsiteSession(websiteId, sessionId);
   }
 
-  if (!session) {
+  if (!session || session.websiteId !== websiteId) {
     return null;
   }
 

@@ -11,7 +11,7 @@ a workspace membership.
 
 ```
 request
-  → parseRequest()                    // authenticates the bearer token / share token
+  → parseRequest()                    // session cookie, bearer token, or share token
   → requireWorkspaceAccess(user, workspaceId, minimumRole)
   → requireWebsiteAccess(user, websiteId, minimumRole)
   → canViewWebsite / canUpdateWebsite / canDeleteWebsite
@@ -59,13 +59,49 @@ workspace ID, and `requireWebsiteAccess` rejects it.
   leaves no orphan user or workspace.
 - **Invitations** store only a SHA-512 hash of a one-time token, expire after
   7 days, are single-use, and must be accepted by the invited email address.
-  Email delivery goes through `src/lib/email.ts`; when no provider key is set,
-  the link is printed to the server console and returned once to the inviting
-  admin so onboarding is still testable.
+  Email delivery goes through `src/lib/email.ts`; the plaintext link is never
+  returned in an API response. Without `RESEND_API_KEY`, development writes the
+  message to `.dev-emails/outbox.log` (gitignored) instead of the application
+  log.
 - **Member allowance** comes from the plan (`starter` 1, `pro` 5) and fails
   closed when no plan is selected. Self-service creation of a second owned
   workspace is blocked until platform billing exists, so a user cannot mint
   extra allowances.
+
+## Platform administration
+
+The legacy `role === 'admin'` flag is **not** a workspace grant and is **not**
+sufficient for platform administration. `src/lib/platform-admin.ts` requires
+both the legacy role and an entry in `PLATFORM_ADMIN_EMAILS`. In production an
+empty allowlist disables the legacy user console; workspace roles stay the only
+source of tenant authorization.
+
+## Sessions, CSRF, and credentials
+
+- Browsers authenticate with the `rl_session` cookie: random 256-bit token,
+  HttpOnly, SameSite=Lax, `Secure` in production, 30-day sliding use window.
+  The database stores only a SHA-512 hash plus user ID, expiry, revocation
+  time, hashed IP, and user agent (`auth_session`).
+- The raw session token is never returned in a login/register response body.
+  Non-browser integrations must use an API key, not a browser session.
+- Password change and password reset revoke every session for the user.
+- Login, signup, password-reset, reset-confirm, and verification-resend
+  endpoints use the `rate_limit_bucket` table (atomic
+  `INSERT … ON CONFLICT`), so protection does not depend on Redis.
+- State-changing requests authenticated by the cookie are rejected when an
+  `Origin`/`Referer` header points at another site (`csrf-rejected`).
+
+## Cache keys
+
+Cached values are always keyed by the tenant-owned identifier, never by a
+bare session or entity ID:
+
+- `website:${websiteId}`
+- `session:${websiteId}:${sessionId}` — the website prefix was added because
+  a session UUID alone could otherwise be resolved through another tenant's
+  cache entry.
+- Public share slugs (`pixel:${slug}`, `link:${slug}`) are intentionally
+  public identifiers; they do not grant access to private routes.
 
 ## Workspace switching
 
@@ -82,7 +118,13 @@ re-checks membership. Clearing the cookie shows all accessible workspaces.
   `workspace_id` is null. Re-run the backfill and remove the fallback when the
   production copy is verified.
 - PostgreSQL row-level security is not enabled. Application-level checks plus
-  the static route-boundary test are the current defence.
+  the static route-boundary test are the current defence. RLS was evaluated and
+  deferred: every Neon pooled query would need a transaction-scoped
+  `SET LOCAL app.workspace_id` plus a policy on ~39 tables, and a missed
+  `SET LOCAL` silently returns zero rows or leaks depending on policy. Revisit
+  before enterprise sales, not before launch.
+- Account/workspace deletion is a soft delete. Event and replay payload purge
+  is a tenant-scoped retention job with a dry run, tracked in Phase 7/10.
 - Event/replay storage isolation is by `website_id`; replay payloads are not in
   tenant tables.
 
@@ -97,3 +139,11 @@ re-checks membership. Clearing the cookie shows all accessible workspaces.
 - `src/lib/registration.test.ts` — transaction behaviour and duplicate accounts.
 - `src/lib/workspace-invitations.test.ts` — hashing, expiry, email matching,
   member limits, revocation.
+- `src/lib/auth-session.test.ts`, `src/lib/auth-cookie.test.ts`,
+  `src/lib/auth-tokens.test.ts`, `src/lib/rate-limit.test.ts`,
+  `src/lib/csrf.test.ts` — session hashing/expiry/revocation, cookie flags,
+  single-use tokens, brute-force limits, cross-site rejection.
+- `src/lib/load.test.ts` — cached sessions are scoped by website.
+- `src/app/api/payments/stripe/[websiteId]/webhook/route.test.ts` and
+  `src/lib/cron/jobs/provider-webhook-cleanup.test.ts` — webhook/job writes
+  stay on the website/job they were queued for.

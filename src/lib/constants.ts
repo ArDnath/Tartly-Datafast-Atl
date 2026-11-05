@@ -1,4 +1,3 @@
-export const AUTH_TOKEN = 'talivia.auth';
 export const LOCALE_CONFIG = 'talivia.locale';
 export const TIMEZONE_CONFIG = 'talivia.timezone';
 export const DATE_RANGE_CONFIG = 'talivia.date-range';

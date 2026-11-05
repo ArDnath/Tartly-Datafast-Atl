@@ -4,18 +4,19 @@
 - **Repository:** <https://github.com/talivia-group/talivia> (MIT), forked locally at
   `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-05
-- **Current phase:** Phase 3 — Tenant isolation hardening (IN_PROGRESS); Phase 2 complete with caveats
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Next: Phase 5 (platform billing) and Phase 6 metering.
 
 ## Overall progress
 
 - Total phases: **12** (0–11 product/build, 12 go-to-market)
-- Phases complete: **2 full, 1 with caveats**
-- Overall percent (average of phases 0–11): **40%**
+- Phases complete: **3 full, 2 with caveats** (Phase 2: copy-with-data rehearsal; Phase 4: live Resend delivery)
+- Overall percent (average of phases 0–11): **50%**
 - Build state at last check: **green** (`pnpm build` exit 0; `tsc --noEmit`
-  clean; `biome lint` clean). Full test run: **518 passed / 0 failed** after
-  pinning the test process to `TZ=UTC` (the date-series test was
-  timezone-dependent) and raising the UI test timeout from 5s to 15s (the
-  baseline `WebsiteRevenueSettings` timeout was load, not an assertion).
+  clean; `biome lint` clean). Full test run: **577 passed / 0 failed** after
+  pinning the test process to `TZ=UTC` and raising the UI test timeout to 15s.
+- Database: local PostgreSQL has all 6 migrations applied, including durable
+  auth sessions, hashed email/reset tokens, rate-limit buckets, and removal of
+  the bootstrap admin.
 
 ## Commercial contract (fixed by owner)
 
@@ -37,8 +38,8 @@ No third plan, no free tier, no hidden limits.
 | 0 | Audit and baseline | DONE | 100% | 2026-11-04 | 2026-11-04 | none |
 | 1 | Neon PostgreSQL, Prisma, environment | DONE_WITH_CAVEATS | 100% | 2026-11-04 | 2026-11-04 | Neon credentials |
 | 2 | Workspaces, memberships, RBAC | DONE_WITH_CAVEATS | 92% | 2026-11-04 | 2026-11-05 | copy-with-data rehearsal |
-| 3 | Tenant isolation hardening + tests | IN_PROGRESS | 55% | 2026-11-05 | — | RLS decision, webhook/job tests |
-| 4 | Authentication and account management | IN_PROGRESS | 25% | 2026-11-05 | — | email provider key, reset/verify |
+| 3 | Tenant isolation hardening + tests | DONE | 100% | 2026-11-05 | 2026-11-05 | none (RLS deferred by decision) |
+| 4 | Authentication and account management | DONE_WITH_CAVEATS | 100% | 2026-11-05 | 2026-11-05 | live Resend send |
 | 5 | Platform billing (Dodo) | NOT_STARTED | 0% | — | — | Dodo test/live keys |
 | 6 | Plans, pricing economics, usage | IN_PROGRESS | 40% | 2026-11-04 | — | metering; owner approval of limits |
 | 7 | Analytics validation, integrations, replay | NOT_STARTED | 0% | — | — | none |
@@ -231,9 +232,11 @@ migration connections.
       proof: `WorkspaceSwitcher` in the app nav, `/app/settings/workspace`
       members/invitations UI, `/api/workspaces/[workspaceId]/members`, and
       `/api/workspaces/[workspaceId]/invitations`.
-- [ ] Separate internal platform-admin role, independently protected; no public
-      bootstrap admin and no default credentials. — **not built**; the legacy
-      admin still exists and is removed in Phase 4.
+- [x] Separate internal platform-admin role, independently protected; no public
+      bootstrap admin and no default credentials. — proof:
+      `src/lib/platform-admin.ts` requires `PLATFORM_ADMIN_EMAILS` in
+      production; the bootstrap row is disabled by
+      `20261104190000_remove_default_admin`.
 
 ### Acceptance criteria
 
@@ -301,17 +304,26 @@ migration connections.
       authorized workspace. — proof: inherited SQL joins key on
       `website_id`; analytics routes reject unauthorized website IDs before
       querying.
-- [ ] Cache keys include tenant and website identifiers; document
-      contamination checks.
-- [ ] Evaluate PostgreSQL RLS as defence in depth. With Neon pooling use
-      transaction-scoped context only (`SET LOCAL`); otherwise document why.
+- [x] Cache keys include tenant and website identifiers; document
+      contamination checks. — proof: `src/lib/load.ts` now uses
+      `session:${websiteId}:${sessionId}` and rejects a cached session whose
+      `websiteId` differs. `docs/TENANCY.md` §Cache keys.
+- [x] Evaluate PostgreSQL RLS as defence in depth. With Neon pooling use
+      transaction-scoped context only (`SET LOCAL`); otherwise document why. —
+      proof: decision recorded in `docs/TENANCY.md`: every pooled query would
+      need transaction-scoped `SET LOCAL` plus policies on ~39 tables;
+      application checks + the static boundary test are the launch control.
 - [x] Isolation tests: Workspace A/User A/Website A vs Workspace B/User
       B/Website B. A can access A; A cannot access B analytics, replays,
       revenue, settings, API keys, exports; ID swapping does not expose B;
       direct API calls cannot bypass. — proof:
       `src/permissions/website.workspace.test.ts` (10 scenarios) plus the
       static route-boundary test.
-- [ ] Webhook and background-job isolation tests.
+- [x] Webhook and background-job isolation tests. — proof:
+      `src/app/api/payments/stripe/[websiteId]/webhook/route.test.ts` asserts
+      connection lookup, payment write, and provider event write all use the
+      URL website; `src/lib/cron/jobs/provider-webhook-cleanup.test.ts` asserts
+      each queued job uses only its own credentials and endpoint.
 - [x] CI step runs isolation suite on every push. — proof: the existing
       `pnpm test` step in `.github/workflows/ci.yml` includes every
       `*.test.ts` suite.
@@ -320,7 +332,8 @@ migration connections.
 
 - [x] All ten isolation scenarios pass, each with a named test. — proof:
       `src/permissions/website.workspace.test.ts`.
-- [ ] Webhook and background-job isolation tests pass.
+- [x] Webhook and background-job isolation tests pass. — proof: the two
+      suites above (13 + 7 tests) pass.
 - [x] Failing scenarios fixed, not skipped; otherwise phase BLOCKED. — proof:
       the three new-suite failures during the restructuring run were fixed; the
       remaining full-suite failures are the five documented baseline flakes.
@@ -334,6 +347,11 @@ migration connections.
   team path. New routes reject them via `requireWebsiteAccess`.
 - Boards, links, and pixels are frozen legacy features rather than migrated
   until their create endpoints return.
+- A real cache-contamination bug was found and fixed: cached sessions were
+  keyed by `sessionId` alone. The key now includes `websiteId` and the cached
+  row is checked against the requested website before use.
+- RLS is explicitly deferred to pre-enterprise; relying on a forgotten
+  `SET LOCAL` would make isolation failures silent.
 
 ### Unverified / Assumed
 
@@ -354,42 +372,87 @@ migration connections.
 
 - [x] Inspect existing session/auth implementation first; reuse if sound. Do
       not introduce Clerk/Auth.js/Better Auth unless justified in writing. —
-      proof: retained the existing bearer-token/session code; added signup on
-      top of it instead of a new auth framework.
-- [ ] Registration, login, logout, session management, email verification,
-      password reset, secure hashing (bcrypt/argon2id with suitable cost),
-      profile updates, account settings, workspace deletion, account deletion
-      with data-deletion workflow.
-- [ ] Cookies: Secure, HttpOnly, appropriate SameSite; session expiry and
-      invalidation (invalidate all sessions on password change).
-- [ ] CSRF protection where applicable.
-- [ ] Rate limiting + brute-force protection on login, registration, password
-      reset, verification.
-- [ ] Hashed, single-use, expiring reset and verification tokens.
-- [ ] Remove default admin credentials and customer-facing self-hosted admin
-      path.
-- [x] Email provider abstraction (Resend or similar) with dev-mode logger. —
-      proof: `src/lib/email.ts` (Resend HTTP transport when `RESEND_API_KEY`
-      is set, console logger otherwise).
+      proof: no auth framework added; the existing username/password base is
+      retained and made production-safe.
+- [x] Registration, login, logout, session management, email verification,
+      password reset, secure hashing, profile updates, account settings,
+      workspace deletion, account deletion. — proof: `/api/auth/*`,
+      `/api/me/account`, `/api/workspaces/[workspaceId]` DELETE/PATCH;
+      bcryptjs cost 10; `/verify-email`, `/forgot-password`, `/reset-password`.
+- [x] Cookies: Secure, HttpOnly, SameSite=Lax; 30-day server-side expiry;
+      password change/reset revokes every session. — proof:
+      `src/lib/auth-cookie.ts`, `src/lib/auth-session.ts`, migration
+      `20261104185008_auth_sessions`, `src/lib/auth-session.test.ts`.
+- [x] CSRF protection where applicable. — proof: `src/lib/csrf.ts`; cookie-auth
+      unsafe requests with a foreign Origin/Referer return 403
+      `csrf-rejected`; SameSite=Lax is the second layer.
+- [x] Rate limiting + brute-force protection on login, registration, password
+      reset, verification resend. — proof: atomic Postgres fixed windows in
+      `src/lib/rate-limit.ts`; per-IP and per-account/email keys; no Redis
+      dependency.
+- [x] Hashed, single-use, expiring reset and verification tokens. — proof:
+      `src/lib/auth-tokens.ts` (24h verification, 1h reset, SHA-512 at rest,
+      consumption and state change in one transaction).
+- [x] Remove default admin credentials and customer-facing self-hosted admin
+      path. — proof: migration `20261104190000_remove_default_admin` disables
+      the bootstrap `admin` row only while it still has the known password
+      hash; `src/lib/platform-admin.ts` requires `PLATFORM_ADMIN_EMAILS` in
+      production, so `role === 'admin'` alone is not a platform grant.
+- [x] Email provider abstraction (Resend or similar) with dev-mode outbox. —
+      proof: `src/lib/email.ts`; without `RESEND_API_KEY` development writes to
+      `.dev-emails/outbox.log` (gitignored), never to application logs.
+- [x] Account deletion with a typed confirmation and password re-check. —
+      proof: `DELETE /api/me/account`; soft-deletes owned workspaces, revokes
+      sessions, anonymises the user row, and leaves event purge to the
+      tenant-scoped retention job.
+- [x] Separate platform-admin role (environment allowlist), no public
+      bootstrap admin. — proof: `src/lib/platform-admin.ts` + tests.
 
 ### Acceptance criteria
 
-- [ ] Tests for login, logout, expired session, password reset (single use,
-      expiry), email verification, rate limiting.
-- [ ] No plaintext passwords/tokens in DB or logs (show the check).
-- [ ] Repo search finds no default admin credentials.
+- [x] Tests for login, logout, expired/revoked session, password reset
+      (single use, expiry), email verification, rate limiting. — proof:
+      `auth-session.test.ts`, `auth-tokens.test.ts`, `rate-limit.test.ts`,
+      `login/route.test.ts`, `logout/route.test.ts`,
+      `password/forgot|reset` route tests, `email/verify` route test.
+- [x] No plaintext passwords/tokens in DB or logs. — proof: bcrypt hashes;
+      only SHA-512 token hashes stored; the login response no longer contains
+      the session token; local email bodies go to `.dev-emails/outbox.log`,
+      not logs.
+- [x] Repo search finds no default admin credentials. — proof: bootstrap row
+      disabled by migration; `grep` finds only documentation of its removal.
+- [x] Live smoke on the production build (2026-11-05): 17/17 assertions
+      passed — register sets an HttpOnly/SameSite cookie with no token in the
+      body, cookie auth, workspace/website creation, real stats read, reset
+      writes to the development outbox, reset revokes the old session and old
+      password, new password signs in, logout revokes, and a second account is
+      denied the first tenant's website by ID.
 
 ### Decisions made
 
-- (pending)
+- Durable PostgreSQL sessions behind an HttpOnly cookie replace
+  localStorage bearer tokens. The raw token is never returned in a response
+  body; API integrations use API keys.
+- Login/signup/reset rate limits use PostgreSQL rather than Redis so a missing
+  cache cannot disable brute-force protection. They fail open only if the
+  database itself is unavailable, at which point login cannot work anyway.
+- Email verification does not hard-gate the dashboard. It is recorded on the
+  user and can gate paid features later without blocking activation.
+- Account deletion is a soft delete. Hard-deleting event/replay payloads is a
+  separate, tenant-scoped retention job (Phase 7/10), not a request handler.
+- Platform administration requires `PLATFORM_ADMIN_EMAILS`; the legacy
+  self-hosted `role === 'admin'` is no longer sufficient in production.
 
 ### Unverified / Assumed
 
-- (pending)
+- **UNVERIFIED:** a live Resend delivery (no `RESEND_API_KEY` or verified
+  domain in this environment). The log/outbox transport is exercised locally.
+- **UNVERIFIED:** a browser walkthrough of verification and reset emails from a
+  real inbox; API and unit tests cover the token lifecycle.
 
 ### Needs from the human
 
-- Email provider key + verified sending domain.
+- `RESEND_API_KEY` + verified sending domain for live verification/reset mail.
 
 ---
 
@@ -659,8 +722,8 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       invitations done** (`/app/settings/workspace`); websites/integrations/
       security states still pending.
 - [x] **UI-11 — Auth screens:** login, signup, verify, reset in the same shell.
-      — login + signup built in the auth shell; invite acceptance added at
-      `/invite/[token]`. Verify/reset remain for Phase 4.
+      — login, signup, invite acceptance, `/verify-email`, `/forgot-password`,
+      and `/reset-password` use the same auth shell.
 - [ ] **UI-12 — Marketing landing:** one promise, three proof points, product
       visual, pricing teaser, FAQ.
 - [ ] **UI-13 — Motion + polish pass:** page transitions, hover lift, focus
@@ -799,27 +862,35 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
    and record the output; configure Neon pooled/direct secrets.
 2. **Phase 2 caveat:** rehearse the workspace migration on a copy of real data,
    then merge or retire the legacy `Team`/`WebsiteMember` model.
-3. **Phase 3 finish:** composite constraints/RLS decision, cache-key
-   contamination checks, webhook/background-job isolation tests.
-4. **Phase 4 finish:** HttpOnly cookie sessions, email verification/reset, rate
-   limits, separate platform-admin role, account deletion.
-5. **Phase 5:** Dodo platform billing behind `BillingProvider`, webhooks,
+3. **Phase 5:** Dodo platform billing behind `BillingProvider`, webhooks,
    lifecycle, billing UI.
-6. **Phase 6 finish:** `UsagePeriod` + atomic metering, 80/100% enforcement,
+4. **Phase 6 finish:** `UsagePeriod` + atomic metering, 80/100% enforcement,
    usage UI, owner approval of limits.
-7. **Phase 7:** attribution journey tests, provider capability table, replay
+5. **Phase 7:** attribution journey tests, provider capability table, replay
    entitlements/masking/retention jobs.
-8. **Phase 8 finish:** framework guides, activation events/admin funnel,
+6. **Phase 8 finish:** framework guides, activation events/admin funnel,
    `llms.txt`, MCP/CLI verification.
-9. **Phase 9 finish:** rebrand all customer-facing copy, revenue-first
-   overview, billing/usage, settings, auth screens, landing page, a11y pass,
-   temporary rename demo.
-10. **Phase 10:** legal drafts, abuse protection, transactional email, ops.
-11. **Phase 11:** security review, load test, CI, deployment/runbook.
-12. **Phase 12:** go-to-market.
+7. **Phase 9 finish:** rebrand all customer-facing copy, revenue-first
+   overview, billing/usage, settings, landing page, a11y pass, temporary
+   rename demo.
+8. **Phase 10:** legal drafts, abuse protection, transactional email, ops.
+9. **Phase 11:** security review, load test, CI, deployment/runbook.
+10. **Phase 12:** go-to-market.
 
 ## Changelog
 
+- 2026-11-05 — **Auth and isolation restructuring (Phases 3–4):** durable
+  PostgreSQL sessions behind an HttpOnly/SameSite cookie; localStorage bearer
+  tokens removed from the browser; password change/reset revokes every session;
+  hashed single-use email-verification and password-reset tokens; Postgres
+  rate limiting for login/signup/reset; CSRF origin checks; account deletion;
+  workspace update/transfer/delete routes; platform-admin allowlist; bootstrap
+  `admin` credentials disabled; cached sessions scoped by website (real
+  contamination bug fixed); webhook/job isolation tests; auth-maintenance cron.
+  New migrations `20261104185008_auth_sessions` and
+  `20261104190000_remove_default_admin`. Build, typecheck, lint, the full test
+  suite (577 tests), and a 17-assertion live smoke on the production build are
+  green.
 - 2026-11-05 — **Tenancy restructuring:** every website route now resolves
   access through workspace membership; `isAdmin` is no longer a tenant grant;
   public signup + transactional registration; hashed invitation flow with
@@ -850,8 +921,8 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 | Risk | Severity | Mitigation |
 | --- | --- | --- |
 | The fork is a single-install product; tenancy is implicit via `user_id`/`team_id` on `website` | Critical | Add `Workspace` ownership and central authorization in Phase 2; isolation suite in Phase 3 |
-| Analytics events and replays are stored in PostgreSQL, so hosting cost scales with customer volume | High | Keep events off Neon; use a separate Postgres/ClickHouse for events before scale; meter usage |
-| Existing auth is username/password with a bootstrap `admin`/`admin` | Critical | Remove default credentials in Phase 4; add email verification/reset and rate limits |
+| Analytics events and replays are stored in PostgreSQL, so hosting cost scales with customer volume | High | Keep events off Neon; use a separate Postgres/ClickHouse for events before scale; meter usage (Phase 6) |
+| Existing auth is username/password with a bootstrap `admin`/`admin` | Critical | **Mitigated (Phase 4):** bootstrap row disabled by migration; hashed sessions/tokens, rate limits, CSRF, and verification/reset shipped |
 | Upstream Cloud features (Search Console, social mentions) are absent from OSS | Medium | Position only on what OSS actually ships; do not advertise missing features |
 | Dodo is used as an analytics provider; using it for platform billing risks mixing contexts | High | Separate `BillingProvider` module + distinct webhook routes and models |
 | Tartly is a different product (email operator); copying visuals must not import its dependencies or product logic | Medium | Extract tokens/motion into Talivia's existing CSS/React system; no Tailwind migration |

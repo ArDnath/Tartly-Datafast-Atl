@@ -1,7 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import { useCallback } from 'react';
-import { getClientAuthToken } from '@/lib/client';
 import { SHARE_CONTEXT_HEADER, SHARE_TOKEN_HEADER } from '@/lib/constants';
 import { type FetchResponse, httpDelete, httpGet, httpPost, httpPut } from '@/lib/fetch';
 import { useApp } from '@/store/app';
@@ -34,7 +33,6 @@ export function useApi() {
       : {};
 
   const defaultHeaders = {
-    authorization: `Bearer ${getClientAuthToken()}`,
     ...shareHeaders,
   };
   const getUrl = (url: string) => {

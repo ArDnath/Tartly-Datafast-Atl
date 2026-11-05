@@ -1,5 +1,5 @@
-import { expect, test } from 'vitest';
-import { getBaseUrl } from './get-base-url';
+import { afterEach, expect, test, vi } from 'vitest';
+import { getBaseUrl, getPublicOrigin } from './get-base-url';
 
 function createHeaders(entries: Record<string, string>) {
   return {
@@ -51,4 +51,26 @@ test('uses the request origin when proxy headers are unavailable', () => {
   const request = new Request('https://analytics.example.com/api/connect');
 
   expect(getBaseUrl(request).toString()).toBe('https://analytics.example.com/');
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
+test('email links prefer APP_URL over a spoofed forwarded host', () => {
+  vi.stubEnv('APP_URL', 'https://revenuelens.app');
+
+  const request = new Request('https://internal.local/api/auth/password/forgot', {
+    headers: { 'x-forwarded-host': 'evil.example' },
+  });
+
+  expect(getPublicOrigin(request)).toBe('https://revenuelens.app');
+});
+
+test('email links fall back to the request origin without APP_URL', () => {
+  vi.stubEnv('APP_URL', '');
+
+  expect(
+    getPublicOrigin(new Request('http://localhost:3000/api/auth/password/forgot')),
+  ).toBe('http://localhost:3000');
 });

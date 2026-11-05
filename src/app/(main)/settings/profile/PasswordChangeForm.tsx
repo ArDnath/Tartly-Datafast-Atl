@@ -1,6 +1,7 @@
 'use client';
 
 import { Form, FormButtons, FormField, FormSubmitButton, TextField } from '@talivia/react-zen';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useMessages, useUpdateQuery } from '@/components/hooks';
 
@@ -25,6 +26,7 @@ const NEW_PASSWORD_RULES = {
 };
 
 export function PasswordChangeForm() {
+  const router = useRouter();
   const [formError, setFormError] = useState<string>();
   const { getErrorMessage, messages, t } = useMessages();
   const { mutateAsync, error, isPending, toast } = useUpdateQuery('/me/password');
@@ -41,11 +43,19 @@ export function PasswordChangeForm() {
       return;
     }
 
-    await mutateAsync({
-      currentPassword: data.currentPassword,
-      newPassword: data.newPassword,
-    });
+    try {
+      await mutateAsync({
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
+      });
+    } catch {
+      return;
+    }
+
     toast(t(messages.saved));
+
+    // The server revokes every session on password change, including this one.
+    router.replace('/login?returnUrl=%2Fapp');
   };
 
   return (

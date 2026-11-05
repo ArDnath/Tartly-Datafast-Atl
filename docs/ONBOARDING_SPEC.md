@@ -181,7 +181,8 @@ tool was unavailable in this environment.
 
 ## 7. Remaining (tracked in Phase 8/9)
 
-- Real signup + email verification before onboarding (Phase 4).
+- Email verification is sent at signup and can be resent, but it is not a
+  hard gate before onboarding (implemented in Phase 4).
 - Automatic workspace selection / workspace switcher in the app shell.
 - Invite step (ADMIN/MEMBER/VIEWER), expiry, revoke.
 - Plan choice + billing activation before the dashboard.
