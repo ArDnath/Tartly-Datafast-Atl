@@ -1,4 +1,5 @@
 import { beforeEach, expect, test, vi } from 'vitest';
+import { BRAND } from '@/lib/brand';
 import {
   createDodoWebhookEndpoint,
   deleteDodoWebhookEndpoint,
@@ -630,7 +631,7 @@ test('POST rejects a Yolfi organization already connected to another website', a
   expect(response.status).toBe(400);
   await expect(response.json()).resolves.toEqual({
     error: expect.objectContaining({
-      message: 'This Yolfi organization is already connected to another Talivia website.',
+      message: `This Yolfi organization is already connected to another ${BRAND.name} website.`,
     }),
   });
   expect(createYolfiAnalyticsEndpoint).not.toHaveBeenCalled();

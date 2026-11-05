@@ -3,6 +3,7 @@ import type {
   RecordRefundInput,
   RecordSubscriptionStateInput,
 } from '@/queries/prisma/payment';
+import { BRAND } from '@/lib/brand';
 import { hash } from './crypto';
 
 export const POLAR_REVENUE_WEBHOOK_EVENTS = [
@@ -226,7 +227,7 @@ function getWebhookBody(url: string) {
   return {
     url,
     format: 'raw',
-    name: 'Talivia revenue attribution',
+    name: `${BRAND.name} revenue attribution`,
     events: [...POLAR_REVENUE_WEBHOOK_EVENTS],
   };
 }
@@ -374,7 +375,7 @@ export async function updatePolarWebhookEndpoint({
       body: JSON.stringify({
         url,
         format: 'raw',
-        name: 'Talivia revenue attribution',
+        name: `${BRAND.name} revenue attribution`,
         events: [...POLAR_REVENUE_WEBHOOK_EVENTS],
         enabled: true,
       }),

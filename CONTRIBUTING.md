@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for helping improve Talivia.
+Thank you for helping improve RevenueLens.
 
 ## Development setup
 

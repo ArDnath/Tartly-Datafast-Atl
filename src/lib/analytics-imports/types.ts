@@ -1,3 +1,5 @@
+import { BRAND } from '@/lib/brand';
+
 export const ANALYTICS_IMPORT_SOURCES = {
   talivia: {
     id: 'talivia',
@@ -9,14 +11,14 @@ export const ANALYTICS_IMPORT_SOURCES = {
   umami: {
     id: 'umami',
     name: 'Umami',
-    description: 'Bring your historical page views, sessions, events, and properties into Talivia.',
+    description: `Bring your historical page views, sessions, events, and properties into ${BRAND.name}.`,
     acceptedFiles: '.zip,.gz,.csv,.json',
     kind: 'raw',
   },
   plausible: {
     id: 'plausible',
     name: 'Plausible',
-    description: 'Bring historical daily traffic and page metrics into Talivia.',
+    description: `Bring historical daily traffic and page metrics into ${BRAND.name}.`,
     acceptedFiles: '.zip,.csv',
     kind: 'aggregate',
   },

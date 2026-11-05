@@ -4,19 +4,20 @@
 - **Repository:** <https://github.com/talivia-group/talivia> (MIT), forked locally at
   `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-05
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 app restructure shipped (routes, workbench navigation, revenue-first home, landing). Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 app restructure shipped (single `/app` workbench, feature-module source layout, revenue-first home, landing). Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
 
 ## Overall progress
 
 - Total phases: **12** (0–11 product/build, 12 go-to-market)
 - Phases complete: **3 full, 2 with caveats** (Phase 2: copy-with-data rehearsal; Phase 4: live Resend delivery)
 - Overall percent (average of phases 0–11): **58%**
-- Build state at last check: **green** (`pnpm build` exit 0; `tsc --noEmit`
-  clean; `biome lint` clean). Full test run: **611 passed / 0 failed** under
-  `TZ=UTC`.
+- Build state at last check: **green** (`pnpm build` exit 0 with local
+  PostgreSQL running; `tsc --noEmit` clean; `biome lint` clean). Full test run:
+  **613 passed / 0 failed** under `TZ=UTC`.
 - Runtime smoke: all 19 website workbench routes return 200 on the production
   build with an authenticated session; unknown sub-routes return 404. The new
-  `/app/settings/billing` route is in the production build.
+  `/app/settings/billing` route is in the production build. The legacy
+  `/websites/*` and `/settings/*` URLs redirect to `/app/*`.
 - Database: local PostgreSQL has all 7 migrations applied, including durable
   auth sessions, hashed email/reset tokens, rate-limit buckets, removal of the
   bootstrap admin, and monthly usage periods.
@@ -47,7 +48,7 @@ No third plan, no free tier, no hidden limits.
 | 6 | Plans, pricing economics, usage | IN_PROGRESS | 75% | 2026-11-04 | — | live concurrency proof; owner approval of limits; notice emails |
 | 7 | Analytics validation, integrations, replay | NOT_STARTED | 0% | — | — | none |
 | 8 | Onboarding and developer experience | IN_PROGRESS | 40% | 2026-11-04 | — | guides, activation, MCP |
-| 9 | Rebrand and product UI | IN_PROGRESS | 75% | 2026-11-04 | — | billing page (Phase 5), remaining brand copy, a11y pass |
+| 9 | Rebrand and product UI | IN_PROGRESS | 80% | 2026-11-04 | — | billing page (Phase 5), remaining brand copy, a11y pass |
 | 10 | Compliance, abuse, email, operations | NOT_STARTED | 0% | — | — | legal review |
 | 11 | Hardening, QA, deployment, launch | NOT_STARTED | 0% | — | — | hosting + domain |
 | 12 | Go-to-market | NOT_STARTED | 0% | — | — | product live |
@@ -656,7 +657,7 @@ migration connections.
 - [x] Onboarding flow with progress: create workspace → add website → copy
       snippet → install → verify first event (live check) → connect payments →
       first revenue report. Dashboard reachable without forcing every step. —
-      proof: `src/app/onboarding/OnboardingFlow.tsx`,
+      proof: `src/features/onboarding/OnboardingFlow.tsx`,
       `docs/ONBOARDING_SPEC.md`. Payment step links to the real settings page;
       no hard gates.
 - [ ] Install guides: Next.js, React, Vite, plain HTML, Astro, Remix (where
@@ -781,6 +782,18 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       `revenue-attribution`/`revenue-journey`/`revenue-diagnostics` redirect to
       the canonical route; `app-route.test.ts` and
       `WebsiteSectionNav.test.tsx` lock the route/nav contract.
+- [x] **UI-16 — Complete source restructure (new):** the app router is now a
+      thin routing layer; all product UI moved to domain modules under
+      `src/features` (`app-shell`, `portfolio`, `websites/workbench`,
+      `settings`, `onboarding`, `auth`, `marketing`, `share`, `legacy`).
+      `src/app` now contains route files plus the root `Providers.tsx` only.
+      Removed dead portfolio table
+      components and the obsolete revenue-attribution/revenue-journey report
+      screens and hooks. Legacy `/websites/*` and `/settings/*` URLs redirect
+      to the canonical `/app/*` routes. — proof: `src/app/(main)` contains only
+      route files; `docs/UI_DESIGN_SYSTEM.md` §6 records the layout;
+      `src/lib/app-structure.test.ts` enforces it; build, typecheck, lint, and
+      613 tests are green.
 - [ ] **UI-13 — Motion + polish pass:** page transitions, hover lift, focus
       rings, skeletons, reduced motion, mobile.
 - [ ] **UI-14 — Temporary rename demonstration:** change brand config and show
@@ -939,6 +952,27 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 
 ## Changelog
 
+- 2026-11-05 — **Complete source restructure (Phase 9):** `src/app` is now the
+  routing layer only. Product UI moved into `src/features` domain modules:
+  `app-shell` (shell/top nav/notices), `portfolio` (all-websites home),
+  `websites` (list helpers + `workbench` with reports, sessions, events,
+  replay, settings), `settings` (workspace, websites, plan and usage, account,
+  preferences), `onboarding` (welcome and website setup), `auth` (login,
+  signup, verify, reset, invite, logout), `marketing` (landing and pricing),
+  `share` (public share shell), and `legacy` (quarantined boards/links/pixels).
+  `src/app` contains route files plus `Providers.tsx` only. Removed the unused portfolio table
+  components and the obsolete revenue-attribution/revenue-journey report
+  screens and query hooks (their API endpoints remain for exports and the
+  diagnostics view). `/websites/*` and `/settings/*` now redirect to the
+  canonical `/app/*` routes. Customer-facing provider webhook names,
+  descriptions, diagnostics copy, and import labels now read from
+  `src/lib/brand.ts`; README, SECURITY, and CONTRIBUTING no longer present the
+  upstream product as the product. Fixed a timing-flaky session-cookie test by
+  freezing the clock. Build, typecheck, lint, and 613/613 tests pass, including a new
+  `src/lib/app-structure.test.ts` that locks routes to `src/app` and product UI to
+  `src/features`; an
+  authenticated smoke run returned 200 on all 19 workbench routes and the 7
+  settings/portfolio surfaces.
 - 2026-11-05 — **Usage metering and the Plan & usage surface (Phases 6 + 9):**
   new `usage_period` and `usage_replay_session` tables; atomic reserve-then-write
   event metering in the collector with release on write failure; replay

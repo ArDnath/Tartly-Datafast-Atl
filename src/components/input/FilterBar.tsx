@@ -9,7 +9,7 @@ import {
   Tooltip,
   TooltipTrigger,
 } from '@talivia/react-zen';
-import { SegmentEditForm } from '@/app/(main)/websites/[websiteId]/segments/SegmentEditForm';
+import { SegmentEditForm } from '@/features/websites/workbench/segments/SegmentEditForm';
 import { useFilters, useFormat, useMessages, useUrlState } from '@/components/hooks';
 import { useWebsiteSegmentQuery } from '@/components/hooks/queries/useWebsiteSegmentQuery';
 import { Bookmark, X } from '@/components/icons';

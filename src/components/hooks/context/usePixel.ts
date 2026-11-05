@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { PixelContext } from '@/app/(main)/pixels/PixelProvider';
+import { PixelContext } from '@/features/legacy/pixels/PixelProvider';
 
 export function usePixel() {
   return useContext(PixelContext);

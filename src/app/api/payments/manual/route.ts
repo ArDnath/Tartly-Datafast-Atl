@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { authenticateApiKey } from '@/lib/api-key';
+import { BRAND } from '@/lib/brand';
 import { fetchWebsite } from '@/lib/load';
 import { parseRequest } from '@/lib/request';
 import { badRequest, forbidden, json, unauthorized } from '@/lib/response';
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
   const apiKey = await authenticateApiKey(request);
 
   if (!apiKey) {
-    return unauthorized({ message: 'A valid Talivia API key is required.' });
+    return unauthorized({ message: `A valid ${BRAND.name} API key is required.` });
   }
 
   const { body, error } = await parseRequest(request, schema, { skipAuth: true });

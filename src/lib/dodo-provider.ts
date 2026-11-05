@@ -1,4 +1,5 @@
 import DodoPayments from 'dodopayments';
+import { BRAND } from '@/lib/brand';
 import type { RecordPaymentInput, RecordRefundInput } from '@/queries/prisma/payment';
 import { hash } from './crypto';
 
@@ -217,7 +218,7 @@ export async function createDodoWebhookEndpoint({
   for await (const webhook of client.webhooks.list()) {
     if (webhook.url === url) {
       endpoint = await client.webhooks.update(webhook.id, {
-        description: 'Talivia revenue attribution',
+        description: `${BRAND.name} revenue attribution`,
         disabled: false,
         filter_types: [...DODO_REVENUE_WEBHOOK_EVENTS],
       });
@@ -228,7 +229,7 @@ export async function createDodoWebhookEndpoint({
   if (!endpoint) {
     endpoint = await client.webhooks.create({
       url,
-      description: 'Talivia revenue attribution',
+      description: `${BRAND.name} revenue attribution`,
       disabled: false,
       filter_types: [...DODO_REVENUE_WEBHOOK_EVENTS],
     });

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ForgotPasswordPage } from './ForgotPasswordPage';
+import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage';
 
 export default function () {
   return <ForgotPasswordPage />;

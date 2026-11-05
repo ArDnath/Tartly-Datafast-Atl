@@ -213,9 +213,9 @@ The phase tracker expands Phase 9 with UI-1 … UI-14. The sequence is:
 
 Current status: pricing, onboarding shell/steps, auth screens (login, signup,
 invite, verify, forgot/reset), the app shell, the revenue-first portfolio home,
-the website workbench navigation, and the marketing landing are implemented.
-Billing/usage screens remain blocked on the platform-billing and metering
-phases; the rest is tracked in `docs/PHASES.md`.
+the website workbench navigation, the Plan and usage screen, and the marketing
+landing are implemented. Invoice history and subscription lifecycle UI remain
+blocked on Phase 5 (platform billing); the rest is tracked in `docs/PHASES.md`.
 
 ---
 
@@ -227,17 +227,53 @@ phases; the rest is tracked in `docs/PHASES.md`.
 | Brand mark/wordmark | `src/components/brand/BrandMark.tsx` |
 | Global tokens | `src/app/global.css` |
 | Landing page | `src/app/page.tsx`, `Landing.module.css` |
-| App shell / top nav | `src/app/(main)/App.tsx`, `TopNav.tsx` |
-| Portfolio overview | `src/app/(main)/app/AppEntryPage.tsx` |
-| Website workbench nav | `src/app/(main)/websites/[websiteId]/WebsiteSectionNav.tsx` |
+| App shell / top nav | `src/features/app-shell/App.tsx`, `TopNav.tsx` |
+| Portfolio overview | `src/features/portfolio/AppEntryPage.tsx` |
+| Website workbench | `src/features/websites/workbench/` |
+| Website workbench nav | `src/features/websites/workbench/WebsiteSectionNav.tsx` |
+| Workspace and website settings | `src/features/settings/` |
 | Pricing page | `src/app/pricing/PricingPage.tsx`, `Pricing.module.css` |
-| Onboarding flow | `src/app/onboarding/OnboardingFlow.tsx`, `Onboarding.module.css` |
+| Onboarding flow | `src/features/onboarding/OnboardingFlow.tsx`, `Onboarding.module.css` |
 | Plan config | `src/lib/plans.ts` |
 | Workspace permissions | `src/lib/workspace-auth.ts` |
+| Frozen legacy features | `src/features/legacy/{boards,links,pixels}/` |
 
 Do not duplicate these tokens into per-component literals. If a new screen
 needs a colour, add it to the shared token block or `brand.ts`; do not invent a
 one-off hex.
+
+### Source layout
+
+`src/app` is the routing layer only: pages, layouts, route handlers, and the
+small components that are genuinely route-local (auth screens, share shell,
+pricing, marketing). Every product surface with more than one file lives in a
+domain module under `src/features`:
+
+```
+src/app/                     routes only
+src/features/
+  app-shell/                 signed-in shell, top nav, notices
+  portfolio/                 /app home (all websites)
+  websites/                  website list helpers + the workbench
+    workbench/               overview, reports, sessions, events, replay, settings
+  settings/                  workspace, websites, plan and usage, account
+  onboarding/                welcome flow, website setup flow
+  auth/                      login, signup, verify, reset, invite, logout
+  marketing/                 landing and pricing
+  share/                     public share shell
+  legacy/                    frozen boards, links, pixels
+```
+
+Rules:
+
+- A route file stays thin: parse params, fetch/verify the tenant, render a
+  feature component.
+- Cross-feature imports go through `@/features/...`; do not reach into another
+  feature with `../../`.
+- The old `/websites/*` and `/settings/*` URLs are compatibility redirects in
+  `next.config.ts`; the canonical product routes are `/app/*`.
+- `src/features/legacy` is quarantined, not a pattern to copy. New work must not
+  add imports from it.
 
 ---
 

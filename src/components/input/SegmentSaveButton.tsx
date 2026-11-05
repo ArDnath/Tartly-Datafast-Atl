@@ -1,5 +1,5 @@
 import { Button, Dialog, DialogTrigger, Icon, Modal, Text } from '@talivia/react-zen';
-import { SegmentEditForm } from '@/app/(main)/websites/[websiteId]/segments/SegmentEditForm';
+import { SegmentEditForm } from '@/features/websites/workbench/segments/SegmentEditForm';
 import { useMessages } from '@/components/hooks';
 import { Plus } from '@/components/icons';
 

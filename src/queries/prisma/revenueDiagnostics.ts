@@ -1,3 +1,4 @@
+import { BRAND } from '@/lib/brand';
 import { REVENUE_PAYMENT_STATUSES } from '@/lib/payment-status';
 import prisma from '@/lib/prisma';
 import { redactSensitiveValue } from '@/lib/redact';
@@ -96,8 +97,7 @@ function buildPaymentDiagnostic({
       diagnosticCode: 'checkout_return_missing_visitor',
       missingSignals: unique(missingSignals),
       recommendedAction: 'Track the checkout return',
-      recommendedActionDetail:
-        'The provider checkout id is present, but no visitor was linked to it. Keep the Talivia tracker on the success URL and preserve the provider checkout/session id on return.',
+      recommendedActionDetail: `The provider checkout id is present, but no visitor was linked to it. Keep the ${BRAND.name} tracker on the success URL and preserve the provider checkout/session id on return.`,
     };
   }
 
@@ -118,8 +118,7 @@ function buildPaymentDiagnostic({
       diagnosticCode: 'payment_context_missing',
       missingSignals: unique(missingSignals),
       recommendedAction: 'Send checkout or customer context',
-      recommendedActionDetail:
-        'The payment arrived without checkout id, session id, provider customer id, or email hash. Pass the Talivia session id into checkout metadata or send customer identity fields with the payment.',
+      recommendedActionDetail: `The payment arrived without checkout id, session id, provider customer id, or email hash. Pass the ${BRAND.name} session id into checkout metadata or send customer identity fields with the payment.`,
     };
   }
 

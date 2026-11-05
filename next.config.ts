@@ -97,4 +97,56 @@ export default withNextIntl({
   async headers() {
     return headers;
   },
+  async redirects() {
+    // The product moved from the inherited self-hosted route tree to the
+    // single /app workbench during the SaaS conversion. Keep old bookmarks
+    // working instead of returning a 404.
+    return [
+      {
+        source: '/websites',
+        destination: '/app',
+        permanent: false,
+      },
+      {
+        source: '/websites/:websiteId',
+        destination: '/app/:websiteId',
+        permanent: false,
+      },
+      {
+        source: '/websites/:websiteId/:path*',
+        destination: '/app/:websiteId/:path*',
+        permanent: false,
+      },
+      {
+        source: '/settings',
+        destination: '/app/settings/workspace',
+        permanent: false,
+      },
+      {
+        source: '/settings/profile',
+        destination: '/app/settings/account',
+        permanent: false,
+      },
+      {
+        source: '/settings/preferences',
+        destination: '/app/settings/preferences',
+        permanent: false,
+      },
+      {
+        source: '/settings/websites',
+        destination: '/app/settings/websites',
+        permanent: false,
+      },
+      {
+        source: '/settings/billing',
+        destination: '/app/settings/billing',
+        permanent: false,
+      },
+      {
+        source: '/settings/workspace',
+        destination: '/app/settings/workspace',
+        permanent: false,
+      },
+    ];
+  },
 });

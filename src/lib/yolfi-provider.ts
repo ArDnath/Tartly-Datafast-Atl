@@ -1,3 +1,5 @@
+import { BRAND } from '@/lib/brand';
+
 const DEFAULT_YOLFI_API_BASE_URL = 'https://app.yolfi.com/api';
 const DEFAULT_YOLFI_API_TIMEOUT_MS = 10_000;
 
@@ -111,7 +113,7 @@ export async function createYolfiAnalyticsEndpoint({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name: 'Talivia analytics',
+        name: `${BRAND.name} analytics`,
         url,
         adapter: 'NONE',
       }),
@@ -144,7 +146,7 @@ export async function updateYolfiAnalyticsEndpoint({
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name: 'Talivia analytics',
+        name: `${BRAND.name} analytics`,
         url,
         adapter: 'NONE',
         enabled: true,

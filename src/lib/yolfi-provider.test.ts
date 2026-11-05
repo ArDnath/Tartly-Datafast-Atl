@@ -1,4 +1,5 @@
 import { afterEach, expect, test, vi } from 'vitest';
+import { BRAND } from '@/lib/brand';
 import {
   createYolfiAnalyticsEndpoint,
   deleteYolfiWebhookEndpoint,
@@ -58,7 +59,7 @@ test('resolves the organization and creates an unfiltered analytics webhook endp
         'Content-Type': 'application/json',
       }),
       body: JSON.stringify({
-        name: 'Talivia analytics',
+        name: `${BRAND.name} analytics`,
         url: 'https://talivia.test/api/payments/yolfi/site-1/webhook',
         adapter: 'NONE',
       }),
@@ -92,7 +93,7 @@ test('updates an analytics endpoint and clears legacy website metadata filters',
     expect.objectContaining({
       method: 'PUT',
       body: JSON.stringify({
-        name: 'Talivia analytics',
+        name: `${BRAND.name} analytics`,
         url: 'https://talivia.test/api/payments/yolfi/site-1/webhook',
         adapter: 'NONE',
         enabled: true,

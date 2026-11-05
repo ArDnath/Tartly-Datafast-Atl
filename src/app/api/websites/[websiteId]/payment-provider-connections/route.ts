@@ -9,6 +9,7 @@ import {
   isDodoApiKey,
   serializeDodoCredential,
 } from '@/lib/dodo-provider';
+import { BRAND } from '@/lib/brand';
 import { getBaseUrl } from '@/lib/get-base-url';
 import {
   createLemonSqueezyWebhookEndpoint,
@@ -321,7 +322,7 @@ export async function POST(
 
     if (conflict) {
       return badRequest({
-        message: 'This Yolfi organization is already connected to another Talivia website.',
+        message: `This Yolfi organization is already connected to another ${BRAND.name} website.`,
       });
     }
 
@@ -409,7 +410,7 @@ export async function POST(
 
       if (isUniqueConstraintError(error)) {
         return badRequest({
-          message: 'This Yolfi organization is already connected to another Talivia website.',
+          message: `This Yolfi organization is already connected to another ${BRAND.name} website.`,
         });
       }
       throw error;

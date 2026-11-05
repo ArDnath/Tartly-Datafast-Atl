@@ -1,4 +1,5 @@
 import { expect, test, vi } from 'vitest';
+import { BRAND } from '@/lib/brand';
 import { hash } from './crypto';
 import {
   createDodoWebhookEndpoint,
@@ -39,7 +40,7 @@ test('createDodoWebhookEndpoint creates one endpoint with only revenue events', 
   const create = vi.fn().mockResolvedValue({
     id: 'whk_123',
     url: 'https://analytics.example.com/api/payments/dodo/site-1/webhook',
-    description: 'Talivia revenue attribution',
+    description: `${BRAND.name} revenue attribution`,
     metadata: {},
     created_at: '2026-07-14T00:00:00.000Z',
     updated_at: '2026-07-14T00:00:00.000Z',
@@ -65,7 +66,7 @@ test('createDodoWebhookEndpoint creates one endpoint with only revenue events', 
 
   expect(create).toHaveBeenCalledWith({
     url: 'https://analytics.example.com/api/payments/dodo/site-1/webhook',
-    description: 'Talivia revenue attribution',
+    description: `${BRAND.name} revenue attribution`,
     disabled: false,
     filter_types: DODO_REVENUE_WEBHOOK_EVENTS,
   });
@@ -80,7 +81,7 @@ test('createDodoWebhookEndpoint reuses a matching endpoint', async () => {
   };
   const update = vi.fn().mockResolvedValue({
     ...existing,
-    description: 'Talivia revenue attribution',
+    description: `${BRAND.name} revenue attribution`,
     metadata: {},
     created_at: '2026-07-14T00:00:00.000Z',
     updated_at: '2026-07-14T00:00:00.000Z',
@@ -107,7 +108,7 @@ test('createDodoWebhookEndpoint reuses a matching endpoint', async () => {
 
   expect(client.webhooks.create).not.toHaveBeenCalled();
   expect(update).toHaveBeenCalledWith('whk_existing', {
-    description: 'Talivia revenue attribution',
+    description: `${BRAND.name} revenue attribution`,
     disabled: false,
     filter_types: DODO_REVENUE_WEBHOOK_EVENTS,
   });

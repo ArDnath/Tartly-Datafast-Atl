@@ -1,6 +1,8 @@
+import { BRAND } from '@/lib/brand';
+
 export const APP_SECRET_CONFIGURATION_ERROR_CODE = 'app-secret-invalid';
 export const APP_SECRET_CONFIGURATION_ERROR_MESSAGE =
-  'Talivia setup is incomplete: set APP_SECRET in .env to a random value of at least 32 bytes, then restart Talivia.';
+  `${BRAND.name} setup is incomplete: set APP_SECRET in .env to a random value of at least 32 bytes, then restart ${BRAND.name}.`;
 
 export class AppConfigurationError extends Error {
   code = APP_SECRET_CONFIGURATION_ERROR_CODE;

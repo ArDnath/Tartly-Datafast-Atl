@@ -1,4 +1,5 @@
 import { expect, test, vi } from 'vitest';
+import { BRAND } from '@/lib/brand';
 import { hash } from './crypto';
 import {
   createPolarWebhookEndpoint,
@@ -71,7 +72,7 @@ test('createPolarWebhookEndpoint creates a raw signed endpoint with revenue even
   expect(JSON.parse(init.body)).toEqual({
     url: 'https://analytics.example.com/api/payments/polar/site-1/webhook',
     format: 'raw',
-    name: 'Talivia revenue attribution',
+    name: `${BRAND.name} revenue attribution`,
     events: POLAR_REVENUE_WEBHOOK_EVENTS,
   });
   expect(result).toEqual({ id: 'endpoint-1', secret: 'polar-secret', status: 'enabled' });

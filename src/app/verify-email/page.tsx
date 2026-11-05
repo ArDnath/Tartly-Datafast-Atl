@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { VerifyEmailPage } from './VerifyEmailPage';
+import { VerifyEmailPage } from '@/features/auth/VerifyEmailPage';
 
 export default function () {
   return <VerifyEmailPage />;

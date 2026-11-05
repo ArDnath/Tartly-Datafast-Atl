@@ -1,36 +1,50 @@
-# Talivia
+# RevenueLens
 
-Languages: [English](README.md) | [简体中文](README.zh-CN.md)
+Revenue-first product analytics for developers and indie SaaS founders. Connect
+your site, connect your payments, and see which channels, campaigns, and pages
+actually make money.
 
-This repository contains the focused open-source edition of Talivia, the revenue-first analytics
-platform available at [talivia.com](https://talivia.com). The self-hosted edition combines core web
-analytics, Session Replay, website collaborators, shared analytics, import/export, and customer
-revenue from Stripe, LemonSqueezy, Polar, Dodo, Yolfi, or the Manual Payment API.
+RevenueLens is a hosted, multi-tenant fork of the MIT-licensed
+[Talivia](https://github.com/talivia-group/talivia) analytics engine. The
+tracker, ingestion path, session replay, attribution, and payment-provider
+integrations are retained; workspaces, billing, plans, and the product UI are
+built for the hosted SaaS.
 
-![Talivia dashboard](./public/talivia-gh-main.png)
+## What is included
 
-## Open source and Talivia Cloud
+- Web analytics: visitors, sessions, pageviews, events, realtime, funnels,
+  goals, retention, UTM, breakdowns, and comparisons.
+- Revenue attribution: first-touch and last-touch journeys, revenue by source,
+  and diagnostics.
+- Payment integrations: Stripe, Dodo Payments, Lemon Squeezy, Polar, Yolfi, and
+  the Manual Payment API.
+- Session replay with plan-based entitlements, separate metering, and input
+  masking.
+- Multi-tenant workspaces, roles, invitations, and tenant-isolated queries.
 
-The open-source edition is a self-hosted subset of the complete Talivia product. For managed
-hosting and additional integrations - including Google Search Console, Bing Webmaster Tools, GitHub
-activity, and social mentions from X, Reddit, TikTok and others use
-[Talivia Cloud](https://talivia.com).
+## Plans
 
-## Documentation
+Exactly two plans, no free tier:
 
-Product and integration guides are available in the
-[official Talivia documentation](https://talivia.com/docs).
+| Plan | Monthly | Websites |
+| --- | --- | --- |
+| Starter | $7.99 | 1 |
+| Pro | $14.99 | up to 20 |
+
+Plan data lives in `src/lib/plans.ts`. Event, replay, member, and retention
+allowances are defined there and in `docs/PRICING_ECONOMICS.md`.
 
 ## Local development
 
-Requirements: Node.js 22 LTS or 24 LTS, pnpm 10+, and an empty PostgreSQL database.
+Requirements: Node.js 22 LTS or 24 LTS, pnpm 10+, and PostgreSQL 9.4+ (the
+local Compose file uses PostgreSQL 17).
 
 ```bash
 cp .env.example .env
 openssl rand -hex 32
 ```
 
-Put the generated value in `APP_SECRET`, then install, migrate, and start Talivia:
+Put the generated value in `APP_SECRET`, then install, migrate, and start:
 
 ```bash
 pnpm install --frozen-lockfile
@@ -39,11 +53,10 @@ pnpm dev
 ```
 
 Open `http://localhost:3000` and create an account at `/signup`. There is no
-default account and no default password; the obsolete bootstrap `admin` row is
-disabled by migration `20261104190000_remove_default_admin`.
+default account and no default password.
 
-Sessions are stored server-side and delivered through an HttpOnly,
-SameSite=Lax cookie. Password changes and resets revoke every existing session.
+Sessions are server-side and delivered through an HttpOnly, SameSite=Lax
+cookie. Password changes and resets revoke every session.
 
 Useful checks:
 
@@ -53,94 +66,60 @@ pnpm test
 pnpm build
 ```
 
-The baseline migration is for an empty database only. There is no migration path from a hosted
-Talivia database.
+Or start PostgreSQL with Docker:
+
+```bash
+docker compose up -d postgres
+```
 
 ## Configuration
 
-Talivia has two required settings and one optional integration:
-
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `DATABASE_URL` | Yes | Connection string for the PostgreSQL database. |
-| `APP_SECRET` | Yes | Random value of at least 32 bytes; signs sessions and encrypts saved provider credentials. |
-| `COINGECKO_API_KEY` | No | Enables crypto exchange-rate conversion. |
+| `DATABASE_URL` | Yes | Pooled PostgreSQL connection used by the app. |
+| `DATABASE_URL_UNPOOLED` | For Neon | Direct connection used by migrations. |
+| `APP_SECRET` | Yes | 32+ random bytes; signs sessions and encrypts provider credentials. |
+| `RESEND_API_KEY` | No | Live verification, reset, and invitation email. Without it, development writes to `.dev-emails/outbox.log`. |
+| `PLATFORM_ADMIN_EMAILS` | No | Comma-separated allowlist for platform administration. |
 
-The application remains usable when CoinGecko is not configured or temporarily unavailable.
+See `docs/ENVIRONMENT.md` for Neon setup, pooled/direct strings, and
+preview/production branching.
 
 ## First setup
 
-1. Create a website in Talivia.
-2. Copy its tracking snippet into your site.
-3. Confirm that a visit appears on the dashboard.
-4. Optionally enable Session Replay in website settings.
-5. Connect customer revenue under **Website settings → Payments**.
+1. Create a workspace and website.
+2. Copy the tracking snippet into your site.
+3. Confirm that a visit appears in the dashboard.
+4. Connect a payment provider under **Website settings → Payments**.
+5. Open **Revenue** to see attributed revenue.
 
-Supported revenue inputs include Stripe, LemonSqueezy, Polar, Dodo, Yolfi, and the Manual Payment
-API. Subscription lifecycle, refunds, disputes, and first-/last-touch attribution are retained.
+Payment-provider webhook URLs are generated from the incoming request origin.
+Behind a reverse proxy, forward the original `Host` and `X-Forwarded-Proto`
+headers.
 
-Payment-provider webhook URLs are generated from the incoming request origin. When Talivia runs
-behind a reverse proxy, forward the original `Host` and `X-Forwarded-Proto` headers.
-
-## Docker
-
-Requirements: Docker Engine with Docker Compose.
-
-```bash
-cp .env.example .env
-openssl rand -hex 32
-```
-
-Put the generated value in `APP_SECRET`, then start Talivia:
-
-```bash
-docker compose up --build -d
-docker compose ps
-```
-
-Open `http://localhost:3000`, create an account at `/signup`, and complete
-onboarding. The container applies database migrations automatically before
-starting the application; there is no default account or password.
-
-## Backups and upgrades
-
-Back up the PostgreSQL database and any deployment-specific storage before upgrading. For a
-Compose installation, create a logical database backup with:
-
-```bash
-docker compose exec -T postgres pg_dump -U talivia -d talivia_oss > talivia-backup.sql
-```
-
-Future releases add ordered migrations under `prisma/migrations`. Apply them with
-`pnpm exec prisma migrate deploy`; the official container does this during startup. Never edit a
-migration that has already been applied to a persistent database.
-
-## AI agents and MCP
-
-Talivia also provides an [open-source Agent Kit](https://github.com/talivia-group/agent) for Codex,
-Claude Code, ChatGPT, and other MCP-compatible clients. It helps agents install website tracking,
-generate framework-specific setup plans, verify live analytics events, and connect visits to
-payment attribution.
-
-Connect to the hosted MCP server with OAuth:
+## Project layout
 
 ```text
-https://talivia.com/mcp
+src/app/          route files only (pages, layouts, route handlers)
+src/features/     product UI by domain (app shell, portfolio, workbench,
+                  settings, onboarding, quarantined legacy features)
+src/lib/          shared server/client libraries
+src/queries/      tenant-scoped database queries
+prisma/           schema and forward-only migrations
+docs/             phase tracker, design system, tenancy, pricing, operations
 ```
 
-Or run the Agent Kit locally over stdio:
+## Documentation
 
-```bash
-npx -y @talivia/agent mcp
-```
+- `docs/PHASES.md` — current phase and remaining work.
+- `docs/UI_DESIGN_SYSTEM.md` — visual language and source layout.
+- `docs/TENANCY.md` — workspace isolation rules.
+- `docs/PRICING_ECONOMICS.md` — plans, costs, and margin model.
+- `docs/ENVIRONMENT.md` — local, Neon, and production configuration.
 
-See the [AI Agent Kit guide](https://talivia.com/ai-agent-kit) for setup instructions and supported
-clients. The hosted MCP endpoint connects to Talivia Cloud; this self-hosted edition does not expose
-the Talivia Cloud OAuth endpoint.
+## Licence and attribution
 
-## Security and contributions
-
-See [SECURITY.md](SECURITY.md) for vulnerability reporting and deployment guidance, and
-[CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow.
-
-Talivia is licensed under the [MIT License](LICENSE).
+RevenueLens is distributed under the MIT License. The original Talivia
+copyright notice is retained in `LICENSE`; dependency and asset notices are in
+`THIRD_PARTY_NOTICES.md`. RevenueLens is not affiliated with or endorsed by
+Talivia.

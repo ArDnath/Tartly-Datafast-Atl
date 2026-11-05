@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ResetPasswordPage } from './ResetPasswordPage';
+import { ResetPasswordPage } from '@/features/auth/ResetPasswordPage';
 
 export default function () {
   return <ResetPasswordPage />;

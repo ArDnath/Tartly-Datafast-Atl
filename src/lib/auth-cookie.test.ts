@@ -31,14 +31,24 @@ test('returns undefined when the cookie is absent', () => {
 });
 
 test('serializes an HttpOnly, SameSite=Lax cookie with a bounded lifetime', () => {
-  const cookie = serializeSessionCookie('token', new Date(Date.now() + 60_000));
+  // Freeze the clock: the helper rounds down to whole seconds, so a real
+  // millisecond tick between constructing the expiry and reading Date.now()
+  // turned this assertion into a 59/60 race under load.
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
 
-  expect(cookie).toContain(`${SESSION_COOKIE}=token`);
-  expect(cookie).toContain('HttpOnly');
-  expect(cookie).toContain('SameSite=Lax');
-  expect(cookie).toContain('Path=/');
-  expect(cookie).toContain('Max-Age=60');
-  expect(cookie).not.toContain('Secure');
+  try {
+    const cookie = serializeSessionCookie('token', new Date(Date.now() + 60_000));
+
+    expect(cookie).toContain(`${SESSION_COOKIE}=token`);
+    expect(cookie).toContain('HttpOnly');
+    expect(cookie).toContain('SameSite=Lax');
+    expect(cookie).toContain('Path=/');
+    expect(cookie).toContain('Max-Age=60');
+    expect(cookie).not.toContain('Secure');
+  } finally {
+    vi.useRealTimers();
+  }
 });
 
 test('adds Secure in production', () => {

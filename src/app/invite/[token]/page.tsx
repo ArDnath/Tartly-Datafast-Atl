@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { InvitePage } from './InvitePage';
+import { InvitePage } from '@/features/auth/InvitePage';
 
 export default function () {
   return <InvitePage />;

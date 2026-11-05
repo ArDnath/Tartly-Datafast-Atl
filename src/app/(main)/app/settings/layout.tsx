@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { BRAND } from '@/lib/brand';
-import { SettingsLayout } from '@/app/(main)/settings/SettingsLayout';
+import { SettingsLayout } from '@/features/settings/SettingsLayout';
 
 export default function ({ children }: { children: React.ReactNode }) {
   return <SettingsLayout>{children}</SettingsLayout>;

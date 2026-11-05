@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { BRAND } from '@/lib/brand';
 import { notFound } from 'next/navigation';
-import { WebsiteLayout } from '@/app/(main)/websites/[websiteId]/WebsiteLayout';
+import { WebsiteLayout } from '@/features/websites/workbench/WebsiteLayout';
 import { isWebsiteId } from '@/lib/app-route';
 import { getWebsite } from '@/queries/prisma';
 

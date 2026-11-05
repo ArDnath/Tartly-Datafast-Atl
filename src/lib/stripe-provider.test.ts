@@ -1,4 +1,5 @@
 import { expect, test, vi } from 'vitest';
+import { BRAND } from '@/lib/brand';
 import { hash } from './crypto';
 import {
   createStripeWebhookEndpoint,
@@ -55,7 +56,7 @@ test('createStripeWebhookEndpoint sends Stripe a separate endpoint with all supp
 
   const params = new URLSearchParams(String(init.body));
   expect(params.get('url')).toBe('https://analytics.example.com/api/payments/stripe/site-1/webhook');
-  expect(params.get('description')).toBe('Talivia revenue attribution');
+  expect(params.get('description')).toBe(`${BRAND.name} revenue attribution`);
   expect(params.getAll('enabled_events[]')).toEqual(STRIPE_WEBHOOK_EVENTS);
   expect(params.getAll('enabled_events[]')).toContain('payment_intent.succeeded');
   expect(params.getAll('enabled_events[]')).toContain('customer.subscription.updated');

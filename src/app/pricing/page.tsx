@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { BRAND } from '@/lib/brand';
-import { PricingPage } from './PricingPage';
+import { PricingPage } from '@/features/marketing/PricingPage';
 
 export default function () {
   return <PricingPage />;

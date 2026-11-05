@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { FunnelsPage } from '@/app/(main)/websites/[websiteId]/(reports)/funnels/FunnelsPage';
+import { FunnelsPage } from '@/features/websites/workbench/reports/funnels/FunnelsPage';
 
 export default async function ({ params }: { params: Promise<{ websiteId: string }> }) {
   const { websiteId } = await params;

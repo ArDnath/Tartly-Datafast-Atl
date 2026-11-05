@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import { BRAND } from '@/lib/brand';
 import type { RecordPaymentInput } from '@/queries/prisma/payment';
 import { hash } from './crypto';
 
@@ -124,7 +125,7 @@ function getStripeWebhookEndpointBody(url: string) {
   const body = new URLSearchParams();
 
   body.set('url', url);
-  body.set('description', 'Talivia revenue attribution');
+  body.set('description', `${BRAND.name} revenue attribution`);
 
   for (const eventName of STRIPE_WEBHOOK_EVENTS) {
     body.append('enabled_events[]', eventName);
@@ -166,7 +167,7 @@ export async function createStripeWebhookEndpoint({
   if (!isCustomFetch(fetchImpl)) {
     const stripe = getStripeClient(apiKey);
     const endpoint = await stripe.webhookEndpoints.create({
-      description: 'Talivia revenue attribution',
+      description: `${BRAND.name} revenue attribution`,
       enabled_events: [...STRIPE_WEBHOOK_EVENTS],
       url,
     });
@@ -211,7 +212,7 @@ export async function updateStripeWebhookEndpoint({
   if (!isCustomFetch(fetchImpl)) {
     const stripe = getStripeClient(apiKey);
     const endpoint = await stripe.webhookEndpoints.update(endpointId, {
-      description: 'Talivia revenue attribution',
+      description: `${BRAND.name} revenue attribution`,
       enabled_events: [...STRIPE_WEBHOOK_EVENTS],
       url,
     });
