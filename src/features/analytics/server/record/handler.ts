@@ -1,11 +1,11 @@
 import { isbot } from 'isbot';
-import { serializeError } from 'serialize-error';
 import { z } from 'zod';
 import { parseCollectorCacheToken } from '@/features/analytics/lib/collector-cache';
 import { secret } from '@/lib/crypto';
 import { getClientInfo, hasBlockedIp } from '@/features/analytics/lib/detect';
 import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import { planHasFeature } from '@/lib/plans';
+import { logger } from '@/lib/logger';
 import { parseRequest } from '@/lib/request';
 import { badRequest, forbidden, json, serverError } from '@/lib/response';
 import { releaseReplaySession, reserveReplaySession } from '@/lib/usage';
@@ -148,11 +148,10 @@ export async function POST(request: Request) {
       }
     }
 
-    const error = serializeError(e);
+    logger.error('collector.record_failed', {
+      message: e instanceof Error ? e.message : String(e),
+    });
 
-    // eslint-disable-next-line no-console
-    console.log(error);
-
-    return serverError({ errorObject: error });
+    return serverError();
   }
 }
