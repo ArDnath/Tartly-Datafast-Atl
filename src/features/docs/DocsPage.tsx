@@ -5,11 +5,7 @@ import type { ReactNode } from 'react';
 import { BrandWordmark } from '@/components/brand/BrandMark';
 import { BRAND } from '@/lib/brand';
 import { DOCS_HOME, REVENUE_GUIDES, type DocsGuide } from './content';
-import {
-  getInstallSnippet,
-  INSTALL_GUIDES,
-  INSTALL_TROUBLESHOOTING,
-} from './install-guides';
+import { getInstallSnippet, INSTALL_GUIDES, INSTALL_TROUBLESHOOTING } from './install-guides';
 import styles from './Docs.module.css';
 
 function ExternalLink({ href, children }: { href: string; children: ReactNode }) {
@@ -20,13 +16,7 @@ function ExternalLink({ href, children }: { href: string; children: ReactNode })
   );
 }
 
-function DocsNav({
-  activeSlug,
-  install,
-}: {
-  activeSlug?: string;
-  install?: boolean;
-}) {
+function DocsNav({ activeSlug, install }: { activeSlug?: string; install?: boolean }) {
   return (
     <nav className={styles.sidebar} aria-label="Documentation">
       <Link
@@ -145,7 +135,9 @@ function DocsOverview() {
             snippet uses <code>/script.js</code> and the website&apos;s <code>data-website-id</code>
             . <Link href="/docs/install">Open the framework install guides</Link>.
           </li>
-          <li>Open the live verification step. It reads the event store; there is no fake success.</li>
+          <li>
+            Open the live verification step. It reads the event store; there is no fake success.
+          </li>
           <li>Connect a payment provider on the same website settings page.</li>
         </ol>
       </section>
@@ -175,9 +167,9 @@ function DocsOverview() {
         </h2>
         <p className={styles.body}>
           Payment providers connected here are <strong>analytics integrations</strong>: they let{' '}
-          {BRAND.name} measure the revenue your customers generate. They are not used to charge
-          your {BRAND.name} subscription. Platform billing is separate and will appear under Plan
-          and usage when it ships.
+          {BRAND.name} measure the revenue your customers generate. They are not used to charge your{' '}
+          {BRAND.name} subscription. Platform billing is separate and will appear under Plan and
+          usage when it ships.
         </p>
       </section>
     </article>

@@ -6,7 +6,7 @@ import { checkPassword, hashPassword } from '@/lib/password';
 import { parseRequest } from '@/lib/request';
 import { badRequest, ok } from '@/lib/response';
 import prisma from '@/lib/prisma';
-import { getUser } from '@/queries/prisma';
+import { getUser, recordAuditEvent } from '@/queries/prisma';
 
 const schema = z.object({
   password: z.string().min(1).max(72),
@@ -69,6 +69,14 @@ export async function DELETE(request: Request) {
   });
 
   await revokeAllAuthSessions(user.id);
+
+  await recordAuditEvent({
+    auth,
+    eventType: 'account.deleted',
+    request,
+    resourceId: user.id,
+    resourceType: 'user',
+  });
 
   const response = ok();
   response.headers.set('Set-Cookie', clearSessionCookie());

@@ -55,8 +55,7 @@ export const REVENUE_GUIDES: DocsGuide[] = [
       `Paste the key on the website settings page. ${BRAND.name} validates the account, creates the environment-specific webhook, and imports recent history.`,
       'Keep the connection active. Refunds and disputes are reconciled from later webhook events.',
     ],
-    attribution:
-      `Payment Links clicked on a tracked page are matched automatically. Checkout Sessions, Overlay Checkout, and Inline Checkout need the ${BRAND.name} session identifier in payment metadata.`,
+    attribution: `Payment Links clicked on a tracked page are matched automatically. Checkout Sessions, Overlay Checkout, and Inline Checkout need the ${BRAND.name} session identifier in payment metadata.`,
     officialLinks: [
       { label: 'Create a Dodo API key', url: 'https://app.dodopayments.com/developer/api-keys' },
       { label: 'Dodo Payments documentation', url: 'https://docs.dodopayments.com' },
@@ -74,10 +73,12 @@ export const REVENUE_GUIDES: DocsGuide[] = [
       'Create an API key and paste both values on the website settings page.',
       `${BRAND.name} validates the store, stores the key securely, and creates the signed revenue webhook.`,
     ],
-    attribution:
-      `Pass the ${BRAND.name} session identifier in the checkout custom data. Orders and subscription invoices keep that custom data so renewals stay attributed.`,
+    attribution: `Pass the ${BRAND.name} session identifier in the checkout custom data. Orders and subscription invoices keep that custom data so renewals stay attributed.`,
     officialLinks: [
-      { label: 'Find your Lemon Squeezy store', url: 'https://app.lemonsqueezy.com/settings/stores' },
+      {
+        label: 'Find your Lemon Squeezy store',
+        url: 'https://app.lemonsqueezy.com/settings/stores',
+      },
       { label: 'Create a Lemon Squeezy API key', url: 'https://app.lemonsqueezy.com/settings/api' },
       { label: 'Lemon Squeezy API docs', url: 'https://docs.lemonsqueezy.com' },
     ],
@@ -94,8 +95,7 @@ export const REVENUE_GUIDES: DocsGuide[] = [
       `Paste the token on the website settings page. ${BRAND.name} detects the organization and environment, validates permissions, creates a signed webhook, and imports recent history.`,
       'Keep the token scoped to the organization whose revenue you want to measure.',
     ],
-    attribution:
-      `Pass the ${BRAND.name} session identifier in order or checkout metadata. Checkout Links can also be matched through their return URL.`,
+    attribution: `Pass the ${BRAND.name} session identifier in order or checkout metadata. Checkout Links can also be matched through their return URL.`,
     officialLinks: [
       { label: 'Open the Polar dashboard', url: 'https://polar.sh/dashboard' },
       { label: 'Polar documentation', url: 'https://docs.polar.sh' },
@@ -115,9 +115,7 @@ export const REVENUE_GUIDES: DocsGuide[] = [
     ],
     attribution:
       'Yolfi events are matched to the website that owns the connection. Include the session context in payment metadata when your integration supports it.',
-    officialLinks: [
-      { label: 'Open Yolfi', url: 'https://app.yolfi.com' },
-    ],
+    officialLinks: [{ label: 'Open Yolfi', url: 'https://app.yolfi.com' }],
   },
   {
     slug: 'manual',

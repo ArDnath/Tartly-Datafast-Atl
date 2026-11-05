@@ -85,11 +85,38 @@ component.
     the dependency behind an interface, document exactly what is needed from
     the human, and continue with the rest of the phase. Never silently skip
     work.
-14. **KEEP THE BUILD GREEN.** `pnpm build`, lint, and typecheck should pass at
-    the end of every phase. Commit at the end of every phase with a clear
-    message.
+14. **KEEP THE BUILD GREEN.** `pnpm gate` (format check, lint, typecheck, full
+    tests, production build) must pass before every merge. Commit at the end of
+    every phase with a clear message.
 15. **NO DARK PATTERNS.** No fake invoices, invented statuses, fake
     testimonials, or fabricated customer counts.
+
+## Mandatory skills and per-feature gate (non-negotiable)
+
+Two repository skills are binding on every change, not optional reading:
+
+- `.opencode/skills/production-backend-readiness/SKILL.md`
+- `.opencode/skills/high-scale-low-cost-deployment/SKILL.md`
+
+`docs/ENGINEERING_STANDARDS.md` converts them into the exact per-feature
+checklist. Before starting a feature, load both skills. While building, tick the
+gate in `docs/ENGINEERING_STANDARDS.md` (or the PR description). A feature is
+not complete until every applicable box is ticked with evidence, and an
+inapplicable box is ticked with `N/A: <reason>`.
+
+Required loop for every feature or phase slice:
+
+1. Read `docs/PHASES.md`, `docs/ENGINEERING_STANDARDS.md`, and the owning module.
+2. Branch from `main` as `feature/<phase>-<slug>`.
+3. Build code and tests together; keep tenant isolation and validation first.
+4. Run `pnpm gate`; fix all failures.
+5. Push, open a pull request, wait for CI, merge, delete the branch.
+6. Update `docs/PHASES.md` with proof, caveats, and the next step.
+7. Continue the loop. Do not stop after one feature.
+
+External credentials or services that are unavailable never stop the loop:
+stub behind the existing interface, label the item **UNVERIFIED**, document the
+exact human action, and continue with the rest of the phase.
 
 ## UI mandate
 

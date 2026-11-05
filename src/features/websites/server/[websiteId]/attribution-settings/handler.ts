@@ -2,7 +2,11 @@ import { z } from 'zod';
 import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { canUpdateWebsite, canViewWebsite } from '@/permissions';
-import { getWebsite, getWebsiteAttributionSettings, updateWebsiteAttributionSettings } from '@/queries/prisma';
+import {
+  getWebsite,
+  getWebsiteAttributionSettings,
+  updateWebsiteAttributionSettings,
+} from '@/queries/prisma';
 import { normalizeHostname } from '@/queries/prisma/website';
 
 const domainTypes = ['primary', 'marketing', 'app', 'docs', 'checkout', 'other'] as const;

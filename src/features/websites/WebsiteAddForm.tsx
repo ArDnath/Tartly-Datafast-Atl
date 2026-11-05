@@ -5,7 +5,10 @@ import { useMessages, useUpdateQuery } from '@/components/hooks';
 import { useActiveWorkspace } from '@/features/workspaces/hooks/useActiveWorkspace';
 import { DOMAIN_REGEX } from '@/lib/constants';
 import { getItem, removeItem } from '@/lib/storage';
-import { normalizeWebsiteDomainInput, PENDING_WEBSITE_DOMAIN } from '@/features/websites/lib/website-domain';
+import {
+  normalizeWebsiteDomainInput,
+  PENDING_WEBSITE_DOMAIN,
+} from '@/features/websites/lib/website-domain';
 
 export function WebsiteAddForm({
   onSave,

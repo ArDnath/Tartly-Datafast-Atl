@@ -216,5 +216,3 @@ export async function getWebsiteWorkspaceAccess(
     role: membership.role,
   };
 }
-
-

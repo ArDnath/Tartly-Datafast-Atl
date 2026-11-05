@@ -4,7 +4,10 @@ import { SecuritySettingsPage } from '@/features/account/settings/SecuritySettin
 
 export default function () {
   return (
-    <SettingsPageLayout activeKey="security" subtitle="Sign-in, email verification, and account deletion">
+    <SettingsPageLayout
+      activeKey="security"
+      subtitle="Sign-in, email verification, and account deletion"
+    >
       <SecuritySettingsPage />
     </SettingsPageLayout>
   );

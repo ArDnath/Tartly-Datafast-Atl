@@ -30,7 +30,8 @@ export async function backfillStripeCheckoutSessions({
   listSessions = listStripeCompletedCheckoutSessions,
   record,
 }: BackfillStripeCheckoutSessionsInput) {
-  const recordPaymentFn = record || (await import('@/features/payments/server/queries/payment')).recordPayment;
+  const recordPaymentFn =
+    record || (await import('@/features/payments/server/queries/payment')).recordPayment;
   const sessions = await listSessions({
     apiKey,
     createdGte: subDays(now, STRIPE_BACKFILL_DAYS),

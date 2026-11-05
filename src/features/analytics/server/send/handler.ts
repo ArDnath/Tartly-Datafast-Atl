@@ -21,12 +21,26 @@ import { getPaymentReturnDetection } from '@/features/payments/lib/payment-detec
 import { parseRequest } from '@/lib/request';
 import { badRequest, forbidden, json, serverError } from '@/lib/response';
 import { anyObjectParam, urlOrPathParam } from '@/lib/schema';
-import { getTrackingSessionId, getTrackingVisitorId } from '@/features/analytics/lib/tracking-identity';
+import {
+  getTrackingSessionId,
+  getTrackingVisitorId,
+} from '@/features/analytics/lib/tracking-identity';
 import { safeDecodeURI, safeDecodeURIComponent } from '@/lib/url';
 import { isBillableEvent, releaseEventUsage, reserveEventUsage } from '@/lib/usage';
-import { ensureVisitorContext, savePaymentDetectionEvent, upsertCustomerIdentityLink, upsertVisitorContext } from '@/features/payments/server/queries/attribution';
+import { isTrackerOriginAllowed } from '@/features/analytics/lib/tracker-origin';
+import {
+  ensureVisitorContext,
+  savePaymentDetectionEvent,
+  upsertCustomerIdentityLink,
+  upsertVisitorContext,
+} from '@/features/payments/server/queries/attribution';
 import { getWebsiteAttributionRuntimeConfig } from '@/queries/prisma/website';
-import { createSession, saveEvent, saveSessionData, updateSessionDistinctId } from '@/features/analytics/server/queries/sql';
+import {
+  createSession,
+  saveEvent,
+  saveSessionData,
+  updateSessionDistinctId,
+} from '@/features/analytics/server/queries/sql';
 
 const schema = z.object({
   type: z.enum(['event', 'identify', 'performance', 'linker']),
@@ -116,6 +130,7 @@ export async function POST(request: Request) {
     // Cache check
     let cache: CollectorCachePayload | null = null;
     let workspaceId: string | null = null;
+    let websiteDomain: string | null = null;
 
     if (websiteId) {
       const cacheHeader = request.headers.get('x-talivia-cache');
@@ -128,7 +143,8 @@ export async function POST(request: Request) {
 
       // The tenant is required for usage metering. Older cache tokens do not
       // contain it, so resolve the website once and refresh the token below.
-      if (!cache?.websiteId || !workspaceId) {
+      // Origin enforcement also needs the configured domain on every request.
+      if (!cache?.websiteId || !workspaceId || process.env.ENFORCE_TRACKER_ORIGIN === 'true') {
         const website = await fetchWebsite(websiteId);
 
         if (!website) {
@@ -136,6 +152,7 @@ export async function POST(request: Request) {
         }
 
         workspaceId = website.workspaceId ?? null;
+        websiteDomain = website.domain ?? null;
       }
     }
 
@@ -144,6 +161,25 @@ export async function POST(request: Request) {
       request,
       payload,
     );
+
+    // Optional domain binding: when the owner configured a domain and
+    // ENFORCE_TRACKER_ORIGIN is on, a public website ID copied to another host
+    // cannot inject events. No host on the payload is allowed for server-side
+    // and older clients; see the tracker-origin unit tests.
+    if (websiteId && websiteDomain) {
+      const allowedOrigin = isTrackerOriginAllowed({
+        configuredDomain: websiteDomain,
+        hostname,
+        origin: request.headers.get('origin'),
+      });
+
+      if (!allowedOrigin) {
+        return forbidden({
+          code: 'tracker-origin-mismatch',
+          message: 'This website does not accept events from that host.',
+        });
+      }
+    }
 
     // Bot check
     if (!process.env.DISABLE_BOT_CHECK && isbot(userAgent)) {

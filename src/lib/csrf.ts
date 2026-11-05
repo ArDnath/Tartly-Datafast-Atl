@@ -33,7 +33,9 @@ export function isSameOriginRequest(request: Request) {
   const requestOrigin = getBaseUrl(request).origin;
   const configuredOrigin = getConfiguredOrigin();
 
-  return sourceOrigin === requestOrigin || (configuredOrigin ? sourceOrigin === configuredOrigin : false);
+  return (
+    sourceOrigin === requestOrigin || (configuredOrigin ? sourceOrigin === configuredOrigin : false)
+  );
 }
 
 export function rejectCrossOriginRequest(request: Request) {

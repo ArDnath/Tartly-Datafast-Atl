@@ -4,9 +4,17 @@ import { getQueryFilters, parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { filterParams, withDateRange } from '@/lib/schema';
 import { canViewWebsite } from '@/permissions';
-import { getHistoricalOverview, mergeHistoricalChart, mergeHistoricalStats } from '@/features/analytics/server/queries/historicalMetrics';
+import {
+  getHistoricalOverview,
+  mergeHistoricalChart,
+  mergeHistoricalStats,
+} from '@/features/analytics/server/queries/historicalMetrics';
 import { getRevenueOverviewReport } from '@/features/analytics/server/queries/revenueAttribution';
-import { getActiveVisitors, getSessionStats, getWebsiteStats } from '@/features/analytics/server/queries/sql';
+import {
+  getActiveVisitors,
+  getSessionStats,
+  getWebsiteStats,
+} from '@/features/analytics/server/queries/sql';
 
 function getRevenueCurrency(revenueOverview: any) {
   return (
@@ -83,24 +91,19 @@ export async function GET(
 
   const filters = await getQueryFilters(query, websiteId);
 
-  const [
-    data,
-    visitorChart,
-    activeVisitors,
-    revenueOverview,
-    historicalOverview,
-  ] = await Promise.all([
-    getWebsiteStats(websiteId, filters),
-    getSessionStats(websiteId, filters),
-    getActiveVisitors(websiteId),
-    getRevenueOverviewReport(websiteId, {
-      startDate: filters.startDate,
-      endDate: filters.endDate,
-      unit: filters.unit,
-      timezone: filters.timezone,
-    }),
-    getHistoricalOverview(websiteId, filters),
-  ]);
+  const [data, visitorChart, activeVisitors, revenueOverview, historicalOverview] =
+    await Promise.all([
+      getWebsiteStats(websiteId, filters),
+      getSessionStats(websiteId, filters),
+      getActiveVisitors(websiteId),
+      getRevenueOverviewReport(websiteId, {
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        unit: filters.unit,
+        timezone: filters.timezone,
+      }),
+      getHistoricalOverview(websiteId, filters),
+    ]);
 
   const { startDate, endDate } = getCompareDate(
     filters.compare ?? 'prev',

@@ -2,7 +2,10 @@ import { getQueryFilters, parseRequest, setWebsiteDate } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { reportResultSchema } from '@/lib/schema';
 import { canViewWebsite } from '@/permissions';
-import { type AttributionParameters, getAttribution } from '@/features/analytics/server/queries/sql/reports/getAttribution';
+import {
+  type AttributionParameters,
+  getAttribution,
+} from '@/features/analytics/server/queries/sql/reports/getAttribution';
 
 export async function POST(request: Request) {
   const { auth, body, error } = await parseRequest(request, reportResultSchema);

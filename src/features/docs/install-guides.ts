@@ -248,10 +248,7 @@ export function getInstallGuide(slug: string) {
   return INSTALL_GUIDES.find(guide => guide.slug === slug);
 }
 
-export function getInstallSnippet(
-  guide: InstallGuide | string,
-  context: InstallContext,
-) {
+export function getInstallSnippet(guide: InstallGuide | string, context: InstallContext) {
   const resolved = typeof guide === 'string' ? getInstallGuide(guide) : guide;
 
   if (!resolved) {

@@ -49,13 +49,7 @@ export function MultiSelect({
         className="talivia-popover"
         style={{ minWidth: 'var(--trigger-width)', maxWidth: 'var(--trigger-width)' }}
       >
-        <Column
-          gap="2"
-          padding="2"
-          border
-          borderRadius="md"
-          className="bg-surface-overlay"
-        >
+        <Column gap="2" padding="2" border borderRadius="md" className="bg-surface-overlay">
           {allowSearch && (
             <SearchField
               className="talivia-control"

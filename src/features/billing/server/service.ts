@@ -7,8 +7,10 @@ import {
   type BillingInterval,
   type BillingLifecycleStatus,
 } from '@/lib/billing-lifecycle';
-import { isPlanId, type PlanId } from '@/lib/plans';
+import { isPlanId, getPlan, getPlanOrNull, type PlanId } from '@/lib/plans';
 import { isUniqueConstraintError } from '@/lib/prisma-error';
+import { sendPaymentFailedEmail } from '@/lib/email';
+import { logger } from '@/lib/logger';
 import prisma from '@/lib/prisma';
 import {
   getBillingConfig,
@@ -63,12 +65,7 @@ export interface VerifiedDodoEvent {
   payload: unknown;
 }
 
-export type DodoEventResult =
-  | 'processed'
-  | 'duplicate'
-  | 'ignored'
-  | 'unmatched'
-  | 'unsupported';
+export type DodoEventResult = 'processed' | 'duplicate' | 'ignored' | 'unmatched' | 'unsupported';
 
 function getString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
@@ -240,7 +237,8 @@ function buildSubscriptionData({
   const metadataPlan = isPlanId(snapshot.metadata?.planId)
     ? (snapshot.metadata?.planId as PlanId)
     : null;
-  const planId = productPlan?.planId ?? metadataPlan ?? (isPlanId(existingPlanId) ? existingPlanId : null);
+  const planId =
+    productPlan?.planId ?? metadataPlan ?? (isPlanId(existingPlanId) ? existingPlanId : null);
 
   // Never guess a plan. A misconfigured product ID must fail visibly rather
   // than silently grant Starter limits to a Pro subscription.
@@ -248,8 +246,7 @@ function buildSubscriptionData({
     return null;
   }
   const interval: BillingInterval =
-    productPlan?.interval ??
-    (snapshot.metadata?.interval === 'annual' ? 'annual' : 'monthly');
+    productPlan?.interval ?? (snapshot.metadata?.interval === 'annual' ? 'annual' : 'monthly');
   const currentPeriodStart = parseProviderDate(snapshot.previous_billing_date);
   const currentPeriodEnd = parseProviderDate(snapshot.next_billing_date);
   const createdAt = parseProviderDate(snapshot.created_at);
@@ -280,8 +277,7 @@ function buildSubscriptionData({
     currentPeriodEnd,
     cancelAtPeriodEnd: Boolean(snapshot.cancel_at_next_billing_date),
     canceledAt: parseProviderDate(snapshot.cancelled_at),
-    endedAt:
-      lifecycleStatus === 'CANCELLED' || lifecycleStatus === 'EXPIRED' ? eventAt : null,
+    endedAt: lifecycleStatus === 'CANCELLED' || lifecycleStatus === 'EXPIRED' ? eventAt : null,
     trialEnd,
     lastEventType: eventType,
     lastEventAt: eventAt,
@@ -447,6 +443,46 @@ async function applyPaymentSnapshot({
 }
 
 /**
+ * Tell the owner that a platform charge failed. This is context A only; a
+ * customer's own revenue integration is never involved. The webhook result does
+ * not depend on the email: a provider outage must not cause a retry storm.
+ */
+async function notifyPaymentFailure(workspaceId: string) {
+  try {
+    const workspace = await prisma.client.workspace.findUnique({
+      where: { id: workspaceId },
+      select: {
+        name: true,
+        planId: true,
+        platformSubscription: { select: { planId: true } },
+        owner: { select: { username: true, deletedAt: true, suspendedAt: true } },
+      },
+    });
+
+    if (!workspace?.owner?.username || workspace.owner.deletedAt || workspace.owner.suspendedAt) {
+      return;
+    }
+
+    const plan =
+      getPlanOrNull(workspace.platformSubscription?.planId ?? workspace.planId) ||
+      getPlan('starter');
+    const origin = (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+
+    await sendPaymentFailedEmail({
+      to: workspace.owner.username,
+      workspaceName: workspace.name,
+      planName: plan.name,
+      billingUrl: `${origin}/app/settings/billing`,
+    });
+  } catch (error) {
+    logger.warn('billing.payment_failure_email_failed', {
+      workspaceId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+/**
  * Process one verified Dodo event. Idempotent by `webhook-id`; the subscription
  * reducer additionally rejects older snapshots so out-of-order deliveries
  * converge on the newest state.
@@ -518,6 +554,11 @@ export async function processDodoWebhook(
       }
 
       await applyPaymentSnapshot({ workspaceId, snapshot, eventType: event.type });
+
+      if (event.type === 'payment.failed') {
+        await notifyPaymentFailure(workspaceId);
+      }
+
       await finishEvent(event.id, 'processed', workspaceId);
 
       return 'processed';

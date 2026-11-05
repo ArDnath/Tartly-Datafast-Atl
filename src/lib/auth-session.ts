@@ -85,7 +85,10 @@ export async function resolveAuthSession(token: string): Promise<ResolvedAuthSes
     return null;
   }
 
-  if (!session.lastUsedAt || Date.now() - session.lastUsedAt.getTime() > LAST_USED_WRITE_INTERVAL_MS) {
+  if (
+    !session.lastUsedAt ||
+    Date.now() - session.lastUsedAt.getTime() > LAST_USED_WRITE_INTERVAL_MS
+  ) {
     await prisma.client.authSession.update({
       where: { id: session.id },
       data: { lastUsedAt: new Date() },

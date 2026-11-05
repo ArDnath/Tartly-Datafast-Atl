@@ -28,7 +28,10 @@ import {
 } from '@/features/payments/server/providers/polar-provider';
 import prisma from '@/lib/prisma';
 import { isUniqueConstraintError } from '@/lib/prisma-error';
-import { decryptProviderSecret, encryptProviderSecret } from '@/features/payments/server/provider-secrets';
+import {
+  decryptProviderSecret,
+  encryptProviderSecret,
+} from '@/features/payments/server/provider-secrets';
 import { parseRequest } from '@/lib/request';
 import { badRequest, json, unauthorized } from '@/lib/response';
 import {
@@ -93,10 +96,7 @@ function getDodoWebhookUrl(request: Request, websiteId: string) {
 }
 
 function getLemonSqueezyWebhookUrl(request: Request, websiteId: string) {
-  return new URL(
-    `/api/payments/lemonsqueezy/${websiteId}/webhook`,
-    getBaseUrl(request),
-  ).toString();
+  return new URL(`/api/payments/lemonsqueezy/${websiteId}/webhook`, getBaseUrl(request)).toString();
 }
 
 function getPolarWebhookUrl(request: Request, websiteId: string) {

@@ -9,7 +9,11 @@ import { verifyPolarSignature } from '@/features/payments/server/webhooks/polar-
 import prisma from '@/lib/prisma';
 import { decryptProviderSecret } from '@/features/payments/server/provider-secrets';
 import { badRequest, json, notFound, serverError, unauthorized } from '@/lib/response';
-import { recordPayment, recordRefund, recordSubscriptionState } from '@/features/payments/server/queries/payment';
+import {
+  recordPayment,
+  recordRefund,
+  recordSubscriptionState,
+} from '@/features/payments/server/queries/payment';
 
 function getString(value: unknown) {
   return typeof value === 'string' && value ? value : undefined;
@@ -84,10 +88,7 @@ async function processOrderPaid(
   return { kind: 'payment' as const, ...result, subscription: subscription?.subscription };
 }
 
-async function processOrderRefunded(
-  event: Record<string, any>,
-  websiteId: string,
-) {
+async function processOrderRefunded(event: Record<string, any>, websiteId: string) {
   const order = event.data || {};
   const input = mapPolarOrderRefundToRefundInput({
     websiteId,
@@ -102,7 +103,9 @@ async function processOrderRefunded(
   const result = await recordRefund(input);
 
   if (!result.payment) {
-    throw new Error(`Polar payment ${input.providerPaymentId || input.transactionId} was not found.`);
+    throw new Error(
+      `Polar payment ${input.providerPaymentId || input.transactionId} was not found.`,
+    );
   }
 
   return {
@@ -258,8 +261,7 @@ export async function POST(
       attributionId: paymentResult?.attribution.id,
       refundIds: refundResult?.refundIds,
       attributionCount: refundResult?.attributionCount,
-      subscriptionId:
-        paymentResult?.subscription?.id || subscriptionResult?.subscription?.id,
+      subscriptionId: paymentResult?.subscription?.id || subscriptionResult?.subscription?.id,
     });
   } catch (error) {
     const serialized = serializeError(error) as Record<string, any>;

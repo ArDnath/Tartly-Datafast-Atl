@@ -5,13 +5,15 @@ import { assertAppSecret } from '@/lib/crypto';
 import { isSameOriginRequest } from '@/lib/csrf';
 import { getIpAddress } from '@/lib/ip';
 import { checkPassword } from '@/lib/password';
-import {
-  consumeRateLimit,
-  hashRateLimitSubject,
-  rateLimitKey,
-} from '@/lib/rate-limit';
+import { consumeRateLimit, hashRateLimitSubject, rateLimitKey } from '@/lib/rate-limit';
 import { parseRequest } from '@/lib/request';
-import { appConfigurationError, forbidden, json, tooManyRequests, unauthorized } from '@/lib/response';
+import {
+  appConfigurationError,
+  forbidden,
+  json,
+  tooManyRequests,
+  unauthorized,
+} from '@/lib/response';
 import { getUserByUsername } from '@/queries/prisma';
 
 const schema = z.object({

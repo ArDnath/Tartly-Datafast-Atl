@@ -1,10 +1,7 @@
 import { Icon } from '@talivia/react-zen';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { ArrowRight } from '@/components/icons';
-import {
-  type WebsiteOverviewMetric,
-  useWebsiteOverviewMetrics,
-} from './useWebsiteOverviewMetrics';
+import { type WebsiteOverviewMetric, useWebsiteOverviewMetrics } from './useWebsiteOverviewMetrics';
 
 function getChangePercent(value: number, change: number) {
   const previous = value - change;

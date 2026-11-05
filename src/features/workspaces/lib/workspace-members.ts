@@ -126,10 +126,7 @@ export async function removeWorkspaceMember({
     throw new MemberError('cannot-remove-self', 'Use "leave workspace" instead.');
   }
 
-  if (
-    member.role === 'ADMIN' &&
-    !hasMinimumRole(access.role as WorkspaceRole, 'OWNER')
-  ) {
+  if (member.role === 'ADMIN' && !hasMinimumRole(access.role as WorkspaceRole, 'OWNER')) {
     throw new MemberError('not-found', 'Only the owner can remove an admin.');
   }
 

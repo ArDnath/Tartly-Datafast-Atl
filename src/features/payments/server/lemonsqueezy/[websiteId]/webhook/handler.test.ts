@@ -2,7 +2,11 @@ import { beforeEach, expect, test, vi } from 'vitest';
 import { verifyLemonSqueezySignature } from '@/features/payments/server/webhooks/lemonsqueezy-webhook';
 import { fetchWebsite } from '@/lib/load';
 import prisma from '@/lib/prisma';
-import { recordPayment, recordRefund, recordSubscriptionState } from '@/features/payments/server/queries/payment';
+import {
+  recordPayment,
+  recordRefund,
+  recordSubscriptionState,
+} from '@/features/payments/server/queries/payment';
 import { POST } from './handler';
 
 vi.mock('@/features/payments/server/webhooks/lemonsqueezy-webhook', () => ({
@@ -61,11 +65,14 @@ beforeEach(() => {
 });
 
 function webhookRequest(event: Record<string, unknown>, websiteId = 'site-1') {
-  return new Request(`https://analytics.example.com/api/payments/lemonsqueezy/${websiteId}/webhook`, {
-    method: 'POST',
-    headers: { 'x-signature': 'signature' },
-    body: JSON.stringify(event),
-  });
+  return new Request(
+    `https://analytics.example.com/api/payments/lemonsqueezy/${websiteId}/webhook`,
+    {
+      method: 'POST',
+      headers: { 'x-signature': 'signature' },
+      body: JSON.stringify(event),
+    },
+  );
 }
 
 test('verifies connected LemonSqueezy webhooks with the decrypted signing secret', async () => {

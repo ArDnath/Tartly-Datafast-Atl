@@ -5,10 +5,7 @@ import { badRequest, forbidden, json, serviceUnavailable } from '@/lib/response'
 import { requireWorkspaceAccess } from '@/lib/workspace-auth';
 import prisma from '@/lib/prisma';
 import { recordAuditEvent } from '@/queries/prisma';
-import {
-  findBillingProduct,
-  getBillingConfig,
-} from '@/features/billing/server/provider';
+import { findBillingProduct, getBillingConfig } from '@/features/billing/server/provider';
 import { getDodoBillingProvider } from '@/features/billing/server/providers/dodo';
 
 const schema = z.strictObject({
@@ -31,7 +28,10 @@ export async function POST(request: Request) {
   const access = await requireWorkspaceAccess(auth.user, body.workspaceId, 'OWNER');
 
   if (!access) {
-    return forbidden({ code: 'billing-owner-required', message: 'Only the workspace owner can manage billing.' });
+    return forbidden({
+      code: 'billing-owner-required',
+      message: 'Only the workspace owner can manage billing.',
+    });
   }
 
   const config = getBillingConfig();
@@ -68,7 +68,10 @@ export async function POST(request: Request) {
   }
 
   if (subscription.planId === body.planId) {
-    return badRequest({ code: 'plan-unchanged', message: 'This workspace is already on that plan.' });
+    return badRequest({
+      code: 'plan-unchanged',
+      message: 'This workspace is already on that plan.',
+    });
   }
 
   const interval = subscription.interval === 'annual' ? 'annual' : 'monthly';

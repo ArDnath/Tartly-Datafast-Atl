@@ -1,7 +1,12 @@
 import { z } from 'zod';
 import { parseRequest } from '@/lib/request';
 import { badRequest, json } from '@/lib/response';
-import { MemberError, removeWorkspaceMember, updateWorkspaceMemberRole } from '@/features/workspaces/lib/workspace-members';
+import { recordAuditEvent } from '@/queries/prisma';
+import {
+  MemberError,
+  removeWorkspaceMember,
+  updateWorkspaceMemberRole,
+} from '@/features/workspaces/lib/workspace-members';
 
 const updateSchema = z.object({
   role: z.enum(['ADMIN', 'MEMBER', 'VIEWER']),
@@ -28,14 +33,23 @@ export async function PATCH(
   const { workspaceId, memberId } = await params;
 
   try {
-    return json(
-      await updateWorkspaceMemberRole({
-        user: auth.user,
-        workspaceId,
-        memberId,
-        role: body.role,
-      }),
-    );
+    const result = await updateWorkspaceMemberRole({
+      user: auth.user,
+      workspaceId,
+      memberId,
+      role: body.role,
+    });
+
+    await recordAuditEvent({
+      auth,
+      eventType: 'member.role_changed',
+      metadata: { role: body.role },
+      request,
+      resourceId: memberId,
+      resourceType: 'workspace_member',
+    });
+
+    return json(result);
   } catch (cause) {
     return memberError(cause);
   }
@@ -55,6 +69,14 @@ export async function DELETE(
 
   try {
     await removeWorkspaceMember({ user: auth.user, workspaceId, memberId });
+
+    await recordAuditEvent({
+      auth,
+      eventType: 'member.removed',
+      request,
+      resourceId: memberId,
+      resourceType: 'workspace_member',
+    });
 
     return json({ ok: true });
   } catch (cause) {

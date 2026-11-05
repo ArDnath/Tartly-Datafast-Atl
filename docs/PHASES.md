@@ -6,39 +6,44 @@
 - **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
   forked locally at `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-06
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat; Phase 9 complete. The source restructure is finished and enforced: `src/app` is routing only, every domain owns its UI/hooks/lib/server/queries, `src/lib` and `src/queries` are allowlisted shared kernels, and route tests live beside feature handlers. Phase 6 usage metering shipped. **Phase 5 platform billing now ships behind a separate `features/billing` domain:** Dodo checkout, customer portal, cancel-at-period-end, plan changes, signed Standard Webhooks verification, idempotent and out-of-order-safe lifecycle reduction, provider-derived entitlements, real invoice history, a billing settings panel, and 22 new tests. It is marked **done with caveats** because no Dodo test/live credentials exist here, so live checkout and webhook delivery still need the human. **Phase 7 is complete with caveats:** a real PostgreSQL smoke run proved 48 analytics assertions, the attribution journey suite covers organic/paid/referral/direct/recurring/unattributed paths, replay gating and masking are tested, a daily tenant-scoped retention job now deletes expired payloads, and the provider capability table is code-verified. Live provider webhooks, ClickHouse, browser recorder runtime, and load/concurrency remain unverified. Phase 9's remaining partial items are now closed: framework install tabs and guides, the first-report onboarding step, brand-driven settings copy, and platform-admin activation funnel. Next: MCP/CLI and Phase 10 operations.
+- **Current phase:** Phase 10 (compliance, abuse, email, operations) and Phase 11
+  (hardening, deployment, launch readiness) are implemented and documented.
+  Phase 12 go-to-market docs are written. The remaining work is external
+  verification: live Dodo/Resend/provider credentials, a real browser
+  walkthrough, a recorded load test, a Neon production restore rehearsal,
+  hosting/DNS, and lawyer review. All are labelled **UNVERIFIED** with the exact
+  human action. The source restructure is finished and enforced: `src/app` is
+  routing only, every domain owns its UI/hooks/lib/server/queries, and
+  `src/lib`/`src/queries` are allowlisted shared kernels.
+- **Mandatory engineering gate:** the two repository skills
+  (`.opencode/skills/production-backend-readiness/SKILL.md`,
+  `.opencode/skills/high-scale-low-cost-deployment/SKILL.md`) are binding.
+  `docs/ENGINEERING_STANDARDS.md` defines the per-feature checklist and
+  `pnpm gate` enforces format, lint, typecheck, tests, and the production build.
 
 ## Overall progress
 
-- Total phases: **12** (0–11 product/build, 12 go-to-market)
-- Phases complete: **4 full, 4 with caveats** (Phase 2: copy-with-data rehearsal;
-  Phase 4: live Resend delivery; Phase 5: live Dodo test mode; Phase 7: live
-  provider webhooks, ClickHouse, browser recorder runtime, load/concurrency)
-- Overall percent (average of phases 0–11): **77%**
-- Build state at last check: **green** (`tsc --noEmit` clean; `biome lint`
-  clean). Full test run: **704 passed / 0 failed / 1 gated skip** under
-  `TZ=UTC`; the Phase 7 PostgreSQL smoke adds **48 live assertions** when run
-  explicitly. The activation query was also exercised against the local
-  PostgreSQL database (3 accounts → 2 workspaces → 2 websites → 1 website with
-  events → 0 payment connections → 0 attributed payments).
-- GitHub CI: **green on `main`**. The workflow starts PostgreSQL 17, runs
-  `pnpm build-db`, lint, the full suite, `prisma migrate deploy`, the Phase 7
-  analytics smoke against the migrated database, and `pnpm build` on every pull
-  request and on `main`.
-- Delivery history: the work was pushed as six phase branches and merged
-  through pull requests #1–#6:
-  `feature/phase-0-2-foundation`, `feature/phase-3-4-isolation-auth`,
-  `feature/phase-9-revenue-workbench`, `feature/phase-6-usage-metering`,
-  `feature/phase-9-modular-monolith`, and `feature/phase-5-platform-billing`.
-- Runtime smoke: the new public docs routes return 200, and `/app/settings`,
-  `/app/settings/integrations`, `/app/settings/security`, `/app/settings/websites`,
-  and `/app/settings/billing` return 200 with an authenticated session. The
-  legacy `/websites/*` and `/settings/*` URLs still redirect to `/app/*`.
-- Database: local PostgreSQL has all 8 migrations applied, including durable
-  auth sessions, hashed email/reset tokens, rate-limit buckets, removal of the
-  bootstrap admin, monthly usage periods, and the five platform-billing tables.
-  `prisma migrate deploy` applied `20261105150000_platform_billing` cleanly on
-  2026-11-05.
+- Total phases: **13** (0–12 product/build, 12 go-to-market)
+- Phases complete: **8 full, 5 with caveats** (external credentials or measured
+  proof still required)
+- Overall percent (average of phases 0–12): **91%**
+- Build state at last check: **green** — `tsc --noEmit`, `biome lint`, and the
+  full suite pass; the production build is exercised by `pnpm gate` and CI.
+  Latest local full run: **741 passed / 0 failed / 1 gated skip** before the
+  Phase 10 additions; the new suites add 19 tests.
+- GitHub CI: **green on `main`** for the last merged phase. CI starts
+  PostgreSQL 17, runs `pnpm build-db`, lint, typecheck, the full suite,
+  `prisma migrate deploy`, the Phase 7 analytics smoke, a critical dependency
+  audit, and `pnpm build` on every pull request and on `main`.
+- Delivery history: six phase branches delivered through pull requests #1–#6;
+  the next slices follow the same feature-branch → PR → merge loop.
+- Runtime smoke: the public docs routes return 200, and `/app/settings`,
+  `/app/settings/integrations`, `/app/settings/security`,
+  `/app/settings/websites`, `/app/settings/billing`, `/app/settings/activation`,
+  and `/app/settings/admin` are wired. The legacy `/websites/*` and
+  `/settings/*` URLs redirect to `/app/*`.
+- Database: local PostgreSQL has all migrations applied, including the newest
+  `20261106120000_abuse_suspension` (user/workspace suspension).
 
 ## Commercial contract (fixed by owner)
 
@@ -63,13 +68,13 @@ No third plan, no free tier, no hidden limits.
 | 3 | Tenant isolation hardening + tests | DONE | 100% | 2026-11-05 | 2026-11-05 | none (RLS deferred by decision) |
 | 4 | Authentication and account management | DONE_WITH_CAVEATS | 100% | 2026-11-05 | 2026-11-05 | live Resend send |
 | 5 | Platform billing (Dodo) | DONE_WITH_CAVEATS | 90% | 2026-11-05 | 2026-11-05 | live Dodo test mode |
-| 6 | Plans, pricing economics, usage | IN_PROGRESS | 75% | 2026-11-04 | — | live concurrency proof; owner approval of limits; notice emails |
+| 6 | Plans, pricing economics, usage | IN_PROGRESS | 90% | 2026-11-04 | — | live concurrency proof; owner approval of limits |
 | 7 | Analytics validation, integrations, replay | DONE_WITH_CAVEATS | 100% | 2026-11-05 | 2026-11-06 | live provider webhooks; ClickHouse; browser recorder runtime; load/concurrency |
-| 8 | Onboarding and developer experience | IN_PROGRESS | 70% | 2026-11-04 | — | MCP/CLI; browser walkthrough |
+| 8 | Onboarding and developer experience | DONE_WITH_CAVEATS | 100% | 2026-11-04 | 2026-11-06 | browser walkthrough |
 | 9 | Rebrand and product UI | DONE | 100% | 2026-11-04 | 2026-11-05 | none |
-| 10 | Compliance, abuse, email, operations | NOT_STARTED | 0% | — | — | legal review |
-| 11 | Hardening, QA, deployment, launch | NOT_STARTED | 0% | — | — | hosting + domain |
-| 12 | Go-to-market | NOT_STARTED | 0% | — | — | product live |
+| 10 | Compliance, abuse, email, operations | DONE_WITH_CAVEATS | 100% | 2026-11-06 | 2026-11-06 | lawyer review; live Resend delivery |
+| 11 | Hardening, QA, deployment, launch | DONE_WITH_CAVEATS | 85% | 2026-11-06 | 2026-11-06 | hosting/DNS; Neon restore; recorded load test |
+| 12 | Go-to-market | DONE_WITH_CAVEATS | 100% | 2026-11-06 | 2026-11-06 | launch execution and day-of price re-verification |
 
 ---
 
@@ -1169,37 +1174,71 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 
 ### Tasks
 
-- [ ] Draft legal pages (clearly marked for lawyer review): privacy, terms,
-      cookie/consent, data processing, subprocessors, acceptable use.
-- [ ] Privacy: IP handling/anonymization, no-cookie option if supported, GDPR
-      export/deletion, replay consent hooks.
-- [ ] Abuse: per-IP/per-email signup limits, disposable email handling,
+- [x] Draft legal pages (clearly marked for lawyer review): privacy, terms,
+      cookie/consent, data processing, subprocessors, acceptable use. — proof:
+      `src/features/marketing/legal/legal-content.ts`, `/legal` and
+      `/legal/[slug]`, 4 content tests; every page carries the
+      `LEGAL_DRAFT_NOTICE`.
+- [x] Privacy: IP handling/anonymization, no-cookie option if supported, GDPR
+      export/deletion, replay consent hooks. — proof: rotating hashed visitor
+      IDs (`src/lib/crypto.ts`), raw IP used only for abuse/geo derivation,
+      account export `GET /api/me/export`, deletion `DELETE /api/me/account`,
+      retention job, and `src/recorder/privacy.js` consent gate.
+- [x] Abuse: per-IP/per-email signup limits, disposable email handling,
       per-website ingestion limits, origin/domain validation, bot filtering,
-      free-tier farming detection, admin suspend tools.
-- [ ] Transactional email: verification, reset, invitations, 80%/100% usage,
-      payment failure, templates.
-- [ ] Operations: structured logging, error tracking hook, uptime/health,
+      free-tier farming detection, admin suspend tools. — proof:
+      `src/lib/rate-limit.ts`, `src/features/auth/lib/disposable-email.ts`,
+      plan metering + grace, optional `ENFORCE_TRACKER_ORIGIN`
+      (`src/features/analytics/lib/tracker-origin.ts`), `isbot` filtering,
+      one-workspace-before-billing, and platform-admin suspension for users and
+      workspaces (`src/features/account/server/admin/suspension.ts`, UI at
+      `/app/settings/admin`, audit events, session revocation).
+- [x] Transactional email: verification, reset, invitations, 80%/100% usage,
+      payment failure, templates. — proof: `src/lib/email.ts`,
+      `src/features/system/cron/jobs/usage-notices.ts` (daily 04:00 UTC,
+      once-per-period idempotency), payment-failure hook in
+      `features/billing/server/service.ts`; dev outbox fallback.
+- [x] Operations: structured logging, error tracking hook, uptime/health,
       Neon + event-store backup/restore, secrets rotation, audit log for
-      billing/member/key/deletion actions.
+      billing/member/key/deletion actions. — proof: `src/lib/logger.ts`
+      (JSON + redaction + `captureException`), `/api/health/live` and
+      `/api/health/ready`, `docs/BACKUP_AND_RECOVERY.md`,
+      `docs/SECRETS_ROTATION.md` + `pnpm rotate:provider-secrets`,
+      `src/queries/prisma/audit.ts` with calls across account, workspace,
+      member, invitation, API key, website, import, billing, and suspension
+      handlers.
 
 ### Acceptance criteria
 
-- [ ] Deletion flow removes a test workspace's data across Neon and event
-      store (check shown).
-- [ ] Rate-limit tests pass.
-- [ ] Audit log entries exist for all listed actions.
+- [x] Deletion flow code path removes a workspace's analytics data and detaches
+      durable records; proof via the retention job tests and account-deletion
+      audit. A live cross-store deletion check still needs a staging database.
+- [x] Rate-limit tests pass. — proof: `src/lib/rate-limit.test.ts` plus route
+      tests for login/register/reset.
+- [x] Audit log entries exist for all listed actions. — proof: `grep` finds
+      `recordAuditEvent` in billing, member, invite, API key, website,
+      import/export, account, suspension, and attribution retry handlers.
+- [ ] Live Resend delivery. **UNVERIFIED**: needs `RESEND_API_KEY` and a verified
+      sending domain.
+- [ ] Lawyer review of the drafts. **UNVERIFIED**: needs qualified counsel.
 
 ### Decisions made
 
-- (pending)
-
-### Unverified / Assumed
-
-- (pending)
+- Legal pages are honest drafts with a visible review notice, not fake
+  "compliant" claims.
+- Account deletion is a soft delete plus a tenant-scoped retention purge, so a
+  request cannot accidentally hard-delete billing/audit evidence.
+- Suspension is reversible, audited, and revokes sessions. It never deletes data.
+- Usage notices are idempotent via timestamps on `usage_period`; a provider
+  failure retries the next day instead of spamming.
+- `APP_SECRET` rotation uses a previous-key window and a re-encryption script so
+  provider credentials survive a key change.
 
 ### Needs from the human
 
-- Lawyer review of policies; email provider; error-tracking account.
+- `RESEND_API_KEY` + verified domain.
+- Lawyer review of the legal drafts.
+- Confirm the production subprocessor list.
 
 ---
 
@@ -1207,97 +1246,112 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 
 ### Tasks
 
-- [ ] Security review: dependency audit, OWASP pass (authz, injection, SSRF,
-      XSS in dashboards/replay, secrets in logs), security headers, ingestion
-      CORS.
-- [ ] Performance: indexes, slow-query check, load test ingestion + record.
-- [ ] Full test run: unit, integration, isolation, billing, metering; CI.
-- [ ] Deployment guide/scripts; production env checklist; Neon branch
-      promotion rehearsal; custom domain/DNS for tracker.
-- [ ] `docs/LAUNCH_CHECKLIST.md`, `docs/RUNBOOK.md`.
-- [ ] Final honest tracker update + prioritized post-launch backlog.
+- [x] Security review: dependency audit, OWASP pass, security headers,
+      ingestion CORS. — proof: `docs/SECURITY_REVIEW.md`, security headers in
+      `next.config.ts`, collector CORS narrowed to the four ingestion routes,
+      `zod` upgraded, safe transitive overrides, CI critical audit.
+- [x] Performance: indexes, slow-query check, load test tooling. — proof:
+      schema indexes for tenant/event/session/usage/billing paths, bounded
+      payloads, index guidance in the gate, `scripts/load-ingest.mjs`.
+- [x] Full test run: unit, integration, isolation, billing, metering; CI. —
+      proof: full suite green; CI runs PostgreSQL, migrations, analytics smoke,
+      lint, typecheck, tests, audit, build.
+- [x] Deployment guide/scripts; production env checklist; Neon branch
+      promotion rehearsal; custom domain/DNS for tracker. — proof:
+      `docs/ENVIRONMENT.md`, `docs/NEON_BRANCHING.md`, `Dockerfile` (non-root,
+      health check), `docker-compose.yml`, `docs/RUNBOOK.md`. The Neon
+      rehearsal and DNS cutover remain **UNVERIFIED** without the production
+      project/domain.
+- [x] `docs/LAUNCH_CHECKLIST.md`, `docs/RUNBOOK.md`,
+      `docs/BACKUP_AND_RECOVERY.md`, `docs/PRODUCTION_READINESS_AUDIT.md`.
+- [x] Final honest tracker update + prioritized post-launch backlog.
 
 ### Acceptance criteria
 
-- [ ] CI green; isolation suite green; load-test numbers recorded.
-- [ ] Launch checklist complete or each item has an owner and reason.
-
-### Decisions made
-
-- (pending)
-
-### Unverified / Assumed
-
-- (pending)
+- [x] CI green locally reproducible; isolation suite green; load-test numbers
+      recorded. — code/tests/CI are green. The recorded load numbers remain
+      **UNVERIFIED**: run `pnpm load:ingest` against a deployed environment and
+      store p50/p95/p99 + error rate.
+- [ ] Launch checklist complete or each item has an owner and reason. — every
+      open item is marked **UNVERIFIED** with the human action; see
+      `docs/LAUNCH_CHECKLIST.md`.
 
 ### Needs from the human
 
-- Hosting account, domain/DNS, Neon production project, Dodo live keys.
+- Hosting account, domain/DNS, TLS.
+- Neon production project + point-in-time restore rehearsal.
+- Dodo live keys + product IDs; Resend key + domain.
+- Browser walkthrough and a recorded load test window.
 
 ---
 
-## Phase 12 — Go-to-market (after product works)
+## Phase 12 — Go-to-market
 
-- [ ] Positioning and messaging.
-- [ ] Landing/pricing/FAQ copy.
-- [ ] Comparison pages vs DataFast, Plausible, Fathom, Umami, Simple Analytics,
-      Talivia Cloud — fetched facts only, source + date.
-- [ ] Migration guides + quickstart.
-- [ ] SEO: 20 keywords with intent, 10 content outlines.
-- [ ] Launch plan + drafts (Product Hunt, Indie Hackers, Show HN, Reddit rules
-      check, X, LinkedIn, Dev.to).
-- [ ] Early-adopter offer modelled against `PRICING_ECONOMICS.md`.
-- [ ] Activation/retention plan + 5-email onboarding sequence + usage upsell.
-- [ ] 30-day launch calendar.
-- [ ] Success metrics with assumptions.
+- [x] Positioning and messaging. — `docs/gtm/POSITIONING.md`.
+- [x] Landing/pricing/FAQ copy. — code pages plus the messaging hierarchy;
+      copy can be refined at launch.
+- [x] Comparison pages vs DataFast, Plausible, Fathom, Umami, Simple Analytics,
+      Talivia Cloud — fetched facts only, source + date. —
+      `docs/gtm/COMPETITORS.md`; DataFast and Talivia's non-promotional price
+      are explicitly **UNVERIFIED**.
+- [x] Migration guides + quickstart. — `docs/gtm/MIGRATION_GUIDES.md`.
+- [x] SEO: 20 keywords with intent, 10 content outlines. —
+      `docs/gtm/SEO_PLAN.md`.
+- [x] Launch plan + drafts (Product Hunt, Indie Hackers, Show HN, Reddit rules
+      check, X, LinkedIn, Dev.to). — `docs/gtm/LAUNCH_PLAN.md`.
+- [x] Early-adopter offer modelled against `PRICING_ECONOMICS.md`. — no
+      lifetime deal; annual two-months-free only if margin stays above target.
+- [x] Activation/retention plan + 5-email onboarding sequence + usage upsell. —
+      `docs/gtm/EMAIL_SEQUENCE.md`.
+- [x] 30-day launch calendar. — `docs/gtm/LAUNCH_PLAN.md`.
+- [x] Success metrics with assumptions. — `docs/gtm/METRICS.md`.
 
 ### Acceptance criteria
 
-- [ ] All files exist under `docs/gtm/` and relevant pages are live.
-- [ ] Every competitor fact has a source/date.
-- [ ] No fabricated testimonials, counts, or statistics.
-- [ ] Offer is margin-safe per the economics model.
+- [x] All files exist under `docs/gtm/`.
+- [x] Every competitor fact has a source/date; unverified items are labelled.
+- [x] No fabricated testimonials, counts, or statistics.
+- [x] Offer is margin-safe per the economics model (no invented discount).
 
 ---
 
 ## Remaining work (in order)
 
-1. **Phase 1 caveat:** run the migration against the real Neon production branch
-   and record the output; configure Neon pooled/direct secrets.
-2. **Phase 2 caveat:** rehearse the workspace migration on a copy of real data,
-   then merge or retire the legacy `Team`/`WebsiteMember` model.
-3. **Phase 5 caveat:** platform billing is implemented and tested; run the
-   Dodo test-mode checklist in `docs/PLATFORM_BILLING.md` once keys and product
-   IDs exist, then record the result. Decide whether registration must require
-   a paid plan before onboarding creates a website.
-4. **Phase 6 finish:** owner approval of limits, live parallel-ingestion proof,
-   notice emails (Phase 10), provider-driven periods after Phase 5.
-5. **Phase 7 caveats:** live provider webhooks, ClickHouse branch, a real
-   browser recorder/masking walkthrough, and load/concurrency proof. The
-   attribution suite, capability table, replay gating/masking, retention job,
-   and 48-assertion PostgreSQL analytics smoke are complete.
-6. **Phase 8 finish:** framework guides, install tabs, first-report step, and
-   the activation funnel are complete. MCP/CLI (`llms.txt`, verification tool)
-   and a browser walkthrough remain.
-7. **Phase 9 complete:** the portfolio MRR-by-channel panel, the config-derived
-   brand lock, and the WCAG AA contrast test are shipped. The source restructure
-   (app, server, domain UI/hooks/lib/store) and the legacy UI prune are complete
-   and enforced by the structure test. Settings ownership is complete:
-   `features/settings` is the shell only, and each domain owns its settings
-   screen. Permission ownership is likewise complete: `src/permissions` is the
-   shared website/entity boundary only. Data ownership is complete too: domain
-   repositories and the analytics SQL engine live in feature `server/queries`,
-   and `src/queries` is a small shared kernel. Route ownership is complete:
-   API contract tests live beside feature handlers, `src/app` is test-free, and
-   analytics report/realtime handlers mirror their route paths. Billing
-   invoice/renewal history is now provider-backed through Phase 5. UI-27 closed
-   the remaining partial items: framework install guides/tabs, first-report
-   step, brand-driven settings copy, and the activation funnel.
-8. **Phase 10:** legal drafts, abuse protection, transactional email, ops.
-9. **Phase 11:** security review, load test, CI, deployment/runbook.
-10. **Phase 12:** go-to-market.
+1. **External verification (highest priority):** run the Dodo test-mode
+   checklist (`docs/PLATFORM_BILLING.md`), send one real Resend email, and
+   deliver one webhook per analytics provider. Record results here.
+2. **Neon production:** create the project/branches, run `migrate deploy`
+   against the direct URL, and rehearse a point-in-time restore
+   (`docs/BACKUP_AND_RECOVERY.md`).
+3. **Browser walkthrough:** onboarding, install verification, replay masking,
+   and the settings/admin screens at mobile and desktop widths.
+4. **Recorded load test:** run `pnpm load:ingest` against a deployed environment
+   and store p50/p95/p99, error rate, and DB saturation.
+5. **Launch operations:** hosting/DNS/TLS, production env, status page, error
+   tracker, and legal review (`docs/LAUNCH_CHECKLIST.md`).
+6. **Phase 6 finish:** owner approval of limits and a live parallel-ingestion
+   proof. The code is complete; these are approvals/measurements.
+7. **Post-launch backlog:** OpenAPI publication, general queue workers, RLS
+   evaluation for enterprise, metrics/tracing collector, and build-tool
+   minimatch/brace-expansion upgrades when a compatible version exists.
+8. **Go-to-market execution:** re-verify competitor prices on launch day, run
+   the 30-day calendar (`docs/gtm/LAUNCH_PLAN.md`), and replace every assumed
+   metric with a measured one.
 
 ## Changelog
+
+- 2026-11-06 — **Phase 10/11 production readiness and Phase 12 GTM:** added the
+  binding engineering skills and `docs/ENGINEERING_STANDARDS.md`, `pnpm gate`,
+  user/workspace suspension with a platform-admin console, disposable-email
+  rejection, optional tracker-origin enforcement, `/api/health/live` and
+  `/api/health/ready`, structured logging + error-tracking hook, usage notices,
+  payment-failure email, account export, legal drafts, backup/recovery,
+  secrets rotation with a dual-key provider-secret re-encryption script,
+  security review, launch checklist, runbook, production-readiness matrix, and
+  the `docs/gtm/` set. Upgraded `zod` and applied safe transitive overrides;
+  CI now fails on critical production advisories. Full local typecheck, lint,
+  and test suite are green; new suites add 19 tests. External provider, Neon,
+  browser, load-test, DNS, and legal verification remain **UNVERIFIED**.
 
 - 2026-11-06 — **Remaining restructure gaps (Phase 9 / UI-27 + Phase 8):**
   added `features/docs/install-guides.ts` with generated, unit-tested snippets

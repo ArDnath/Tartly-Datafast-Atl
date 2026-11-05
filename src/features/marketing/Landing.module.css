@@ -284,9 +284,7 @@
 
 .planHighlight {
   border-color: rgba(242, 180, 203, 0.34);
-  background:
-    linear-gradient(180deg, rgba(242, 180, 203, 0.06), transparent 42%),
-    var(--rl-card);
+  background: linear-gradient(180deg, rgba(242, 180, 203, 0.06), transparent 42%), var(--rl-card);
 }
 
 .planName {

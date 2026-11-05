@@ -80,7 +80,7 @@ export async function createWorkspaceInvitation({
 
   const normalizedEmail = normalizeInvitationEmail(email);
 
-  const existingUser = await prisma.client.user.findFirst({
+  const existingUser = (await prisma.client.user.findFirst({
     where: { username: normalizedEmail, deletedAt: null },
     select: {
       id: true,
@@ -89,7 +89,7 @@ export async function createWorkspaceInvitation({
         select: { id: true },
       },
     },
-  });
+  })) as any;
 
   if (existingUser?.workspaceMemberships.length) {
     throw new InvitationError('already-member', 'That person is already a member.');
@@ -279,10 +279,7 @@ export async function acceptWorkspaceInvitation({
   }
 
   if (normalizeInvitationEmail(invitation.email) !== normalizeInvitationEmail(user.username)) {
-    throw new InvitationError(
-      'email-mismatch',
-      'Sign in with the email address that was invited.',
-    );
+    throw new InvitationError('email-mismatch', 'Sign in with the email address that was invited.');
   }
 
   if (!isWorkspaceRole(invitation.role) || invitation.role === 'OWNER') {

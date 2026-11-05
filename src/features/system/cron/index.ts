@@ -1,7 +1,9 @@
 import { Cron, type CronOptions } from 'croner';
+import { logger } from '@/lib/logger';
 import { runAnalyticsRetentionJob } from './jobs/analytics-retention';
 import { runAuthMaintenanceJob } from './jobs/auth-maintenance';
 import { runProviderWebhookCleanupJob } from './jobs/provider-webhook-cleanup';
+import { runUsageNoticeJob } from './jobs/usage-notices';
 
 const CRON_STATE_KEY = '__taliviaCronScheduler';
 const CRON_TIMEZONE = 'UTC';
@@ -33,6 +35,11 @@ const cronJobs: TaliviaCronJob[] = [
     schedule: '30 3 * * *',
     run: () => runAnalyticsRetentionJob(),
   },
+  {
+    name: 'usage-notices',
+    schedule: '0 4 * * *',
+    run: () => runUsageNoticeJob(),
+  },
 ];
 
 function getCronState() {
@@ -57,11 +64,14 @@ function getErrorMessage(error: unknown) {
 function createCronOptions(job: TaliviaCronJob): CronOptions {
   return {
     catch: error => {
-      console.error(`[cron] ${job.name} failed`, { error: getErrorMessage(error) });
+      logger.error('cron.job.failed', { job: job.name, error: getErrorMessage(error) });
     },
     name: `talivia:${job.name}`,
     protect: () => {
-      console.warn(`[cron] ${job.name} skipped because the previous run is still active`);
+      logger.warn('cron.job.skipped', {
+        job: job.name,
+        reason: 'previous run still active',
+      });
     },
     timezone: CRON_TIMEZONE,
     unref: true,

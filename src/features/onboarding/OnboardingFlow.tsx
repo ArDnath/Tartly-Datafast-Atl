@@ -499,7 +499,12 @@ export function OnboardingFlow() {
                 subtitle={`Add this snippet to ${createdWebsiteDomain}. Pick the framework you deploy.`}
               />
 
-              <Reveal index={1} className={styles.frameworkTabs} role="group" aria-label="Framework">
+              <Reveal
+                index={1}
+                className={styles.frameworkTabs}
+                role="group"
+                aria-label="Framework"
+              >
                 {INSTALL_GUIDES.map(guide => (
                   <button
                     key={guide.slug}

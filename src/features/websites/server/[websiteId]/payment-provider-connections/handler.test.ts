@@ -91,7 +91,8 @@ vi.mock('@/features/payments/server/providers/yolfi-provider', () => ({
 }));
 
 vi.mock('@/features/payments/server/providers/dodo-provider', async importOriginal => {
-  const actual = await importOriginal<typeof import('@/features/payments/server/providers/dodo-provider')>();
+  const actual =
+    await importOriginal<typeof import('@/features/payments/server/providers/dodo-provider')>();
 
   return {
     ...actual,
@@ -109,7 +110,8 @@ vi.mock('@/features/payments/server/providers/lemonsqueezy-provider', () => ({
 }));
 
 vi.mock('@/features/payments/server/providers/polar-provider', async importOriginal => {
-  const actual = await importOriginal<typeof import('@/features/payments/server/providers/polar-provider')>();
+  const actual =
+    await importOriginal<typeof import('@/features/payments/server/providers/polar-provider')>();
 
   return {
     ...actual,
@@ -237,9 +239,12 @@ test('POST connects LemonSqueezy from Store ID and API key and provisions its we
     Promise.resolve({ ...connection, ...data, id: 'connection-lemon' }),
   );
 
-  const response = await POST(new Request('https://analytics.example.com/api/connect', { method: 'POST' }), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await POST(
+    new Request('https://analytics.example.com/api/connect', { method: 'POST' }),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
   const body = await response.json();
 
   expect(getLemonSqueezyStore).toHaveBeenCalledWith({ apiKey: 'api-key', storeId: '42' });
@@ -282,9 +287,12 @@ test('POST requires both LemonSqueezy connection fields', async () => {
     body: { providerName: 'lemonsqueezy', providerAccountId: '42' },
   } as any);
 
-  const response = await POST(new Request('https://analytics.example.com/api/connect', { method: 'POST' }), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await POST(
+    new Request('https://analytics.example.com/api/connect', { method: 'POST' }),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
 
   expect(response.status).toBe(400);
   await expect(response.json()).resolves.toMatchObject({
@@ -321,9 +329,12 @@ test('POST uses the incoming request origin for LemonSqueezy webhooks', async ()
 });
 
 test('POST connects Stripe with restricted key, auto webhook, encrypted secrets, and sanitized response', async () => {
-  const response = await POST(new Request('https://analytics.example.com/api/connect', { method: 'POST' }), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await POST(
+    new Request('https://analytics.example.com/api/connect', { method: 'POST' }),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
   const body = await response.json();
 
   expect(createStripeWebhookEndpoint).toHaveBeenCalledWith({
@@ -367,9 +378,12 @@ test('POST connects Stripe with restricted key, auto webhook, encrypted secrets,
 test('POST updates an existing Stripe endpoint instead of creating a duplicate', async () => {
   (prisma.client.paymentProviderConnection.findFirst as any).mockResolvedValue(connection);
 
-  const response = await POST(new Request('https://analytics.example.com/api/connect', { method: 'POST' }), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await POST(
+    new Request('https://analytics.example.com/api/connect', { method: 'POST' }),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
 
   expect(response.status).toBe(200);
   expect(updateStripeWebhookEndpoint).toHaveBeenCalledWith({
@@ -503,9 +517,12 @@ test('POST rejects a manual Yolfi connection without an organization API key', a
     body: { providerName: 'yolfi', webhookSecret: 'caller-controlled-secret' },
   } as any);
 
-  const response = await POST(new Request('https://analytics.example.com/api/connect', { method: 'POST' }), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await POST(
+    new Request('https://analytics.example.com/api/connect', { method: 'POST' }),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
 
   expect(response.status).toBe(400);
   expect(createYolfiAnalyticsEndpoint).not.toHaveBeenCalled();
@@ -538,9 +555,12 @@ test('POST updates the existing Yolfi endpoint without creating a duplicate', as
     providerName: 'yolfi',
   });
 
-  const response = await POST(new Request('https://analytics.example.com/api/connect', { method: 'POST' }), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await POST(
+    new Request('https://analytics.example.com/api/connect', { method: 'POST' }),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
 
   expect(response.status).toBe(200);
   expect(updateYolfiAnalyticsEndpoint).toHaveBeenCalledWith(
@@ -579,9 +599,12 @@ test('POST replaces a missing Yolfi endpoint and backfills the possible webhook 
     Promise.resolve({ ...existingYolfiConnection, ...data }),
   );
 
-  const response = await POST(new Request('https://analytics.example.com/api/connect', { method: 'POST' }), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await POST(
+    new Request('https://analytics.example.com/api/connect', { method: 'POST' }),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
 
   expect(response.status).toBe(200);
   expect(createYolfiAnalyticsEndpoint).toHaveBeenCalledWith({
@@ -624,9 +647,12 @@ test('POST rejects a Yolfi organization already connected to another website', a
     },
   ]);
 
-  const response = await POST(new Request('https://analytics.example.com/api/connect', { method: 'POST' }), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await POST(
+    new Request('https://analytics.example.com/api/connect', { method: 'POST' }),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
 
   expect(response.status).toBe(400);
   await expect(response.json()).resolves.toEqual({
@@ -664,9 +690,12 @@ test('POST safely replaces the endpoint when the website switches Yolfi organiza
     Promise.resolve({ ...existingYolfiConnection, ...data }),
   );
 
-  const response = await POST(new Request('https://analytics.example.com/api/connect', { method: 'POST' }), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await POST(
+    new Request('https://analytics.example.com/api/connect', { method: 'POST' }),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
 
   expect(response.status).toBe(200);
   expect(updateYolfiAnalyticsEndpoint).not.toHaveBeenCalled();
@@ -796,9 +825,12 @@ test('POST connects Dodo with one write-enabled API key and creates its webhook 
   });
   (prisma.client.paymentProviderConnection.update as any).mockResolvedValue(dodoConnection);
 
-  const response = await POST(new Request('https://analytics.example.com/api/connect', { method: 'POST' }), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await POST(
+    new Request('https://analytics.example.com/api/connect', { method: 'POST' }),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
   const body = await response.json();
 
   expect(getDodoAccount).toHaveBeenCalledWith(storedCredential);
@@ -863,9 +895,12 @@ test('POST accepts a current opaque Dodo key and detects its environment remotel
     lastSyncAt: null,
   });
 
-  const response = await POST(new Request('https://analytics.example.com/api/connect', { method: 'POST' }), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await POST(
+    new Request('https://analytics.example.com/api/connect', { method: 'POST' }),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
 
   expect(response.status).toBe(200);
   expect(getDodoAccount).toHaveBeenNthCalledWith(1, liveCredential);
@@ -913,9 +948,12 @@ test('POST reconnects Dodo without repeating the initial 30-day import', async (
   );
   (prisma.client.paymentProviderConnection.update as any).mockResolvedValue(updatedDodoConnection);
 
-  const response = await POST(new Request('https://analytics.example.com/api/connect', { method: 'POST' }), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await POST(
+    new Request('https://analytics.example.com/api/connect', { method: 'POST' }),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
   const body = await response.json();
 
   expect(backfillDodoRevenue).not.toHaveBeenCalled();
@@ -963,9 +1001,12 @@ test('POST switches Dodo environments, imports the new history, and removes the 
     .mockResolvedValueOnce(switchedConnection)
     .mockResolvedValueOnce(syncedConnection);
 
-  const response = await POST(new Request('https://analytics.example.com/api/connect', { method: 'POST' }), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await POST(
+    new Request('https://analytics.example.com/api/connect', { method: 'POST' }),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
   const body = await response.json();
 
   expect(backfillDodoRevenue).toHaveBeenCalledWith({
@@ -989,9 +1030,12 @@ test('POST requires an API key for Dodo', async () => {
     },
   } as any);
 
-  const response = await POST(new Request('https://analytics.example.com/api/connect', { method: 'POST' }), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await POST(
+    new Request('https://analytics.example.com/api/connect', { method: 'POST' }),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
   const body = await response.json();
 
   expect(response.status).toBe(400);
@@ -1010,9 +1054,12 @@ test('POST explains that Dodo webhook creation requires write access', async () 
   } as any);
   vi.mocked(createDodoWebhookEndpoint).mockRejectedValue({ status: 403 });
 
-  const response = await POST(new Request('https://analytics.example.com/api/connect', { method: 'POST' }), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await POST(
+    new Request('https://analytics.example.com/api/connect', { method: 'POST' }),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
   const body = await response.json();
 
   expect(response.status).toBe(400);
@@ -1044,9 +1091,12 @@ test('POST connects Polar with organization token, automatic webhook, and backfi
   });
   (prisma.client.paymentProviderConnection.update as any).mockResolvedValue(polarConnection);
 
-  const response = await POST(new Request('https://analytics.example.com/api/connect', { method: 'POST' }), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await POST(
+    new Request('https://analytics.example.com/api/connect', { method: 'POST' }),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
   const body = await response.json();
 
   expect(resolvePolarOrganization).toHaveBeenCalledWith({
@@ -1111,9 +1161,12 @@ test('POST returns Polar webhook validation details as a bad request', async () 
     ),
   );
 
-  const response = await POST(new Request('https://analytics.example.com/api/connect', { method: 'POST' }), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await POST(
+    new Request('https://analytics.example.com/api/connect', { method: 'POST' }),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
   const body = await response.json();
 
   expect(response.status).toBe(400);

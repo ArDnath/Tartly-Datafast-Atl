@@ -118,7 +118,8 @@ export function createWebsiteOverviewChart(
   return chart;
 }
 
-export function mergeWebsiteOverview<TWebsite extends { id: string }>(  websites: TWebsite[],
+export function mergeWebsiteOverview<TWebsite extends { id: string }>(
+  websites: TWebsite[],
   rows: WebsiteOverviewMetricRow[],
   defaultCurrency = DEFAULT_CURRENCY,
   charts?: Map<string, WebsiteOverviewChartPoint[]>,

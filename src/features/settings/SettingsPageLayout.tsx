@@ -13,6 +13,7 @@ import {
   Lock,
   Network,
   Settings2,
+  ShieldAlert,
   TrendingUp,
   UserRound,
   Users,
@@ -35,7 +36,8 @@ type SettingsKey =
   | 'integrations'
   | 'billing'
   | 'security'
-  | 'activation';
+  | 'activation'
+  | 'admin';
 
 export function SettingsPageLayout({
   activeKey,
@@ -105,6 +107,12 @@ export function SettingsPageLayout({
             label: 'Activation',
             path: renderUrl('/app/settings/activation', false),
             icon: <TrendingUp />,
+          },
+          {
+            id: 'admin' as const,
+            label: 'Platform ops',
+            path: renderUrl('/app/settings/admin', false),
+            icon: <ShieldAlert />,
           },
         ]
       : []),

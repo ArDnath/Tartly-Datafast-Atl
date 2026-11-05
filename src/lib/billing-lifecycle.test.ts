@@ -21,16 +21,28 @@ describe('platform billing lifecycle', () => {
       }),
     ).toBe('TRIALING');
     expect(
-      mapProviderSubscriptionStatus({ providerStatus: 'past_due', eventType: 'subscription.past_due' }),
+      mapProviderSubscriptionStatus({
+        providerStatus: 'past_due',
+        eventType: 'subscription.past_due',
+      }),
     ).toBe('PAST_DUE');
     expect(
-      mapProviderSubscriptionStatus({ providerStatus: 'on_hold', eventType: 'subscription.on_hold' }),
+      mapProviderSubscriptionStatus({
+        providerStatus: 'on_hold',
+        eventType: 'subscription.on_hold',
+      }),
     ).toBe('SUSPENDED');
     expect(
-      mapProviderSubscriptionStatus({ providerStatus: 'cancelled', eventType: 'subscription.cancelled' }),
+      mapProviderSubscriptionStatus({
+        providerStatus: 'cancelled',
+        eventType: 'subscription.cancelled',
+      }),
     ).toBe('CANCELLED');
     expect(
-      mapProviderSubscriptionStatus({ providerStatus: 'expired', eventType: 'subscription.expired' }),
+      mapProviderSubscriptionStatus({
+        providerStatus: 'expired',
+        eventType: 'subscription.expired',
+      }),
     ).toBe('EXPIRED');
     expect(
       mapProviderSubscriptionStatus({ providerStatus: 'failed', eventType: 'subscription.failed' }),
@@ -87,18 +99,12 @@ describe('platform billing lifecycle', () => {
         stored,
       ),
     ).toBe(true);
-    expect(
-      isNewerBillingEvent(
-        { eventAt: now, eventType: 'subscription.cancelled' },
-        stored,
-      ),
-    ).toBe(true);
-    expect(
-      isNewerBillingEvent(
-        { eventAt: now, eventType: 'subscription.active' },
-        stored,
-      ),
-    ).toBe(false);
+    expect(isNewerBillingEvent({ eventAt: now, eventType: 'subscription.cancelled' }, stored)).toBe(
+      true,
+    );
+    expect(isNewerBillingEvent({ eventAt: now, eventType: 'subscription.active' }, stored)).toBe(
+      false,
+    );
   });
 
   test('parses provider dates defensively', () => {

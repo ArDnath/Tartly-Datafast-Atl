@@ -27,6 +27,8 @@ model Workspace {
   createdAt          DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt          DateTime? @map("deleted_at") @db.Timestamptz(6)
+  suspendedAt        DateTime? @map("suspended_at") @db.Timestamptz(6)
+  suspensionReason   String?   @map("suspension_reason") @db.VarChar(500)
 
   owner                User                  @relation("WorkspaceOwner", fields: [ownerId], references: [id])
   memberships          WorkspaceMembership[]
@@ -40,6 +42,7 @@ model Workspace {
 
   @@index([ownerId])
   @@index([createdAt])
+  @@index([suspendedAt])
   @@map("workspace")
 }
 
@@ -250,6 +253,8 @@ model User {
   createdAt       DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
+  suspendedAt     DateTime? @map("suspended_at") @db.Timestamptz(6)
+  suspensionReason String?  @map("suspension_reason") @db.VarChar(500)
 
   websites                Website[]                @relation("user")
   createdBy               Website[]                @relation("createUser")
@@ -269,6 +274,7 @@ model User {
   emailVerificationTokens EmailVerificationToken[]
   passwordResetTokens     PasswordResetToken[]
 
+  @@index([suspendedAt])
   @@map("user")
 }
 

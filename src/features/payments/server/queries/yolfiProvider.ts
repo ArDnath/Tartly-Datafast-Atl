@@ -46,7 +46,8 @@ export async function backfillYolfiRevenue({
   listPayments?: typeof listYolfiCompletedPayments;
   recordPayment?: typeof import('@/features/payments/server/queries/payment').recordPayment;
 }) {
-  const paymentRecorder = recordPayment || (await import('@/features/payments/server/queries/payment')).recordPayment;
+  const paymentRecorder =
+    recordPayment || (await import('@/features/payments/server/queries/payment')).recordPayment;
   const createdAfter = new Date(now.getTime() - YOLFI_BACKFILL_DAYS * 24 * 60 * 60 * 1000);
   const payments = await listPayments({ apiKey, createdAfter });
   const ordered = [...payments].sort(

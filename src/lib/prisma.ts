@@ -404,7 +404,6 @@ function getClient() {
     return baseClient;
   }
 
-
   const replicaAdapter = new PrismaPg(
     {
       connectionString: replicaUrl,

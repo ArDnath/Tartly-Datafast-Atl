@@ -3,11 +3,20 @@ import { fetchWebsite } from '@/lib/load';
 import prisma from '@/lib/prisma';
 import { decryptProviderSecret } from '@/features/payments/server/provider-secrets';
 import { badRequest, json, notFound, serverError, unauthorized } from '@/lib/response';
-import { formatStripeAmount, mapStripeCheckoutSessionToPaymentInput } from '@/features/payments/server/providers/stripe-provider';
+import {
+  formatStripeAmount,
+  mapStripeCheckoutSessionToPaymentInput,
+} from '@/features/payments/server/providers/stripe-provider';
 import { verifyStripeSignature } from '@/features/payments/server/webhooks/stripe-webhook';
 
 import { normalizeEmailHash } from '@/features/payments/server/queries/attribution';
-import { recalculatePaymentAttribution, recordPayment, recordPaymentDispute, recordRefund, recordSubscriptionState } from '@/features/payments/server/queries/payment';
+import {
+  recalculatePaymentAttribution,
+  recordPayment,
+  recordPaymentDispute,
+  recordRefund,
+  recordSubscriptionState,
+} from '@/features/payments/server/queries/payment';
 
 const SUBSCRIPTION_CREATE_DUPLICATE_WINDOW_MS = 30 * 60 * 1000;
 

@@ -8,6 +8,7 @@ import {
   slugifyWorkspaceName,
 } from '@/lib/workspace-auth';
 import prisma from '@/lib/prisma';
+import { recordAuditEvent } from '@/queries/prisma';
 
 const createSchema = z.object({
   name: z.string().trim().min(1).max(100),
@@ -70,6 +71,15 @@ export async function POST(request: Request) {
     userId: auth.user.id,
     name: body.name,
     slug,
+  });
+
+  await recordAuditEvent({
+    auth,
+    eventType: 'workspace.created',
+    metadata: { name: workspace.name, slug: workspace.slug },
+    request,
+    resourceId: workspace.id,
+    resourceType: 'workspace',
   });
 
   return json({

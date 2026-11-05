@@ -311,8 +311,7 @@
   padding-right: 8px;
   overflow-x: auto;
   color: #e8e8ea;
-  font-family:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 11px;
   line-height: 1.65;
   white-space: pre-wrap;
@@ -362,7 +361,7 @@
   font-weight: 700;
 }
 
-.statusIcon[data-state='ok'] {
+.statusIcon[data-state="ok"] {
   background: rgba(242, 180, 203, 0.16);
   color: var(--rl-blush-soft);
 }

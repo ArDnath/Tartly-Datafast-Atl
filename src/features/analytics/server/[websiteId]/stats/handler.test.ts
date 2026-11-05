@@ -3,7 +3,11 @@ import { parseRequest } from '@/lib/request';
 import { canViewWebsite } from '@/permissions';
 import { getHistoricalOverview } from '@/features/analytics/server/queries/historicalMetrics';
 import { getRevenueOverviewReport } from '@/features/analytics/server/queries/revenueAttribution';
-import { getActiveVisitors, getSessionStats, getWebsiteStats } from '@/features/analytics/server/queries/sql';
+import {
+  getActiveVisitors,
+  getSessionStats,
+  getWebsiteStats,
+} from '@/features/analytics/server/queries/sql';
 import { GET } from './handler';
 
 vi.mock('@/lib/request', () => ({
@@ -124,9 +128,12 @@ beforeEach(() => {
 });
 
 test('GET returns explicit currency and dashboard revenue chart labels', async () => {
-  const response = await GET(new Request('https://analytics.example.com/api/websites/site-1/stats'), {
-    params: Promise.resolve({ websiteId: 'site-1' }),
-  });
+  const response = await GET(
+    new Request('https://analytics.example.com/api/websites/site-1/stats'),
+    {
+      params: Promise.resolve({ websiteId: 'site-1' }),
+    },
+  );
   const body = await response.json();
 
   expect(response.status).toBe(200);

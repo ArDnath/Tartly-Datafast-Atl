@@ -22,6 +22,7 @@ const DOMAIN_MODULES = [
   'app-shell',
   'auth',
   'billing',
+  'developer',
   'docs',
   'legacy',
   'marketing',
@@ -44,6 +45,7 @@ const SERVER_MODULES = [
   'analytics',
   'auth',
   'billing',
+  'developer',
   'legacy',
   'payments',
   'share',
@@ -52,7 +54,7 @@ const SERVER_MODULES = [
   'workspaces',
 ];
 
-const RE_EXPORT_ONLY = /^export \{ [A-Z, ]+ \} from '@\/features\/[^']+';?$/;
+const RE_EXPORT_BLOCK = /export\s*\{[^}]*\}\s*from\s*'@\/features\/[^']+';/g;
 const NEXT_CONFIG =
   /^export const (dynamic|runtime|revalidate|fetchCache|preferredRegion) = ['"][^'"]+['"];?$/;
 
@@ -100,6 +102,7 @@ const SHARED_LIB_MODULES = new Set([
   'kafka.ts',
   'lang.ts',
   'load.ts',
+  'logger.ts',
   'params.ts',
   'password.ts',
   'plans.ts',
@@ -256,13 +259,16 @@ describe('application source layout', () => {
     expect(apiFiles.length).toBeGreaterThan(0);
 
     for (const file of apiFiles) {
-      const content = readFileSync(file, 'utf8')
+      const source = readFileSync(file, 'utf8');
+      const exportBlocks = source.match(RE_EXPORT_BLOCK)?.length ?? 0;
+      const remaining = source
+        .replace(RE_EXPORT_BLOCK, '')
         .split('\n')
         .map(line => line.trim())
         .filter(Boolean);
 
       expect(
-        content.every(line => RE_EXPORT_ONLY.test(line) || NEXT_CONFIG.test(line)),
+        exportBlocks > 0 && remaining.every(line => NEXT_CONFIG.test(line)),
         `API route is not a thin re-export: ${relative(APP_ROOT, file)}`,
       ).toBe(true);
     }
@@ -454,6 +460,13 @@ describe('application source layout', () => {
       'billing/server/service.ts',
       'billing/server/webhook/dodo/handler.ts',
       'docs/install-guides.ts',
+      'docs/llms.ts',
+      'docs/server/llms/handler.ts',
+      'developer/lib/diagnostics.ts',
+      'developer/server/context.ts',
+      'developer/server/verify/handler.ts',
+      'developer/server/events/handler.ts',
+      'developer/server/diagnose/handler.ts',
       'legacy/lib/legacy-features.ts',
       'legacy/lib/permissions.ts',
       'legacy/server/collect/link/handler.ts',

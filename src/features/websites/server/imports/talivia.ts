@@ -16,7 +16,9 @@ export async function parseTaliviaBackup(
   const manifestFile = zip.file('manifest.json');
 
   if (!manifestFile) {
-    throw new Error('This zip is not a compatible activity backup. The manifest.json file is missing.');
+    throw new Error(
+      'This zip is not a compatible activity backup. The manifest.json file is missing.',
+    );
   }
 
   let manifest: Record<string, unknown>;

@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { canUpdateWebsite, canViewWebsite } from '@/permissions';
+import { recordAuditEvent } from '@/queries/prisma';
 
 const schema = z.object({
   name: z.string().min(1).max(100),
@@ -70,6 +71,16 @@ export async function POST(
       name: body.name,
       keyHash: hashApiKey(key),
     },
+  });
+
+  await recordAuditEvent({
+    auth,
+    eventType: 'api_key.created',
+    metadata: { name: body.name },
+    request,
+    resourceId: apiKey.id,
+    resourceType: 'api_key',
+    websiteId,
   });
 
   return json({ ...serializeApiKey(apiKey), key });

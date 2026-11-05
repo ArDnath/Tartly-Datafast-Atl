@@ -45,7 +45,9 @@ test('getUserWebsites includes websites shared to the user by id or username', a
 });
 
 test('getUserWebsites includes workspace membership and narrows to an authorized workspace', async () => {
-  prismaMock.client.workspaceMembership.findMany.mockResolvedValue([{ workspaceId: 'workspace-a' }]);
+  prismaMock.client.workspaceMembership.findMany.mockResolvedValue([
+    { workspaceId: 'workspace-a' },
+  ]);
 
   await getUserWebsites('user-1', { search: 'taisly' } as any, 'workspace-a');
 

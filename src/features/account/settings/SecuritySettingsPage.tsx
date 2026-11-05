@@ -205,6 +205,31 @@ export function SecuritySettingsPage() {
         <PasswordChangeForm />
       </Column>
 
+      <Column border padding="4" gap="3" style={CARD_STYLE}>
+        <Heading size="lg">Your data</Heading>
+        <Text size="sm" color="muted">
+          Download a portable JSON copy of your account, workspace memberships, website list, and
+          active session metadata. It never includes passwords, tokens, provider credentials, or
+          another member&apos;s data.
+        </Text>
+        <Row gap="3" wrap="wrap">
+          <a
+            href="/api/me/export"
+            download
+            style={{
+              border: '1px solid #ffffff1f',
+              borderRadius: 10,
+              padding: '8px 14px',
+              color: '#f4f4f5',
+              textDecoration: 'none',
+              fontSize: 13,
+            }}
+          >
+            Download account data (JSON)
+          </a>
+        </Row>
+      </Column>
+
       <Column
         border
         padding="4"

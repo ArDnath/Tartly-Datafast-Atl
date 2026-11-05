@@ -5,9 +5,17 @@ import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import { fetchWebsite } from '@/lib/load';
 import { parseRequest } from '@/lib/request';
 import { releaseEventUsage, reserveEventUsage } from '@/lib/usage';
-import { ensureVisitorContext, upsertCustomerIdentityLink, upsertVisitorContext } from '@/features/payments/server/queries/attribution';
+import {
+  ensureVisitorContext,
+  upsertCustomerIdentityLink,
+  upsertVisitorContext,
+} from '@/features/payments/server/queries/attribution';
 import { getWebsiteAttributionRuntimeConfig } from '@/queries/prisma/website';
-import { createSession, saveEvent, updateSessionDistinctId } from '@/features/analytics/server/queries/sql';
+import {
+  createSession,
+  saveEvent,
+  updateSessionDistinctId,
+} from '@/features/analytics/server/queries/sql';
 import { POST } from './handler';
 
 vi.mock('@/features/analytics/lib/collector-cache', () => ({
@@ -201,7 +209,9 @@ test('pauses billable ingestion when the workspace hard limit is reached', async
     },
   } as any);
 
-  const response = await POST(new Request('https://collector.example/api/send', { method: 'POST' }));
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
   const body = await response.json();
 
   expect(body).toMatchObject({ ok: false, reason: 'usage_limit_reached' });
@@ -237,7 +247,9 @@ test('releases the reservation when the event write fails', async () => {
     },
   } as any);
 
-  const response = await POST(new Request('https://collector.example/api/send', { method: 'POST' }));
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
 
   expect(response.status).toBe(500);
   expect(releaseEventUsage).toHaveBeenCalledWith(workspaceId);

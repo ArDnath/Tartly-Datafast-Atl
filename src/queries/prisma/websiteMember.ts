@@ -5,8 +5,7 @@ import prisma from '@/lib/prisma';
 import type { QueryFilters } from '@/lib/types';
 import { getUserByUsername } from './user';
 
-export type WebsiteMemberRole =
-  (typeof WEBSITE_MEMBER_ROLES)[keyof typeof WEBSITE_MEMBER_ROLES];
+export type WebsiteMemberRole = (typeof WEBSITE_MEMBER_ROLES)[keyof typeof WEBSITE_MEMBER_ROLES];
 
 export interface WebsiteMemberInput {
   websiteId: string;
@@ -130,10 +129,7 @@ export async function upsertWebsiteMember(input: WebsiteMemberInput) {
   });
 }
 
-export async function updateWebsiteMember(
-  memberId: string,
-  data: Record<string, any>,
-) {
+export async function updateWebsiteMember(memberId: string, data: Record<string, any>) {
   return websiteMember().update({
     where: {
       id: memberId,

@@ -190,5 +190,4 @@ describe('shared response redaction', () => {
       browser: 'Chrome',
     });
   });
-
 });

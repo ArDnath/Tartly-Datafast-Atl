@@ -27,9 +27,7 @@ test('rejects a workspace admin who is not a platform admin', async () => {
     auth: { user: { id: 'user-1', isPlatformAdmin: false } },
   });
 
-  const response = await GET(
-    new Request('https://analytics.example.com/api/admin/activation'),
-  );
+  const response = await GET(new Request('https://analytics.example.com/api/admin/activation'));
 
   expect(response.status).toBe(403);
   expect(getActivationFunnel).not.toHaveBeenCalled();
@@ -40,9 +38,7 @@ test('returns the aggregate funnel to a platform admin', async () => {
     auth: { user: { id: 'operator-1', isPlatformAdmin: true } },
   });
 
-  const response = await GET(
-    new Request('https://analytics.example.com/api/admin/activation'),
-  );
+  const response = await GET(new Request('https://analytics.example.com/api/admin/activation'));
   const body = await response.json();
 
   expect(response.status).toBe(200);

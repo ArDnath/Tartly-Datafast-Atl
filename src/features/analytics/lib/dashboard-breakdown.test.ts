@@ -68,9 +68,9 @@ test('mergeDashboardBreakdownRows keeps unattributed revenue separate and sorts 
 
 test('classifyRevenueChannel separates paid, organic, email, referral, and direct', () => {
   expect(classifyRevenueChannel({ source: 'google', medium: 'organic' })).toBe('organicSearch');
-  expect(
-    classifyRevenueChannel({ source: 'google', medium: 'cpc', urlQuery: 'gclid=abc' }),
-  ).toBe('paidSearch');
+  expect(classifyRevenueChannel({ source: 'google', medium: 'cpc', urlQuery: 'gclid=abc' })).toBe(
+    'paidSearch',
+  );
   expect(classifyRevenueChannel({ source: 'facebook', medium: 'social' })).toBe('organicSocial');
   expect(classifyRevenueChannel({ source: 'newsletter', medium: 'email' })).toBe('email');
   expect(classifyRevenueChannel({ referrerDomain: 'partner.dev' })).toBe('referral');

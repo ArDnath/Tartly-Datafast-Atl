@@ -169,9 +169,7 @@
 
 .cardHighlight {
   border-color: rgba(242, 180, 203, 0.34);
-  background:
-    linear-gradient(180deg, rgba(242, 180, 203, 0.06), transparent 38%),
-    var(--rl-card);
+  background: linear-gradient(180deg, rgba(242, 180, 203, 0.06), transparent 38%), var(--rl-card);
   animation-delay: 70ms;
 }
 
@@ -377,13 +375,13 @@
 }
 
 .faq summary::after {
-  content: '+';
+  content: "+";
   float: right;
   color: var(--rl-muted-fg);
 }
 
 .faq details[open] summary::after {
-  content: '−';
+  content: "−";
 }
 
 .faq p {
