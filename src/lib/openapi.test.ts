@@ -20,6 +20,7 @@ describe('OpenAPI contract', () => {
       '/api/developer/events:',
       '/api/developer/diagnose:',
       '/api/admin/accounts:',
+      '/api/admin/audit:',
       '/api/admin/users/{userId}/suspension:',
       '/api/admin/workspaces/{workspaceId}/suspension:',
       '/api/billing/webhook/dodo:',

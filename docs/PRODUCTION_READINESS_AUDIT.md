@@ -23,7 +23,7 @@ deferred to a measured scale trigger), **BLOCKED** (external credential).
 | 15 | Object storage | N/A | No user file uploads at launch; replay payloads are compressed event rows. Revisit if recording exports move to object storage. |
 | 16 | Webhook security | PASS | HMAC verification, raw body, timestamp tolerance, unique event IDs, replay-safe lifecycle reduction; outbound webhook outbox not needed (no outbound webhooks product) |
 | 17 | 12-factor config | PASS | Env-only config, lockfile committed, `.env.example`, no secrets in git |
-| 18 | Observability | PASS | JSON logs + redaction, error-tracking hook, health/live + health/ready, audit log. Metrics/tracing STAGED until a host collector is chosen. |
+| 18 | Observability | PASS | JSON logs + redaction, error-tracking hook, health/live + health/ready, audit log and a platform-admin audit viewer. Metrics/tracing STAGED until a host collector is chosen. |
 | 19 | Testing | PASS | 765 unit/route tests, tenant isolation, 48-assertion PostgreSQL smoke, and a recorded 10k-event/50-concurrency ingestion probe (`docs/LOAD_TEST.md`). Testcontainers not used because CI provisions a real PostgreSQL service. |
 | 20 | Container/CI | PASS | Multi-stage non-root Dockerfile, health check, CI lint/typecheck/tests/audit/build. Vulnerability scan is `pnpm audit`; image scanning STAGED for the hosting pipeline. |
 

@@ -229,6 +229,46 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /api/admin/audit:
+    get:
+      tags: [Operator]
+      summary: List recent platform audit events
+      description: Platform-admin only. IP addresses, user agents, and metadata are omitted.
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+        - name: eventType
+          in: query
+          schema: { type: string, maxLength: 100 }
+      responses:
+        "200":
+          description: Newest-first audit rows.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string, format: uuid }
+                        eventType: { type: string }
+                        resourceType: { type: string, nullable: true }
+                        resourceId: { type: string, format: uuid, nullable: true }
+                        userId: { type: string, format: uuid, nullable: true }
+                        websiteId: { type: string, format: uuid, nullable: true }
+                        createdAt: { type: string, format: date-time }
+                  pagination:
+                    type: object
+                    properties:
+                      limit: { type: integer }
+                      has_more: { type: boolean }
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /api/admin/accounts:
     get:
       tags: [Operator]
