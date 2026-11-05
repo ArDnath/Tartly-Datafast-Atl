@@ -4,23 +4,25 @@
 - **Repository:** <https://github.com/talivia-group/talivia> (MIT), forked locally at
   `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-05
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 is complete: the source restructure (app, server, domain UI/hooks/lib/store) is finished and enforced, the dead legacy dashboard UI is pruned, the portfolio now shows MRR by first-touch channel, and the brand/contrast locks are automated. A final domain split now moves the whole website analytics workbench and its handlers into `features/analytics`, leaving `features/websites` as site management only. The settings catch-all is gone too: `features/settings` is now the shell and overview only, while account/security/preferences, workspace, website list, integrations, and plan/usage screens live with their owning domains. `src/permissions` is now the shared website/entity authorization boundary only; report, local-user, and frozen legacy permission checks live with their features. The last shared catch-alls are gone: every domain Prisma repository now lives in `features/<domain>/server/queries`, the analytics SQL engine lives in `features/analytics/server/queries/sql`, the public pixel/link collection handlers and the website shell resolver moved out of `src/app`, and `src/queries` is a small allowlisted authorization/request kernel. Route tests now live beside feature handlers, so `src/app` is test-free routing only, and the analytics report/realtime handlers mirror their API paths. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat; Phase 9 complete. The source restructure is finished and enforced: `src/app` is routing only, every domain owns its UI/hooks/lib/server/queries, `src/lib` and `src/queries` are allowlisted shared kernels, and route tests live beside feature handlers. Phase 6 usage metering shipped. **Phase 5 platform billing now ships behind a separate `features/billing` domain:** Dodo checkout, customer portal, cancel-at-period-end, plan changes, signed Standard Webhooks verification, idempotent and out-of-order-safe lifecycle reduction, provider-derived entitlements, real invoice history, a billing settings panel, and 22 new tests. It is marked **done with caveats** because no Dodo test/live credentials exist here, so live checkout and webhook delivery still need the human. The analytics Dodo integration remains a completely separate context. Next: live Dodo verification, then Phase 7 (analytics validation, attribution journeys, replay retention).
 
 ## Overall progress
 
 - Total phases: **12** (0–11 product/build, 12 go-to-market)
-- Phases complete: **3 full, 3 with caveats** (Phase 2: copy-with-data rehearsal; Phase 4: live Resend delivery)
-- Overall percent (average of phases 0–11): **59%**
+- Phases complete: **4 full, 3 with caveats** (Phase 2: copy-with-data rehearsal; Phase 4: live Resend delivery; Phase 5: live Dodo test mode)
+- Overall percent (average of phases 0–11): **66%**
 - Build state at last check: **green** (`next build` exit 0 with
   `SKIP_DB_CHECK=1`; `tsc --noEmit` clean; `biome lint` clean). Full test run:
-  **646 passed / 0 failed** under `TZ=UTC`.
+  **668 passed / 0 failed** under `TZ=UTC`.
 - Runtime smoke: the new public docs routes return 200, and `/app/settings`,
   `/app/settings/integrations`, `/app/settings/security`, `/app/settings/websites`,
   and `/app/settings/billing` return 200 with an authenticated session. The
   legacy `/websites/*` and `/settings/*` URLs still redirect to `/app/*`.
-- Database: local PostgreSQL has all 7 migrations applied, including durable
+- Database: local PostgreSQL has all 8 migrations applied, including durable
   auth sessions, hashed email/reset tokens, rate-limit buckets, removal of the
-  bootstrap admin, and monthly usage periods.
+  bootstrap admin, monthly usage periods, and the five platform-billing tables.
+  `prisma migrate deploy` applied `20261105150000_platform_billing` cleanly on
+  2026-11-05.
 
 ## Commercial contract (fixed by owner)
 
@@ -44,7 +46,7 @@ No third plan, no free tier, no hidden limits.
 | 2 | Workspaces, memberships, RBAC | DONE_WITH_CAVEATS | 92% | 2026-11-04 | 2026-11-05 | copy-with-data rehearsal |
 | 3 | Tenant isolation hardening + tests | DONE | 100% | 2026-11-05 | 2026-11-05 | none (RLS deferred by decision) |
 | 4 | Authentication and account management | DONE_WITH_CAVEATS | 100% | 2026-11-05 | 2026-11-05 | live Resend send |
-| 5 | Platform billing (Dodo) | NOT_STARTED | 0% | — | — | Dodo test/live keys |
+| 5 | Platform billing (Dodo) | DONE_WITH_CAVEATS | 90% | 2026-11-05 | 2026-11-05 | live Dodo test mode |
 | 6 | Plans, pricing economics, usage | IN_PROGRESS | 75% | 2026-11-04 | — | live concurrency proof; owner approval of limits; notice emails |
 | 7 | Analytics validation, integrations, replay | NOT_STARTED | 0% | — | — | none |
 | 8 | Onboarding and developer experience | IN_PROGRESS | 40% | 2026-11-04 | — | guides, activation, MCP |
@@ -467,47 +469,106 @@ migration connections.
 
 ### Tasks
 
-- [ ] Inspect existing Dodo analytics integration; keep it separate.
-- [ ] Check current Dodo SDK/docs for subscriptions, checkout, portal,
-      webhooks. Record URLs and dates.
-- [ ] `BillingProvider` interface (create customer, create subscription, start
+- [x] Inspect existing Dodo analytics integration; keep it separate. — proof:
+      `features/payments` still owns per-website analytics connections;
+      `features/billing` has its own provider, credentials, webhook route, and
+      tables. `docs/PLATFORM_BILLING.md` records the boundary.
+- [x] Check current Dodo SDK/docs for subscriptions, checkout, portal,
+      webhooks. Record URLs and dates. — proof: `docs/PLATFORM_BILLING.md`
+      lists checkout, patch subscription, change plan, customer portal, and
+      webhook docs fetched 2026-11-05. Uses installed `dodopayments@2.42.2`.
+- [x] `BillingProvider` interface (create customer, create subscription, start
       checkout, update, cancel, status, webhooks, invoices, portal) with Dodo
-      implementation; extensible to Stripe later.
-- [ ] Models: `BillingCustomer`, `SubscriptionPlan`, `Subscription`,
+      implementation; extensible to Stripe later. — proof:
+      `features/billing/server/provider.ts` +
+      `features/billing/server/providers/dodo.ts` (checkout, portal,
+      cancel-at-period-end, change plan).
+- [x] Models: `BillingCustomer`, `SubscriptionPlan`, `Subscription`,
       `BillingEvent`, `InvoiceRecord`, `SubscriptionChange`; store provider IDs;
-      one independent subscription per workspace.
-- [ ] Webhooks: raw-body signature verification, idempotency via stored event
+      one independent subscription per workspace. — proof: migration
+      `20261105150000_platform_billing` adds `billing_customer`,
+      `platform_subscription` (one per workspace), `billing_event`,
+      `billing_invoice`, `billing_subscription_change`. Plan prices stay in
+      `src/lib/plans.ts`, so no duplicate `SubscriptionPlan` table was needed.
+      `prisma migrate deploy` applied it cleanly and all five tables exist.
+- [x] Webhooks: raw-body signature verification, idempotency via stored event
       IDs, duplicate protection, out-of-order handling, retry-safe processing,
-      failure/cancel/expiry/refund events.
-- [ ] Lifecycle states: `TRIALING`, `ACTIVE`, `PAST_DUE`, `CANCELLED`,
-      `EXPIRED`, `SUSPENDED` (no FREE plan; no free tier).
-- [ ] Cancel-at-period-end keeps access until paid period ends.
-- [ ] Never activate from a checkout redirect; confirm via provider status or
-      webhook.
-- [ ] Entitlements come from backend subscription records only.
-- [ ] Billing settings page: plan, period, usage, next renewal, status,
-      upgrade/downgrade, cancel, portal/invoice links. No fake invoices.
+      failure/cancel/expiry/refund events. — proof:
+      `features/billing/lib/standard-webhook.ts` (HMAC over
+      `id.timestamp.body`, timestamp tolerance, constant-time compare);
+      `features/billing/server/service.ts` (unique `webhook-id`, failed retries
+      re-claimable, timestamp+priority ordering, unmatched/unsupported events
+      recorded); `handler.test.ts` and `service.test.ts`.
+- [x] Lifecycle states: `TRIALING`, `ACTIVE`, `PAST_DUE`, `CANCELLED`,
+      `EXPIRED`, `SUSPENDED` (no FREE plan; no free tier). — proof:
+      `src/lib/billing-lifecycle.ts` + `billing-lifecycle.test.ts`.
+- [x] Cancel-at-period-end keeps access until paid period ends. — proof:
+      `billingSubscriptionHasAccess` grants access for `CANCELLED` only while
+      `currentPeriodEnd` is in the future; cancel handler schedules it with the
+      provider; acceptance test in `billing-lifecycle.test.ts`.
+- [x] Never activate from a checkout redirect; confirm via provider status or
+      webhook. — proof: checkout returns only `{url}`; no code writes a
+      subscription outside `processDodoWebhook`.
+- [x] Entitlements come from backend subscription records only. — proof:
+      `src/lib/entitlements.ts` reads `platform_subscription` first and only
+      falls back to the legacy workspace status for pre-billing rows. Paid
+      features also require `active`.
+- [x] Billing settings page: plan, period, usage, next renewal, status,
+      upgrade/downgrade, cancel, portal/invoice links. No fake invoices. —
+      proof: `features/billing/components/BillingSubscriptionPanel.tsx` inside
+      `/app/settings/billing`; invoice rows come only from
+      `billing_invoice`.
 
 ### Acceptance criteria
 
-- [ ] Replayed webhook creates no duplicates.
-- [ ] Out-of-order events converge to the correct state.
-- [ ] Invalid signature rejected.
-- [ ] Cancel-at-period-end retains access.
+- [x] Replayed webhook creates no duplicates. — proof:
+      `service.test.ts` ("ignores a replay…") and
+      `webhook/dodo/handler.test.ts` ("acknowledges a replayed event…").
+- [x] Out-of-order events converge to the correct state. — proof:
+      `service.test.ts` ("does not let an older snapshot overwrite newer
+      state") and `billing-lifecycle.test.ts`.
+- [x] Invalid signature rejected. — proof:
+      `standard-webhook.test.ts` and `webhook/dodo/handler.test.ts`
+      (400 `webhook-invalid-signature`, provider mock not called).
+- [x] Cancel-at-period-end retains access. — proof:
+      `billing-lifecycle.test.ts` (future/past period cases).
 - [ ] Documented manual test against Dodo test mode, or exact steps for human.
+      — exact steps are in `docs/PLATFORM_BILLING.md`; **not executed** because
+      no Dodo keys exist in this environment.
 
 ### Decisions made
 
-- (pending)
+- Platform billing is a separate domain with separate env credentials. The
+  analytics Dodo integration is never reused for charging customers.
+- Plans remain code config (`src/lib/plans.ts`). The database stores the
+  subscription, not a second copy of plan prices.
+- Checkout is created server-side and returns only a URL. A success redirect
+  never changes access.
+- Entitlements read `platform_subscription`; the workspace plan/status columns
+  are mirrored for legacy compatibility only.
+- Webhook bodies are stored for audit, but no customer email or provider secret
+  is returned by the billing API or written to logs.
+- An unknown product ID is recorded as `unsupported` instead of defaulting to
+  Starter, so misconfiguration cannot silently grant limits.
 
 ### Unverified / Assumed
 
-- (pending)
+- **UNVERIFIED:** live Dodo test-mode checkout, webhook delivery, portal, and
+  prorated plan change. Unit and route tests use mocks; no provider key exists.
+- **ASSUMED:** Dodo re-signs dashboard replays; the 5-minute Standard Webhooks
+  timestamp tolerance would reject a replay that reuses an old signature.
+- **ASSUMED:** annual product IDs are optional; the UI disables an annual price
+  until its product exists.
+- **OPEN:** registration still defaults a new workspace to the Starter plan for
+  setup limits. Onboarding creates a website before the payment step, so the
+  strict "no free tier" paywall is a Phase 8 decision rather than a billing
+  regression. Paid features are gated by `active`.
 
 ### Needs from the human
 
-- Dodo Payments test and live API keys, product IDs for Starter and Pro,
-  webhook signing secret.
+- Dodo Payments test and live API keys, monthly (and optional annual) product
+  IDs for Starter and Pro, and the billing webhook signing secret. Then run the
+  manual test in `docs/PLATFORM_BILLING.md`.
 
 ---
 
@@ -1082,8 +1143,10 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
    and record the output; configure Neon pooled/direct secrets.
 2. **Phase 2 caveat:** rehearse the workspace migration on a copy of real data,
    then merge or retire the legacy `Team`/`WebsiteMember` model.
-3. **Phase 5:** Dodo platform billing behind `BillingProvider`, webhooks,
-   lifecycle, billing UI.
+3. **Phase 5 caveat:** platform billing is implemented and tested; run the
+   Dodo test-mode checklist in `docs/PLATFORM_BILLING.md` once keys and product
+   IDs exist, then record the result. Decide whether registration must require
+   a paid plan before onboarding creates a website.
 4. **Phase 6 finish:** owner approval of limits, live parallel-ingestion proof,
    notice emails (Phase 10), provider-driven periods after Phase 5.
 5. **Phase 7:** attribution journey tests, provider capability table, replay
@@ -1107,6 +1170,24 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 10. **Phase 12:** go-to-market.
 
 ## Changelog
+
+- 2026-11-05 — **Platform billing (Phase 5):** added a separate `features/billing`
+  domain (context A) with a `BillingProvider` contract and Dodo implementation,
+  Dodo checkout, customer portal, cancel-at-period-end, and prorated plan
+  changes. New tables `billing_customer`, `platform_subscription`,
+  `billing_event`, `billing_invoice`, and `billing_subscription_change` keep
+  provider state, idempotency, and invoices. `POST /api/billing/webhook/dodo`
+  verifies Standard Webhooks signatures over the raw body, records each unique
+  `webhook-id`, rejects older snapshots, and resolves the tenant from provider
+  IDs before metadata. Entitlements now read `platform_subscription`; the
+  billing settings screen shows real status, period, cancellation, plan
+  changes, portal access, and provider invoices. The analytics Dodo integration
+  is unchanged and unreachable from billing routes. Added 22 tests
+  (`billing-lifecycle`, webhook verification/consume, checkout, service
+  idempotency/ordering) and `docs/PLATFORM_BILLING.md`. Typecheck and lint
+  clean; `next build` succeeds with `SKIP_DB_CHECK=1`; full suite **668/668**;
+  `prisma migrate deploy` applied the billing migration to local PostgreSQL.
+  Live Dodo test mode remains unverified.
 
 - 2026-11-05 — **Route and shared-lib ownership completion (Phase 9 / UI-26):**
   moved all 22 API route contract tests out of `src/app/api/**/route.test.ts`

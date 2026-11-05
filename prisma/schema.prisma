@@ -28,15 +28,139 @@ model Workspace {
   updatedAt          DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt          DateTime? @map("deleted_at") @db.Timestamptz(6)
 
-  owner        User                  @relation("WorkspaceOwner", fields: [ownerId], references: [id])
-  memberships  WorkspaceMembership[]
-  invitations  WorkspaceInvitation[]
-  websites     Website[]
-  usagePeriods UsagePeriod[]
+  owner                User                  @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  memberships          WorkspaceMembership[]
+  invitations          WorkspaceInvitation[]
+  websites             Website[]
+  usagePeriods         UsagePeriod[]
+  billingCustomer      BillingCustomer?
+  platformSubscription PlatformSubscription?
+  billingInvoices      BillingInvoice[]
+  billingChanges       BillingSubscriptionChange[]
 
   @@index([ownerId])
   @@index([createdAt])
   @@map("workspace")
+}
+
+/// Platform billing (context A): we charge our customers for RevenueLens.
+/// This is deliberately separate from `PaymentProviderConnection`,
+/// `Payment`, and `Subscription`, which are analytics integrations for the
+/// customer's own revenue (context B).
+model BillingCustomer {
+  id                 String   @id() @default(uuid()) @map("billing_customer_id") @db.Uuid
+  workspaceId        String   @unique @map("workspace_id") @db.Uuid
+  providerName       String   @map("provider_name") @db.VarChar(50)
+  providerCustomerId String   @map("provider_customer_id") @db.VarChar(255)
+  email              String   @db.VarChar(320)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@unique([providerName, providerCustomerId])
+  @@map("billing_customer")
+}
+
+/// One platform subscription per workspace. The provider subscription ID is
+/// unique per provider so a webhook can resolve the tenant without trusting
+/// body metadata.
+model PlatformSubscription {
+  id                     String    @id() @default(uuid()) @map("platform_subscription_id") @db.Uuid
+  workspaceId            String    @unique @map("workspace_id") @db.Uuid
+  providerName           String    @map("provider_name") @db.VarChar(50)
+  providerSubscriptionId String    @map("provider_subscription_id") @db.VarChar(255)
+  providerCustomerId     String    @map("provider_customer_id") @db.VarChar(255)
+  planId                 String    @map("plan_id") @db.VarChar(50)
+  productId              String?   @map("product_id") @db.VarChar(255)
+  interval               String    @default("monthly") @db.VarChar(20)
+  lifecycleStatus        String    @map("lifecycle_status") @db.VarChar(50)
+  providerStatus         String    @map("provider_status") @db.VarChar(50)
+  currency               String    @default("USD") @db.VarChar(10)
+  amountCents            Int       @default(0) @map("amount_cents")
+  currentPeriodStart     DateTime? @map("current_period_start") @db.Timestamptz(6)
+  currentPeriodEnd       DateTime? @map("current_period_end") @db.Timestamptz(6)
+  cancelAtPeriodEnd      Boolean   @default(false) @map("cancel_at_period_end")
+  canceledAt             DateTime? @map("canceled_at") @db.Timestamptz(6)
+  endedAt                DateTime? @map("ended_at") @db.Timestamptz(6)
+  trialEnd               DateTime? @map("trial_end") @db.Timestamptz(6)
+  lastEventType          String?   @map("last_event_type") @db.VarChar(100)
+  lastEventAt            DateTime  @map("last_event_at") @db.Timestamptz(6)
+  lastEventPriority      Int       @default(0) @map("last_event_priority")
+  metadata               Json?
+  createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@index([workspaceId, lifecycleStatus])
+  @@index([providerName, providerCustomerId])
+  @@index([currentPeriodEnd])
+  @@map("platform_subscription")
+}
+
+/// Raw provider webhook bookkeeping. `provider_event_id` is unique, so a
+/// replayed delivery is acknowledged without being applied twice.
+model BillingEvent {
+  id              String    @id() @default(uuid()) @map("billing_event_id") @db.Uuid
+  providerName    String    @map("provider_name") @db.VarChar(50)
+  providerEventId String    @unique @map("provider_event_id") @db.VarChar(255)
+  eventType       String    @map("event_type") @db.VarChar(100)
+  workspaceId     String?   @map("workspace_id") @db.Uuid
+  eventAt         DateTime  @map("event_at") @db.Timestamptz(6)
+  payload         Json
+  processingStatus String   @default("received") @map("processing_status") @db.VarChar(50)
+  errorMessage    String?   @map("error_message")
+  receivedAt      DateTime  @default(now()) @map("received_at") @db.Timestamptz(6)
+  processedAt     DateTime? @map("processed_at") @db.Timestamptz(6)
+
+  @@index([providerName, eventType])
+  @@index([workspaceId, receivedAt])
+  @@map("billing_event")
+}
+
+/// Only invoices the provider actually issued are stored. No invoice is
+/// invented for a pending checkout or a failed charge.
+model BillingInvoice {
+  id                     String    @id() @default(uuid()) @map("billing_invoice_id") @db.Uuid
+  workspaceId            String    @map("workspace_id") @db.Uuid
+  providerName           String    @map("provider_name") @db.VarChar(50)
+  providerInvoiceId      String    @map("provider_invoice_id") @db.VarChar(255)
+  providerPaymentId      String?   @map("provider_payment_id") @db.VarChar(255)
+  status                 String    @db.VarChar(50)
+  currency               String    @default("USD") @db.VarChar(10)
+  amountCents            Int       @default(0) @map("amount_cents")
+  periodStart            DateTime? @map("period_start") @db.Timestamptz(6)
+  periodEnd              DateTime? @map("period_end") @db.Timestamptz(6)
+  issuedAt               DateTime  @map("issued_at") @db.Timestamptz(6)
+  paidAt                 DateTime? @map("paid_at") @db.Timestamptz(6)
+  hostedUrl              String?   @map("hosted_url")
+  createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@unique([providerName, providerInvoiceId])
+  @@index([workspaceId, issuedAt])
+  @@map("billing_invoice")
+}
+
+/// Audit trail for plan changes. The provider remains the source of truth for
+/// the subscription itself; this records who asked for what and when.
+model BillingSubscriptionChange {
+  id            String    @id() @default(uuid()) @map("billing_subscription_change_id") @db.Uuid
+  workspaceId   String    @map("workspace_id") @db.Uuid
+  fromPlanId    String?   @map("from_plan_id") @db.VarChar(50)
+  toPlanId      String    @map("to_plan_id") @db.VarChar(50)
+  changeType    String    @map("change_type") @db.VarChar(50)
+  requestedBy   String?   @map("requested_by") @db.Uuid
+  effectiveAt   DateTime? @map("effective_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@index([workspaceId, createdAt])
+  @@map("billing_subscription_change")
 }
 
 /// Monthly billable usage for one workspace. The DB row is the source of

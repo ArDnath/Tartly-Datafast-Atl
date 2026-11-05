@@ -80,6 +80,20 @@ export function serverError(error?: Record<string, any>) {
   );
 }
 
+export function serviceUnavailable(error?: Record<string, any>) {
+  return Response.json(
+    {
+      error: {
+        message: 'Service unavailable',
+        code: 'service-unavailable',
+        status: 503,
+        ...error,
+      },
+    },
+    { status: 503 },
+  );
+}
+
 export function appConfigurationError() {
   return serverError({
     message: APP_SECRET_CONFIGURATION_ERROR_MESSAGE,

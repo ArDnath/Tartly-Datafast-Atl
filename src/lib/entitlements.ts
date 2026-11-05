@@ -1,12 +1,15 @@
+import { billingSubscriptionHasAccess } from '@/lib/billing-lifecycle';
 import prisma from '@/lib/prisma';
 import { getPlan, getPlanOrNull, type Plan, type PlanFeature, planHasFeature } from '@/lib/plans';
 
 /**
- * Plan entitlements are always derived from the stored workspace record. The
- * UI must not decide whether a feature is available; ask this module.
+ * Plan entitlements are derived from backend billing records, never from the
+ * UI and never from a checkout redirect.
  *
- * Billing is not wired yet (Phase 5). A workspace with no subscription status
- * can still finish onboarding, but only within its configured plan limits.
+ * The `platform_subscription` row is written only by a verified provider
+ * webhook (or a provider-confirmed plan change). A workspace without one keeps
+ * Starter setup limits but `active` stays false, so no paid feature is
+ * unlocked for free.
  */
 
 export interface WorkspaceEntitlements {
@@ -14,12 +17,13 @@ export interface WorkspaceEntitlements {
   plan: Plan | null;
   planId: string | null;
   subscriptionStatus: string;
-  /** True only when the provider has confirmed a paid subscription. */
+  /** True only when the provider has confirmed paid access. */
   active: boolean;
 }
 
 export async function getWorkspaceEntitlements(
   workspaceId: string,
+  now: Date = new Date(),
 ): Promise<WorkspaceEntitlements | null> {
   const workspace = await prisma.client.workspace.findFirst({
     where: { id: workspaceId, deletedAt: null },
@@ -27,6 +31,14 @@ export async function getWorkspaceEntitlements(
       id: true,
       planId: true,
       subscriptionStatus: true,
+      platformSubscription: {
+        select: {
+          planId: true,
+          lifecycleStatus: true,
+          cancelAtPeriodEnd: true,
+          currentPeriodEnd: true,
+        },
+      },
     },
   });
 
@@ -34,9 +46,29 @@ export async function getWorkspaceEntitlements(
     return null;
   }
 
-  // Workspaces created before billing existed have no stored plan. They are
-  // treated as Starter for setup limits only; `active` stays false, so no paid
-  // feature is unlocked until a subscription is confirmed.
+  const subscription = workspace.platformSubscription;
+
+  if (subscription) {
+    const plan = getPlanOrNull(subscription.planId) || getPlan('starter');
+
+    return {
+      workspaceId: workspace.id,
+      plan,
+      planId: subscription.planId,
+      subscriptionStatus: subscription.lifecycleStatus,
+      active: billingSubscriptionHasAccess(
+        {
+          lifecycleStatus: subscription.lifecycleStatus,
+          cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+          currentPeriodEnd: subscription.currentPeriodEnd,
+        },
+        now,
+      ),
+    };
+  }
+
+  // Pre-billing workspaces have no subscription row. They keep their stored
+  // plan for setup limits, but only an explicit legacy status counts as paid.
   const plan = getPlanOrNull(workspace.planId) || getPlan('starter');
 
   return {
@@ -44,7 +76,8 @@ export async function getWorkspaceEntitlements(
     plan,
     planId: workspace.planId,
     subscriptionStatus: workspace.subscriptionStatus,
-    active: workspace.subscriptionStatus === 'active' || workspace.subscriptionStatus === 'trialing',
+    active:
+      workspace.subscriptionStatus === 'active' || workspace.subscriptionStatus === 'trialing',
   };
 }
 
@@ -52,7 +85,7 @@ export function entitlementsHaveFeature(
   entitlements: WorkspaceEntitlements | null,
   feature: PlanFeature,
 ): boolean {
-  if (!entitlements?.plan) {
+  if (!entitlements?.plan || !entitlements.active) {
     return false;
   }
 

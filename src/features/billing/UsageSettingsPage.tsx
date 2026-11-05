@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import Link from '@/components/common/Link';
 import { useApi } from '@/components/hooks';
 import { useActiveWorkspace } from '@/features/workspaces/hooks/useActiveWorkspace';
+import { BillingSubscriptionPanel } from '@/features/billing/components/BillingSubscriptionPanel';
 import { formatUsd } from '@/lib/plans';
 import type { UsageMeter } from '@/lib/usage';
 
@@ -258,6 +259,12 @@ export function UsageSettingsPage() {
         <div style={{ borderTop: '1px solid #ffffff0d' }} />
         <UsageBar label="Replay sessions" meter={usage.replays} unit="sessions" />
       </Column>
+
+      <BillingSubscriptionPanel
+        workspaceId={workspaceId}
+        role={usage.role}
+        currentPlanId={usage.plan.id}
+      />
 
       <Column gap="2">
         <Text weight="bold">What happens next</Text>

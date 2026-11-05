@@ -383,6 +383,9 @@ export async function getWorkspaceUsage(
         id: true,
         planId: true,
         subscriptionStatus: true,
+        platformSubscription: {
+          select: { planId: true, lifecycleStatus: true },
+        },
       },
     }),
     prisma.client.usagePeriod.findUnique({
@@ -416,13 +419,15 @@ export async function getWorkspaceUsage(
     return null;
   }
 
-  const plan = getPlanOrNull(workspace.planId) || getPlan('starter');
+  const planId = workspace.platformSubscription?.planId ?? workspace.planId;
+  const plan = getPlanOrNull(planId) || getPlan('starter');
 
   return {
     workspaceId: workspace.id,
-    planId: workspace.planId,
+    planId,
     plan,
-    subscriptionStatus: workspace.subscriptionStatus,
+    subscriptionStatus:
+      workspace.platformSubscription?.lifecycleStatus ?? workspace.subscriptionStatus,
     periodStart,
     periodEnd,
     resetAt: periodEnd,
