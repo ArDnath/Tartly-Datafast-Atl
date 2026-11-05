@@ -1,1 +1,1 @@
-export { GET } from '@/features/settings/account/server/[userId]/websites/handler';
+export { GET } from '@/features/account/server/[userId]/websites/handler';

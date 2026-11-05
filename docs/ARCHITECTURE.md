@@ -56,21 +56,22 @@ app  ->  features  ->  components / lib / queries / permissions / store
 
 | Domain | Owns |
 | --- | --- |
-| `account` | `/api/me` profile, password, owned websites |
+| `account` | `/api/me` profile, password, owned websites, account/security/preferences settings, local-user admin |
 | `analytics` | the signed-in website workbench (overview, reports, sessions, events, replay, realtime, cohorts, compare, segments), ingestion (`send`, `record`, `batch`), heartbeat, report/metric handlers, analytics widgets, filters, and query hooks |
 | `app-shell` | signed-in shell, top nav, notices, workspace switcher, user menu |
 | `auth` | login, signup, verification, reset, logout, auth query hooks |
+| `billing` | plan and usage settings screen (platform billing arrives in Phase 5) |
 | `docs` | public documentation shell and provider revenue guides |
 | `legacy` | frozen boards/links/pixels APIs and the share-rendered link/pixel pages; list, edit, and board UI are deleted |
 | `marketing` | landing and pricing |
 | `onboarding` | onboarding canvas and website setup |
-| `payments` | provider connections, manual payments, provider webhooks, provider clients/backfills, credential encryption, payment provider UI |
+| `payments` | provider connections, manual payments, provider webhooks, provider clients/backfills, credential encryption, payment provider UI, integration settings |
 | `portfolio` | `/app` all-websites home and its overview hook |
-| `settings` | workspace, websites, billing/usage, account, preferences, local-user admin |
+| `settings` | the settings shell, grouped navigation, and settings overview |
 | `share` | public share shell, share widgets, and share APIs |
 | `system` | health, OSS update endpoints, and the cron scheduler/jobs |
-| `websites` | website CRUD, website settings, imports/exports, API keys, members, shares, selectors/context |
-| `workspaces` | workspace CRUD, members, invitations, usage, active-workspace state |
+| `websites` | website CRUD, website settings, website list settings, imports/exports, API keys, members, shares, selectors/context |
+| `workspaces` | workspace CRUD, members, invitations, usage, active-workspace state, workspace settings |
 
 `src/features/legacy` is quarantined. Do not copy its patterns or add new
 imports from it.
@@ -159,7 +160,12 @@ The restructure moved the remaining domain-specific UI out of `src/components`:
 | route-param-shaped `settings/websites/[websiteId]` | `src/features/websites/settings` |
 | website analytics workbench (shell, overview, reports, sessions, events, replay, realtime, cohorts, compare, segments) | `src/features/analytics/workbench` |
 | website analytics request handlers | `src/features/analytics/server/[websiteId]` |
-| account settings UI (`/app/settings/account`) | `src/features/settings/account` |
+| account settings UI (`/app/settings/account`, security, preferences) | `src/features/account/settings` |
+| local-user admin (`/api/users`) | `src/features/account/server` |
+| workspace settings UI (`/app/settings/workspace`) | `src/features/workspaces/settings` |
+| website list settings UI (`/app/settings/websites`) | `src/features/websites/settings` |
+| integration settings UI (`/app/settings/integrations`) | `src/features/payments/settings` |
+| plan and usage settings UI (`/app/settings/billing`) | `src/features/billing` |
 | collector cache, cross-domain linker, attribution query, dashboard overview, bot/client detection, analytics filters and chart helpers | `src/features/analytics/lib` |
 | payment return detection | `src/features/payments/lib` |
 | auth return URL and transactional registration | `src/features/auth/lib` and `src/features/auth/server` |
@@ -183,6 +189,14 @@ contracts the preserved analytics engine reads (`payment-status`,
 Those contracts stay shared because `src/queries` is below features; moving
 them upward would invert the dependency arrow. Provider-specific request
 handling and UI still live in `src/features/payments`.
+
+The settings surface is now a shell plus domain-owned screens. `features/settings`
+contains only `SettingsLayout`, `SettingsPageLayout`, and `SettingsHomePage`;
+account, security, and preference screens live in `features/account/settings`,
+workspace settings in `features/workspaces/settings`, website list settings in
+`features/websites/settings`, integration settings in
+`features/payments/settings`, and plan/usage in `features/billing`. The
+structure test pins this so `settings` cannot regrow into a catch-all domain.
 
 The workbench split is deliberate: `analytics` owns everything a customer does
 to read their traffic and revenue, while `websites` owns the site itself

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { SettingsPageLayout } from '@/features/settings/SettingsPageLayout';
-import { IntegrationsSettingsPage } from '@/features/settings/integrations/IntegrationsSettingsPage';
+import { IntegrationsSettingsPage } from '@/features/payments/settings/IntegrationsSettingsPage';
 
 export default function () {
   return (

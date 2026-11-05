@@ -21,6 +21,7 @@ const DOMAIN_MODULES = [
   'analytics',
   'app-shell',
   'auth',
+  'billing',
   'docs',
   'legacy',
   'marketing',
@@ -48,7 +49,6 @@ const SERVER_MODULES = [
   'system',
   'websites',
   'workspaces',
-  'settings/account',
 ];
 
 const RE_EXPORT_ONLY = /^export \{ [A-Z, ]+ \} from '@\/features\/[^']+';?$/;
@@ -224,6 +224,11 @@ describe('application source layout', () => {
 
   test('domain helpers live in their feature module', () => {
     const expected = [
+      'account/hooks/useUsersQuery.ts',
+      'account/server/users/handler.ts',
+      'account/settings/ProfilePage.tsx',
+      'account/settings/SecuritySettingsPage.tsx',
+      'account/settings/preferences/PreferencesPage.tsx',
       'analytics/lib/attribution-query.ts',
       'analytics/lib/collector-cache.ts',
       'analytics/lib/dashboard-overview.ts',
@@ -235,14 +240,18 @@ describe('application source layout', () => {
       'analytics/workbench/sessions/SessionsPage.tsx',
       'auth/lib/auth-return-url.ts',
       'auth/server/registration.ts',
+      'billing/UsageSettingsPage.tsx',
       'legacy/lib/legacy-features.ts',
       'payments/lib/payment-detection.ts',
+      'payments/settings/IntegrationsSettingsPage.tsx',
       'system/lib/oss-version.ts',
       'websites/lib/api-key.ts',
       'websites/lib/website-domain.ts',
       'websites/settings/WebsiteSettingsPage.tsx',
+      'websites/settings/WebsitesSettingsPage.tsx',
       'workspaces/lib/workspace-invitations.ts',
       'workspaces/lib/workspace-members.ts',
+      'workspaces/settings/WorkspaceSettingsPage.tsx',
     ];
 
     for (const path of expected) {
@@ -295,7 +304,36 @@ describe('application source layout', () => {
       .sort();
 
     expect(unexpected).toEqual([]);
-    expect(existsSync(join(FEATURES_ROOT, 'settings/websites/[websiteId]'))).toBe(false);
+  });
+
+  test('settings is the settings shell only; each domain owns its settings screen', () => {
+    const allowed = new Set([
+      'SettingsHomePage.tsx',
+      'SettingsLayout.tsx',
+      'SettingsPageLayout.tsx',
+    ]);
+
+    const unexpected = walk(join(FEATURES_ROOT, 'settings'))
+      .map(path => relative(join(FEATURES_ROOT, 'settings'), path))
+      .filter(path => !allowed.has(path))
+      .sort();
+
+    expect(unexpected).toEqual([]);
+
+    for (const legacy of [
+      'account',
+      'billing',
+      'integrations',
+      'preferences',
+      'security',
+      'websites',
+      'workspace',
+    ]) {
+      expect(
+        existsSync(join(FEATURES_ROOT, 'settings', legacy)),
+        `settings/${legacy} should be owned by its product domain`,
+      ).toBe(false);
+    }
   });
 
   test('shared layers never import a product feature', () => {

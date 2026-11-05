@@ -1,1 +1,1 @@
-export { GET, POST } from '@/features/settings/account/server/users/handler';
+export { GET, POST } from '@/features/account/server/users/handler';

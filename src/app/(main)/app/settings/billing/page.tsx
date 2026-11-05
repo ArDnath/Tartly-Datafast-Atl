@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { SettingsPageLayout } from '@/features/settings/SettingsPageLayout';
-import { UsageSettingsPage } from '@/features/settings/billing/UsageSettingsPage';
+import { UsageSettingsPage } from '@/features/billing/UsageSettingsPage';
 
 export default function () {
   return (

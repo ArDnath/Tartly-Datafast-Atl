@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { SettingsPageLayout } from '@/features/settings/SettingsPageLayout';
-import { SecuritySettingsPage } from '@/features/settings/security/SecuritySettingsPage';
+import { SecuritySettingsPage } from '@/features/account/settings/SecuritySettingsPage';
 
 export default function () {
   return (

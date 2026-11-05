@@ -21,7 +21,7 @@ vi.mock('@/components/hooks', async () => {
   };
 });
 
-vi.mock('@/features/settings/account/hooks/useUsersQuery', () => ({
+vi.mock('@/features/account/hooks/useUsersQuery', () => ({
   useUsersQuery: () => ({
     data: {
       data: [],

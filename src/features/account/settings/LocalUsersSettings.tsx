@@ -22,7 +22,7 @@ import { DataGrid } from '@/components/common/DataGrid';
 import { useGridState, useMessages, useUpdateQuery } from '@/components/hooks';
 import { Edit, Plus } from '@/components/icons';
 import { DialogButton } from '@/components/input/DialogButton';
-import { type LocalUser, useUsersQuery } from '@/features/settings/account/hooks/useUsersQuery';
+import { type LocalUser, useUsersQuery } from '@/features/account/hooks/useUsersQuery';
 import { ROLES } from '@/lib/constants';
 
 const ROLE_LABELS = {

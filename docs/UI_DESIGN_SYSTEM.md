@@ -235,16 +235,18 @@ is tracked in `docs/PHASES.md`.
 | Revenue guides | `src/features/docs/content.ts` |
 | App shell / top nav | `src/features/app-shell/App.tsx`, `TopNav.tsx` |
 | Portfolio overview | `src/features/portfolio/AppEntryPage.tsx` |
-| Settings overview | `src/features/settings/SettingsHomePage.tsx` |
-| Integrations settings | `src/features/settings/integrations/` |
-| Security settings | `src/features/settings/security/` |
+| Settings shell/overview | `src/features/settings/SettingsHomePage.tsx` |
+| Account, security, preferences settings | `src/features/account/settings/` |
+| Integrations settings | `src/features/payments/settings/` |
+| Plan and usage settings | `src/features/billing/UsageSettingsPage.tsx` |
 | Website workbench | `src/features/analytics/workbench/` |
 | Website workbench nav | `src/features/analytics/workbench/WebsiteSectionNav.tsx` |
 | Analytics widgets | `src/features/analytics/components/metrics/` |
 | Analytics filters/selectors | `src/features/analytics/components/input/` |
 | Share widgets | `src/features/share/components/` |
 | Domain query hooks | `src/features/<domain>/hooks/` |
-| Workspace and website settings | `src/features/settings/` |
+| Workspace settings | `src/features/workspaces/settings/` |
+| Website list settings | `src/features/websites/settings/` |
 | Onboarding flow | `src/features/onboarding/OnboardingFlow.tsx`, `Onboarding.module.css` |
 | Plan config | `src/lib/plans.ts` |
 | Workspace permissions | `src/lib/workspace-auth.ts` |
@@ -264,22 +266,26 @@ domain module under `src/features`:
 ```
 src/app/                     routes only (pages + thin API re-exports)
 src/features/
-  account/                   /api/me profile, password, owned websites
+  account/                   /api/me profile, password, owned websites,
+                             account/security/preference settings, local users
   analytics/                 workbench shell + reports/sessions/events/replay/
                              realtime/cohorts/compare/segments, ingestion, lib/
   app-shell/                 signed-in shell, top nav, notices
   auth/                      login, signup, verify, reset, invite, logout, lib/
+  billing/                   plan and usage settings screen
   docs/                      public documentation shell and revenue guides
   legacy/                    frozen boards, links, pixels, lib/
   marketing/                 landing and pricing
   onboarding/                welcome flow, website setup flow
-  payments/                  provider connections, webhooks, lib/
+  payments/                  provider connections, webhooks, integration
+                             settings, lib/
   portfolio/                 /app home (all websites)
-  settings/                  workspace, websites, plan and usage, account
+  settings/                  settings shell, grouped nav, overview
   share/                     public share shell
   system/                    health and OSS updates, cron, lib/
   websites/                  website CRUD, settings, imports, API keys, members
-  workspaces/                workspace, member, invitation, usage APIs, lib/
+  workspaces/                workspace, member, invitation, usage APIs,
+                             workspace settings, lib/
 ```
 
 Each domain that serves HTTP has a `server/` directory. API routes under

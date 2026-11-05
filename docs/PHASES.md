@@ -4,16 +4,18 @@
 - **Repository:** <https://github.com/talivia-group/talivia> (MIT), forked locally at
   `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-05
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 is complete: the source restructure (app, server, domain UI/hooks/lib/store) is finished and enforced, the dead legacy dashboard UI is pruned, the portfolio now shows MRR by first-touch channel, and the brand/contrast locks are automated. A final domain split now moves the whole website analytics workbench and its handlers into `features/analytics`, leaving `features/websites` as site management only. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 is complete: the source restructure (app, server, domain UI/hooks/lib/store) is finished and enforced, the dead legacy dashboard UI is pruned, the portfolio now shows MRR by first-touch channel, and the brand/contrast locks are automated. A final domain split now moves the whole website analytics workbench and its handlers into `features/analytics`, leaving `features/websites` as site management only. The settings catch-all is gone too: `features/settings` is now the shell and overview only, while account/security/preferences, workspace, website list, integrations, and plan/usage screens live with their owning domains. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
 
 ## Overall progress
 
 - Total phases: **12** (0–11 product/build, 12 go-to-market)
 - Phases complete: **3 full, 3 with caveats** (Phase 2: copy-with-data rehearsal; Phase 4: live Resend delivery)
 - Overall percent (average of phases 0–11): **59%**
-- Build state at last check: **green** (`pnpm build` exit 0 with local
-  PostgreSQL running; `tsc --noEmit` clean; `biome lint` clean). Full test run:
-  **640 passed / 0 failed** under `TZ=UTC`.
+- Build state at last check: **green** (`next build` exit 0 with
+  `SKIP_DB_CHECK=1`; the local PostgreSQL instance on :5433 was down after a
+  harness restart, so the DB check/migration step could not run; `tsc --noEmit`
+  clean; `biome lint` clean). Full test run:
+  **641 passed / 0 failed** under `TZ=UTC`.
 - Runtime smoke: the new public docs routes return 200, and `/app/settings`,
   `/app/settings/integrations`, `/app/settings/security`, `/app/settings/websites`,
   and `/app/settings/billing` return 200 with an authenticated session. The
@@ -891,6 +893,17 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       `settings/account`. `app-structure.test.ts` pins both sides of the split
       so the workbench cannot drift back into `websites`. — proof: typecheck,
       lint, structure/route tests, and the full suite are green.
+- [x] **UI-23 — Settings ownership completion (new):** `features/settings` is
+      now the settings shell only (`SettingsLayout`, `SettingsPageLayout`,
+      `SettingsHomePage`). Account, security, and preference screens moved to
+      `features/account/settings` with the local-user admin handlers under
+      `features/account/server`; workspace settings moved to
+      `features/workspaces/settings`, website list settings to
+      `features/websites/settings`, integration settings to
+      `features/payments/settings`, and plan/usage to the new
+      `features/billing` domain. Route files point at the owning domain, and
+      `app-structure.test.ts` pins the shell and forbids the old catch-all
+      directories. — proof: typecheck, lint, and **641/641 tests** pass.
 
 ### Acceptance criteria
 
@@ -1040,12 +1053,27 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 7. **Phase 9 complete:** the portfolio MRR-by-channel panel, the config-derived
    brand lock, and the WCAG AA contrast test are shipped. The source restructure
    (app, server, domain UI/hooks/lib/store) and the legacy UI prune are complete
-   and enforced by the structure test. Billing history waits for Phase 5.
+   and enforced by the structure test. Settings ownership is complete:
+   `features/settings` is the shell only, and each domain owns its settings
+   screen. Billing history waits for Phase 5.
 8. **Phase 10:** legal drafts, abuse protection, transactional email, ops.
 9. **Phase 11:** security review, load test, CI, deployment/runbook.
 10. **Phase 12:** go-to-market.
 
 ## Changelog
+
+- 2026-11-05 — **Settings ownership restructure (Phase 9 / UI-23):** dissolved
+  the `features/settings` catch-all. Account, security, and preference screens
+  now live in `features/account/settings`, with the local-user admin API
+  handlers under `features/account/server/users`; workspace settings moved to
+  `features/workspaces/settings`, website list settings to
+  `features/websites/settings`, integration settings to
+  `features/payments/settings`, and plan/usage to the new `features/billing`
+  domain. `features/settings` retains only the settings shell, grouped nav, and
+  overview. `app-structure.test.ts` enforces the shell allowlist and rejects the
+  old directories. Typecheck and lint are clean; **641/641 tests** pass, and
+  `next build` completes with `SKIP_DB_CHECK=1` (the local :5433 database was
+  down after a harness restart).
 
 - 2026-11-05 — **Analytics/websites domain split (Phase 9 / UI-22):** the
   entire website analytics workbench (shell, header, nav, overview, reports,

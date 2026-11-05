@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { SettingsPageLayout } from '@/features/settings/SettingsPageLayout';
-import { WorkspaceSettingsPage } from '@/features/settings/workspace/WorkspaceSettingsPage';
+import { WorkspaceSettingsPage } from '@/features/workspaces/settings/WorkspaceSettingsPage';
 
 export default function () {
   return (
