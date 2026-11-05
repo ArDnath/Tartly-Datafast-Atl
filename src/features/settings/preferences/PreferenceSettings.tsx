@@ -1,5 +1,6 @@
 import { Column, Label, Text } from '@talivia/react-zen';
-import { useLoginQuery, useMessages } from '@/components/hooks';
+import { useMessages } from '@/components/hooks';
+import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { DateRangeSetting } from './DateRangeSetting';
 import { LanguageSetting } from './LanguageSetting';
 import { TimezoneSetting } from './TimezoneSetting';

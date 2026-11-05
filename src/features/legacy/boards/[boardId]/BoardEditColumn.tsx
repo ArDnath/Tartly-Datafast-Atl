@@ -12,9 +12,13 @@ import { useMemo, useState } from 'react';
 import { AppModal } from '@/components/common/AppModal';
 import { Panel } from '@/components/common/Panel';
 import { useMessages } from '@/components/hooks';
-import { useBoard } from '@/components/hooks/context/useBoard';
 import { Pencil, Plus, X } from '@/components/icons';
-import { getBoardEntity, getBoardType, getResolvedComponentEntity } from '@/features/legacy/boards/core/boards';
+import {
+  getBoardEntity,
+  getBoardType,
+  getResolvedComponentEntity,
+} from '@/features/legacy/boards/core/boards';
+import { useBoard } from '@/features/legacy/hooks/useBoard';
 import type { BoardComponentConfig } from '@/lib/types';
 import { getComponentDefinition } from '../boardComponentRegistry';
 import { BoardComponentRenderer } from './BoardComponentRenderer';

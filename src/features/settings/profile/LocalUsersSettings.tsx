@@ -19,15 +19,10 @@ import {
   TextField,
 } from '@talivia/react-zen';
 import { DataGrid } from '@/components/common/DataGrid';
-import {
-  type LocalUser,
-  useGridState,
-  useMessages,
-  useUpdateQuery,
-  useUsersQuery,
-} from '@/components/hooks';
+import { useGridState, useMessages, useUpdateQuery } from '@/components/hooks';
 import { Edit, Plus } from '@/components/icons';
 import { DialogButton } from '@/components/input/DialogButton';
+import { type LocalUser, useUsersQuery } from '@/features/settings/profile/hooks/useUsersQuery';
 import { ROLES } from '@/lib/constants';
 
 const ROLE_LABELS = {

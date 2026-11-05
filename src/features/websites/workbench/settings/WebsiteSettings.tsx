@@ -3,7 +3,7 @@ import { type CSSProperties, type MouseEvent, useEffect, useState } from 'react'
 import { IconLabel } from '@/components/common/IconLabel';
 import Link from '@/components/common/Link';
 import { Panel } from '@/components/common/Panel';
-import { useNavigation, useWebsite } from '@/components/hooks';
+import { useNavigation } from '@/components/hooks';
 import {
   CreditCard,
   Database,
@@ -14,6 +14,7 @@ import {
   Share2,
   Users,
 } from '@/components/icons';
+import { useWebsite } from '@/features/websites/hooks/useWebsite';
 import { WebsiteApiKeysSettings } from './WebsiteApiKeysSettings';
 import { WebsiteAttributionSettings } from './WebsiteAttributionSettings';
 import { WebsiteData } from './WebsiteData';

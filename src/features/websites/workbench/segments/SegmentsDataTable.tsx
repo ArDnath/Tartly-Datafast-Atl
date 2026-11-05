@@ -1,6 +1,6 @@
 import { DataGrid } from '@/components/common/DataGrid';
 import { useGridState } from '@/components/hooks';
-import { useWebsiteSegmentsQuery } from '@/components/hooks/queries/useWebsiteSegmentsQuery';
+import { useWebsiteSegmentsQuery } from '@/features/analytics/hooks/useWebsiteSegmentsQuery';
 import { SegmentAddButton } from './SegmentAddButton';
 import { SegmentsTable } from './SegmentsTable';
 

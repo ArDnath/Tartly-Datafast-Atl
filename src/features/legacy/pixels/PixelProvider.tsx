@@ -1,7 +1,7 @@
 'use client';
 import { Loading } from '@talivia/react-zen';
 import { createContext, type ReactNode } from 'react';
-import { usePixelQuery } from '@/components/hooks/queries/usePixelQuery';
+import { usePixelQuery } from '@/features/legacy/hooks/usePixelQuery';
 import type { Pixel } from '@/generated/prisma/client';
 
 export const PixelContext = createContext<Pixel>(null);

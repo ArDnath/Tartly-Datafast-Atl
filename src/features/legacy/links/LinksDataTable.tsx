@@ -1,6 +1,6 @@
 import { DataGrid } from '@/components/common/DataGrid';
 import { useGridState } from '@/components/hooks';
-import { useLinksQuery } from '@/components/hooks/queries/useLinksQuery';
+import { useLinksQuery } from '@/features/legacy/hooks/useLinksQuery';
 import { LinksTable } from './LinksTable';
 
 export function LinksDataTable({ showActions = false }: { showActions?: boolean }) {

@@ -10,11 +10,12 @@ import {
 } from '@talivia/react-zen';
 import { IconLabel } from '@/components/common/IconLabel';
 import Link from '@/components/common/Link';
-import { useMessages, useShare, useUrlState } from '@/components/hooks';
+import { useMessages, useUrlState } from '@/components/hooks';
 import { AlignEndHorizontal, Clock, Eye, PanelLeft, Sheet, Tag, User } from '@/components/icons';
-import { LanguageButton } from '@/components/input/LanguageButton';
-import { PreferencesButton } from '@/components/input/PreferencesButton';
 import { Funnel, Gauge, Lightning, Magnet, Money, Network, Path, Target } from '@/components/svg';
+import { LanguageButton } from '@/features/share/components/input/LanguageButton';
+import { PreferencesButton } from '@/features/share/components/input/PreferencesButton';
+import { useShare } from '@/features/share/hooks/useShare';
 import { ShareBranding } from './ShareBranding';
 
 export function ShareNav({

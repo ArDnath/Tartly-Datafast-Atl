@@ -1,8 +1,8 @@
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { useDateRange, useMessages } from '@/components/hooks';
-import { useWebsiteStatsQuery } from '@/components/hooks/queries/useWebsiteStatsQuery';
-import { MetricCard } from '@/components/metrics/MetricCard';
-import { MetricsBar } from '@/components/metrics/MetricsBar';
+import { MetricCard } from '@/features/analytics/components/metrics/MetricCard';
+import { MetricsBar } from '@/features/analytics/components/metrics/MetricsBar';
+import { useWebsiteStatsQuery } from '@/features/analytics/hooks/useWebsiteStatsQuery';
 import { formatLongNumber } from '@/lib/format';
 
 export function LinkMetricsBar({

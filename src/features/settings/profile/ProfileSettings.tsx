@@ -1,5 +1,6 @@
 import { Column, Label, Text } from '@talivia/react-zen';
-import { useLoginQuery, useMessages } from '@/components/hooks';
+import { useMessages } from '@/components/hooks';
+import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { ROLES } from '@/lib/constants';
 import { LocalUsersSettings } from './LocalUsersSettings';
 import { PasswordChangeForm } from './PasswordChangeForm';

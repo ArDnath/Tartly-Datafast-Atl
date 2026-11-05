@@ -13,9 +13,10 @@ import {
 } from '@talivia/react-zen';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Panel } from '@/components/common/Panel';
 import Link from '@/components/common/Link';
-import { useActiveWorkspace, useApi, useNavigation } from '@/components/hooks';
+import { Panel } from '@/components/common/Panel';
+import { useApi, useNavigation } from '@/components/hooks';
+import { useActiveWorkspace } from '@/features/workspaces/hooks/useActiveWorkspace';
 import { getPlanOrNull } from '@/lib/plans';
 
 interface Member {
@@ -118,7 +119,9 @@ export function WorkspaceSettingsPage() {
       <Column gap="1">
         <Heading size="lg">{activeWorkspace.name}</Heading>
         <Text color="muted">
-          {plan ? `${plan.name} plan · ${plan.websiteLimit} website${plan.websiteLimit === 1 ? '' : 's'} · ${plan.memberLimit} member${plan.memberLimit === 1 ? '' : 's'}` : 'No plan selected'}
+          {plan
+            ? `${plan.name} plan · ${plan.websiteLimit} website${plan.websiteLimit === 1 ? '' : 's'} · ${plan.memberLimit} member${plan.memberLimit === 1 ? '' : 's'}`
+            : 'No plan selected'}
           {' · '}
           {activeWorkspace.subscriptionStatus}
         </Text>

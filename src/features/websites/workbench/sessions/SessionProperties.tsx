@@ -3,9 +3,9 @@ import { useMemo, useState } from 'react';
 import { PieChart } from '@/components/charts/PieChart';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { useMessages } from '@/components/hooks';
-import { useSessionDataPropertiesQuery } from '@/components/hooks/queries/useSessionDataPropertiesQuery';
-import { useSessionDataValuesQuery } from '@/components/hooks/queries/useSessionDataValuesQuery';
-import { ListTable } from '@/components/metrics/ListTable';
+import { ListTable } from '@/features/analytics/components/metrics/ListTable';
+import { useSessionDataPropertiesQuery } from '@/features/analytics/hooks/useSessionDataPropertiesQuery';
+import { useSessionDataValuesQuery } from '@/features/analytics/hooks/useSessionDataValuesQuery';
 import { CHART_COLORS } from '@/lib/constants';
 
 export function SessionProperties({ websiteId }: { websiteId: string }) {

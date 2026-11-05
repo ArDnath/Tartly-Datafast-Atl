@@ -2,8 +2,9 @@ import { Column, Heading, Row, Text } from '@talivia/react-zen';
 import { Favicon } from '@/components/common/Favicon';
 import { IconLabel } from '@/components/common/IconLabel';
 import Link from '@/components/common/Link';
-import { useMessages, useNavigation, useWebsite } from '@/components/hooks';
+import { useMessages, useNavigation } from '@/components/hooks';
 import { ArrowLeft } from '@/components/icons';
+import { useWebsite } from '@/features/websites/hooks/useWebsite';
 
 export function WebsiteSettingsHeader() {
   const website = useWebsite();

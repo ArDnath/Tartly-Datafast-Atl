@@ -1,10 +1,10 @@
 import { Column, Grid, Icon, ProgressBar, Row, Text } from '@talivia/react-zen';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { useMessages, useNavigation } from '@/components/hooks';
-import { useResultQuery } from '@/components/hooks/queries/useResultQuery';
 import { File, User } from '@/components/icons';
-import { ReportEditButton } from '@/components/input/ReportEditButton';
 import { Lightning } from '@/components/svg';
+import { ReportEditButton } from '@/features/analytics/components/input/ReportEditButton';
+import { useResultQuery } from '@/features/analytics/hooks/useResultQuery';
 import { formatLongNumber } from '@/lib/format';
 import { GoalEditForm } from './GoalEditForm';
 
@@ -50,7 +50,14 @@ export function Goal({ id, name, type, parameters, websiteId, startDate, endDate
             </Column>
             {!isSharePage && (
               <Column>
-                <ReportEditButton id={id} name={name} type={type} title={t(labels.goal)} minWidth="400px" minHeight="300px">
+                <ReportEditButton
+                  id={id}
+                  name={name}
+                  type={type}
+                  title={t(labels.goal)}
+                  minWidth="400px"
+                  minHeight="300px"
+                >
                   {({ close }) => <GoalEditForm id={id} websiteId={websiteId} onClose={close} />}
                 </ReportEditButton>
               </Column>

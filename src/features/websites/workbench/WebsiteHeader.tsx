@@ -3,14 +3,15 @@ import { Favicon } from '@/components/common/Favicon';
 import { IconLabel } from '@/components/common/IconLabel';
 import { LinkButton } from '@/components/common/LinkButton';
 import { PageHeader } from '@/components/common/PageHeader';
-import { useMessages, useNavigation, useWebsite } from '@/components/hooks';
+import { useMessages, useNavigation } from '@/components/hooks';
 import { Edit } from '@/components/icons';
-import { FilterBar } from '@/components/input/FilterBar';
-import { UnitFilter } from '@/components/input/UnitFilter';
-import { WebsiteDateFilter } from '@/components/input/WebsiteDateFilter';
-import { WebsiteFilterButton } from '@/components/input/WebsiteFilterButton';
-import { WebsiteSelect } from '@/components/input/WebsiteSelect';
-import { ActiveUsers } from '@/components/metrics/ActiveUsers';
+import { FilterBar } from '@/features/analytics/components/input/FilterBar';
+import { UnitFilter } from '@/features/analytics/components/input/UnitFilter';
+import { WebsiteDateFilter } from '@/features/analytics/components/input/WebsiteDateFilter';
+import { WebsiteFilterButton } from '@/features/analytics/components/input/WebsiteFilterButton';
+import { ActiveUsers } from '@/features/analytics/components/metrics/ActiveUsers';
+import { WebsiteSelect } from '@/features/websites/components/WebsiteSelect';
+import { useWebsite } from '@/features/websites/hooks/useWebsite';
 
 export function WebsiteHeader({
   showActions,

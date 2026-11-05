@@ -13,11 +13,15 @@ src/app/                     Next.js routing layer only
   layout.tsx, Providers.tsx  root mounting only
 src/features/<domain>/       product domains
   *.tsx                      screens and domain UI
+  components/                domain-specific widgets and inputs
+  hooks/                     domain client state and React Query hooks
   server/**/handler.ts       request handlers and domain server logic
-src/components/              shared design-system primitives and widgets
+  server/queries/            domain-only data access, where it exists
+src/components/              shared design-system primitives only
+  brand, charts, common, input, svg, hooks
 src/lib/                     cross-cutting services (auth, db, email, plans,
                              brand, usage, crypto, request/response)
-src/queries/                 shared data access (Prisma + analytics SQL)
+src/queries/                 shared analytics engine and cross-domain data access
 src/permissions/             central tenant authorization
 src/store/                   shared client state
 ```
@@ -33,9 +37,11 @@ app  ->  features  ->  components / lib / queries / permissions / store
   static Next config (`dynamic`, `runtime`).
 - `src/features` owns product behaviour. Server handlers live in
   `src/features/<domain>/server/**` and are the only place request logic runs.
+  Domain UI lives in `components/` and domain hooks in `hooks/`.
 - `src/components`, `src/lib`, `src/queries`, `src/permissions`, and `src/store`
   are shared. Features may import them; they must not import `src/features` or
-  `src/app`.
+  `src/app`. `src/components` is limited to the shared component directories
+  listed above.
 - Cross-feature imports go through `@/features/<domain>` barrels or explicit
   paths. Do not reach into another feature with `../../`.
 
@@ -44,20 +50,20 @@ app  ->  features  ->  components / lib / queries / permissions / store
 | Domain | Owns |
 | --- | --- |
 | `account` | `/api/me` profile, password, owned websites |
-| `analytics` | ingestion (`send`, `record`, `batch`), heartbeat, realtime, report and metric endpoints |
-| `app-shell` | signed-in shell, top nav, notices |
-| `auth` | login, signup, verification, reset, logout |
+| `analytics` | ingestion (`send`, `record`, `batch`), heartbeat, realtime, report and metric endpoints; analytics widgets, filters, and analytics query hooks |
+| `app-shell` | signed-in shell, top nav, notices, workspace switcher, user menu |
+| `auth` | login, signup, verification, reset, logout, auth query hooks |
 | `docs` | public documentation shell and provider revenue guides |
-| `legacy` | frozen boards, links, pixels and their APIs |
+| `legacy` | frozen boards, links, pixels, their APIs, selectors, and query hooks |
 | `marketing` | landing and pricing |
 | `onboarding` | onboarding canvas and website setup |
-| `payments` | provider connections, manual payments, provider webhooks, provider clients/backfills, credential encryption |
-| `portfolio` | `/app` all-websites home |
-| `settings` | workspace, websites, billing/usage, account, preferences |
-| `share` | public share shell and share APIs |
-| `system` | health and OSS update endpoints |
-| `websites` | website CRUD, workbench reports, sessions, events, replays, settings, imports/exports, API keys |
-| `workspaces` | workspace CRUD, members, invitations, usage |
+| `payments` | provider connections, manual payments, provider webhooks, provider clients/backfills, credential encryption, payment provider UI |
+| `portfolio` | `/app` all-websites home and its overview hook |
+| `settings` | workspace, websites, billing/usage, account, preferences, local-user admin |
+| `share` | public share shell, share widgets, and share APIs |
+| `system` | health, OSS update endpoints, and the cron scheduler/jobs |
+| `websites` | website CRUD, workbench reports, sessions, events, replays, settings, imports/exports, API keys, website selectors/context |
+| `workspaces` | workspace CRUD, members, invitations, usage, active-workspace state |
 
 `src/features/legacy` is quarantined. Do not copy its patterns or add new
 imports from it.
@@ -84,35 +90,68 @@ Rules enforced by `src/lib/app-structure.test.ts`:
   static Next config.
 - Every server domain listed above has a `server/` directory.
 - Legacy `/websites/*` and `/settings/*` route groups do not exist.
+- `src/components` contains only the shared design-system directories
+  (`brand`, `charts`, `common`, `hooks`, `input`, `svg`).
+- Shared layers (`components`, `lib`, `permissions`, `queries`, `store`) never
+  import a product feature.
 
 ## Adding a feature
 
 1. Create `src/features/<domain>/` with the screen or feature UI.
-2. Put request logic in `src/features/<domain>/server/`.
-3. Add a route page that parses params and renders the feature.
-4. Add `src/app/api/**/route.ts` that re-exports the handler.
-5. Add a test beside the handler (`src/app/api/**/route.test.ts` remains the
+2. Put domain widgets in `components/` and domain query hooks in `hooks/`.
+3. Put request logic in `src/features/<domain>/server/`.
+4. Add a route page that parses params and renders the feature.
+5. Add `src/app/api/**/route.ts` that re-exports the handler.
+6. Add a test beside the handler (`src/app/api/**/route.test.ts` remains the
    route contract test) or beside the domain module.
-6. Extend the domain lists and contract tests in `src/lib/app-structure.test.ts`
+7. Extend the domain lists and contract tests in `src/lib/app-structure.test.ts`
    if you add a new top-level domain.
 
 ## Shared client and data layers
 
 Three layers are intentionally shared rather than copied into every feature:
 
-- `src/components/hooks` — client state and React Query data hooks. Both
-  feature screens and shared analytics widgets consume them; moving them under
-  a feature would make shared components depend on a feature. Split a hook out
-  only when the widgets that use it move with it.
-- `src/queries` — the server data-access layer (Prisma repositories and the
-  analytics SQL engine). Domain-specific repositories live in feature server
-  modules; genuinely cross-domain repositories stay here.
+- `src/components/hooks` — only generic client infrastructure: fetch/mutation
+  helpers, date-range and URL state, formatting, i18n messages, dialogs, and
+  grid state. Domain query hooks live in `src/features/<domain>/hooks/` and are
+  exported through that feature's `hooks/index.ts`.
+- `src/queries` — the preserved analytics SQL engine plus cross-domain Prisma
+  repositories. Tenant authorization (`src/permissions`) and the analytics
+  engine depend on this layer, so it stays below features instead of moving up
+  into one domain. Domain-only data access belongs in
+  `src/features/<domain>/server/queries/`.
 - `src/permissions` and `src/lib/workspace-auth.ts` — the one central
   authorization boundary. Never duplicate tenant checks in a feature.
 
 This is the modular-monolith trade-off: domain behaviour is owned by features,
 shared infrastructure stays shared, and the dependency arrow never points from
 shared code back into product features.
+
+## Domain UI, hooks, and data access
+
+The restructure moved the remaining domain-specific UI out of `src/components`:
+
+| Old location | New owner |
+| --- | --- |
+| `src/components/metrics` | `src/features/analytics/components/metrics` |
+| `src/components/share` | `src/features/share/components` |
+| `src/components/overlays/AnalyticsOverlayContext` | `src/features/analytics/components` |
+| analytics filters and selectors | `src/features/analytics/components/input` |
+| `WebsiteSelect` | `src/features/websites/components` |
+| `WorkspaceSwitcher`, `UserButton` | `src/features/app-shell/components` |
+| board/link/pixel selectors | `src/features/legacy/components/input` |
+| `PaymentProviderLogo` | `src/features/payments/components` |
+| domain React Query hooks | `src/features/<domain>/hooks` |
+| cron scheduler and jobs | `src/features/system/cron` |
+
+Only primitives remain in `src/components`: `common` (links, panels, tables,
+empty/error states), `charts`, `input` (date picker and menu primitives),
+`svg`, `brand`, and generic hooks.
+
+`src/queries/sql` stays in place deliberately: it is the inherited analytics
+engine described in `docs/TENANCY.md`, and multiple features plus tenant
+authorization read through it. Moving it into one feature would invert the
+dependency direction without improving isolation.
 
 ## Security boundary
 
@@ -128,4 +167,7 @@ workspace before reading or writing. See `docs/TENANCY.md`.
   attribution and payment integrations) is preserved.
 - A route file is now readable in seconds, and domain logic can be tested
   without importing the router.
-- Shared UI stays shared instead of being duplicated into each feature.
+- Analytics widgets, share widgets, domain selectors, and query hooks live with
+  the feature that owns their behaviour instead of in a catch-all shared folder.
+- Shared code cannot silently depend on a product feature; the structure test
+  fails the build if that arrow reverses.

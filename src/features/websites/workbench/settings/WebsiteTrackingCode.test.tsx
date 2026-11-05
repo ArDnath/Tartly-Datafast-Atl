@@ -10,17 +10,15 @@ const { attributionSettings } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('@/components/hooks', async () => {
-  const actual = await vi.importActual<any>('@/components/hooks');
+vi.mock('@/features/websites/hooks/useWebsiteQuery', () => ({
+  useWebsiteQuery: () => ({ data: { id: websiteId, domain: 'example.com' } }),
+}));
 
-  return {
-    ...actual,
-    useWebsiteQuery: () => ({ data: { id: websiteId, domain: 'example.com' } }),
-    useWebsiteAttributionSettingsQuery: () => ({
-      data: attributionSettings,
-    }),
-  };
-});
+vi.mock('@/features/websites/hooks/useWebsiteAttributionSettingsQuery', () => ({
+  useWebsiteAttributionSettingsQuery: () => ({
+    data: attributionSettings,
+  }),
+}));
 
 test('generates a tracker snippet with shared and cross-domain identity settings', () => {
   render(<WebsiteTrackingCode websiteId={websiteId} hostUrl="https://talivia.test" />);

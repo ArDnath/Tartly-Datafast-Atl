@@ -2,10 +2,12 @@
 
 import { Column, Grid, Heading, Row, Text } from '@talivia/react-zen';
 import { useQueries } from '@tanstack/react-query';
-import Link from '@/components/common/Link';
 import { Favicon } from '@/components/common/Favicon';
-import { useActiveWorkspace, useApi, useNavigation, useWebsiteOverviewQuery } from '@/components/hooks';
+import Link from '@/components/common/Link';
+import { useApi, useNavigation } from '@/components/hooks';
+import { useWebsiteOverviewQuery } from '@/features/portfolio/hooks/useWebsiteOverviewQuery';
 import { WebsiteAddButton } from '@/features/websites/WebsiteAddButton';
+import { useActiveWorkspace } from '@/features/workspaces/hooks/useActiveWorkspace';
 
 interface WebsiteRow {
   id: string;
@@ -65,10 +67,7 @@ function ConnectionList({ connections }: { connections: ProviderConnection[] }) 
         return (
           <Row key={connection.id} alignItems="center" justifyContent="space-between" gap="3">
             <Text size="sm">{label}</Text>
-            <Text
-              size="sm"
-              style={{ color: connected ? '#2dbf72' : '#f8b84e' }}
-            >
+            <Text size="sm" style={{ color: connected ? '#2dbf72' : '#f8b84e' }}>
               {connected ? 'Connected' : `Needs review (${connection.connectionStatus})`}
             </Text>
           </Row>

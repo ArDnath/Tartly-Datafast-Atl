@@ -1,7 +1,8 @@
 import { Button, Form, FormField, FormSubmitButton, Row, TextField } from '@talivia/react-zen';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
-import { useActiveWorkspace, useMessages, useUpdateQuery } from '@/components/hooks';
+import { useMessages, useUpdateQuery } from '@/components/hooks';
+import { useActiveWorkspace } from '@/features/workspaces/hooks/useActiveWorkspace';
 import { DOMAIN_REGEX } from '@/lib/constants';
 import { getItem, removeItem } from '@/lib/storage';
 import { normalizeWebsiteDomainInput, PENDING_WEBSITE_DOMAIN } from '@/lib/website-domain';

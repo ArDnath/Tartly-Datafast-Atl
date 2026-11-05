@@ -13,8 +13,8 @@ import {
   useTimezone,
 } from '@/components/hooks';
 import { Eye, User } from '@/components/icons';
-import { FilterButtons } from '@/components/input/FilterButtons';
 import { Lightning } from '@/components/svg';
+import { FilterButtons } from '@/features/analytics/components/input/FilterButtons';
 import { BROWSERS, OS_NAMES } from '@/lib/constants';
 import { SessionLink } from '../sessions/SessionDetails';
 

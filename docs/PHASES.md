@@ -4,7 +4,7 @@
 - **Repository:** <https://github.com/talivia-group/talivia> (MIT), forked locally at
   `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-05
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 restructure and polish shipped: single `/app` workbench, feature-module source/server layout, revenue-first home, landing, a real Settings overview with Integrations and Security, a public docs shell with brand-safe revenue guides, and an accessibility/motion pass. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 restructure and polish shipped: single `/app` workbench, feature-module source/server layout, a complete domain restructure of UI, hooks, and cron into `src/features`, revenue-first home, landing, a real Settings overview with Integrations and Security, a public docs shell with brand-safe revenue guides, and an accessibility/motion pass. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
 
 ## Overall progress
 
@@ -13,7 +13,7 @@
 - Overall percent (average of phases 0–11): **59%**
 - Build state at last check: **green** (`pnpm build` exit 0 with local
   PostgreSQL running; `tsc --noEmit` clean; `biome lint` clean). Full test run:
-  **620 passed / 0 failed** under `TZ=UTC`.
+  **622 passed / 0 failed** under `TZ=UTC`.
 - Runtime smoke: the new public docs routes return 200, and `/app/settings`,
   `/app/settings/integrations`, `/app/settings/security`, `/app/settings/websites`,
   and `/app/settings/billing` return 200 with an authenticated session. The
@@ -827,6 +827,25 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       links. Guides for Stripe, Dodo Payments, Lemon Squeezy, Polar, Yolfi, and
       the manual payment API are generated from one content module, link only
       to official provider pages, and are covered by `content.test.ts`.
+- [x] **UI-19 — Complete domain restructure (new):** the remaining domain
+      widgets, selectors, React Query hooks, and cron jobs moved out of
+      `src/components` and `src/lib` into their owning feature modules.
+      Analytics widgets and filters now live in
+      `src/features/analytics/components`; share widgets in
+      `src/features/share/components`; `WebsiteSelect` in
+      `src/features/websites`; shell controls in
+      `src/features/app-shell/components`; legacy selectors in
+      `src/features/legacy`; payment provider UI in `src/features/payments`;
+      and all domain query hooks in `src/features/<domain>/hooks` with barrels.
+      Cron moved to `src/features/system/cron`. Only shared primitives remain
+      in `src/components` (`brand`, `charts`, `common`, `hooks`, `input`,
+      `svg`). Three dead components and three dead hooks were deleted. The
+      structure test now fails if `src/components` gains a non-primitive
+      directory or if any shared layer imports a feature. Server handlers stay
+      in feature `server/` modules; the preserved analytics SQL engine and
+      cross-domain Prisma repositories stay in `src/queries` because tenant
+      authorization and analytics depend on them. Proof: 119 files moved,
+      build/typecheck/lint green, **622/622 tests** pass.
 - [ ] **UI-14 — Temporary rename demonstration:** change brand config and show
       name/logo/colors/emails update everywhere.
 
@@ -972,13 +991,29 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 6. **Phase 8 finish:** framework guides, activation events/admin funnel,
    `llms.txt`, MCP/CLI verification.
 7. **Phase 9 finish:** MRR-by-channel on the portfolio overview, the temporary
-   rename demonstration, and the Phase 11 contrast-tool pass. Billing history
+   rename demonstration, and the Phase 11 contrast-tool pass. The source
+   restructure (app, server, domain UI/hooks) is complete. Billing history
    waits for Phase 5.
 8. **Phase 10:** legal drafts, abuse protection, transactional email, ops.
 9. **Phase 11:** security review, load test, CI, deployment/runbook.
 10. **Phase 12:** go-to-market.
 
 ## Changelog
+
+- 2026-11-05 — **Complete domain restructure (Phase 9 / UI-19):** moved the last
+  119 domain files out of `src/components` and `src/lib` into feature modules.
+  Analytics widgets/filters → `features/analytics/components`; share widgets →
+  `features/share/components`; `WebsiteSelect` → `features/websites`;
+  `WorkspaceSwitcher`/`UserButton` → `features/app-shell/components`; legacy
+  selectors → `features/legacy`; `PaymentProviderLogo` → `features/payments`;
+  all domain query hooks → `features/<domain>/hooks` barrels; cron →
+  `features/system/cron`. Only shared primitives remain in `src/components`.
+  Moved `formatStripeAmount` to `src/lib/stripe-amount.ts` and board type
+  constants to `src/lib/board-types.ts` so shared data access no longer imports
+  a feature. Deleted three dead components and three dead hooks. Extended
+  `app-structure.test.ts` to enforce the shared component allowlist and the
+  no-shared→feature rule. Updated `ARCHITECTURE.md` and the design-system map.
+  Build, typecheck, lint, and **622/622 tests** pass.
 
 - 2026-11-05 — **Phase 9 restructure + polish completion:** `/app/settings` is
   a real overview (not a redirect) with grouped navigation; new Integrations

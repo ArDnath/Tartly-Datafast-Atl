@@ -2,7 +2,7 @@
 import { Column, Loading } from '@talivia/react-zen';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
-import { useLoginQuery } from '@/components/hooks';
+import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { APP_SECRET_CONFIGURATION_ERROR_CODE } from '@/lib/app-config';
 import { sanitizeAuthReturnUrl } from '@/lib/auth-return-url';
 import type { ApiError } from '@/lib/types';

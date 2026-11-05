@@ -1,8 +1,8 @@
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { useMessages } from '@/components/hooks';
-import { useWebsiteSessionStatsQuery } from '@/components/hooks/queries/useWebsiteSessionStatsQuery';
-import { MetricCard } from '@/components/metrics/MetricCard';
-import { MetricsBar } from '@/components/metrics/MetricsBar';
+import { MetricCard } from '@/features/analytics/components/metrics/MetricCard';
+import { MetricsBar } from '@/features/analytics/components/metrics/MetricsBar';
+import { useWebsiteSessionStatsQuery } from '@/features/analytics/hooks/useWebsiteSessionStatsQuery';
 import { formatLongNumber } from '@/lib/format';
 
 export function SessionsMetricsBar({ websiteId }: { websiteId: string }) {

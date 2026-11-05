@@ -1,7 +1,7 @@
 import { Button, LoadingButton, Row } from '@talivia/react-zen';
 import { PageHeader } from '@/components/common/PageHeader';
 import { useMessages, useNavigation } from '@/components/hooks';
-import { useBoard } from '@/components/hooks/context/useBoard';
+import { useBoard } from '@/features/legacy/hooks/useBoard';
 
 export function BoardDesignHeader() {
   const { board, saveBoard, isPending } = useBoard();

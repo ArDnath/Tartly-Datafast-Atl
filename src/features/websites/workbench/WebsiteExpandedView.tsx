@@ -1,8 +1,8 @@
 import { Column, Grid, Row } from '@talivia/react-zen';
-import { WebsiteExpandedMenu } from '@/features/websites/workbench/WebsiteExpandedMenu';
 import { useMessages } from '@/components/hooks';
 import { MobileMenuButton } from '@/components/input/MobileMenuButton';
-import { MetricsExpandedTable } from '@/components/metrics/MetricsExpandedTable';
+import { MetricsExpandedTable } from '@/features/analytics/components/metrics/MetricsExpandedTable';
+import { WebsiteExpandedMenu } from '@/features/websites/workbench/WebsiteExpandedMenu';
 
 export function WebsiteExpandedView({
   websiteId,

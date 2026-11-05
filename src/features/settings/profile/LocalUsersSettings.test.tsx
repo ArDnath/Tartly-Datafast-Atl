@@ -18,19 +18,22 @@ vi.mock('@/components/hooks', async () => {
       error: undefined,
       isPending: false,
     }),
-    useUsersQuery: () => ({
-      data: {
-        data: [],
-        page: 1,
-        pageSize: 10,
-        count: 0,
-      },
-      error: undefined,
-      isFetching: false,
-      isLoading: false,
-    }),
   };
 });
+
+vi.mock('@/features/settings/profile/hooks/useUsersQuery', () => ({
+  useUsersQuery: () => ({
+    data: {
+      data: [],
+      page: 1,
+      pageSize: 10,
+      count: 0,
+    },
+    error: undefined,
+    isFetching: false,
+    isLoading: false,
+  }),
+}));
 
 beforeEach(() => {
   vi.clearAllMocks();

@@ -1,8 +1,4 @@
-import { TextBlock } from '@/features/legacy/boards/TextBlock';
-import { LinkMetricsBar } from '@/features/legacy/links/[linkId]/LinkMetricsBar';
-import { PixelMetricsBar } from '@/features/legacy/pixels/[pixelId]/PixelMetricsBar';
-import { WebsiteChart } from '@/features/websites/workbench/WebsiteChart';
-import { WebsiteMetricsBar } from '@/features/websites/workbench/WebsiteMetricsBar';
+import type { ComponentType } from 'react';
 import {
   Calendar,
   ChartColumnBig,
@@ -12,11 +8,15 @@ import {
   PanelTop,
   Sheet,
 } from '@/components/icons';
-import { EventsChart } from '@/components/metrics/EventsChart';
-import { MetricsTable } from '@/components/metrics/MetricsTable';
-import { WeeklyTraffic } from '@/components/metrics/WeeklyTraffic';
-import { WorldMap } from '@/components/metrics/WorldMap';
-import type { ComponentType } from 'react';
+import { EventsChart } from '@/features/analytics/components/metrics/EventsChart';
+import { MetricsTable } from '@/features/analytics/components/metrics/MetricsTable';
+import { WeeklyTraffic } from '@/features/analytics/components/metrics/WeeklyTraffic';
+import { WorldMap } from '@/features/analytics/components/metrics/WorldMap';
+import { TextBlock } from '@/features/legacy/boards/TextBlock';
+import { LinkMetricsBar } from '@/features/legacy/links/[linkId]/LinkMetricsBar';
+import { PixelMetricsBar } from '@/features/legacy/pixels/[pixelId]/PixelMetricsBar';
+import { WebsiteChart } from '@/features/websites/workbench/WebsiteChart';
+import { WebsiteMetricsBar } from '@/features/websites/workbench/WebsiteMetricsBar';
 
 export interface ConfigField {
   name: string;

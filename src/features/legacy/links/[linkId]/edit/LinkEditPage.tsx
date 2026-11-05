@@ -1,15 +1,15 @@
 'use client';
 import { Column } from '@talivia/react-zen';
-import { LinkShareForm } from '@/features/legacy/links/[linkId]/LinkShareForm';
-import { LinkEditForm } from '@/features/legacy/links/LinkEditForm';
-import { LinkProvider } from '@/features/legacy/links/LinkProvider';
 import { IconLabel } from '@/components/common/IconLabel';
 import Link from '@/components/common/Link';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Panel } from '@/components/common/Panel';
 import { useMessages, useNavigation } from '@/components/hooks';
-import { useLink } from '@/components/hooks/context/useLink';
 import { ArrowLeft, Link as LinkIcon } from '@/components/icons';
+import { useLink } from '@/features/legacy/hooks/useLink';
+import { LinkShareForm } from '@/features/legacy/links/[linkId]/LinkShareForm';
+import { LinkEditForm } from '@/features/legacy/links/LinkEditForm';
+import { LinkProvider } from '@/features/legacy/links/LinkProvider';
 
 export function LinkEditPage({ linkId }: { linkId: string }) {
   return (

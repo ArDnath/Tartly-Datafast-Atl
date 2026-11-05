@@ -1,9 +1,9 @@
 import { Button, Column, Heading, Row, Text } from '@talivia/react-zen';
 import { useState } from 'react';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
-import { useWebsiteSharesQuery } from '@/components/hooks';
-import { SimpleShareCreateForm } from '@/components/share/SimpleShareCreateForm';
-import { SimpleSharesTable } from '@/components/share/SimpleSharesTable';
+import { SimpleShareCreateForm } from '@/features/share/components/SimpleShareCreateForm';
+import { SimpleSharesTable } from '@/features/share/components/SimpleSharesTable';
+import { useWebsiteSharesQuery } from '@/features/websites/hooks/useWebsiteSharesQuery';
 
 export function WebsiteSharingSettings({ websiteId }: { websiteId: string }) {
   const [isCreating, setIsCreating] = useState(false);
@@ -16,8 +16,8 @@ export function WebsiteSharingSettings({ websiteId }: { websiteId: string }) {
         <Column gap="2">
           <Heading size="lg">Public links</Heading>
           <Text color="muted">
-            Create read-only dashboard links for people who should view this website without
-            editing settings or data.
+            Create read-only dashboard links for people who should view this website without editing
+            settings or data.
           </Text>
         </Column>
         <Button variant="primary" onPress={() => setIsCreating(true)}>

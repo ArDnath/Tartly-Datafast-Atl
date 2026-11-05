@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { type FormEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { BrandMark, BrandWordmark } from '@/components/brand/BrandMark';
-import { useApi, useLoginQuery } from '@/components/hooks';
+import { useApi } from '@/components/hooks';
+import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { BRAND } from '@/lib/brand';
 import styles from './Onboarding.module.css';
 
@@ -161,7 +162,11 @@ export function OnboardingFlow() {
 
   const currentIndex = flowSteps.indexOf(step as (typeof flowSteps)[number]);
   const progress =
-    step === 'done' ? 100 : currentIndex < 0 ? 0 : Math.round(((currentIndex + 0.35) / flowSteps.length) * 100);
+    step === 'done'
+      ? 100
+      : currentIndex < 0
+        ? 0
+        : Math.round(((currentIndex + 0.35) / flowSteps.length) * 100);
   const previousStep = currentIndex > 0 ? flowSteps[currentIndex - 1] : null;
 
   function go(next: Step, nextDirection: Direction = 'forward') {
@@ -188,7 +193,9 @@ export function OnboardingFlow() {
     setBusy(true);
 
     try {
-      const created = (await apiPost('/workspaces', { name: workspaceName.trim() })) as WorkspaceSummary;
+      const created = (await apiPost('/workspaces', {
+        name: workspaceName.trim(),
+      })) as WorkspaceSummary;
       setWorkspace(created);
       setWorkspaceName('');
       go('website');
@@ -270,7 +277,9 @@ export function OnboardingFlow() {
       setVerifyError(null);
     } catch (cause) {
       if (manual) {
-        setVerifyError(cause instanceof Error ? cause.message : 'Could not check the installation.');
+        setVerifyError(
+          cause instanceof Error ? cause.message : 'Could not check the installation.',
+        );
       }
     }
   }
@@ -337,9 +346,7 @@ export function OnboardingFlow() {
             </div>
             <p className={styles.eyebrow}>{BRAND.name}</p>
             <h1 className={styles.welcomeTitle}>Welcome to {BRAND.name}</h1>
-            <p className={styles.welcomeSubtitle}>
-              {BRAND.promise} This takes about two minutes.
-            </p>
+            <p className={styles.welcomeSubtitle}>{BRAND.promise} This takes about two minutes.</p>
             <button type="button" className={styles.primary} onClick={finishWelcome}>
               Get started
             </button>
@@ -473,7 +480,11 @@ export function OnboardingFlow() {
               />
               <Reveal index={1} className={styles.codeCard}>
                 <pre className={styles.code}>{snippet}</pre>
-                <button type="button" className={styles.copyButton} onClick={() => void handleCopy()}>
+                <button
+                  type="button"
+                  className={styles.copyButton}
+                  onClick={() => void handleCopy()}
+                >
                   {copied ? 'Copied' : 'Copy snippet'}
                 </button>
               </Reveal>
@@ -498,7 +509,11 @@ export function OnboardingFlow() {
           {step === 'verify' && (
             <>
               <StepHeading
-                title={verifyState?.installed ? 'Your first event is here' : 'Waiting for your first event'}
+                title={
+                  verifyState?.installed
+                    ? 'Your first event is here'
+                    : 'Waiting for your first event'
+                }
                 subtitle={
                   verifyState?.installed
                     ? 'The tracker is live. RevenueLens is now recording visits for this website.'
@@ -506,7 +521,10 @@ export function OnboardingFlow() {
                 }
               />
               <Reveal index={1} className={styles.statusCard}>
-                <div className={styles.statusIcon} data-state={verifyState?.installed ? 'ok' : 'waiting'}>
+                <div
+                  className={styles.statusIcon}
+                  data-state={verifyState?.installed ? 'ok' : 'waiting'}
+                >
                   {verifyState?.installed ? '✓' : <Spinner />}
                 </div>
                 <div>
@@ -533,7 +551,11 @@ export function OnboardingFlow() {
                     Continue
                   </button>
                 ) : (
-                  <button type="button" className={styles.secondary} onClick={() => void checkInstallation(true)}>
+                  <button
+                    type="button"
+                    className={styles.secondary}
+                    onClick={() => void checkInstallation(true)}
+                  >
                     Check now
                   </button>
                 )}
@@ -546,7 +568,11 @@ export function OnboardingFlow() {
                   Open {createdWebsiteDomain}
                 </a>
                 {!verifyState?.installed && (
-                  <button type="button" className={styles.textButton} onClick={() => go('payments')}>
+                  <button
+                    type="button"
+                    className={styles.textButton}
+                    onClick={() => go('payments')}
+                  >
                     Skip for now
                   </button>
                 )}
@@ -603,7 +629,9 @@ export function OnboardingFlow() {
                 </div>
                 <div>
                   <span className={styles.summaryLabel}>Plan</span>
-                  <strong>{workspace?.planId ? workspace.planId : 'Choose a plan in billing'}</strong>
+                  <strong>
+                    {workspace?.planId ? workspace.planId : 'Choose a plan in billing'}
+                  </strong>
                 </div>
               </Reveal>
               <Reveal index={2} className={styles.actions}>

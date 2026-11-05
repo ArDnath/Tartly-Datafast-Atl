@@ -4,7 +4,7 @@ import { createContext, type ReactNode, useCallback, useEffect, useRef, useState
 import { v4 as uuid } from 'uuid';
 import { useApi, useMessages, useModified, useNavigation } from '@/components/hooks';
 import { BOARD_TYPES, getBoardType } from '@/features/legacy/boards/core/boards';
-import { useBoardQuery } from '@/components/hooks/queries/useBoardQuery';
+import { useBoardQuery } from '@/features/legacy/hooks/useBoardQuery';
 import type { Board, BoardParameters } from '@/lib/types';
 import { getComponentDefinition } from './boardComponentRegistry';
 

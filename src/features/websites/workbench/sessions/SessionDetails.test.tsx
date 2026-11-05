@@ -1,5 +1,5 @@
 import { beforeEach, expect, test, vi } from 'vitest';
-import { useAnalyticsOverlays } from '@/components/overlays/AnalyticsOverlayContext';
+import { useAnalyticsOverlays } from '@/features/analytics/components/AnalyticsOverlayContext';
 import { getTestRouter, resetTestNavigation } from '@/test/navigation';
 import { render, screen } from '@/test/render';
 import { AnalyticsOverlayProvider } from '../AnalyticsOverlayProvider';

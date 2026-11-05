@@ -3,9 +3,9 @@ import { IconLabel } from '@/components/common/IconLabel';
 import { LinkButton } from '@/components/common/LinkButton';
 import { PageHeader } from '@/components/common/PageHeader';
 import { useMessages, useNavigation } from '@/components/hooks';
-import { useBoard } from '@/components/hooks/context/useBoard';
 import { Edit, LayoutDashboard } from '@/components/icons';
 import { getBoardEntity } from '@/features/legacy/boards/core/boards';
+import { useBoard } from '@/features/legacy/hooks/useBoard';
 import { BoardEntityBadge } from '../BoardEntityBadge';
 import { useBoardEntityBadgeProps } from '../useBoardEntityBadgeProps';
 

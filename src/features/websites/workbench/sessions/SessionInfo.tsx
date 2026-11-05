@@ -5,7 +5,7 @@ import { Favicon } from '@/components/common/Favicon';
 import { TypeIcon } from '@/components/common/TypeIcon';
 import { useFormat, useLocale, useMessages, useRegionNames } from '@/components/hooks';
 import { Calendar, CreditCard, KeyRound, Landmark, MapPin, UserRound } from '@/components/icons';
-import { SessionActivityHeatmap } from '@/components/metrics/SessionActivityHeatmap';
+import { SessionActivityHeatmap } from '@/features/analytics/components/metrics/SessionActivityHeatmap';
 import {
   getPaymentCustomerKey,
   getPaymentCustomerLabel,

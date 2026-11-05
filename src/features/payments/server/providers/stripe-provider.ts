@@ -1,7 +1,8 @@
 import Stripe from 'stripe';
 import { BRAND } from '@/lib/brand';
-import type { RecordPaymentInput } from '@/queries/prisma/payment';
 import { hash } from '@/lib/crypto';
+import { formatStripeAmount } from '@/lib/stripe-amount';
+import type { RecordPaymentInput } from '@/queries/prisma/payment';
 
 export const STRIPE_WEBHOOK_EVENTS = [
   'checkout.session.completed',
@@ -30,23 +31,6 @@ export const STRIPE_WEBHOOK_EVENTS = [
 ] as const;
 
 const STRIPE_API_BASE = 'https://api.stripe.com/v1';
-const ZERO_DECIMAL_CURRENCIES = new Set([
-  'bif',
-  'clp',
-  'djf',
-  'gnf',
-  'jpy',
-  'kmf',
-  'krw',
-  'mga',
-  'pyg',
-  'rwf',
-  'vnd',
-  'vuv',
-  'xaf',
-  'xof',
-  'xpf',
-]);
 
 type FetchLike = typeof fetch;
 
@@ -92,16 +76,6 @@ function getMetadataValue(metadata: Record<string, unknown>, names: string[]) {
       return value;
     }
   }
-}
-
-export function formatStripeAmount(amount: number | null | undefined, currency: string) {
-  const normalizedAmount = amount || 0;
-
-  if (ZERO_DECIMAL_CURRENCIES.has(currency.toLowerCase())) {
-    return normalizedAmount.toFixed(4);
-  }
-
-  return (normalizedAmount / 100).toFixed(4);
 }
 
 function normalizeEmailHash(email?: string) {
@@ -344,3 +318,5 @@ export function mapStripeCheckoutSessionToPaymentInput({
     sessionToken,
   };
 }
+
+export { formatStripeAmount } from '@/lib/stripe-amount';

@@ -22,11 +22,11 @@ vi.mock('@/components/common/Panel', () => ({
   Panel: ({ children }: { children: React.ReactNode }) => <section>{children}</section>,
 }));
 
-vi.mock('@/components/hooks/queries/useWebsiteStatsQuery', () => ({
+vi.mock('@/features/analytics/hooks/useWebsiteStatsQuery', () => ({
   useWebsiteStatsQuery: () => statsQueryState,
 }));
 
-vi.mock('@/components/overlays/AnalyticsOverlayContext', () => ({
+vi.mock('@/features/analytics/components/AnalyticsOverlayContext', () => ({
   useAnalyticsOverlays: () => ({
     openAnalytics: vi.fn(),
     openBreakdown: vi.fn(),

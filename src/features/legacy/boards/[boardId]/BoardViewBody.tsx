@@ -1,5 +1,5 @@
 import { Column } from '@talivia/react-zen';
-import { useBoard } from '@/components/hooks/context/useBoard';
+import { useBoard } from '@/features/legacy/hooks/useBoard';
 import { BoardViewRow } from './BoardViewRow';
 
 export function BoardViewBody({ showEntityBadges = true }: { showEntityBadges?: boolean }) {

@@ -19,9 +19,7 @@ import { BRAND } from '@/lib/brand';
 
 export function ForgotPasswordPage() {
   const { labels, t, getErrorMessage } = useMessages();
-  const { mutateAsync, error: submitError, isPending } = useUpdateQuery(
-    '/auth/password/forgot',
-  );
+  const { mutateAsync, error: submitError, isPending } = useUpdateQuery('/auth/password/forgot');
   const [sent, setSent] = useState(false);
 
   const handleSubmit = async (data: { email: string }) => {

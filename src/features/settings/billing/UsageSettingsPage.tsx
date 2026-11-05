@@ -3,7 +3,8 @@
 import { Column, Grid, Heading, Row, Text } from '@talivia/react-zen';
 import { useQuery } from '@tanstack/react-query';
 import Link from '@/components/common/Link';
-import { useActiveWorkspace, useApi } from '@/components/hooks';
+import { useApi } from '@/components/hooks';
+import { useActiveWorkspace } from '@/features/workspaces/hooks/useActiveWorkspace';
 import { formatUsd } from '@/lib/plans';
 import type { UsageMeter } from '@/lib/usage';
 
@@ -76,7 +77,11 @@ export function UsageBar({
     <Column gap="2">
       <Row justifyContent="space-between" alignItems="baseline" gap="3" wrap="wrap">
         <Text weight="bold">{label}</Text>
-        <Text size="sm" color={meter.status === 'ok' ? 'muted' : undefined} style={{ color: meter.status === 'ok' ? undefined : status.color }}>
+        <Text
+          size="sm"
+          color={meter.status === 'ok' ? 'muted' : undefined}
+          style={{ color: meter.status === 'ok' ? undefined : status.color }}
+        >
           {meter.included
             ? `${formatNumber(meter.used)} / ${formatNumber(meter.limit)} ${unit}`
             : 'Not included in this plan'}
@@ -208,9 +213,7 @@ export function UsageSettingsPage() {
             <Text size="xl" weight="bold">
               {usage.plan.name}
             </Text>
-            <Text color="muted">
-              {formatUsd(usage.plan.monthlyPriceCents)}/mo
-            </Text>
+            <Text color="muted">{formatUsd(usage.plan.monthlyPriceCents)}/mo</Text>
           </Row>
           <Text size="sm" color="muted">
             {isPaid
@@ -239,11 +242,7 @@ export function UsageSettingsPage() {
           <Text size="sm" color="muted">
             Workspace limits
           </Text>
-          <LimitRow
-            label="Websites"
-            used={usage.websites.used}
-            limit={usage.websites.limit}
-          />
+          <LimitRow label="Websites" used={usage.websites.used} limit={usage.websites.limit} />
           <LimitRow label="Members" used={usage.members.used} limit={usage.members.limit} />
           <Text size="sm" color="muted">
             {usage.plan.retentionDays}-day analytics retention
@@ -265,8 +264,8 @@ export function UsageSettingsPage() {
         <Text size="sm" color="muted">
           At 80% you get an in-app notice. At 100% the grace allowance starts. When the grace
           allowance ends, billable ingestion pauses until {formatDate(usage.resetAt)}; analytics,
-          reports, and exports stay available and nothing is deleted. There is no automatic
-          overage charge.
+          reports, and exports stay available and nothing is deleted. There is no automatic overage
+          charge.
         </Text>
         <Text size="sm" color="muted">
           Need more headroom before the reset? Compare the two plans on the pricing page. Plan

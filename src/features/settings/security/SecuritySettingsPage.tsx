@@ -14,8 +14,9 @@ import {
   useToast,
 } from '@talivia/react-zen';
 import { useState } from 'react';
+import { useApi, useMessages } from '@/components/hooks';
 import { DialogButton } from '@/components/input/DialogButton';
-import { useApi, useLoginQuery, useMessages } from '@/components/hooks';
+import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { PasswordChangeForm } from '@/features/settings/profile/PasswordChangeForm';
 
 const CARD_STYLE = {
@@ -71,9 +72,9 @@ function AccountDeletionForm({ onClose }: { onClose: () => void }) {
   return (
     <Form onSubmit={handleSubmit} error={getErrorMessage(error)}>
       <Text color="muted">
-        This soft-deletes every workspace you own, revokes all sessions, and anonymises the
-        account row. Analytics data is left for the tenant-scoped retention job; it is not
-        silently hard-deleted from this dialog.
+        This soft-deletes every workspace you own, revokes all sessions, and anonymises the account
+        row. Analytics data is left for the tenant-scoped retention job; it is not silently
+        hard-deleted from this dialog.
       </Text>
       <FormField
         name="password"
@@ -197,13 +198,18 @@ export function SecuritySettingsPage() {
       <Column border padding="4" gap="3" style={CARD_STYLE}>
         <Heading size="lg">Change password</Heading>
         <Text size="sm" color="muted">
-          Changing the password revokes every active session, including this one. You will be
-          signed out and asked to sign in again.
+          Changing the password revokes every active session, including this one. You will be signed
+          out and asked to sign in again.
         </Text>
         <PasswordChangeForm />
       </Column>
 
-      <Column border padding="4" gap="3" style={{ ...CARD_STYLE, borderColor: 'rgba(255, 179, 179, 0.34)' }}>
+      <Column
+        border
+        padding="4"
+        gap="3"
+        style={{ ...CARD_STYLE, borderColor: 'rgba(255, 179, 179, 0.34)' }}
+      >
         <Heading size="lg">Delete account</Heading>
         <Text size="sm" color="muted">
           Account deletion is permanent from a product-access point of view. It removes access to

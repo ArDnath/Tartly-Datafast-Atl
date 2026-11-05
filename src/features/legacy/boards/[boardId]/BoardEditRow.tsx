@@ -8,8 +8,8 @@ import {
   Separator,
 } from 'react-resizable-panels';
 import { v4 as uuid } from 'uuid';
-import { useBoard } from '@/components/hooks/context/useBoard';
 import { ChevronDown, GripVertical, Minus, Plus } from '@/components/icons';
+import { useBoard } from '@/features/legacy/hooks/useBoard';
 import type { BoardColumn as BoardColumnType, BoardComponentConfig } from '@/lib/types';
 import { BoardEditColumn } from './BoardEditColumn';
 import { MAX_COLUMNS, MIN_COLUMN_WIDTH } from './boardConstants';

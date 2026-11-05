@@ -3,6 +3,9 @@ import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { Panel } from '@/components/common/Panel';
 import { SectionHeader } from '@/components/common/SectionHeader';
 import { useMobile, useTimezone, useUpdateQuery } from '@/components/hooks';
+import { ListTable } from '@/features/analytics/components/metrics/ListTable';
+import { MetricCard } from '@/features/analytics/components/metrics/MetricCard';
+import { MetricsBar } from '@/features/analytics/components/metrics/MetricsBar';
 import type {
   RevenueDiagnosticsAttributionJob,
   RevenueDiagnosticsDetection,
@@ -10,11 +13,8 @@ import type {
   RevenueDiagnosticsPayment,
   RevenueDiagnosticsProviderEvent,
   RevenueDiagnosticsSubscription,
-} from '@/components/hooks/queries/useRevenueDiagnosticsQuery';
-import { useRevenueDiagnosticsQuery } from '@/components/hooks/queries/useRevenueDiagnosticsQuery';
-import { ListTable } from '@/components/metrics/ListTable';
-import { MetricCard } from '@/components/metrics/MetricCard';
-import { MetricsBar } from '@/components/metrics/MetricsBar';
+} from '@/features/analytics/hooks/useRevenueDiagnosticsQuery';
+import { useRevenueDiagnosticsQuery } from '@/features/analytics/hooks/useRevenueDiagnosticsQuery';
 import { DEFAULT_CURRENCY } from '@/lib/constants';
 import { formatLongCurrency, formatLongNumber } from '@/lib/format';
 

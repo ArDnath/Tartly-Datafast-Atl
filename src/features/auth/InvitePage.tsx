@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { BrandMark } from '@/components/brand/BrandMark';
-import { useApi, useLoginQuery } from '@/components/hooks';
+import { useApi } from '@/components/hooks';
+import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { BRAND } from '@/lib/brand';
 
 interface InvitationPreview {
@@ -93,7 +94,7 @@ export function InvitePage() {
       <Column className="talivia-auth-form" alignItems="center" gap="5">
         <BrandMark size={40} />
         <Heading>Join {invitation?.workspace.name || 'workspace'}</Heading>
-        {error && <Text style={{ color: "#f87171", textAlign: "center" }}>{error}</Text>}
+        {error && <Text style={{ color: '#f87171', textAlign: 'center' }}>{error}</Text>}
         {invitation ? (
           invitation.accepted ? (
             <Text color="muted">This invitation has already been accepted.</Text>

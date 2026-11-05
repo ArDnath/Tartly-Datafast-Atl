@@ -16,8 +16,8 @@ import { IconLabel } from '@/components/common/IconLabel';
 import { TypeIcon } from '@/components/common/TypeIcon';
 import { useFormat, useMessages } from '@/components/hooks';
 import { Eye, FileText } from '@/components/icons';
-import { EventData } from '@/components/metrics/EventData';
 import { Lightning } from '@/components/svg';
+import { EventData } from '@/features/analytics/components/metrics/EventData';
 import { SessionLink } from '../sessions/SessionDetails';
 
 export function EventsTable(props: DataTableProps) {

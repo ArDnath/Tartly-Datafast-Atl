@@ -3,8 +3,8 @@ import { PieChart } from '@/components/charts/PieChart';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { Panel } from '@/components/common/Panel';
 import { useMessages } from '@/components/hooks';
-import { useResultQuery } from '@/components/hooks/queries/useResultQuery';
-import { ListTable } from '@/components/metrics/ListTable';
+import { ListTable } from '@/features/analytics/components/metrics/ListTable';
+import { useResultQuery } from '@/features/analytics/hooks/useResultQuery';
 import { CHART_COLORS, UTM_PARAMS } from '@/lib/constants';
 
 export interface UTMProps {

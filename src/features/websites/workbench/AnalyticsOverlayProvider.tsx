@@ -5,7 +5,7 @@ import { useUrlState } from '@/components/hooks/useUrlState';
 import {
   AnalyticsOverlayContext,
   type AnalyticsSection,
-} from '@/components/overlays/AnalyticsOverlayContext';
+} from '@/features/analytics/components/AnalyticsOverlayContext';
 import { buildPath } from '@/lib/url';
 import { ExpandedViewModal } from './ExpandedViewModal';
 import { ReplayModal } from './replays/ReplayModal';

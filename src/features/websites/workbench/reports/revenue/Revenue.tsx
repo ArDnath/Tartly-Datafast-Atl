@@ -4,19 +4,15 @@ import { DataGrid } from '@/components/common/DataGrid';
 import { GridRow } from '@/components/common/GridRow';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { Panel } from '@/components/common/Panel';
-import {
-  useDateRange,
-  useGridState,
-  useMessages,
-  useRevenueSessionsQuery,
-  useWebsiteAttributionSettingsQuery,
-} from '@/components/hooks';
-import { useResultQuery } from '@/components/hooks/queries/useResultQuery';
-import { ListTable } from '@/components/metrics/ListTable';
-import { MetricCard } from '@/components/metrics/MetricCard';
-import { MetricLabel } from '@/components/metrics/MetricLabel';
-import { MetricsBar } from '@/components/metrics/MetricsBar';
-import { RevenueChart } from '@/components/metrics/RevenueChart';
+import { useDateRange, useGridState, useMessages } from '@/components/hooks';
+import { ListTable } from '@/features/analytics/components/metrics/ListTable';
+import { MetricCard } from '@/features/analytics/components/metrics/MetricCard';
+import { MetricLabel } from '@/features/analytics/components/metrics/MetricLabel';
+import { MetricsBar } from '@/features/analytics/components/metrics/MetricsBar';
+import { RevenueChart } from '@/features/analytics/components/metrics/RevenueChart';
+import { useResultQuery } from '@/features/analytics/hooks/useResultQuery';
+import { useRevenueSessionsQuery } from '@/features/analytics/hooks/useRevenueSessionsQuery';
+import { useWebsiteAttributionSettingsQuery } from '@/features/websites/hooks/useWebsiteAttributionSettingsQuery';
 import { DEFAULT_CURRENCY } from '@/lib/constants';
 import { formatLongCurrency, formatLongNumber } from '@/lib/format';
 import { SessionsTable } from '../../sessions/SessionsTable';

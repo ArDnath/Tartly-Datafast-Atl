@@ -3,10 +3,10 @@ import { Row } from '@talivia/react-zen';
 import { BrandWordmark } from '@/components/brand/BrandMark';
 import Link from '@/components/common/Link';
 import { useNavigation } from '@/components/hooks';
-import { UserButton } from '@/components/input/UserButton';
-import { WorkspaceSwitcher } from '@/components/input/WorkspaceSwitcher';
-import { APP_LAYOUT_MAX_WIDTH } from '@/lib/constants';
+import { UserButton } from '@/features/app-shell/components/UserButton';
+import { WorkspaceSwitcher } from '@/features/app-shell/components/WorkspaceSwitcher';
 import { BRAND } from '@/lib/brand';
+import { APP_LAYOUT_MAX_WIDTH } from '@/lib/constants';
 
 export function TopNav({ showUser = true }: { showUser?: boolean }) {
   const { renderUrl } = useNavigation();

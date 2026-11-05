@@ -16,24 +16,31 @@ vi.mock('@/components/hooks', async () => {
       renderUrl: (path: string) => path,
       router: { push: vi.fn() },
     }),
-    useWebsite: () => ({
-      id: 'website-id',
-      name: 'Example',
-      domain: 'example.com',
-      access: { canUpdate: websiteState.canUpdate },
-    }),
   };
 });
 
-vi.mock('@/components/input/WebsiteSelect', () => ({
+vi.mock('@/features/websites/hooks/useWebsite', () => ({
+  useWebsite: () => ({
+    id: 'website-id',
+    name: 'Example',
+    domain: 'example.com',
+    access: { canUpdate: websiteState.canUpdate },
+  }),
+}));
+
+vi.mock('@/features/websites/components/WebsiteSelect', () => ({
   WebsiteSelect: () => <div data-test="website-select" />,
 }));
 
-vi.mock('@/components/input/FilterBar', () => ({ FilterBar: () => null }));
-vi.mock('@/components/input/UnitFilter', () => ({ UnitFilter: () => null }));
-vi.mock('@/components/input/WebsiteDateFilter', () => ({ WebsiteDateFilter: () => null }));
-vi.mock('@/components/input/WebsiteFilterButton', () => ({ WebsiteFilterButton: () => null }));
-vi.mock('@/components/metrics/ActiveUsers', () => ({ ActiveUsers: () => null }));
+vi.mock('@/features/analytics/components/input/FilterBar', () => ({ FilterBar: () => null }));
+vi.mock('@/features/analytics/components/input/UnitFilter', () => ({ UnitFilter: () => null }));
+vi.mock('@/features/analytics/components/input/WebsiteDateFilter', () => ({
+  WebsiteDateFilter: () => null,
+}));
+vi.mock('@/features/analytics/components/input/WebsiteFilterButton', () => ({
+  WebsiteFilterButton: () => null,
+}));
+vi.mock('@/features/analytics/components/metrics/ActiveUsers', () => ({ ActiveUsers: () => null }));
 
 beforeEach(() => {
   websiteState.canUpdate = true;

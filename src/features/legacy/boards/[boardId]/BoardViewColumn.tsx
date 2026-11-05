@@ -1,7 +1,11 @@
 import { Column, Heading, Row, Text } from '@talivia/react-zen';
 import { Panel } from '@/components/common/Panel';
-import { useBoard } from '@/components/hooks/context/useBoard';
-import { getBoardType, getResolvedComponentEntity, isOpenBoardType } from '@/features/legacy/boards/core/boards';
+import {
+  getBoardType,
+  getResolvedComponentEntity,
+  isOpenBoardType,
+} from '@/features/legacy/boards/core/boards';
+import { useBoard } from '@/features/legacy/hooks/useBoard';
 import type { BoardComponentConfig } from '@/lib/types';
 import { BoardEntityBadge } from '../BoardEntityBadge';
 import { getComponentDefinition } from '../boardComponentRegistry';

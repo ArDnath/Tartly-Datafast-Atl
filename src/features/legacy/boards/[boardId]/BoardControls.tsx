@@ -1,9 +1,13 @@
 import { Box } from '@talivia/react-zen';
+import {
+  BOARD_ENTITY_TYPES,
+  getBoardEntity,
+  getFirstBoardComponentEntity,
+} from '@/features/legacy/boards/core/boards';
+import { useBoard } from '@/features/legacy/hooks/useBoard';
 import { LinkControls } from '@/features/legacy/links/[linkId]/LinkControls';
 import { PixelControls } from '@/features/legacy/pixels/[pixelId]/PixelControls';
 import { WebsiteControls } from '@/features/websites/workbench/WebsiteControls';
-import { useBoard } from '@/components/hooks/context/useBoard';
-import { BOARD_ENTITY_TYPES, getBoardEntity, getFirstBoardComponentEntity } from '@/features/legacy/boards/core/boards';
 
 export function BoardControls() {
   const { board } = useBoard();

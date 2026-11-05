@@ -2,8 +2,8 @@
 
 import { Column, Row, Text } from '@talivia/react-zen';
 import { Avatar } from '@/components/common/Avatar';
-import { PaymentProviderLogo } from '@/components/common/PaymentProviderLogo';
 import { useLocale, useTimezone } from '@/components/hooks';
+import { PaymentProviderLogo } from '@/features/payments/components/PaymentProviderLogo';
 import { DEFAULT_CURRENCY } from '@/lib/constants';
 import { formatLongCurrency, formatShortTime } from '@/lib/format';
 import { SessionLink } from './sessions/SessionDetails';

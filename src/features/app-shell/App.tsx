@@ -2,7 +2,7 @@
 import { Column, Loading } from '@talivia/react-zen';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { TopNav } from '@/features/app-shell/TopNav';
-import { useLoginQuery } from '@/components/hooks';
+import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { UpdateNotice } from './UpdateNotice';
 import { UsageBanner } from './UsageBanner';
 

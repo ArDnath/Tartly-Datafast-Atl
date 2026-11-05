@@ -3,7 +3,8 @@
 import { Row, Text } from '@talivia/react-zen';
 import { useQuery } from '@tanstack/react-query';
 import Link from '@/components/common/Link';
-import { useActiveWorkspace, useApi, useNavigation } from '@/components/hooks';
+import { useApi, useNavigation } from '@/components/hooks';
+import { useActiveWorkspace } from '@/features/workspaces/hooks/useActiveWorkspace';
 import type { UsageMeter } from '@/lib/usage';
 
 interface UsageResponse {

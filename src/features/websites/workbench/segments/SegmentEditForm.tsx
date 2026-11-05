@@ -10,8 +10,8 @@ import {
 } from '@talivia/react-zen';
 import { useEffect, useState } from 'react';
 import { useMessages, useUpdateQuery } from '@/components/hooks';
-import { useWebsiteSegmentQuery } from '@/components/hooks/queries/useWebsiteSegmentQuery';
-import { FieldFilters } from '@/components/input/FieldFilters';
+import { FieldFilters } from '@/features/analytics/components/input/FieldFilters';
+import { useWebsiteSegmentQuery } from '@/features/analytics/hooks/useWebsiteSegmentQuery';
 
 export function SegmentEditForm({
   segmentId,

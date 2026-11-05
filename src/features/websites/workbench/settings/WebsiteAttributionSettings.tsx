@@ -10,12 +10,11 @@ import {
   TextField,
 } from '@talivia/react-zen';
 import { useEffect, useMemo, useState } from 'react';
+import { useMessages, useUpdateQuery } from '@/components/hooks';
 import {
-  useMessages,
-  useUpdateQuery,
   useWebsiteAttributionSettingsQuery,
   type WebsiteAttributionSettings as WebsiteAttributionSettingsData,
-} from '@/components/hooks';
+} from '@/features/websites/hooks/useWebsiteAttributionSettingsQuery';
 
 const domainGroups = [
   { type: 'marketing', label: 'Marketing domains' },

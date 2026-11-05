@@ -1,13 +1,13 @@
+import { Box, Column, Grid, Icon, ProgressBar, Row, Text } from '@talivia/react-zen';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { useMessages, useNavigation, useOperatorLabels } from '@/components/hooks';
-import { useResultQuery } from '@/components/hooks/queries/useResultQuery';
 import { File, User } from '@/components/icons';
-import { ReportEditButton } from '@/components/input/ReportEditButton';
-import { ChangeLabel } from '@/components/metrics/ChangeLabel';
 import { Lightning } from '@/components/svg';
+import { ReportEditButton } from '@/features/analytics/components/input/ReportEditButton';
+import { ChangeLabel } from '@/features/analytics/components/metrics/ChangeLabel';
+import { useResultQuery } from '@/features/analytics/hooks/useResultQuery';
 import { formatLongNumber } from '@/lib/format';
 import type { FunnelResult } from '@/queries/sql/reports/getFunnel';
-import { Box, Column, Grid, Icon, ProgressBar, Row, Text } from '@talivia/react-zen';
 import { FunnelEditForm } from './FunnelEditForm';
 
 interface FunnelProps {

@@ -38,6 +38,9 @@ vi.mock('@/components/hooks', () => ({
     toast: state.toast,
     touch: state.touch,
   }),
+}));
+
+vi.mock('@/features/websites/hooks/useWebsite', () => ({
   useWebsite: () => state.website,
 }));
 

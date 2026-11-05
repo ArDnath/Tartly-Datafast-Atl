@@ -1,7 +1,7 @@
 import { Column, DataColumn, DataTable, Text } from '@talivia/react-zen';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { useFields, useFormat, useMessages } from '@/components/hooks';
-import { useResultQuery } from '@/components/hooks/queries/useResultQuery';
+import { useResultQuery } from '@/features/analytics/hooks/useResultQuery';
 import { formatShortTime } from '@/lib/format';
 
 export interface BreakdownProps {

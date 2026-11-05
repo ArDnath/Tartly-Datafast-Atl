@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest';
-import { render, screen } from '@/test/render';
 import { AppEntryPage } from '@/features/portfolio/AppEntryPage';
+import { render, screen } from '@/test/render';
 
 const overviewState = vi.hoisted(() => ({
   data: [] as any[],
@@ -20,16 +20,22 @@ vi.mock('@/components/hooks', async () => {
       isAllTime: false,
       isCustomRange: false,
     }),
-    useLoginQuery: () => ({ user: { id: 'user-1', role: 'user' } }),
     useNavigation: () => ({ renderUrl: (path: string) => path }),
     useUrlState: () => ({ patch: vi.fn(), query: {} }),
-    useWebsiteOverviewQuery: () => ({
-      data: { data: overviewState.data },
-      isLoading: false,
-      error: null,
-    }),
   };
 });
+
+vi.mock('@/features/auth/hooks/useLoginQuery', () => ({
+  useLoginQuery: () => ({ user: { id: 'user-1', role: 'user' } }),
+}));
+
+vi.mock('@/features/portfolio/hooks/useWebsiteOverviewQuery', () => ({
+  useWebsiteOverviewQuery: () => ({
+    data: { data: overviewState.data },
+    isLoading: false,
+    error: null,
+  }),
+}));
 
 vi.mock('@/components/input/DateFilter', () => ({
   DateFilter: () => <div data-test="date-filter" />,

@@ -3,10 +3,10 @@ import { useState } from 'react';
 import { IconLabel } from '@/components/common/IconLabel';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { useMessages } from '@/components/hooks';
-import { usePixelSharesQuery } from '@/components/hooks/queries/usePixelSharesQuery';
 import { Plus } from '@/components/icons';
-import { SimpleShareCreateForm } from '@/components/share/SimpleShareCreateForm';
-import { SimpleSharesTable } from '@/components/share/SimpleSharesTable';
+import { usePixelSharesQuery } from '@/features/legacy/hooks/usePixelSharesQuery';
+import { SimpleShareCreateForm } from '@/features/share/components/SimpleShareCreateForm';
+import { SimpleSharesTable } from '@/features/share/components/SimpleSharesTable';
 
 export function PixelShareForm({ pixelId }: { pixelId: string }) {
   const { data, error, isLoading } = usePixelSharesQuery({ pixelId });

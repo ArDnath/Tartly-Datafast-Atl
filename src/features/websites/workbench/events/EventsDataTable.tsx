@@ -1,8 +1,8 @@
 import { type ReactNode, useState } from 'react';
 import { DataGrid } from '@/components/common/DataGrid';
 import { useGridState, useMessages } from '@/components/hooks';
-import { useWebsiteEventsQuery } from '@/components/hooks/queries/useWebsiteEventsQuery';
-import { FilterButtons } from '@/components/input/FilterButtons';
+import { FilterButtons } from '@/features/analytics/components/input/FilterButtons';
+import { useWebsiteEventsQuery } from '@/features/analytics/hooks/useWebsiteEventsQuery';
 import { EventsTable } from './EventsTable';
 
 export function EventsDataTable({ websiteId }: { websiteId?: string; children?: ReactNode }) {

@@ -3,9 +3,9 @@ import { useMemo, useState } from 'react';
 import { PieChart } from '@/components/charts/PieChart';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { useMessages } from '@/components/hooks';
-import { useEventDataPropertiesQuery } from '@/components/hooks/queries/useEventDataPropertiesQuery';
-import { useEventDataValuesQuery } from '@/components/hooks/queries/useEventDataValuesQuery';
-import { ListTable } from '@/components/metrics/ListTable';
+import { ListTable } from '@/features/analytics/components/metrics/ListTable';
+import { useEventDataPropertiesQuery } from '@/features/analytics/hooks/useEventDataPropertiesQuery';
+import { useEventDataValuesQuery } from '@/features/analytics/hooks/useEventDataValuesQuery';
 import { CHART_COLORS } from '@/lib/constants';
 
 export function EventProperties({ websiteId }: { websiteId: string }) {

@@ -3,8 +3,8 @@ import { IconLabel } from '@/components/common/IconLabel';
 import { LinkButton } from '@/components/common/LinkButton';
 import { PageHeader } from '@/components/common/PageHeader';
 import { useMessages, useNavigation, useSlug } from '@/components/hooks';
-import { usePixel } from '@/components/hooks/context/usePixel';
 import { Edit, ExternalLink, Grid2x2 } from '@/components/icons';
+import { usePixel } from '@/features/legacy/hooks/usePixel';
 
 export function PixelHeader({ showActions = true }: { showActions?: boolean }) {
   const pixel = usePixel();

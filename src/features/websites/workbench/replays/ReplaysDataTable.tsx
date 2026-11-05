@@ -1,6 +1,6 @@
 import { DataGrid } from '@/components/common/DataGrid';
 import { useGridState } from '@/components/hooks';
-import { useReplaysQuery } from '@/components/hooks/queries/useReplaysQuery';
+import { useReplaysQuery } from '@/features/analytics/hooks/useReplaysQuery';
 import { ReplaysTable } from './ReplaysTable';
 
 export function ReplaysDataTable({

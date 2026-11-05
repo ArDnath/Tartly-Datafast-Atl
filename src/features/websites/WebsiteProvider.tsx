@@ -1,7 +1,7 @@
 'use client';
 import { Loading } from '@talivia/react-zen';
 import { createContext, type ReactNode } from 'react';
-import { useWebsiteQuery } from '@/components/hooks/queries/useWebsiteQuery';
+import { useWebsiteQuery } from '@/features/websites/hooks/useWebsiteQuery';
 import type { Website } from '@/generated/prisma/client';
 
 export const WebsiteContext = createContext<Website>(null);

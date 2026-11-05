@@ -10,10 +10,6 @@ import {
 } from '@talivia/react-zen';
 import { useEffect, useMemo, useState } from 'react';
 import { useMessages } from '@/components/hooks';
-import { LinkSelect } from '@/components/input/LinkSelect';
-import { PixelSelect } from '@/components/input/PixelSelect';
-import { WebsiteSelect } from '@/components/input/WebsiteSelect';
-import type { BoardComponentConfig } from '@/lib/types';
 import {
   BOARD_ENTITY_TYPES,
   type BoardEntityType,
@@ -22,6 +18,10 @@ import {
   isBoardComponentSupported,
   isOpenBoardType,
 } from '@/features/legacy/boards/core/boards';
+import { LinkSelect } from '@/features/legacy/components/input/LinkSelect';
+import { PixelSelect } from '@/features/legacy/components/input/PixelSelect';
+import { WebsiteSelect } from '@/features/websites/components/WebsiteSelect';
+import type { BoardComponentConfig } from '@/lib/types';
 import {
   type ComponentDefinition,
   type ConfigField,
@@ -51,9 +51,7 @@ export function BoardComponentSelect({
   const [selectedEntityType, setSelectedEntityType] = useState<BoardEntityType>(
     initialEntity.entityType || boardEntityType || BOARD_ENTITY_TYPES.website,
   );
-  const [selectedEntityId, setSelectedEntityId] = useState(
-    initialEntity.entityId || boardEntityId,
-  );
+  const [selectedEntityId, setSelectedEntityId] = useState(initialEntity.entityId || boardEntityId);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
@@ -365,7 +363,11 @@ export function BoardComponentSelect({
           <Text weight="bold">Preview</Text>
           <Column border="left" paddingLeft="4" height="100%" style={{ minWidth: 0 }}>
             {hasSelectedEntity && previewConfig && (!needsWebsite || resolvedEntityId) ? (
-              <BoardComponentRenderer config={previewConfig} websiteId={resolvedEntityId} entityType={resolvedEntityType} />
+              <BoardComponentRenderer
+                config={previewConfig}
+                websiteId={resolvedEntityId}
+                entityType={resolvedEntityType}
+              />
             ) : (
               <Column alignItems="center" justifyContent="center" height="100%">
                 <Text color="muted">

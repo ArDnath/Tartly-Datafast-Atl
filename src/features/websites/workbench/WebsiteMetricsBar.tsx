@@ -1,6 +1,6 @@
 import { LoadingPanel } from '@/components/common/LoadingPanel';
-import { MetricCard } from '@/components/metrics/MetricCard';
-import { MetricsBar } from '@/components/metrics/MetricsBar';
+import { MetricCard } from '@/features/analytics/components/metrics/MetricCard';
+import { MetricsBar } from '@/features/analytics/components/metrics/MetricsBar';
 import { useWebsiteOverviewMetrics } from './useWebsiteOverviewMetrics';
 
 export function WebsiteMetricsBar({

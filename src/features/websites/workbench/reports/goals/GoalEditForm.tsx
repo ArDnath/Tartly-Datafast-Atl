@@ -11,9 +11,9 @@ import {
   TextField,
 } from '@talivia/react-zen';
 import { useMessages, useMobile, useUpdateQuery } from '@/components/hooks';
-import { ActionSelect } from '@/components/input/ActionSelect';
-import { LookupField } from '@/components/input/LookupField';
-import { useReportQuery } from '@/components/hooks/queries/useReportQuery';
+import { ActionSelect } from '@/features/analytics/components/input/ActionSelect';
+import { LookupField } from '@/features/analytics/components/input/LookupField';
+import { useReportQuery } from '@/features/analytics/hooks/useReportQuery';
 
 export function GoalEditForm({
   id,

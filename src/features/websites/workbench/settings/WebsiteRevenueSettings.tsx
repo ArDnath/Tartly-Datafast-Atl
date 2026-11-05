@@ -13,9 +13,9 @@ import { type CSSProperties, type ReactNode, useState } from 'react';
 import { ConfirmationForm } from '@/components/common/ConfirmationForm';
 import { InlineExternalLink } from '@/components/common/InlineExternalLink';
 import { Panel } from '@/components/common/Panel';
-import { PaymentProviderLogo } from '@/components/common/PaymentProviderLogo';
 import { useApi, useMessages, useModified, useNavigation, useTimezone } from '@/components/hooks';
 import { DialogButton } from '@/components/input/DialogButton';
+import { PaymentProviderLogo } from '@/features/payments/components/PaymentProviderLogo';
 import { BRAND } from '@/lib/brand';
 import { REPORTING_CURRENCIES, type ReportingCurrency } from '@/lib/reporting-currency';
 
@@ -653,8 +653,8 @@ export function WebsiteRevenueConnect({
           <Column gap="1">
             <Label>Connect Stripe</Label>
             <Text color="muted">
-              A restricted key is enough. {BRAND.name} configures the webhook and imports recent payments
-              for you.
+              A restricted key is enough. {BRAND.name} configures the webhook and imports recent
+              payments for you.
             </Text>
           </Column>
           <div className="payment-setup-steps">
@@ -819,8 +819,8 @@ export function WebsiteRevenueConnect({
           <Column gap="1">
             <Label>Connect LemonSqueezy</Label>
             <Text color="muted">
-              Enter your Store ID and API key. {BRAND.name} validates the store and creates the signed
-              revenue webhook automatically.
+              Enter your Store ID and API key. {BRAND.name} validates the store and creates the
+              signed revenue webhook automatically.
             </Text>
           </Column>
           <div className="payment-setup-steps">

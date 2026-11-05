@@ -3,9 +3,9 @@ import { useMemo } from 'react';
 import { Favicon } from '@/components/common/Favicon';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { useLocale, useMessages, useMobile, useTimezone } from '@/components/hooks';
-import { useSessionActivityQuery } from '@/components/hooks/queries/useSessionActivityQuery';
 import { CreditCard, Eye, Link, LogIn } from '@/components/icons';
 import { Lightning } from '@/components/svg';
+import { useSessionActivityQuery } from '@/features/analytics/hooks/useSessionActivityQuery';
 import { DEFAULT_CURRENCY } from '@/lib/constants';
 import { formatLongCurrency } from '@/lib/format';
 

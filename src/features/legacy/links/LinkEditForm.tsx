@@ -12,10 +12,9 @@ import {
   TextField,
 } from '@talivia/react-zen';
 import { useState } from 'react';
-import { useMessages } from '@/components/hooks';
-import { useLinkQuery } from '@/components/hooks/queries/useLinkQuery';
-import { useUpdateQuery } from '@/components/hooks/queries/useUpdateQuery';
+import { useMessages, useUpdateQuery } from '@/components/hooks';
 import { RefreshCw } from '@/components/icons';
+import { useLinkQuery } from '@/features/legacy/hooks/useLinkQuery';
 import { LINKS_URL } from '@/lib/constants';
 import { getRandomChars } from '@/lib/generate';
 import { isValidUrl } from '@/lib/url';

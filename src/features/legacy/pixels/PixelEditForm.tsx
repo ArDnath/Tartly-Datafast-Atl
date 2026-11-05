@@ -11,10 +11,9 @@ import {
   TextField,
 } from '@talivia/react-zen';
 import { useEffect, useState } from 'react';
-import { useMessages } from '@/components/hooks';
-import { usePixelQuery } from '@/components/hooks/queries/usePixelQuery';
-import { useUpdateQuery } from '@/components/hooks/queries/useUpdateQuery';
+import { useMessages, useUpdateQuery } from '@/components/hooks';
 import { RefreshCw } from '@/components/icons';
+import { usePixelQuery } from '@/features/legacy/hooks/usePixelQuery';
 import { PIXELS_URL } from '@/lib/constants';
 import { getRandomChars } from '@/lib/generate';
 

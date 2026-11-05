@@ -1,6 +1,6 @@
 import { useMessages } from '@/components/hooks';
-import { MetricCard } from '@/components/metrics/MetricCard';
-import { MetricsBar } from '@/components/metrics/MetricsBar';
+import { MetricCard } from '@/features/analytics/components/metrics/MetricCard';
+import { MetricsBar } from '@/features/analytics/components/metrics/MetricsBar';
 
 export function RealtimeHeader({ data }: { data: any }) {
   const { t, labels } = useMessages();

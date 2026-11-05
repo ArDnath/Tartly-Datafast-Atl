@@ -3,10 +3,10 @@ import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { Panel } from '@/components/common/Panel';
 import { SectionHeader } from '@/components/common/SectionHeader';
 import { useMessages } from '@/components/hooks';
-import { useResultQuery } from '@/components/hooks/queries/useResultQuery';
-import { ListTable } from '@/components/metrics/ListTable';
-import { MetricCard } from '@/components/metrics/MetricCard';
-import { MetricsBar } from '@/components/metrics/MetricsBar';
+import { ListTable } from '@/features/analytics/components/metrics/ListTable';
+import { MetricCard } from '@/features/analytics/components/metrics/MetricCard';
+import { MetricsBar } from '@/features/analytics/components/metrics/MetricsBar';
+import { useResultQuery } from '@/features/analytics/hooks/useResultQuery';
 import { percentFilter } from '@/lib/filters';
 import { formatLongNumber } from '@/lib/format';
 

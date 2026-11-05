@@ -1,9 +1,7 @@
 import { Column, Label, Text, TextField } from '@talivia/react-zen';
-import {
-  useMessages,
-  useWebsiteAttributionSettingsQuery,
-  useWebsiteQuery,
-} from '@/components/hooks';
+import { useMessages } from '@/components/hooks';
+import { useWebsiteAttributionSettingsQuery } from '@/features/websites/hooks/useWebsiteAttributionSettingsQuery';
+import { useWebsiteQuery } from '@/features/websites/hooks/useWebsiteQuery';
 import { normalizeWebsiteDomainInput } from '@/lib/website-domain';
 
 const SCRIPT_NAME = 'script.js';

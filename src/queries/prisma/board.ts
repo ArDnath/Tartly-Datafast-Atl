@@ -1,5 +1,5 @@
 import type { Prisma } from '@/generated/prisma/client';
-import { BOARD_TYPES } from '@/features/legacy/boards/core/boards';
+import { BOARD_TYPES } from '@/lib/board-types';
 import prisma from '@/lib/prisma';
 import type { QueryFilters } from '@/lib/types';
 

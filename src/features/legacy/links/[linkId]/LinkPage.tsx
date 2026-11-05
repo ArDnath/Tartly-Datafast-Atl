@@ -1,5 +1,8 @@
 'use client';
 import { Column, Grid } from '@talivia/react-zen';
+import { PageBody } from '@/components/common/PageBody';
+import { Panel } from '@/components/common/Panel';
+import { useAnalyticsOverlays } from '@/features/analytics/components/AnalyticsOverlayContext';
 import { LinkControls } from '@/features/legacy/links/[linkId]/LinkControls';
 import { LinkHeader } from '@/features/legacy/links/[linkId]/LinkHeader';
 import { LinkMetricsBar } from '@/features/legacy/links/[linkId]/LinkMetricsBar';
@@ -7,9 +10,6 @@ import { LinkPanels } from '@/features/legacy/links/[linkId]/LinkPanels';
 import { LinkProvider } from '@/features/legacy/links/LinkProvider';
 import { AnalyticsOverlayProvider } from '@/features/websites/workbench/AnalyticsOverlayProvider';
 import { WebsiteChart } from '@/features/websites/workbench/WebsiteChart';
-import { PageBody } from '@/components/common/PageBody';
-import { Panel } from '@/components/common/Panel';
-import { useAnalyticsOverlays } from '@/components/overlays/AnalyticsOverlayContext';
 
 const excludedIds = ['path', 'entry', 'exit', 'title', 'language', 'screen', 'event'];
 

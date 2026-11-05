@@ -4,7 +4,7 @@ import { Avatar } from '@/components/common/Avatar';
 import { DateDistance } from '@/components/common/DateDistance';
 import { Favicon } from '@/components/common/Favicon';
 import { useLocale, useMessages } from '@/components/hooks';
-import { SessionActivityHeatmap } from '@/components/metrics/SessionActivityHeatmap';
+import { SessionActivityHeatmap } from '@/features/analytics/components/metrics/SessionActivityHeatmap';
 import { formatLongNumber } from '@/lib/format';
 import { SessionLink } from './SessionDetails';
 import { SessionMeta } from './SessionMeta';

@@ -1,6 +1,6 @@
 import { DataGrid } from '@/components/common/DataGrid';
 import { useGridState } from '@/components/hooks';
-import { usePixelsQuery } from '@/components/hooks/queries/usePixelsQuery';
+import { usePixelsQuery } from '@/features/legacy/hooks/usePixelsQuery';
 import { PixelsTable } from './PixelsTable';
 
 export function PixelsDataTable({ showActions = false }: { showActions?: boolean }) {

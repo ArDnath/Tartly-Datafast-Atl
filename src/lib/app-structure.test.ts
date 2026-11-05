@@ -1,9 +1,10 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, join, relative } from 'node:path';
 import { describe, expect, test } from 'vitest';
 
 const APP_ROOT = join(process.cwd(), 'src/app');
 const FEATURES_ROOT = join(process.cwd(), 'src/features');
+const SRC = join(process.cwd(), 'src');
 
 /**
  * Route conventions are the only files that belong under src/app. Product UI
@@ -54,6 +55,12 @@ const RE_EXPORT_ONLY = /^export \{ [A-Z, ]+ \} from '@\/features\/[^']+';?$/;
 const NEXT_CONFIG =
   /^export const (dynamic|runtime|revalidate|fetchCache|preferredRegion) = ['"][^'"]+['"];?$/;
 
+/** Shared layers must never depend upward on a product domain. */
+const SHARED_ROOTS = ['components', 'lib', 'permissions', 'queries', 'store'];
+
+/** Shared design-system / infrastructure directories under src/components. */
+const SHARED_COMPONENT_DIRS = ['brand', 'charts', 'common', 'hooks', 'input', 'svg'];
+
 function walk(directory: string): string[] {
   return readdirSync(directory).flatMap(entry => {
     const path = join(directory, entry);
@@ -93,9 +100,10 @@ describe('application source layout', () => {
 
   test('API route files are thin re-exports from feature server modules', () => {
     for (const module of SERVER_MODULES) {
-      expect(existsSync(join(FEATURES_ROOT, module, 'server')), `missing server for ${module}`).toBe(
-        true,
-      );
+      expect(
+        existsSync(join(FEATURES_ROOT, module, 'server')),
+        `missing server for ${module}`,
+      ).toBe(true);
     }
 
     const apiFiles = walk(join(APP_ROOT, 'api')).filter(
@@ -115,5 +123,29 @@ describe('application source layout', () => {
         `API route is not a thin re-export: ${relative(APP_ROOT, file)}`,
       ).toBe(true);
     }
+  });
+
+  test('src/components contains shared primitives only', () => {
+    const directories = readdirSync(join(SRC, 'components'))
+      .filter(entry => statSync(join(SRC, 'components', entry)).isDirectory())
+      .sort();
+
+    expect(directories).toEqual(SHARED_COMPONENT_DIRS);
+  });
+
+  test('shared layers never import a product feature', () => {
+    const violations = SHARED_ROOTS.flatMap(root =>
+      walk(join(SRC, root))
+        .filter(file => /\.(ts|tsx)$/.test(file))
+        .filter(file => !file.includes('.test.'))
+        .flatMap(file => {
+          const content = readFileSync(file, 'utf8');
+          return content.includes("from '@/features/")
+            ? [`${relative(SRC, file)} -> ${content.match(/from '(@\/features\/[^']+)'/)?.[1]}`]
+            : [];
+        }),
+    );
+
+    expect(violations).toEqual([]);
   });
 });

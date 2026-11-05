@@ -11,13 +11,14 @@ import {
 } from '@talivia/react-zen';
 import { Bookmark, X } from 'lucide-react';
 import { useState } from 'react';
-import { SessionInfo } from '@/features/websites/workbench/sessions/SessionInfo';
 import { Avatar } from '@/components/common/Avatar';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
-import { useMessages, useUpdateQuery, useWebsiteSessionQuery } from '@/components/hooks';
-import { useReplayQuery } from '@/components/hooks/queries/useReplayQuery';
-import { useReplaySavedQuery } from '@/components/hooks/queries/useReplaySavedQuery';
+import { useMessages, useUpdateQuery } from '@/components/hooks';
 import { touch } from '@/components/hooks/useModified';
+import { useReplayQuery } from '@/features/analytics/hooks/useReplayQuery';
+import { useReplaySavedQuery } from '@/features/analytics/hooks/useReplaySavedQuery';
+import { useWebsiteSessionQuery } from '@/features/analytics/hooks/useWebsiteSessionQuery';
+import { SessionInfo } from '@/features/websites/workbench/sessions/SessionInfo';
 import { ReplayPlayer } from './ReplayPlayer';
 import { ReplaySaveForm } from './ReplaySaveForm';
 

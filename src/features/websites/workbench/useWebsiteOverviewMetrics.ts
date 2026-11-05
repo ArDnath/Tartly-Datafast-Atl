@@ -1,5 +1,5 @@
 import { useDateRange, useMessages } from '@/components/hooks';
-import { useWebsiteStatsQuery } from '@/components/hooks/queries/useWebsiteStatsQuery';
+import { useWebsiteStatsQuery } from '@/features/analytics/hooks/useWebsiteStatsQuery';
 import { DEFAULT_CURRENCY } from '@/lib/constants';
 import { formatLongCurrency, formatLongNumber, formatShortTime } from '@/lib/format';
 

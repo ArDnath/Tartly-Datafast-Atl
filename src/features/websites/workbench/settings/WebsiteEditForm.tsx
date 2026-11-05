@@ -1,6 +1,7 @@
 import { Form, FormButtons, FormField, FormSubmitButton, TextField } from '@talivia/react-zen';
 import type { ReactNode } from 'react';
-import { useMessages, useUpdateQuery, useWebsite } from '@/components/hooks';
+import { useMessages, useUpdateQuery } from '@/components/hooks';
+import { useWebsite } from '@/features/websites/hooks/useWebsite';
 import { DOMAIN_REGEX } from '@/lib/constants';
 import { normalizeWebsiteDomainInput } from '@/lib/website-domain';
 

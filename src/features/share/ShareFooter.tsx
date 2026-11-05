@@ -1,6 +1,6 @@
 'use client';
-import { useShare } from '@/components/hooks';
 import { Column, Row } from '@talivia/react-zen';
+import { useShare } from '@/features/share/hooks/useShare';
 import { ShareBranding } from './ShareBranding';
 
 export function ShareFooter() {

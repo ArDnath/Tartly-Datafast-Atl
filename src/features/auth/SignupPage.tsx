@@ -3,7 +3,7 @@
 import { Column, Loading } from '@talivia/react-zen';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
-import { useLoginQuery } from '@/components/hooks';
+import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { sanitizeAuthReturnUrl } from '@/lib/auth-return-url';
 import { SignupForm } from './SignupForm';
 

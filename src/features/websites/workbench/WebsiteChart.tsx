@@ -1,11 +1,11 @@
 import { useRef } from 'react';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { useDateRange, useTimezone } from '@/components/hooks';
+import { OverviewChart } from '@/features/analytics/components/metrics/OverviewChart';
 import {
   useWebsiteStatsQuery,
   type WebsiteStatsData,
-} from '@/components/hooks/queries/useWebsiteStatsQuery';
-import { OverviewChart } from '@/components/metrics/OverviewChart';
+} from '@/features/analytics/hooks/useWebsiteStatsQuery';
 import { DEFAULT_CURRENCY } from '@/lib/constants';
 
 export function WebsiteChart({

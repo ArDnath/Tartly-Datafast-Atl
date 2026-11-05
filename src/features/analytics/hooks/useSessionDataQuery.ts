@@ -1,0 +1,12 @@
+import { useApi } from '@/components/hooks/useApi';
+
+export function useSessionDataQuery(websiteId: string, sessionId: string) {
+  const { get, useQuery } = useApi();
+
+  return useQuery({
+    queryKey: ['session:data', { websiteId, sessionId }],
+    queryFn: () => {
+      return get(`/websites/${websiteId}/sessions/${sessionId}/properties`, { websiteId });
+    },
+  });
+}

@@ -1,9 +1,9 @@
 import { Column, Row } from '@talivia/react-zen';
-import { ExportButton } from '@/components/input/ExportButton';
-import { FilterBar } from '@/components/input/FilterBar';
-import { MonthFilter } from '@/components/input/MonthFilter';
-import { WebsiteDateFilter } from '@/components/input/WebsiteDateFilter';
-import { WebsiteFilterButton } from '@/components/input/WebsiteFilterButton';
+import { ExportButton } from '@/features/analytics/components/input/ExportButton';
+import { FilterBar } from '@/features/analytics/components/input/FilterBar';
+import { MonthFilter } from '@/features/analytics/components/input/MonthFilter';
+import { WebsiteDateFilter } from '@/features/analytics/components/input/WebsiteDateFilter';
+import { WebsiteFilterButton } from '@/features/analytics/components/input/WebsiteFilterButton';
 
 export function PixelControls({
   pixelId: websiteId,

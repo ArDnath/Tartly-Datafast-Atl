@@ -1,14 +1,14 @@
 'use client';
 import { Column } from '@talivia/react-zen';
-import { BoardEditForm } from '@/features/legacy/boards/BoardEditForm';
 import { IconLabel } from '@/components/common/IconLabel';
 import Link from '@/components/common/Link';
 import { PageBody } from '@/components/common/PageBody';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Panel } from '@/components/common/Panel';
 import { useMessages, useNavigation } from '@/components/hooks';
-import { useBoardQuery } from '@/components/hooks/queries/useBoardQuery';
 import { ArrowLeft, LayoutDashboard } from '@/components/icons';
+import { BoardEditForm } from '@/features/legacy/boards/BoardEditForm';
+import { useBoardQuery } from '@/features/legacy/hooks/useBoardQuery';
 
 export function BoardEditPage({ boardId }: { boardId: string }) {
   const { data: board } = useBoardQuery(boardId);

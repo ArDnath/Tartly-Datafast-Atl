@@ -1,6 +1,6 @@
 import { DataGrid } from '@/components/common/DataGrid';
 import { useGridState } from '@/components/hooks';
-import { useSavedReplaysQuery } from '@/components/hooks/queries/useSavedReplaysQuery';
+import { useSavedReplaysQuery } from '@/features/analytics/hooks/useSavedReplaysQuery';
 import { SavedReplaysTable } from './SavedReplaysTable';
 
 export function SavedReplaysDataTable({

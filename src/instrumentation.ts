@@ -7,7 +7,7 @@ export async function register() {
     return;
   }
 
-  const { startCronScheduler } = await import('@/lib/cron');
+  const { startCronScheduler } = await import('@/features/system/cron');
 
   startCronScheduler();
 }

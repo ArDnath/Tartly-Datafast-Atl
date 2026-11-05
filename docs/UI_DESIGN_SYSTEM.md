@@ -237,6 +237,10 @@ blocked on Phase 5 (platform billing); the rest is tracked in `docs/PHASES.md`.
 | Security settings | `src/features/settings/security/` |
 | Website workbench | `src/features/websites/workbench/` |
 | Website workbench nav | `src/features/websites/workbench/WebsiteSectionNav.tsx` |
+| Analytics widgets | `src/features/analytics/components/metrics/` |
+| Analytics filters/selectors | `src/features/analytics/components/input/` |
+| Share widgets | `src/features/share/components/` |
+| Domain query hooks | `src/features/<domain>/hooks/` |
 | Workspace and website settings | `src/features/settings/` |
 | Onboarding flow | `src/features/onboarding/OnboardingFlow.tsx`, `Onboarding.module.css` |
 | Plan config | `src/lib/plans.ts` |
@@ -279,12 +283,19 @@ Each domain that serves HTTP has a `server/` directory. API routes under
 `src/app/api` re-export handlers from `src/features/<domain>/server`. See
 `docs/ARCHITECTURE.md`.
 
+`src/components` keeps shared design-system primitives only (`common`, `charts`,
+`input`, `svg`, `brand`, generic `hooks`). Analytics widgets live in
+`src/features/analytics/components/metrics`, share widgets in
+`src/features/share/components`, and domain selectors in the owning feature.
+
 Rules:
 
 - A route file stays thin: parse params, fetch/verify the tenant, render a
   feature component.
 - Cross-feature imports go through `@/features/...`; do not reach into another
   feature with `../../`.
+- Shared layers must not import a feature. `src/lib/app-structure.test.ts`
+  enforces both directions.
 - The old `/websites/*` and `/settings/*` URLs are compatibility redirects in
   `next.config.ts`; the canonical product routes are `/app/*`.
 - `src/features/legacy` is quarantined, not a pattern to copy. New work must not

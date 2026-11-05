@@ -21,9 +21,7 @@ export function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token') || '';
   const { labels, t, getErrorMessage } = useMessages();
-  const { mutateAsync, error: submitError, isPending } = useUpdateQuery(
-    '/auth/password/reset',
-  );
+  const { mutateAsync, error: submitError, isPending } = useUpdateQuery('/auth/password/reset');
   const [done, setDone] = useState(false);
 
   const handleSubmit = async (data: { password: string; confirmPassword: string }) => {

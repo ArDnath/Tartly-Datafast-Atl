@@ -1,15 +1,15 @@
 'use client';
 import { Column } from '@talivia/react-zen';
-import { PixelShareForm } from '@/features/legacy/pixels/[pixelId]/PixelShareForm';
-import { PixelEditForm } from '@/features/legacy/pixels/PixelEditForm';
-import { PixelProvider } from '@/features/legacy/pixels/PixelProvider';
 import { IconLabel } from '@/components/common/IconLabel';
 import Link from '@/components/common/Link';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Panel } from '@/components/common/Panel';
 import { useMessages, useNavigation } from '@/components/hooks';
-import { usePixel } from '@/components/hooks/context/usePixel';
 import { ArrowLeft, Grid2x2 } from '@/components/icons';
+import { usePixel } from '@/features/legacy/hooks/usePixel';
+import { PixelShareForm } from '@/features/legacy/pixels/[pixelId]/PixelShareForm';
+import { PixelEditForm } from '@/features/legacy/pixels/PixelEditForm';
+import { PixelProvider } from '@/features/legacy/pixels/PixelProvider';
 
 export function PixelEditPage({ pixelId }: { pixelId: string }) {
   return (

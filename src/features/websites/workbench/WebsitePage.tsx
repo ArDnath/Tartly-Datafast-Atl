@@ -1,8 +1,8 @@
 'use client';
 import { Column, Loading } from '@talivia/react-zen';
 import { Panel } from '@/components/common/Panel';
-import { useWebsiteStatsQuery } from '@/components/hooks/queries/useWebsiteStatsQuery';
-import { useAnalyticsOverlays } from '@/components/overlays/AnalyticsOverlayContext';
+import { useAnalyticsOverlays } from '@/features/analytics/components/AnalyticsOverlayContext';
+import { useWebsiteStatsQuery } from '@/features/analytics/hooks/useWebsiteStatsQuery';
 import { WebsiteChart } from './WebsiteChart';
 import { WebsiteChartMetricStrip } from './WebsiteChartMetricStrip';
 import { WebsitePanels } from './WebsitePanels';

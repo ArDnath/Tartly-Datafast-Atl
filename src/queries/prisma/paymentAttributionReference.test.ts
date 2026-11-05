@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 
-vi.mock('@/features/payments/server/providers/stripe-provider', () => ({
+vi.mock('@/lib/stripe-amount', () => ({
   formatStripeAmount: vi.fn(),
 }));
 

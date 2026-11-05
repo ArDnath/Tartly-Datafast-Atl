@@ -3,10 +3,10 @@ import { useState } from 'react';
 import { IconLabel } from '@/components/common/IconLabel';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { useMessages } from '@/components/hooks';
-import { useLinkSharesQuery } from '@/components/hooks/queries/useLinkSharesQuery';
 import { Plus } from '@/components/icons';
-import { SimpleShareCreateForm } from '@/components/share/SimpleShareCreateForm';
-import { SimpleSharesTable } from '@/components/share/SimpleSharesTable';
+import { useLinkSharesQuery } from '@/features/legacy/hooks/useLinkSharesQuery';
+import { SimpleShareCreateForm } from '@/features/share/components/SimpleShareCreateForm';
+import { SimpleSharesTable } from '@/features/share/components/SimpleSharesTable';
 
 export function LinkShareForm({ linkId }: { linkId: string }) {
   const { data, error, isLoading } = useLinkSharesQuery({ linkId });

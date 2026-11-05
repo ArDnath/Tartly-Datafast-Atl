@@ -1,8 +1,8 @@
 import { Box, Column, Label, Row, Text } from '@talivia/react-zen';
 import { Empty } from '@/components/common/Empty';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
+import { useSessionDataQuery } from '@/features/analytics/hooks/useSessionDataQuery';
 import { DATA_TYPES } from '@/lib/constants';
-import { useSessionDataQuery } from '@/components/hooks/queries/useSessionDataQuery';
 
 export function SessionData({ websiteId, sessionId }: { websiteId: string; sessionId: string }) {
   const { data, isLoading, error } = useSessionDataQuery(websiteId, sessionId);

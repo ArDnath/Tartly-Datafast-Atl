@@ -2,7 +2,7 @@
 
 import type { MouseEvent } from 'react';
 import Link, { type LinkProps } from '@/components/common/Link';
-import { useAnalyticsOverlays } from '@/components/overlays/AnalyticsOverlayContext';
+import { useAnalyticsOverlays } from '@/features/analytics/components/AnalyticsOverlayContext';
 
 export function shouldOpenSessionInline(
   event: Pick<

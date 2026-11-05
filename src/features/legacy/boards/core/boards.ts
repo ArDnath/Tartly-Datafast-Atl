@@ -1,22 +1,14 @@
-import { isBoardComponentSupportedByEntityType } from './boardComponentCompatibility';
+import {
+  BOARD_ENTITY_TYPES,
+  BOARD_TYPES,
+  type BoardEntityType,
+  type BoardType,
+} from '@/lib/board-types';
 import type { Board, BoardComponentConfig, BoardParameters } from '@/lib/types';
+import { isBoardComponentSupportedByEntityType } from './boardComponentCompatibility';
 
-export const BOARD_TYPES = {
-  dashboard: 'dashboard',
-  mixed: 'mixed',
-  website: 'website',
-  pixel: 'pixel',
-  link: 'link',
-} as const;
-
-export const BOARD_ENTITY_TYPES = {
-  website: 'website',
-  pixel: 'pixel',
-  link: 'link',
-} as const;
-
-export type BoardType = (typeof BOARD_TYPES)[keyof typeof BOARD_TYPES];
-export type BoardEntityType = (typeof BOARD_ENTITY_TYPES)[keyof typeof BOARD_ENTITY_TYPES];
+export type { BoardEntityType, BoardType };
+export { BOARD_ENTITY_TYPES, BOARD_TYPES };
 
 const boardTypes = new Set<string>(Object.values(BOARD_TYPES));
 

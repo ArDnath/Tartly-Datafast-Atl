@@ -2,8 +2,8 @@ import { Grid, Heading, Tab, TabList, TabPanel, Tabs } from '@talivia/react-zen'
 import { GridRow } from '@/components/common/GridRow';
 import { Panel } from '@/components/common/Panel';
 import { useMessages } from '@/components/hooks';
-import { MetricsTable } from '@/components/metrics/MetricsTable';
-import { WorldMap } from '@/components/metrics/WorldMap';
+import { MetricsTable } from '@/features/analytics/components/metrics/MetricsTable';
+import { WorldMap } from '@/features/analytics/components/metrics/WorldMap';
 
 export function PixelPanels({
   pixelId,

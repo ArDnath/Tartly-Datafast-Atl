@@ -3,7 +3,7 @@ import { Column } from '@talivia/react-zen';
 import { useState } from 'react';
 import { DataGrid } from '@/components/common/DataGrid';
 import { useGridState } from '@/components/hooks';
-import { useSessionReplaysQuery } from '@/components/hooks/queries/useSessionReplaysQuery';
+import { useSessionReplaysQuery } from '@/features/analytics/hooks/useSessionReplaysQuery';
 import { ReplayPlayback } from '../replays/[replayId]/ReplayPlayback';
 import { SessionReplaysTable } from './SessionReplaysTable';
 

@@ -8,14 +8,14 @@ import { PageBody } from '@/components/common/PageBody';
 import {
   useDateRange,
   useLocale,
-  useLoginQuery,
   useMessages,
   useNavigation,
   useUrlState,
-  useWebsiteOverviewQuery,
 } from '@/components/hooks';
 import { ChevronRight, Edit, Globe2 } from '@/components/icons';
 import { DateFilter } from '@/components/input/DateFilter';
+import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
+import { useWebsiteOverviewQuery } from '@/features/portfolio/hooks/useWebsiteOverviewQuery';
 import { DEFAULT_CURRENCY, ROLES } from '@/lib/constants';
 import { getDateRangeValue } from '@/lib/date';
 import { formatCurrency, formatLongCurrency, formatLongNumber } from '@/lib/format';
@@ -476,9 +476,7 @@ export function AppEntryPage() {
     (sum, website) => sum + Number(website.metrics.payments || 0),
     0,
   );
-  const currencies = new Set(
-    websites.map(website => website.metrics.currency || DEFAULT_CURRENCY),
-  );
+  const currencies = new Set(websites.map(website => website.metrics.currency || DEFAULT_CURRENCY));
   const singleCurrency = currencies.size <= 1;
   const portfolioCurrency = [...currencies][0] || DEFAULT_CURRENCY;
   const revenuePerVisitor = totalVisitors ? totalRevenue / totalVisitors : 0;
@@ -546,9 +544,7 @@ export function AppEntryPage() {
               <PortfolioMetric
                 label="Revenue"
                 value={
-                  singleCurrency
-                    ? formatCurrency(totalRevenue, portfolioCurrency, locale)
-                    : 'Mixed'
+                  singleCurrency ? formatCurrency(totalRevenue, portfolioCurrency, locale) : 'Mixed'
                 }
                 hint={
                   singleCurrency

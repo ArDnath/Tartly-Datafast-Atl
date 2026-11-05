@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { DateDisplay } from '@/components/common/DateDisplay';
 import { Panel } from '@/components/common/Panel';
 import { useDateRange, useMessages, useTimezone, useUrlState } from '@/components/hooks';
-import { ChangeLabel } from '@/components/metrics/ChangeLabel';
-import { MetricsTable } from '@/components/metrics/MetricsTable';
+import { ChangeLabel } from '@/features/analytics/components/metrics/ChangeLabel';
+import { MetricsTable } from '@/features/analytics/components/metrics/MetricsTable';
 import { formatNumber } from '@/lib/format';
 
 export function CompareTables({ websiteId }: { websiteId: string }) {

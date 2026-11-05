@@ -1,6 +1,6 @@
 import { DataGrid } from '@/components/common/DataGrid';
 import { useGridState } from '@/components/hooks';
-import { useWebsiteCohortsQuery } from '@/components/hooks/queries/useWebsiteCohortsQuery';
+import { useWebsiteCohortsQuery } from '@/features/analytics/hooks/useWebsiteCohortsQuery';
 import { CohortAddButton } from './CohortAddButton';
 import { CohortsTable } from './CohortsTable';
 

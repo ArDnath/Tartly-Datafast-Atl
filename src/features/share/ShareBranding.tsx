@@ -1,7 +1,7 @@
 'use client';
 import { Icon, Row, Text } from '@talivia/react-zen';
 import { BrandMark } from '@/components/brand/BrandMark';
-import { useShare } from '@/components/hooks';
+import { useShare } from '@/features/share/hooks/useShare';
 import { BRAND } from '@/lib/brand';
 
 const LOGO_SIZE = { sm: 24, md: 32, lg: 40 };

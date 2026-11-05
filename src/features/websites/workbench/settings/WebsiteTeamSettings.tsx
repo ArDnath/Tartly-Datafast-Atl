@@ -13,19 +13,16 @@ import {
   TextField,
   useToast,
 } from '@talivia/react-zen';
-import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { ConfirmationForm } from '@/components/common/ConfirmationForm';
-import {
-  type WebsiteMemberRow,
-  useDeleteQuery,
-  useMessages,
-  useModified,
-  useUpdateQuery,
-  useWebsite,
-  useWebsiteMembersQuery,
-} from '@/components/hooks';
+import { LoadingPanel } from '@/components/common/LoadingPanel';
+import { useDeleteQuery, useMessages, useModified, useUpdateQuery } from '@/components/hooks';
 import { Trash } from '@/components/icons';
 import { DialogButton } from '@/components/input/DialogButton';
+import { useWebsite } from '@/features/websites/hooks/useWebsite';
+import {
+  useWebsiteMembersQuery,
+  type WebsiteMemberRow,
+} from '@/features/websites/hooks/useWebsiteMembersQuery';
 import { WEBSITE_MEMBER_ROLES } from '@/lib/constants';
 
 type WebsiteAccess = {
@@ -179,9 +176,13 @@ export function WebsiteTeamSettings({ websiteId }: { websiteId: string }) {
   const website = useWebsite() as ReturnType<typeof useWebsite> & WebsiteAccess;
   const canManageMembers = !!website?.access?.canManageMembers;
   const { data, isLoading, isFetching, error } = useWebsiteMembersQuery(websiteId);
-  const { mutateAsync, error: inviteError, isPending, touch, toast } = useUpdateQuery(
-    `/websites/${websiteId}/members`,
-  );
+  const {
+    mutateAsync,
+    error: inviteError,
+    isPending,
+    touch,
+    toast,
+  } = useUpdateQuery(`/websites/${websiteId}/members`);
   const { t, labels, getErrorMessage } = useMessages();
   const owner = data?.owner;
   const rows: TeamRow[] = [
@@ -247,11 +248,7 @@ export function WebsiteTeamSettings({ websiteId }: { websiteId: string }) {
         minHeight="120px"
       >
         {rows.length > 0 ? (
-          <WebsiteTeamTable
-            rows={rows}
-            websiteId={websiteId}
-            canManageMembers={canManageMembers}
-          />
+          <WebsiteTeamTable rows={rows} websiteId={websiteId} canManageMembers={canManageMembers} />
         ) : (
           <Text color="muted">No team members yet.</Text>
         )}

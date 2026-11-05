@@ -16,10 +16,10 @@ import {
 } from '@talivia/react-zen';
 import { Fragment, useState } from 'react';
 import { useApi, useMessages, useMobile, useUpdateQuery } from '@/components/hooks';
-import { useReportQuery } from '@/components/hooks/queries/useReportQuery';
 import { Plus, X } from '@/components/icons';
-import { ActionSelect } from '@/components/input/ActionSelect';
-import { LookupField } from '@/components/input/LookupField';
+import { ActionSelect } from '@/features/analytics/components/input/ActionSelect';
+import { LookupField } from '@/features/analytics/components/input/LookupField';
+import { useReportQuery } from '@/features/analytics/hooks/useReportQuery';
 import { EventDataFilterRow, useEventDataDateRange } from './EventDataFilterRow';
 
 const FUNNEL_STEPS_MAX = 8;

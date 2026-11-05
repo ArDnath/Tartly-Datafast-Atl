@@ -1,6 +1,6 @@
 import { DataGrid } from '@/components/common/DataGrid';
 import { useGridState } from '@/components/hooks';
-import { useBoardsQuery } from '@/components/hooks/queries/useBoardsQuery';
+import { useBoardsQuery } from '@/features/legacy/hooks/useBoardsQuery';
 import { BoardsTable } from './BoardsTable';
 
 export function BoardsDataTable() {

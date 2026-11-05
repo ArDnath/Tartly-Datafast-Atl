@@ -1,6 +1,7 @@
 import thenby from 'thenby';
-import { useMessages, useWebsite } from '@/components/hooks';
-import { ListTable } from '@/components/metrics/ListTable';
+import { useMessages } from '@/components/hooks';
+import { ListTable } from '@/features/analytics/components/metrics/ListTable';
+import { useWebsite } from '@/features/websites/hooks/useWebsite';
 import { percentFilter } from '@/lib/filters';
 
 export function RealtimePaths({ data }: { data: any }) {

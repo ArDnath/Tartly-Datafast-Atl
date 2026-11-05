@@ -4,9 +4,12 @@ import { Column, Grid, Heading, Row, Text } from '@talivia/react-zen';
 import { useQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import Link from '@/components/common/Link';
-import { useActiveWorkspace, useApi, useLoginQuery, useNavigation, useWebsiteOverviewQuery } from '@/components/hooks';
-import type { UsageMeter } from '@/lib/usage';
+import { useApi, useNavigation } from '@/components/hooks';
+import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
+import { useWebsiteOverviewQuery } from '@/features/portfolio/hooks/useWebsiteOverviewQuery';
+import { useActiveWorkspace } from '@/features/workspaces/hooks/useActiveWorkspace';
 import { getPlanOrNull } from '@/lib/plans';
+import type { UsageMeter } from '@/lib/usage';
 
 interface WorkspaceUsageResponse {
   planId: string | null;
@@ -159,9 +162,7 @@ export function SettingsHomePage() {
 
         <SettingsCard title="Security" detail="Sign-in, email verification, and account deletion.">
           <Text size="sm" color="muted">
-            {user?.emailVerifiedAt
-              ? 'Email address verified.'
-              : 'Email address not verified yet.'}
+            {user?.emailVerifiedAt ? 'Email address verified.' : 'Email address not verified yet.'}
           </Text>
           <Link
             href={renderUrl('/app/settings/security', false)}

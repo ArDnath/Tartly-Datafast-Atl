@@ -2,7 +2,7 @@
 import { Loading } from '@talivia/react-zen';
 import { usePathname, useRouter } from 'next/navigation';
 import { createContext, type ReactNode, useEffect } from 'react';
-import { useShareTokenQuery } from '@/components/hooks';
+import { useShareTokenQuery } from '@/features/share/hooks/useShareTokenQuery';
 import { ENTITY_TYPE } from '@/lib/constants';
 import { getAllowedShareSections } from '@/lib/share-sections';
 import type { WhiteLabel } from '@/lib/types';

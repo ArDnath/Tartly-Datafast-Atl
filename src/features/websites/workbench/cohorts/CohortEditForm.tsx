@@ -12,11 +12,11 @@ import {
 } from '@talivia/react-zen';
 import { useEffect, useState } from 'react';
 import { useMessages, useUpdateQuery } from '@/components/hooks';
-import { useWebsiteCohortQuery } from '@/components/hooks/queries/useWebsiteCohortQuery';
-import { ActionSelect } from '@/components/input/ActionSelect';
 import { DateFilter } from '@/components/input/DateFilter';
-import { FieldFilters } from '@/components/input/FieldFilters';
-import { LookupField } from '@/components/input/LookupField';
+import { ActionSelect } from '@/features/analytics/components/input/ActionSelect';
+import { FieldFilters } from '@/features/analytics/components/input/FieldFilters';
+import { LookupField } from '@/features/analytics/components/input/LookupField';
+import { useWebsiteCohortQuery } from '@/features/analytics/hooks/useWebsiteCohortQuery';
 
 export function CohortEditForm({
   cohortId,

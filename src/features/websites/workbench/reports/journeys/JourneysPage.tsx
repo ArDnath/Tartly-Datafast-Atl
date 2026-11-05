@@ -1,10 +1,10 @@
 'use client';
 import { Column, Grid, ListItem, Row, SearchField, Select } from '@talivia/react-zen';
 import { useState } from 'react';
-import { WebsiteControls } from '@/features/websites/workbench/WebsiteControls';
 import { Panel } from '@/components/common/Panel';
 import { useDateRange, useMessages } from '@/components/hooks';
-import { FilterButtons } from '@/components/input/FilterButtons';
+import { FilterButtons } from '@/features/analytics/components/input/FilterButtons';
+import { WebsiteControls } from '@/features/websites/workbench/WebsiteControls';
 import { Journey } from './Journey';
 
 const JOURNEY_STEPS = [2, 3, 4, 5, 6, 7];

@@ -1,13 +1,13 @@
 'use client';
 import { Column, Grid } from '@talivia/react-zen';
-import { WebsiteControls } from '@/features/websites/workbench/WebsiteControls';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { Panel } from '@/components/common/Panel';
 import { SectionHeader } from '@/components/common/SectionHeader';
 import { useDateRange, useNavigation } from '@/components/hooks';
+import { useReportsQuery } from '@/features/analytics/hooks/useReportsQuery';
+import { WebsiteControls } from '@/features/websites/workbench/WebsiteControls';
 import { Funnel } from './Funnel';
 import { FunnelAddButton } from './FunnelAddButton';
-import { useReportsQuery } from '@/components/hooks/queries/useReportsQuery';
 
 export function FunnelsPage({ websiteId }: { websiteId: string }) {
   const { data, isLoading, error } = useReportsQuery({ websiteId, type: 'funnel' });

@@ -11,10 +11,6 @@ import {
   TextField,
 } from '@talivia/react-zen';
 import { useMessages, useUpdateQuery } from '@/components/hooks';
-import { useBoardQuery } from '@/components/hooks/queries/useBoardQuery';
-import { LinkSelect } from '@/components/input/LinkSelect';
-import { PixelSelect } from '@/components/input/PixelSelect';
-import { WebsiteSelect } from '@/components/input/WebsiteSelect';
 import {
   BOARD_TYPES,
   type BoardType,
@@ -23,6 +19,10 @@ import {
   requiresBoardEntity,
   setBoardEntity,
 } from '@/features/legacy/boards/core/boards';
+import { LinkSelect } from '@/features/legacy/components/input/LinkSelect';
+import { PixelSelect } from '@/features/legacy/components/input/PixelSelect';
+import { useBoardQuery } from '@/features/legacy/hooks/useBoardQuery';
+import { WebsiteSelect } from '@/features/websites/components/WebsiteSelect';
 import type { Board } from '@/lib/types';
 
 interface BoardFormValues {

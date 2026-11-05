@@ -7,17 +7,17 @@ import { IconLabel } from '@/components/common/IconLabel';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { Panel } from '@/components/common/Panel';
 import { useDateRange, useMobile } from '@/components/hooks';
-import { useReportsQuery } from '@/components/hooks/queries/useReportsQuery';
-import { useWebsiteStatsQuery } from '@/components/hooks/queries/useWebsiteStatsQuery';
 import { CreditCard, MousePointerClick, Target, UserRound, X } from '@/components/icons';
 import { MobileMenuButton } from '@/components/input/MobileMenuButton';
-import { MetricsExpandedTable } from '@/components/metrics/MetricsExpandedTable';
-import type { AnalyticsSection } from '@/components/overlays/AnalyticsOverlayContext';
+import type { AnalyticsSection } from '@/features/analytics/components/AnalyticsOverlayContext';
+import { MetricsExpandedTable } from '@/features/analytics/components/metrics/MetricsExpandedTable';
+import { useReportsQuery } from '@/features/analytics/hooks/useReportsQuery';
+import { useWebsiteStatsQuery } from '@/features/analytics/hooks/useWebsiteStatsQuery';
 import { Goal } from './reports/goals/Goal';
 import { SessionsDataTable } from './sessions/SessionsDataTable';
 import { WebsitePaymentsList } from './WebsitePaymentsList';
 
-export type { AnalyticsSection } from '@/components/overlays/AnalyticsOverlayContext';
+export type { AnalyticsSection } from '@/features/analytics/components/AnalyticsOverlayContext';
 
 const ANALYTICS_SECTIONS: {
   id: AnalyticsSection;

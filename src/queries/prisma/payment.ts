@@ -2,7 +2,7 @@ import type { Visitor } from '@/generated/prisma/client';
 import { REVENUE_PAYMENT_STATUSES } from '@/lib/payment-status';
 import prisma from '@/lib/prisma';
 import { isUniqueConstraintError } from '@/lib/prisma-error';
-import { formatStripeAmount } from '@/features/payments/server/providers/stripe-provider';
+import { formatStripeAmount } from '@/lib/stripe-amount';
 import { getTrackingSessionId } from '@/lib/tracking-identity';
 import {
   normalizeWebsiteCurrencyAmount,

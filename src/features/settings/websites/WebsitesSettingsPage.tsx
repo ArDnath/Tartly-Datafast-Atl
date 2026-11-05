@@ -1,10 +1,12 @@
 'use client';
 
 import { Column, Grid, Heading, Row, Text } from '@talivia/react-zen';
-import Link from '@/components/common/Link';
 import { Favicon } from '@/components/common/Favicon';
-import { useActiveWorkspace, useNavigation, useWebsiteOverviewQuery } from '@/components/hooks';
+import Link from '@/components/common/Link';
+import { useNavigation } from '@/components/hooks';
+import { useWebsiteOverviewQuery } from '@/features/portfolio/hooks/useWebsiteOverviewQuery';
 import { WebsiteAddButton } from '@/features/websites/WebsiteAddButton';
+import { useActiveWorkspace } from '@/features/workspaces/hooks/useActiveWorkspace';
 
 const SURFACE = {
   background: '#161616',
@@ -95,8 +97,8 @@ export function WebsitesSettingsPage() {
         <Column border padding="4" gap="2" style={SURFACE}>
           <Text weight="bold">No websites in this workspace yet</Text>
           <Text size="sm" color="muted">
-            Add a website to install the tracker and start attributing revenue. Your plan's
-            website allowance is shown on Plan and usage.
+            Add a website to install the tracker and start attributing revenue. Your plan's website
+            allowance is shown on Plan and usage.
           </Text>
           <Row>
             <WebsiteAddButton />
