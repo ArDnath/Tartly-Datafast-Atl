@@ -105,6 +105,37 @@ describe('analytics retention job', () => {
     });
   });
 
+  test('a deleted website or workspace purges every analytics payload immediately', async () => {
+    const closedWebsite = {
+      id: 'site-closed',
+      deletedAt: NOW,
+      workspace: {
+        planId: 'pro',
+        deletedAt: NOW,
+        platformSubscription: { planId: 'pro' },
+      },
+    };
+    const client = createClient([closedWebsite]);
+
+    const result = await runAnalyticsRetentionJob({
+      client,
+      transaction: async fn => fn(client),
+      now: NOW,
+      dryRun: false,
+    });
+
+    expect(result.results[0].closed).toBe(true);
+    expect(client.websiteEvent.deleteMany).toHaveBeenCalledWith({
+      where: { websiteId: 'site-closed', createdAt: { lt: NOW } },
+    });
+    expect(client.session.deleteMany).toHaveBeenCalledWith({
+      where: { websiteId: 'site-closed', createdAt: { lt: NOW } },
+    });
+    expect(client.sessionReplay.deleteMany).toHaveBeenCalledWith({
+      where: { websiteId: 'site-closed' },
+    });
+  });
+
   test('dry run counts payload rows without deleting or detaching anything', async () => {
     const client = createClient([starterWebsite, proWebsite, { id: 'site-null', workspace: null }]);
 

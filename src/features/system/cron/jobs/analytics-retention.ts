@@ -27,8 +27,10 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export interface AnalyticsRetentionWebsite {
   id: string;
+  deletedAt?: Date | null;
   workspace: {
     planId: string | null;
+    deletedAt?: Date | null;
     platformSubscription: { planId: string } | null;
   } | null;
 }
@@ -43,6 +45,7 @@ export interface AnalyticsRetentionOptions {
 
 export interface WebsiteRetentionResult {
   websiteId: string;
+  closed: boolean;
   planId: string;
   retentionDays: number;
   replayRetentionDays: number;
@@ -214,14 +217,15 @@ export async function runAnalyticsRetentionJob({
 }: AnalyticsRetentionOptions = {}) {
   const websites: AnalyticsRetentionWebsite[] = await client.website.findMany({
     where: {
-      deletedAt: null,
       ...(websiteIds?.length ? { id: { in: websiteIds } } : {}),
     },
     select: {
       id: true,
+      deletedAt: true,
       workspace: {
         select: {
           planId: true,
+          deletedAt: true,
           platformSubscription: {
             select: { planId: true },
           },
@@ -233,10 +237,17 @@ export async function runAnalyticsRetentionJob({
   const results: WebsiteRetentionResult[] = [];
 
   for (const website of websites) {
-    const plan = getPlanForWebsite(website);
-    const eventCutoff = daysBefore(now, plan.retentionDays);
-    const replayCutoff =
-      plan.replayRetentionDays > 0 ? daysBefore(now, plan.replayRetentionDays) : null;
+    // A deleted website or workspace is a closed tenant. Its analytics payload
+    // is purged immediately instead of waiting for a plan window, while durable
+    // payment/billing/audit rows are kept and detached.
+    const closed = Boolean(website.deletedAt || website.workspace?.deletedAt);
+    const plan = closed ? getPlan('starter') : getPlanForWebsite(website);
+    const eventCutoff = closed ? now : daysBefore(now, plan.retentionDays);
+    const replayCutoff = closed
+      ? null
+      : plan.replayRetentionDays > 0
+        ? daysBefore(now, plan.replayRetentionDays)
+        : null;
 
     if (dryRun) {
       const counts = await countWebsitePayloads({
@@ -248,6 +259,7 @@ export async function runAnalyticsRetentionJob({
 
       results.push({
         websiteId: website.id,
+        closed,
         planId: plan.id,
         retentionDays: plan.retentionDays,
         replayRetentionDays: plan.replayRetentionDays,
@@ -268,6 +280,7 @@ export async function runAnalyticsRetentionJob({
 
     results.push({
       websiteId: website.id,
+      closed,
       planId: plan.id,
       retentionDays: plan.retentionDays,
       replayRetentionDays: plan.replayRetentionDays,

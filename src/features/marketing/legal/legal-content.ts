@@ -66,7 +66,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         heading: 'Retention',
         body: [
           'Analytics retention follows the paid plan: 90 days on Starter and 180 days on Pro. Session replay has its own shorter retention window and is removed when a plan does not include replay.',
-          'Account, billing, invoice, usage, and audit records are kept while the account is active and for as long as needed to meet legal and accounting obligations. Deleting an account soft-deletes owned workspaces and revokes sessions; a tenant-scoped retention job removes analytics payloads.',
+          'Account, billing, invoice, usage, and audit records are kept while the account is active and for as long as needed to meet legal and accounting obligations. Deleting an account soft-deletes owned workspaces and revokes sessions; the tenant-scoped retention job then purges analytics payloads for the closed website/workspace while keeping durable billing and audit records.',
         ],
       },
       {

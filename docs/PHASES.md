@@ -30,7 +30,7 @@
 - Overall percent (average of phases 0–12): **94%**
 - Build state at last check: **green** — `tsc --noEmit`, `biome lint`, and the
   full suite pass; the production build is exercised by `pnpm gate` and CI.
-  Latest local full run: **785 passed / 0 failed / 1 gated skip**, plus the
+  Latest local full run: **786 passed / 0 failed / 1 gated skip**, plus the
   explicit 48-assertion PostgreSQL analytics smoke and the recorded load probe.
 - GitHub CI: **green on `main`** for the last merged phase. CI starts
   PostgreSQL 17, runs `pnpm build-db`, lint, typecheck, the full suite,
@@ -1232,7 +1232,10 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 
 - [x] Deletion flow code path removes a workspace's analytics data and detaches
       durable records; proof via the retention job tests and account-deletion
-      audit. A live cross-store deletion check still needs a staging database.
+      audit. The retention job now also includes deleted websites/workspaces
+      and purges their analytics payload immediately (durable billing/audit
+      rows are kept and detached), pinned by a regression test. A live
+      cross-store deletion check still needs a staging database.
 - [x] Rate-limit tests pass. — proof: `src/lib/rate-limit.test.ts` plus route
       tests for login/register/reset.
 - [x] Audit log entries exist for all listed actions. — proof: `grep` finds
@@ -1375,6 +1378,14 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 
 ## Changelog
 
+- 2026-11-06 — **Closed-tenant retention:** the analytics retention job
+  previously filtered `website.deletedAt: null`, so deleting an account or
+  workspace left its analytics payloads in the database forever. The job now
+  includes deleted websites/workspaces, detects a closed tenant, and purges all
+  event/session/replay/revenue payloads immediately while keeping durable
+  billing and audit rows and detaching their optional links. Added a regression
+  test and updated the privacy draft. Full suite **786 passed / 1 gated skip**.
+
 - 2026-11-06 — **Stopped error-detail leaks:** `serverError` now strips any
   `errorObject` from the HTTP response, logs only a short operator message, and
   rejects non-object input. The collector and replay handlers no longer
@@ -1394,7 +1405,7 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
   website and workspace are live; share tokens expire after 7 days; replay
   recording rejects a deleted website. Added tests for each path. This prevents
   a suspended tenant from continuing to read or write through machine
-  credentials and public links. Full suite **785 passed / 1 gated skip**;
+  credentials and public links. Full suite **786 passed / 1 gated skip**;
   production build green.
 
 - 2026-11-06 — **One-time setup allowance:** replaced the monthly setup cap with
@@ -1446,7 +1457,7 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
   any session write, with a regression test. Added OpenAPI 3.1 (`openapi.yaml`),
   graceful shutdown (`scripts/start-server.mjs`), bcrypt cost 12 with
   rehash-on-login, comparison pages, `sitemap.xml`, `robots.txt`, and
-  `security.txt`. Local full suite: **785 passed / 1 gated skip**; production
+  `security.txt`. Local full suite: **786 passed / 1 gated skip**; production
   build green.
 
 - 2026-11-06 — **Phase 10/11 production readiness and Phase 12 GTM:** added the
