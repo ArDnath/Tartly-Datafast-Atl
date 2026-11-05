@@ -1,0 +1,87 @@
+'use client';
+
+import {
+  Column,
+  Form,
+  FormButtons,
+  FormField,
+  FormSubmitButton,
+  Heading,
+  Icon,
+  Text,
+  TextField,
+} from '@talivia/react-zen';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { BrandMark } from '@/components/brand/BrandMark';
+import { useMessages, useUpdateQuery } from '@/components/hooks';
+import { sanitizeAuthReturnUrl } from '@/features/auth/lib/auth-return-url';
+import { BRAND } from '@/lib/brand';
+
+interface LoginFormProps {
+  returnUrl?: string;
+  initialError?: unknown;
+}
+
+export function LoginForm({ returnUrl, initialError }: LoginFormProps) {
+  const router = useRouter();
+  const { labels, t, getErrorMessage } = useMessages();
+  const { mutateAsync, error: submitError, isPending } = useUpdateQuery('/auth/login');
+
+  const handleSubmit = async (data: { username: string; password: string }) => {
+    const safeReturnUrl = sanitizeAuthReturnUrl(returnUrl || '/app');
+
+    try {
+      await mutateAsync(data);
+    } catch {
+      // React Query exposes the API error through `submitError`, which the form
+      // renders below. Consume the rejected mutation to avoid a browser-level
+      // unhandledRejection overlay.
+      return;
+    }
+
+    router.push(safeReturnUrl);
+  };
+
+  return (
+    <Column className="talivia-auth-form" justifyContent="center" alignItems="center" gap="5">
+      <Icon size="lg">
+        <BrandMark size={40} />
+      </Icon>
+      <Heading>{BRAND.name}</Heading>
+      <Form
+        className="talivia-auth-email-form"
+        onSubmit={handleSubmit}
+        error={getErrorMessage(submitError || initialError)}
+      >
+        <FormField name="username" rules={{ required: t(labels.required) }}>
+          <TextField aria-label="Username" autoComplete="username" placeholder="Username" />
+        </FormField>
+        <FormField name="password" rules={{ required: t(labels.required) }}>
+          <TextField
+            aria-label="Password"
+            autoComplete="current-password"
+            placeholder="Password"
+            type="password"
+          />
+        </FormField>
+        <FormButtons>
+          <FormSubmitButton
+            data-test="button-submit"
+            variant="primary"
+            style={{ flex: 1 }}
+            isDisabled={isPending}
+          >
+            Sign in
+          </FormSubmitButton>
+        </FormButtons>
+      </Form>
+      <Text color="muted">
+        <Link href="/forgot-password">Forgot your password?</Link>
+      </Text>
+      <Text color="muted">
+        New to {BRAND.name}? <Link href="/signup">Create an account</Link>
+      </Text>
+    </Column>
+  );
+}

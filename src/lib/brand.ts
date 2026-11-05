@@ -1,25 +1,28 @@
 /**
  * One place for everything customer-facing. A temporary rename should only
- * require editing this file (plus the raster favicons, which are generated
- * assets).
+ * require editing `BRAND_NAME` / `BRAND_DOMAIN` here (plus the raster favicons,
+ * which are generated assets).
  *
  * RevenueLens is a working name. Do not treat it as a trademark.
  */
+const BRAND_NAME = 'RevenueLens';
+const BRAND_DOMAIN = 'revenuelens.app';
+
 export const BRAND = {
-  name: 'RevenueLens',
-  shortName: 'RevenueLens',
+  name: BRAND_NAME,
+  shortName: BRAND_NAME,
   tagline: 'Revenue analytics for indie SaaS',
   promise: 'Connect your site, connect your payments, see which channels make money.',
   description:
     'Affordable revenue-first analytics for developers and indie SaaS founders. See the traffic, campaigns, and pages that turn into paying customers.',
-  domain: 'revenuelens.app',
-  url: 'https://revenuelens.app',
-  supportEmail: 'support@revenuelens.app',
-  noReplyEmail: 'RevenueLens <no-reply@revenuelens.app>',
-  legalEntity: 'RevenueLens',
+  domain: BRAND_DOMAIN,
+  url: `https://${BRAND_DOMAIN}`,
+  supportEmail: `support@${BRAND_DOMAIN}`,
+  noReplyEmail: `${BRAND_NAME} <no-reply@${BRAND_DOMAIN}>`,
+  legalEntity: BRAND_NAME,
   logo: {
     mark: '/brand-mark.svg',
-    alt: 'RevenueLens',
+    alt: BRAND_NAME,
   },
   colors: {
     canvas: '#1b1b1b',

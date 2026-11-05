@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { WebsiteOnboardingPage } from './WebsiteOnboardingPage';
+import { WebsiteOnboardingPage } from '@/features/onboarding/WebsiteOnboardingPage';
 
 export default function Page() {
   return <WebsiteOnboardingPage />;

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import http from 'node:http';
-import { isAllowedLemonSqueezyWebhookRequest } from '../src/lib/local-lemonsqueezy-webhook-proxy';
+import { isAllowedLemonSqueezyWebhookRequest } from '../src/features/payments/server/local-lemonsqueezy-webhook-proxy';
 
 const proxyPort = 3010;
 const appPort = 3000;

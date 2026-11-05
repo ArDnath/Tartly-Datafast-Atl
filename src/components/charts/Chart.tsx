@@ -6,7 +6,7 @@ import ChartJS, {
   type UpdateMode,
 } from 'chart.js/auto';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Legend } from '@/components/metrics/Legend';
+import { Legend } from '@/components/charts/Legend';
 import { CHART_FONT_FAMILY, DEFAULT_ANIMATION_DURATION } from '@/lib/constants';
 
 ChartJS.defaults.font.family = CHART_FONT_FAMILY;

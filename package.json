@@ -1,8 +1,8 @@
 {
-  "name": "talivia",
+  "name": "revenuelens",
   "version": "1.0.0",
-  "description": "Self-hosted product analytics and revenue attribution.",
-  "author": "Talivia",
+  "description": "Revenue-first analytics and attribution for indie SaaS.",
+  "author": "RevenueLens",
   "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@10.10.0",

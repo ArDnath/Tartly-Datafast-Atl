@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { BreakdownPage } from '@/app/(main)/websites/[websiteId]/(reports)/breakdown/BreakdownPage';
+import { BreakdownPage } from '@/features/analytics/workbench/reports/breakdown/BreakdownPage';
 
 export default async function ({ params }: { params: Promise<{ websiteId: string }> }) {
   const { websiteId } = await params;

@@ -1,0 +1,365 @@
+.page {
+  --rl-canvas: #1b1b1b;
+  --rl-card: #222222;
+  --rl-muted: #262626;
+  --rl-fg: #f4f4f5;
+  --rl-muted-fg: #a1a1aa;
+  --rl-border: rgba(255, 255, 255, 0.08);
+  --rl-blush: #f2b4cb;
+
+  min-height: 100vh;
+  background:
+    radial-gradient(820px 420px at 50% -12%, rgba(242, 180, 203, 0.06), transparent 70%),
+    var(--rl-canvas);
+  color: var(--rl-fg);
+  font-family: var(--font-family), sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: min(1080px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--rl-border);
+}
+
+.brandLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: var(--rl-muted-fg);
+  font-size: 13px;
+}
+
+.navLinks a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.navLinks a:hover {
+  color: var(--rl-fg);
+}
+
+.navCta {
+  padding: 8px 13px;
+  border: 1px solid var(--rl-border);
+  border-radius: 8px;
+  color: var(--rl-fg) !important;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.navCta:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.main {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 56px;
+  align-items: start;
+  width: min(1080px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 56px 0 88px;
+}
+
+.sidebar {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  border: 1px solid var(--rl-border);
+  border-radius: 14px;
+  background: var(--rl-card);
+}
+
+.sidebarLabel {
+  margin-top: 12px;
+  color: var(--rl-muted-fg);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sidebarLink,
+.sidebarLinkActive {
+  display: block;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--rl-muted-fg);
+  font-size: 13px;
+  text-decoration: none;
+  transition:
+    color 160ms ease,
+    background 160ms ease;
+}
+
+.sidebarLink:hover {
+  color: var(--rl-fg);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.sidebarLinkActive,
+.sidebarLinkActive:hover {
+  border-color: rgba(242, 180, 203, 0.34);
+  color: var(--rl-fg);
+  background: rgba(242, 180, 203, 0.12);
+  font-weight: 600;
+}
+
+.article {
+  max-width: 760px;
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--rl-blush);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(2rem, 4.4vw, 2.8rem);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 1.08;
+}
+
+.lead {
+  margin: 16px 0 0;
+  color: var(--rl-muted-fg);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.recommended {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-left: 2px solid var(--rl-blush);
+  border-radius: 0 8px 8px 0;
+  background: rgba(242, 180, 203, 0.06);
+  color: var(--rl-fg);
+  font-size: 13px;
+}
+
+.sectionTitle {
+  margin: 36px 0 12px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.body {
+  margin: 0;
+  color: var(--rl-muted-fg);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.steps {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--rl-muted-fg);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.steps li + li {
+  margin-top: 8px;
+}
+
+.steps code {
+  padding: 2px 5px;
+  border: 1px solid var(--rl-border);
+  border-radius: 5px;
+  background: var(--rl-muted);
+  color: var(--rl-fg);
+  font-size: 12px;
+}
+
+.callout {
+  margin-top: 24px;
+  padding: 12px 14px;
+  border: 1px solid rgba(242, 180, 203, 0.24);
+  border-radius: 10px;
+  background: rgba(242, 180, 203, 0.06);
+  color: var(--rl-muted-fg);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.links {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+
+.links a {
+  color: var(--rl-blush);
+  text-decoration: none;
+}
+
+.links a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+
+.guideCard {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--rl-border);
+  border-radius: 12px;
+  background: var(--rl-card);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.guideCard:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: #262626;
+}
+
+.guideCard h3 {
+  margin: 0;
+  color: var(--rl-fg);
+  font-size: 15px;
+}
+
+.guideCard p {
+  margin: 0;
+  color: var(--rl-muted-fg);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.guideCard span {
+  margin-top: 4px;
+  color: var(--rl-blush);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.articleFooter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rl-border);
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 15px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.primary {
+  border: 1px solid #f4f4f5;
+  color: #1b1b1b;
+  background: #f4f4f5;
+}
+
+.secondary {
+  border: 1px solid var(--rl-border);
+  color: var(--rl-fg);
+}
+
+.secondary:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: min(1080px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 20px 0 36px;
+  border-top: 1px solid var(--rl-border);
+  color: var(--rl-muted-fg);
+  font-size: 12px;
+}
+
+.footer nav {
+  display: flex;
+  gap: 8px;
+}
+
+.footer a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  color: var(--rl-fg);
+}
+
+@media (max-width: 860px) {
+  .main {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    padding-top: 32px;
+  }
+
+  .sidebar {
+    position: static;
+  }
+
+  .nav,
+  .main,
+  .footer {
+    width: min(1080px, calc(100% - 32px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navLinks a,
+  .sidebarLink,
+  .sidebarLinkActive,
+  .guideCard {
+    transition: none;
+  }
+}

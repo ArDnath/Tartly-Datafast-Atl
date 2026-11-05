@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { AppEntryPage } from './AppEntryPage';
+import { AppEntryPage } from '@/features/portfolio/AppEntryPage';
 
 export default function () {
   return <AppEntryPage />;

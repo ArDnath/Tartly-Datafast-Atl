@@ -1,9 +1,6 @@
 import type { Metadata } from 'next';
+import { WebsiteLayoutRoute } from '@/features/analytics/workbench/WebsiteLayoutRoute';
 import { BRAND } from '@/lib/brand';
-import { notFound } from 'next/navigation';
-import { WebsiteLayout } from '@/app/(main)/websites/[websiteId]/WebsiteLayout';
-import { isWebsiteId } from '@/lib/app-route';
-import { getWebsite } from '@/queries/prisma';
 
 export default async function ({
   children,
@@ -14,17 +11,7 @@ export default async function ({
 }) {
   const { websiteId } = await params;
 
-  if (!isWebsiteId(websiteId)) {
-    notFound();
-  }
-
-  const website = await getWebsite(websiteId);
-
-  if (!website || website.deletedAt) {
-    notFound();
-  }
-
-  return <WebsiteLayout websiteId={websiteId}>{children}</WebsiteLayout>;
+  return <WebsiteLayoutRoute websiteId={websiteId}>{children}</WebsiteLayoutRoute>;
 }
 
 export const metadata: Metadata = {

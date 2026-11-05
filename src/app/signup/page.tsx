@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { SignupPage } from './SignupPage';
+import { SignupPage } from '@/features/auth/SignupPage';
 
 export default function () {
   return <SignupPage />;

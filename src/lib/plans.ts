@@ -1,5 +1,5 @@
 /**
- * The single source of truth for RevenueLens plans.
+ * The single source of truth for the paid plans.
  *
  * Rules (owner-fixed):
  * - Exactly two plans: Starter and Pro.

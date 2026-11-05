@@ -1,4 +1,4 @@
-import { ShareProvider } from '@/app/share/ShareProvider';
+import { ShareProvider } from '@/features/share/ShareProvider';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {

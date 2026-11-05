@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { SessionsPage } from '@/app/(main)/websites/[websiteId]/sessions/SessionsPage';
+import { SessionsPage } from '@/features/analytics/workbench/sessions/SessionsPage';
 
 export default async function ({ params }: { params: Promise<{ websiteId: string }> }) {
   const { websiteId } = await params;

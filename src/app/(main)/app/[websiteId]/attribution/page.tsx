@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { AttributionPage } from '@/app/(main)/websites/[websiteId]/(reports)/attribution/AttributionPage';
+import { AttributionPage } from '@/features/analytics/workbench/reports/attribution/AttributionPage';
 
 export default async function ({ params }: { params: Promise<{ websiteId: string }> }) {
   const { websiteId } = await params;

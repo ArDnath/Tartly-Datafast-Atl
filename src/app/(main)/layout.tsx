@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { BRAND } from '@/lib/brand';
 import { Suspense } from 'react';
-import { App } from './App';
+import { App } from '@/features/app-shell/App';
 
 export default function ({ children }) {
   return (

@@ -4,8 +4,8 @@ RevenueLens onboarding copies Tartly's shell, motion, copy rhythm, and
 welcome moment, then adapts the steps to a revenue analytics SaaS.
 
 - **Route:** `/onboarding` (authenticated; redirects to `/login` otherwise)
-- **Implementation:** `src/app/onboarding/OnboardingFlow.tsx`,
-  `src/app/onboarding/Onboarding.module.css`
+- **Implementation:** `src/features/onboarding/OnboardingFlow.tsx`,
+  `src/features/onboarding/Onboarding.module.css` (route: `src/app/onboarding/page.tsx`)
 - **Motion source:** `../tartly/lib/onboarding/constants.ts` and
   `../tartly/components/app/onboarding/onboarding-transition-outlet.tsx`
 - **Goal:** first verified event in under two minutes, without hiding the

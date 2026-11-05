@@ -212,10 +212,13 @@ The phase tracker expands Phase 9 with UI-1 … UI-14. The sequence is:
 14. **Temporary rename demo** — prove the brand config is the only source.
 
 Current status: pricing, onboarding shell/steps, auth screens (login, signup,
-invite, verify, forgot/reset), the app shell, the revenue-first portfolio home,
-the website workbench navigation, and the marketing landing are implemented.
-Billing/usage screens remain blocked on the platform-billing and metering
-phases; the rest is tracked in `docs/PHASES.md`.
+invite, verify, forgot/reset), the app shell, the revenue-first portfolio home
+(including MRR by first-touch channel), the website workbench navigation, the
+Plan and usage screen, and the marketing landing are implemented. The brand
+config lock and the token contrast test are automated; the temporary rename demo
+is therefore a test rather than a manual theme flip. Invoice history and
+subscription lifecycle UI remain blocked on Phase 5 (platform billing); the rest
+is tracked in `docs/PHASES.md`.
 
 ---
 
@@ -226,18 +229,96 @@ phases; the rest is tracked in `docs/PHASES.md`.
 | Brand config | `src/lib/brand.ts` |
 | Brand mark/wordmark | `src/components/brand/BrandMark.tsx` |
 | Global tokens | `src/app/global.css` |
-| Landing page | `src/app/page.tsx`, `Landing.module.css` |
-| App shell / top nav | `src/app/(main)/App.tsx`, `TopNav.tsx` |
-| Portfolio overview | `src/app/(main)/app/AppEntryPage.tsx` |
-| Website workbench nav | `src/app/(main)/websites/[websiteId]/WebsiteSectionNav.tsx` |
-| Pricing page | `src/app/pricing/PricingPage.tsx`, `Pricing.module.css` |
-| Onboarding flow | `src/app/onboarding/OnboardingFlow.tsx`, `Onboarding.module.css` |
+| Landing page | `src/features/marketing/LandingPage.tsx`, `Landing.module.css` |
+| Pricing page | `src/features/marketing/PricingPage.tsx`, `Pricing.module.css` |
+| Documentation shell | `src/features/docs/DocsPage.tsx`, `Docs.module.css` |
+| Revenue guides | `src/features/docs/content.ts` |
+| App shell / top nav | `src/features/app-shell/App.tsx`, `TopNav.tsx` |
+| Portfolio overview | `src/features/portfolio/AppEntryPage.tsx` |
+| Settings shell/overview | `src/features/settings/SettingsHomePage.tsx` |
+| Account, security, preferences settings | `src/features/account/settings/` |
+| Integrations settings | `src/features/payments/settings/` |
+| Plan and usage settings | `src/features/billing/UsageSettingsPage.tsx` |
+| Website workbench | `src/features/analytics/workbench/` |
+| Website workbench nav | `src/features/analytics/workbench/WebsiteSectionNav.tsx` |
+| Analytics widgets | `src/features/analytics/components/metrics/` |
+| Analytics filters/selectors | `src/features/analytics/components/input/` |
+| Share widgets | `src/features/share/components/` |
+| Domain query hooks | `src/features/<domain>/hooks/` |
+| Workspace settings | `src/features/workspaces/settings/` |
+| Website list settings | `src/features/websites/settings/` |
+| Onboarding flow | `src/features/onboarding/OnboardingFlow.tsx`, `Onboarding.module.css` |
 | Plan config | `src/lib/plans.ts` |
 | Workspace permissions | `src/lib/workspace-auth.ts` |
+| Frozen legacy features | `src/features/legacy/{boards,links,pixels}/` |
 
 Do not duplicate these tokens into per-component literals. If a new screen
 needs a colour, add it to the shared token block or `brand.ts`; do not invent a
 one-off hex.
+
+### Source layout
+
+`src/app` is the routing layer only: pages, layouts, route handlers, and the
+small components that are genuinely route-local (auth screens, share shell,
+pricing, marketing). Every product surface with more than one file lives in a
+domain module under `src/features`:
+
+```
+src/app/                     routes only (pages + thin API re-exports)
+src/features/
+  account/                   /api/me profile, password, owned websites,
+                             account/security/preference settings, local users,
+                             server/queries for portfolio overview and MRR
+  analytics/                 workbench shell + reports/sessions/events/replay/
+                             realtime/cohorts/compare/segments, ingestion, lib/,
+                             server/queries (the SQL engine + Prisma reports)
+  app-shell/                 signed-in shell, top nav, notices
+  auth/                      login, signup, verify, reset, invite, logout, lib/
+  billing/                   plan and usage settings screen
+  docs/                      public documentation shell and revenue guides
+  legacy/                    frozen boards, links, pixels, public pixel/link
+                             collection handlers, lib/
+  marketing/                 landing and pricing
+  onboarding/                welcome flow, website setup flow
+  payments/                  provider connections, webhooks, integration
+                             settings, lib/, server/queries
+  portfolio/                 /app home (all websites)
+  settings/                  settings shell, grouped nav, overview
+  share/                     public share shell
+  system/                    health and OSS updates, cron, lib/
+  websites/                  website CRUD, settings, imports, API keys, members,
+                             server/queries
+  workspaces/                workspace, member, invitation, usage APIs,
+                             workspace settings, lib/
+src/queries/                 small shared repository kernel only
+```
+
+Each domain that serves HTTP has a `server/` directory, and each domain that
+owns database access has `server/queries/`. API routes under `src/app/api`
+re-export handlers from `src/features/<domain>/server`. See
+`docs/ARCHITECTURE.md`.
+
+`src/components` keeps shared design-system primitives only (`common`, `charts`,
+`input`, `svg`, `brand`, generic `hooks`). Analytics widgets live in
+`src/features/analytics/components/metrics`, share widgets in
+`src/features/share/components`, and domain selectors in the owning feature.
+
+Rules:
+
+- A route file stays thin: parse params, mount a feature component, or re-export
+  a feature handler. It never imports `@/queries`, `@/lib/prisma`, or
+  `@/lib/redis` directly.
+- Cross-feature imports go through `@/features/...`; do not reach into another
+  feature with `../../`.
+- Shared layers must not import a feature. `src/lib/app-structure.test.ts`
+  enforces both directions, plus `src/lib`, `src/queries`, and `src/store`
+  allowlists. Domain helpers and repositories belong in
+  `src/features/<domain>/lib` and `src/features/<domain>/server/queries`; domain
+  stores belong beside the feature.
+- The old `/websites/*` and `/settings/*` URLs are compatibility redirects in
+  `next.config.ts`; the canonical product routes are `/app/*`.
+- `src/features/legacy` is quarantined, not a pattern to copy. New work must not
+  add imports from it.
 
 ---
 

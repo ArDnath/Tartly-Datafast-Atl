@@ -1,0 +1,44 @@
+'use client';
+import { Column, Loading } from '@talivia/react-zen';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { TopNav } from '@/features/app-shell/TopNav';
+import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
+import { UpdateNotice } from './UpdateNotice';
+import { UsageBanner } from './UsageBanner';
+
+export function App({ children }) {
+  const { user, isLoading, error } = useLoginQuery();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const returnUrl = `${pathname}${searchParams.toString() ? `?${searchParams}` : ''}`;
+  const loginRedirect = `/login?returnUrl=${encodeURIComponent(returnUrl || '/app')}`;
+
+  if (isLoading) {
+    return <Loading placement="absolute" />;
+  }
+
+  if (error) {
+    window.location.href = loginRedirect;
+    return null;
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  return (
+    <Column
+      className="talivia-app-shell"
+      height="screen"
+      overflowX="hidden"
+      minHeight="0"
+      position="relative"
+    >
+      <TopNav showUser />
+      <UsageBanner />
+      <Column alignItems="center">{children}</Column>
+      {user.isAdmin && <UpdateNotice userId={user.id} />}
+    </Column>
+  );
+}

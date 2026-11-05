@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { OnboardingFlow } from './OnboardingFlow';
+import { OnboardingFlow } from '@/features/onboarding/OnboardingFlow';
 
 export default function () {
   return <OnboardingFlow />;

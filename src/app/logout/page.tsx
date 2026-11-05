@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { LogoutPage } from './LogoutPage';
+import { LogoutPage } from '@/features/auth/LogoutPage';
 
 export default function () {
   return <LogoutPage />;

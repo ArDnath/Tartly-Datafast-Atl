@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ComparePage } from '@/app/(main)/websites/[websiteId]/compare/ComparePage';
+import { ComparePage } from '@/features/analytics/workbench/compare/ComparePage';
 
 export default async function ({ params }: { params: Promise<{ websiteId: string }> }) {
   const { websiteId } = await params;

@@ -4,19 +4,20 @@
 - **Repository:** <https://github.com/talivia-group/talivia> (MIT), forked locally at
   `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-05
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 app restructure shipped (routes, workbench navigation, revenue-first home, landing). Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 is complete: the source restructure (app, server, domain UI/hooks/lib/store) is finished and enforced, the dead legacy dashboard UI is pruned, the portfolio now shows MRR by first-touch channel, and the brand/contrast locks are automated. A final domain split now moves the whole website analytics workbench and its handlers into `features/analytics`, leaving `features/websites` as site management only. The settings catch-all is gone too: `features/settings` is now the shell and overview only, while account/security/preferences, workspace, website list, integrations, and plan/usage screens live with their owning domains. `src/permissions` is now the shared website/entity authorization boundary only; report, local-user, and frozen legacy permission checks live with their features. The last shared catch-alls are gone: every domain Prisma repository now lives in `features/<domain>/server/queries`, the analytics SQL engine lives in `features/analytics/server/queries/sql`, the public pixel/link collection handlers and the website shell resolver moved out of `src/app`, and `src/queries` is a small allowlisted authorization/request kernel. Route tests now live beside feature handlers, so `src/app` is test-free routing only, and the analytics report/realtime handlers mirror their API paths. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
 
 ## Overall progress
 
 - Total phases: **12** (0–11 product/build, 12 go-to-market)
-- Phases complete: **3 full, 2 with caveats** (Phase 2: copy-with-data rehearsal; Phase 4: live Resend delivery)
-- Overall percent (average of phases 0–11): **58%**
-- Build state at last check: **green** (`pnpm build` exit 0; `tsc --noEmit`
-  clean; `biome lint` clean). Full test run: **611 passed / 0 failed** under
-  `TZ=UTC`.
-- Runtime smoke: all 19 website workbench routes return 200 on the production
-  build with an authenticated session; unknown sub-routes return 404. The new
-  `/app/settings/billing` route is in the production build.
+- Phases complete: **3 full, 3 with caveats** (Phase 2: copy-with-data rehearsal; Phase 4: live Resend delivery)
+- Overall percent (average of phases 0–11): **59%**
+- Build state at last check: **green** (`next build` exit 0 with
+  `SKIP_DB_CHECK=1`; `tsc --noEmit` clean; `biome lint` clean). Full test run:
+  **646 passed / 0 failed** under `TZ=UTC`.
+- Runtime smoke: the new public docs routes return 200, and `/app/settings`,
+  `/app/settings/integrations`, `/app/settings/security`, `/app/settings/websites`,
+  and `/app/settings/billing` return 200 with an authenticated session. The
+  legacy `/websites/*` and `/settings/*` URLs still redirect to `/app/*`.
 - Database: local PostgreSQL has all 7 migrations applied, including durable
   auth sessions, hashed email/reset tokens, rate-limit buckets, removal of the
   bootstrap admin, and monthly usage periods.
@@ -47,7 +48,7 @@ No third plan, no free tier, no hidden limits.
 | 6 | Plans, pricing economics, usage | IN_PROGRESS | 75% | 2026-11-04 | — | live concurrency proof; owner approval of limits; notice emails |
 | 7 | Analytics validation, integrations, replay | NOT_STARTED | 0% | — | — | none |
 | 8 | Onboarding and developer experience | IN_PROGRESS | 40% | 2026-11-04 | — | guides, activation, MCP |
-| 9 | Rebrand and product UI | IN_PROGRESS | 75% | 2026-11-04 | — | billing page (Phase 5), remaining brand copy, a11y pass |
+| 9 | Rebrand and product UI | DONE | 100% | 2026-11-04 | 2026-11-05 | none |
 | 10 | Compliance, abuse, email, operations | NOT_STARTED | 0% | — | — | legal review |
 | 11 | Hardening, QA, deployment, launch | NOT_STARTED | 0% | — | — | hosting + domain |
 | 12 | Go-to-market | NOT_STARTED | 0% | — | — | product live |
@@ -323,9 +324,10 @@ migration connections.
       `src/permissions/website.workspace.test.ts` (10 scenarios) plus the
       static route-boundary test.
 - [x] Webhook and background-job isolation tests. — proof:
-      `src/app/api/payments/stripe/[websiteId]/webhook/route.test.ts` asserts
-      connection lookup, payment write, and provider event write all use the
-      URL website; `src/lib/cron/jobs/provider-webhook-cleanup.test.ts` asserts
+      `src/features/payments/server/stripe/[websiteId]/webhook/handler.test.ts`
+      asserts connection lookup, payment write, and provider event write all use
+      the URL website;
+      `src/features/system/cron/jobs/provider-webhook-cleanup.test.ts` asserts
       each queued job uses only its own credentials and endpoint.
 - [x] CI step runs isolation suite on every push. — proof: the existing
       `pnpm test` step in `.github/workflows/ci.yml` includes every
@@ -656,7 +658,7 @@ migration connections.
 - [x] Onboarding flow with progress: create workspace → add website → copy
       snippet → install → verify first event (live check) → connect payments →
       first revenue report. Dashboard reachable without forcing every step. —
-      proof: `src/app/onboarding/OnboardingFlow.tsx`,
+      proof: `src/features/onboarding/OnboardingFlow.tsx`,
       `docs/ONBOARDING_SPEC.md`. Payment step links to the real settings page;
       no hard gates.
 - [ ] Install guides: Next.js, React, Vite, plain HTML, Astro, Remix (where
@@ -707,21 +709,31 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 - [x] One branding config (`src/lib/brand.ts`): name, tagline, logo, colors,
       domain, support/no-reply emails, legal entity. Placeholder: RevenueLens. —
       proof: file exists; used by pricing, onboarding, login, top nav, metadata.
-- [ ] Remove/replace customer-facing Talivia names, logos, copy, favicons,
+- [x] Remove/replace customer-facing Talivia names, logos, copy, favicons,
       metadata, emails, docs links. Keep MIT notice in `LICENSE`; add
-      `THIRD_PARTY_NOTICES`. — **partial**: logo/favicons/manifest/login/nav/
-      metadata/intl are rebranded; settings copy and `THIRD_PARTY_NOTICES`
-      remain.
-- [ ] Revenue-first screens: revenue by source, revenue per visitor,
+      `THIRD_PARTY_NOTICES`. — proof: brand mark/favicons/manifest/login/nav/
+      metadata/intl/settings/imports are rebranded; the old `talivia.com`
+      documentation links are replaced with the local `/docs` guides; admin
+      update checks no longer phone the upstream service unless
+      `OSS_UPDATE_URL` is configured. Remaining `Talivia` strings are internal
+      identifiers (cron/redis/tracker types) and the compatibility import
+      format; `THIRD_PARTY_NOTICES` keeps the upstream attribution required by
+      the MIT license.
+- [x] Revenue-first screens: revenue by source, revenue per visitor,
       conversion rate, MRR by channel; onboarding; billing; usage; workspace
-      settings; empty states; mobile. — **onboarding + pricing done**; the
-      revenue-first overview and billing/usage screens are not built.
-- [ ] Landing page, pricing page (driven by plan config), docs shell, login
-      and signup. — **pricing page done** (`/pricing`), login rebranded; no
-      landing/signup/docs shell yet.
-- [ ] Accessibility basics; dark mode (the product is dark by default). —
-      onboarding/pricing have labels, focus, reduced motion; app-wide audit
-      pending.
+      settings; empty states; mobile. — **done:** onboarding, pricing, the
+      portfolio revenue strip, and MRR by first-touch channel on `/app`
+      (`getPortfolioMrrByChannel` + `MrrByChannelPanel`). Billing history still
+      waits for Phase 5.
+- [x] Landing page, pricing page (driven by plan config), docs shell, login
+      and signup. — proof: landing (`/`), pricing (`/pricing`), a public docs
+      shell at `/docs` with provider guides, and the shared auth screens are
+      live and driven by `BRAND`/`PLANS`.
+- [x] Accessibility basics; dark mode (the product is dark by default). —
+      **done:** global keyboard focus rings, a reduced-motion override,
+      labels/focus on the settings/docs/onboarding/pricing screens, and a WCAG
+      AA contrast test over the brand color tokens
+      (`src/lib/brand-contrast.test.ts`).
 
 ### Additional UI steps (owner-requested)
 
@@ -738,10 +750,10 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       moved from blue to blush (`global.css`, settings and onboarding).
 - [x] **UI-4 — Revenue-first overview:** replace generic analytics hero with
       revenue, revenue/visitor, conversion, MRR-by-channel cards + charts. —
-      **partial proof:** `/app` now opens with a portfolio strip (revenue,
-      revenue per visitor, purchase rate, visitors) and each website card leads
-      with revenue; MRR-by-channel still needs the revenue aggregate query in
-      Phase 7.
+      proof: `/app` opens with a portfolio strip (revenue, revenue per visitor,
+      purchase rate, visitors), each website card leads with revenue, and the
+      MRR panel groups active subscriptions by the first-touch channel stored on
+      the visitor (falling back to the earliest attributed payment).
 - [x] **UI-5 — Onboarding shell:** full-height centred 440 px column, logo,
       title, subtitle, directional slide/fade (12 px, 320 ms, 70 ms stagger),
       reduced-motion support, welcome moment. — proof: `OnboardingFlow.tsx` /
@@ -759,11 +771,14 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       states, upgrade path. — **usage shipped** at `/app/settings/billing`
       (plan, reset date, event/replay bars, grace/limit states, website/member
       limits, upgrade link). Invoice/renewal history waits for Phase 5.
-- [ ] **UI-10 — Settings:** workspace, members, websites, integrations,
-      security; consistent empty/error/loading states. — **workspace/members/
-      invitations, Plan & usage, and Websites done**; the settings hub now has
-      a real index and grouped nav (`/app/settings` → workspace). Integrations/
-      security states still pending.
+- [x] **UI-10 — Settings:** workspace, members, websites, integrations,
+      security; consistent empty/error/loading states. — proof: `/app/settings`
+      is now a real overview instead of a redirect; grouped nav covers
+      Overview, Workspace, Websites, Integrations, Plan and usage, Security,
+      Account, and Preferences. Integrations shows per-website provider
+      connection state from the real API; Security carries verification,
+      password, session, and account-deletion states. Workspace/members/
+      invitations and Plan & usage remain in place.
 - [x] **UI-11 — Auth screens:** login, signup, verify, reset in the same shell.
       — login, signup, invite acceptance, `/verify-email`, `/forgot-password`,
       and `/reset-password` use the same auth shell.
@@ -781,27 +796,173 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       `revenue-attribution`/`revenue-journey`/`revenue-diagnostics` redirect to
       the canonical route; `app-route.test.ts` and
       `WebsiteSectionNav.test.tsx` lock the route/nav contract.
-- [ ] **UI-13 — Motion + polish pass:** page transitions, hover lift, focus
-      rings, skeletons, reduced motion, mobile.
-- [ ] **UI-14 — Temporary rename demonstration:** change brand config and show
-      name/logo/colors/emails update everywhere.
+- [x] **UI-16 — Complete source restructure (new):** the app router is now a
+      thin routing layer; all product UI moved to domain modules under
+      `src/features` (`app-shell`, `portfolio`, `websites/workbench`,
+      `settings`, `onboarding`, `auth`, `marketing`, `share`, `legacy`).
+      `src/app` now contains route files plus the root `Providers.tsx` only.
+      Removed dead portfolio table
+      components and the obsolete revenue-attribution/revenue-journey report
+      screens and hooks. Legacy `/websites/*` and `/settings/*` URLs redirect
+      to the canonical `/app/*` routes. — proof: `src/app/(main)` contains only
+      route files; `docs/UI_DESIGN_SYSTEM.md` §6 records the layout;
+      `src/lib/app-structure.test.ts` enforces it; build, typecheck, lint, and
+      613 tests are green.
+- [x] **UI-17 — Complete server restructure (new):** every one of the 119 API
+      route files is now a thin adapter that re-exports HTTP handlers from a
+      feature `server` module. Handlers moved into `account`, `analytics`,
+      `auth`, `legacy`, `payments`, `share`, `system`, `websites`, and
+      `workspaces`. Payment provider clients, webhook verifiers, provider
+      credential handling, provider backfills, analytics import parsers, and
+      board definitions moved into their feature modules as well; the
+      Prisma/analytics query layer, permissions, and shared UI remain
+      cross-cutting. `docs/ARCHITECTURE.md` defines the module boundaries and
+      dependency direction, and `src/lib/app-structure.test.ts` enforces thin
+      route files plus server-module presence. — proof: build, typecheck,
+      lint, 22 API route suites (126 tests), and the full suite are green.
+- [x] **UI-13 — Motion + polish pass:** page transitions, hover lift, focus
+      rings, skeletons, reduced motion, mobile. — proof: global keyboard
+      `:focus-visible` rings, a global reduced-motion override, blush-only
+      signal states (auth hover, external links, activity heatmap, API-key
+      reveal), working loading/empty states on the new settings pages, and the
+      responsive docs/settings layouts at 860 px and below.
+- [x] **UI-18 — Brand-safe documentation shell:** public `/docs` and
+      `/docs/revenue-guides/[slug]` pages replace the upstream help-centre
+      links. Guides for Stripe, Dodo Payments, Lemon Squeezy, Polar, Yolfi, and
+      the manual payment API are generated from one content module, link only
+      to official provider pages, and are covered by `content.test.ts`.
+- [x] **UI-19 — Complete domain restructure (new):** the remaining domain
+      widgets, selectors, React Query hooks, and cron jobs moved out of
+      `src/components` and `src/lib` into their owning feature modules.
+      Analytics widgets and filters now live in
+      `src/features/analytics/components`; share widgets in
+      `src/features/share/components`; `WebsiteSelect` in
+      `src/features/websites`; shell controls in
+      `src/features/app-shell/components`; legacy selectors in
+      `src/features/legacy`; payment provider UI in `src/features/payments`;
+      and all domain query hooks in `src/features/<domain>/hooks` with barrels.
+      Cron moved to `src/features/system/cron`. Only shared primitives remain
+      in `src/components` (`brand`, `charts`, `common`, `hooks`, `input`,
+      `svg`). Three dead components and three dead hooks were deleted. The
+      structure test now fails if `src/components` gains a non-primitive
+      directory or if any shared layer imports a feature. Server handlers stay
+      in feature `server/` modules; the preserved analytics SQL engine and
+      cross-domain Prisma repositories stay in `src/queries` because tenant
+      authorization and analytics depend on them. Proof: 119 files moved,
+      build/typecheck/lint green, **622/622 tests** pass.
+- [x] **UI-14 — Temporary rename demonstration:** change brand config and show
+      name/logo/colors/emails update everywhere. — proof:
+      `src/lib/brand.ts` now derives name, domain, URL, support/no-reply
+      addresses, legal entity, and logo alt text from two constants, and
+      `src/lib/brand-propagation.test.ts` fails if customer-facing feature or
+      shared code hardcodes the literal brand name again.
+- [x] **UI-20 — Shared-layer restructure completion (new):** the last domain
+      helpers moved out of `src/lib` into their feature modules:
+      `analytics/lib` (collector cache, cross-domain linker, attribution query,
+      dashboard overview, client detection, filters, metric colors, chart
+      axis), `payments/lib` (payment return detection), `auth/lib` +
+      `auth/server` (return URL, registration), `workspaces/lib` (invitations,
+      members), `websites/lib` (API keys, domain normalization), `legacy/lib`
+      (feature gate), and `system/lib` (OSS version). Deleted the unused
+      dashboard/websites/cache stores and the unused refresh button, leaving
+      `src/store` with only shared app state. `app-structure.test.ts` now
+      enforces a shared `src/lib` allowlist, a `src/store` allowlist, and the
+      presence of the moved domain helpers. — proof: typecheck and lint clean,
+      **625/625 tests** pass.
+- [x] **UI-21 — Structural cleanup completion (new):** removed the dead
+      inherited legacy dashboard UI (boards, link/pixel lists, edit forms,
+      board component registry, and their unused hooks/selectors) while keeping
+      only the link and pixel pages rendered by public shares and the legacy
+      API handlers. Deleted the unused segment list/edit chain (keeping the
+      filter-bar edit dialog), the orphaned metrics bars, profile/share headers,
+      two input primitives, and the empty/stale shared helpers. Moved
+      `WebsiteSettingsPage` out of a route-param-shaped
+      `settings/websites/[websiteId]` directory into the website workbench.
+      `app-structure.test.ts` now pins the pruned legacy surface so it cannot
+      regrow. — proof: typecheck, lint, and the structure test pass.
+- [x] **UI-22 — Complete analytics/websites domain split (new):** the whole
+      website analytics workbench moved from `features/websites/workbench` to
+      `features/analytics/workbench` (shell, header, nav, overview, reports,
+      sessions, events, replay, realtime, cohorts, compare, segments). The
+      matching analytics request handlers moved to
+      `features/analytics/server/[websiteId]`, so the thin API routes point at
+      the domain that owns them. `features/websites` now owns site management
+      only (CRUD, `settings/`, imports/exports, API keys, members, shares).
+      The account settings UI moved from `settings/profile` to
+      `settings/account`. `app-structure.test.ts` pins both sides of the split
+      so the workbench cannot drift back into `websites`. — proof: typecheck,
+      lint, structure/route tests, and the full suite are green.
+- [x] **UI-23 — Settings ownership completion (new):** `features/settings` is
+      now the settings shell only (`SettingsLayout`, `SettingsPageLayout`,
+      `SettingsHomePage`). Account, security, and preference screens moved to
+      `features/account/settings` with the local-user admin handlers under
+      `features/account/server`; workspace settings moved to
+      `features/workspaces/settings`, website list settings to
+      `features/websites/settings`, integration settings to
+      `features/payments/settings`, and plan/usage to the new
+      `features/billing` domain. Route files point at the owning domain, and
+      `app-structure.test.ts` pins the shell and forbids the old catch-all
+      directories. — proof: typecheck, lint, and **641/641 tests** pass.
+- [x] **UI-24 — Permission ownership completion (new):** `src/permissions` is
+      now only the shared website/entity authorization boundary
+      (`website.ts`, `entity.ts`, the barrel). Report checks moved to
+      `features/analytics/lib/report-permissions.ts`, local-user/platform-admin
+      checks to `features/account/lib/permissions.ts`, and frozen board/link/
+      pixel read checks to `features/legacy/lib/permissions.ts`; the unused
+      legacy update/delete checks were deleted. Route tests mock the owning
+      feature module, and `app-structure.test.ts` enforces the permissions
+      allowlist. — proof: typecheck, lint, and **642/642 tests** pass.
+- [x] **UI-25 — Data-layer and router completion (new):** every domain Prisma
+      repository moved from `src/queries/prisma` into
+      `features/<domain>/server/queries` (`analytics`, `payments`, `websites`,
+      `account`); the whole inherited analytics SQL engine moved to
+      `features/analytics/server/queries/sql`; the tenant-scoped session cache
+      moved beside it; `dashboard-breakdown`, `data`, `paymentCustomer`,
+      `redact`, `website-overview`, `stripe-amount`, and `generate` moved into
+      their owning feature libs. The frozen board type constants stay shared
+      with the central entity lookup. The public pixel
+      and link collectors moved to `features/legacy/server/collect`, the
+      website shell resolver moved into the analytics workbench, and the route
+      layer no longer imports `@/queries`, `@/lib/prisma`, or `@/lib/redis`.
+      `src/queries` is now a small allowlisted shared kernel (authorization,
+      request parsing, auth, billing contracts, legacy entity lookups).
+      `app-structure.test.ts` pins the shared query allowlist, the domain query
+      directories, and the route-layer data-access ban. — proof: typecheck and
+      lint clean, `next build` success, **645/645 tests** pass.
+- [x] **UI-26 — Route and shared-lib ownership completion (new):** the router is
+      now test-free. Every API route contract test moved from
+      `src/app/api/**/route.test.ts` to the owning
+      `src/features/<domain>/server/**/handler.test.ts`, so `src/app` contains
+      route conventions, CSS, and `Providers.tsx` only. Analytics report
+      handlers were normalized to mirror `/api/reports/*` under
+      `features/analytics/server/reports/**`, and the realtime handler moved to
+      `features/analytics/server/realtime/[websiteId]/handler.ts`.
+      `REVENUE_PAYMENT_STATUSES` moved to `features/payments/lib` and tracking
+      identity derivation (with its test) moved to
+      `features/analytics/lib`, leaving both out of the shared `src/lib`
+      allowlist. The structure test now rejects any test file in the router,
+      checks that each shared allowlist entry exists (so stale entries cannot
+      hide), and pins the moved handler layout. — proof: typecheck and lint
+      clean; `next build` succeeds; full suite **646/646** passes.
 
 ### Acceptance criteria
 
-- [ ] Repo-wide search for the original brand finds nothing customer-facing
-      (allowed exceptions listed). — **partial**: onboarding, API-key, data
-      import/export, share branding, top nav, 404, and landing copy are now
-      brand-config driven or renamed. About 59 `Talivia` strings remain,
-      mostly provider-setup copy in `WebsiteRevenueSettings.tsx`, the
-      backup-format parser (kept for compatibility), internal type names, and
-      comments.
-- [ ] Changing the brand config changes name, logo, colors, emails everywhere
-      (demonstrated with a temporary rename). — not yet demonstrated.
+- [x] Repo-wide search for the original brand finds nothing customer-facing
+      (allowed exceptions listed). — proof: no `talivia.com` links remain in
+      application code; provider guides, imports, backup filenames, and update
+      notices are brand-safe. Internal compatibility identifiers and the
+      upstream MIT attribution in `THIRD_PARTY_NOTICES` are intentionally kept.
+- [x] Changing the brand config changes name, logo, colors, emails everywhere
+      (demonstrated with a temporary rename). — proof:
+      `src/lib/brand-propagation.test.ts` plus the config-derived brand module.
 - [x] Onboarding motion matches the Tartly constants and respects reduced
       motion. — proof: 12px/320ms/70ms in `Onboarding.module.css`, reduced-motion
       block.
 - [x] Pricing page renders exactly two plans from the config. — proof:
       `/pricing` 200; `plans.test.ts`.
+- [x] Portfolio MRR panel uses real subscription data and refuses to invent a
+      cross-currency total. — proof: `portfolioMrr.ts`,
+      `website-overview.test.ts` (mixed-currency case).
 
 ### Decisions made
 
@@ -929,16 +1090,173 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
    entitlements/masking/retention jobs.
 6. **Phase 8 finish:** framework guides, activation events/admin funnel,
    `llms.txt`, MCP/CLI verification.
-7. **Phase 9 finish:** remaining provider-setup brand copy, MRR-by-channel on
-   the portfolio overview, billing/usage screens (blocked on Phases 5–6),
-   integrations/security settings states, a11y/contrast pass, temporary rename
-   demo.
+7. **Phase 9 complete:** the portfolio MRR-by-channel panel, the config-derived
+   brand lock, and the WCAG AA contrast test are shipped. The source restructure
+   (app, server, domain UI/hooks/lib/store) and the legacy UI prune are complete
+   and enforced by the structure test. Settings ownership is complete:
+   `features/settings` is the shell only, and each domain owns its settings
+   screen. Permission ownership is likewise complete: `src/permissions` is the
+   shared website/entity boundary only. Data ownership is complete too: domain
+   repositories and the analytics SQL engine live in feature `server/queries`,
+   and `src/queries` is a small shared kernel. Route ownership is complete:
+   API contract tests live beside feature handlers, `src/app` is test-free, and
+   analytics report/realtime handlers mirror their route paths. Billing history
+   waits for Phase 5.
 8. **Phase 10:** legal drafts, abuse protection, transactional email, ops.
 9. **Phase 11:** security review, load test, CI, deployment/runbook.
 10. **Phase 12:** go-to-market.
 
 ## Changelog
 
+- 2026-11-05 — **Route and shared-lib ownership completion (Phase 9 / UI-26):**
+  moved all 22 API route contract tests out of `src/app/api/**/route.test.ts`
+  and into `src/features/<domain>/server/**/handler.test.ts`, so the router is
+  now routes, CSS, and `Providers.tsx` only. Normalized analytics report
+  handlers under `features/analytics/server/reports/**` (including
+  `[reportId]`) and moved the realtime handler to
+  `features/analytics/server/realtime/[websiteId]`. Moved
+  `REVENUE_PAYMENT_STATUSES` to `features/payments/lib` and tracking identity
+  (plus its test) to `features/analytics/lib`, removing both from the shared
+  `src/lib` allowlist. The structure test now rejects tests in the router and
+  fails on stale allowlist entries. Typecheck and lint are clean; `next build`
+  succeeds with `SKIP_DB_CHECK=1`; the full suite passes **646/646**.
+
+- 2026-11-05 — **Data-layer and router completion (Phase 9 / UI-25):** moved
+  every domain Prisma repository out of `src/queries/prisma` into
+  `features/<domain>/server/queries` and moved the entire analytics SQL engine
+  to `features/analytics/server/queries/sql`. The tenant-scoped session cache
+  now sits beside the engine; `dashboard-breakdown`, `data`, `paymentCustomer`,
+  `redact`, `website-overview`, `stripe-amount`, and `generate` moved into
+  their owning feature libs. Public pixel/link collectors moved to
+  `features/legacy/server/collect` and the
+  website shell resolver to `features/analytics/workbench`, so the route layer
+  no longer reads data directly. `src/queries` is now an allowlisted shared
+  kernel (website/user/share/team/member authorization, segment resolution,
+  billing currency/audit/cleanup, legacy entity lookups). `app-structure.test.ts`
+  pins the kernel, the domain query directories, and the route-layer ban.
+  Typecheck and lint clean; `next build` succeeds with `SKIP_DB_CHECK=1`;
+  **645/645 tests** pass.
+
+- 2026-11-05 — **Permission ownership restructure (Phase 9 / UI-24):**
+  `src/permissions` now holds only the central website/entity authorization
+  boundary. Report, platform-admin user, and frozen legacy read checks moved to
+  `features/analytics/lib/report-permissions.ts`,
+  `features/account/lib/permissions.ts`, and
+  `features/legacy/lib/permissions.ts`. Unused legacy update/delete permission
+  functions were deleted, route tests now mock the owning feature module, and
+  `app-structure.test.ts` enforces the reduced permissions allowlist. Typecheck
+  and lint are clean; **642/642 tests** pass.
+
+- 2026-11-05 — **Settings ownership restructure (Phase 9 / UI-23):** dissolved
+  the `features/settings` catch-all. Account, security, and preference screens
+  now live in `features/account/settings`, with the local-user admin API
+  handlers under `features/account/server/users`; workspace settings moved to
+  `features/workspaces/settings`, website list settings to
+  `features/websites/settings`, integration settings to
+  `features/payments/settings`, and plan/usage to the new `features/billing`
+  domain. `features/settings` retains only the settings shell, grouped nav, and
+  overview. `app-structure.test.ts` enforces the shell allowlist and rejects the
+  old directories. Typecheck and lint are clean; **641/641 tests** pass, and
+  `next build` completes with `SKIP_DB_CHECK=1` (the local :5433 database was
+  down after a harness restart).
+
+- 2026-11-05 — **Analytics/websites domain split (Phase 9 / UI-22):** the
+  entire website analytics workbench (shell, header, nav, overview, reports,
+  sessions, events, replay, realtime, cohorts, compare, segments) moved from
+  `src/features/websites/workbench` to `src/features/analytics/workbench`, and
+  the report/session/event/replay/metric/realtime request handlers moved to
+  `src/features/analytics/server/[websiteId]`. The thin API routes now point at
+  the analytics domain; `features/websites` keeps site management (CRUD,
+  settings, imports/exports, API keys, members, shares) with settings under
+  `features/websites/settings`. Account settings moved from `settings/profile`
+  to `settings/account`. `app-structure.test.ts` pins the new boundary, and
+  `docs/ARCHITECTURE.md` / `docs/UI_DESIGN_SYSTEM.md` / the README describe the
+  new layout. Typecheck, lint, structure/route tests, and the full suite pass.
+
+- 2026-11-05 — **Phase 9 completion + structural cleanup:** deleted the dead
+  inherited legacy dashboard UI (boards, link/pixel lists and edit forms,
+  board registry, unused selectors/hooks) and the orphaned segment list/edit
+  chain, metrics bars, and dead shared helpers; moved `WebsiteSettingsPage` into
+  the website workbench; added MRR-by-first-touch-channel to `/app`
+  (`getPortfolioMrrByChannel`, pure grouping in `website-overview.ts`, UI panel);
+  made the brand name/domain config derive URL, emails, legal entity, and logo
+  alt text, and removed hardcoded brand copy from docs/onboarding/integrations;
+  added `brand-propagation.test.ts` and a WCAG AA `brand-contrast.test.ts`; and
+  pinned the pruned legacy surface in `app-structure.test.ts`. Typecheck and
+  lint are clean.
+
+- 2026-11-05 — **Shared-layer restructure completion (Phase 9 / UI-20):** moved
+  every remaining feature-owned helper out of `src/lib` into
+  `src/features/<domain>/lib` (analytics tracking/collector/chart helpers,
+  payment detection, auth return URL and registration, workspace invitations
+  and members, website API keys and domain normalization, legacy gate, OSS
+  version). Deleted unused dashboard/websites/cache stores and the unused
+  refresh button; `src/store` now holds only shared app state. Extended
+  `app-structure.test.ts` with `src/lib` and `src/store` allowlists plus
+  domain-helper presence checks, and updated `ARCHITECTURE.md`. Build,
+  typecheck, lint, and **625/625 tests** pass.
+
+- 2026-11-05 — **Complete domain restructure (Phase 9 / UI-19):** moved the last
+  119 domain files out of `src/components` and `src/lib` into feature modules.
+  Analytics widgets/filters → `features/analytics/components`; share widgets →
+  `features/share/components`; `WebsiteSelect` → `features/websites`;
+  `WorkspaceSwitcher`/`UserButton` → `features/app-shell/components`; legacy
+  selectors → `features/legacy`; `PaymentProviderLogo` → `features/payments`;
+  all domain query hooks → `features/<domain>/hooks` barrels; cron →
+  `features/system/cron`. Only shared primitives remain in `src/components`.
+  Moved `formatStripeAmount` to `src/lib/stripe-amount.ts` and board type
+  constants to `src/lib/board-types.ts` so shared data access no longer imports
+  a feature. Deleted three dead components and three dead hooks. Extended
+  `app-structure.test.ts` to enforce the shared component allowlist and the
+  no-shared→feature rule. Updated `ARCHITECTURE.md` and the design-system map.
+  Build, typecheck, lint, and **622/622 tests** pass.
+
+- 2026-11-05 — **Phase 9 restructure + polish completion:** `/app/settings` is
+  a real overview (not a redirect) with grouped navigation; new Integrations
+  and Security settings surfaces report real provider connection state,
+  verification state, password/session policy, and account deletion. Added a
+  public docs shell (`/docs` + `/docs/revenue-guides/[slug]`) with guides for
+  Stripe, Dodo Payments, Lemon Squeezy, Polar, Yolfi, and the manual API; all
+  old `talivia.com` help links now resolve locally. Rebranded legacy import
+  copy and backup filenames, stopped upstream update telemetry unless
+  `OSS_UPDATE_URL` is set, moved remaining blue chrome to the blush signal, and
+  added global focus-visible and reduced-motion rules. `app-route` now accepts
+  the new settings paths and the structure test includes the docs domain.
+  Build, typecheck, lint, and **620/620 tests** pass.
+
+- 2026-11-05 — **Complete server restructure (Phase 9 / UI-17):** all 119 API
+  route handlers moved out of `src/app/api` into feature modules
+  (`features/{account,analytics,auth,legacy,payments,share,system,websites,workspaces}/server`).
+  Route files now contain only HTTP-method re-exports and static Next config.
+  Payment provider clients/webhooks/backfills, provider credential handling,
+  analytics import parsers, and board definitions moved from `src/lib` and
+  `src/queries` into `features/payments`, `features/websites`, and
+  `features/legacy`. Added `docs/ARCHITECTURE.md` (layer boundaries,
+  dependency direction, route contract), extended
+  `src/lib/app-structure.test.ts` to enforce thin API routes and server-module
+  presence, and updated the UI design-system map. Build, typecheck, lint, 126
+  API tests, and the full suite pass.
+- 2026-11-05 — **Complete source restructure (Phase 9):** `src/app` is now the
+  routing layer only. Product UI moved into `src/features` domain modules:
+  `app-shell` (shell/top nav/notices), `portfolio` (all-websites home),
+  `websites` (list helpers + `workbench` with reports, sessions, events,
+  replay, settings), `settings` (workspace, websites, plan and usage, account,
+  preferences), `onboarding` (welcome and website setup), `auth` (login,
+  signup, verify, reset, invite, logout), `marketing` (landing and pricing),
+  `share` (public share shell), and `legacy` (quarantined boards/links/pixels).
+  `src/app` contains route files plus `Providers.tsx` only. Removed the unused portfolio table
+  components and the obsolete revenue-attribution/revenue-journey report
+  screens and query hooks (their API endpoints remain for exports and the
+  diagnostics view). `/websites/*` and `/settings/*` now redirect to the
+  canonical `/app/*` routes. Customer-facing provider webhook names,
+  descriptions, diagnostics copy, and import labels now read from
+  `src/lib/brand.ts`; README, SECURITY, and CONTRIBUTING no longer present the
+  upstream product as the product. Fixed a timing-flaky session-cookie test by
+  freezing the clock. Build, typecheck, lint, and 613/613 tests pass, including a new
+  `src/lib/app-structure.test.ts` that locks routes to `src/app` and product UI to
+  `src/features`; an
+  authenticated smoke run returned 200 on all 19 workbench routes and the 7
+  settings/portfolio surfaces.
 - 2026-11-05 — **Usage metering and the Plan & usage surface (Phases 6 + 9):**
   new `usage_period` and `usage_replay_session` tables; atomic reserve-then-write
   event metering in the collector with release on write failure; replay
