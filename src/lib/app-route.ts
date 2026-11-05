@@ -11,6 +11,7 @@ const APP_SETTINGS_PATHS = new Set([
   'security',
   'activation',
   'admin',
+  'audit',
 ]);
 const WEBSITE_PATHS = new Set([
   'settings',

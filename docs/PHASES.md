@@ -30,7 +30,7 @@
 - Overall percent (average of phases 0–12): **94%**
 - Build state at last check: **green** — `tsc --noEmit`, `biome lint`, and the
   full suite pass; the production build is exercised by `pnpm gate` and CI.
-  Latest local full run: **781 passed / 0 failed / 1 gated skip**, plus the
+  Latest local full run: **784 passed / 0 failed / 1 gated skip**, plus the
   explicit 48-assertion PostgreSQL analytics smoke and the recorded load probe.
 - GitHub CI: **green on `main`** for the last merged phase. CI starts
   PostgreSQL 17, runs `pnpm build-db`, lint, typecheck, the full suite,
@@ -1224,7 +1224,9 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       `docs/SECRETS_ROTATION.md` + `pnpm rotate:provider-secrets`,
       `src/queries/prisma/audit.ts` with calls across account, workspace,
       member, invitation, API key, website, import, billing, and suspension
-      handlers.
+      handlers. The platform-admin audit viewer (`GET /api/admin/audit` +
+      `/app/settings/audit`) lists recent events without IP, user agent, or
+      metadata.
 
 ### Acceptance criteria
 
@@ -1373,13 +1375,19 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 
 ## Changelog
 
+- 2026-11-06 — **Operator audit viewer:** added `GET /api/admin/audit` and
+  `/app/settings/audit` for platform admins. The list is newest-first, supports
+  a limit and event-type filter, and deliberately omits IP, user agent, and
+  metadata. Normal users receive 403 from the API and the restricted page copy.
+  Added handler tests, route allowlist coverage, and the OpenAPI path.
+
 - 2026-11-06 — **Closed suspended/deleted public read paths:** API keys now fail
   closed when the owning user or website workspace is deleted or suspended;
   share-link issuance and every existing share token now verify that the
   website and workspace are live; share tokens expire after 7 days; replay
   recording rejects a deleted website. Added tests for each path. This prevents
   a suspended tenant from continuing to read or write through machine
-  credentials and public links. Full suite **781 passed / 1 gated skip**;
+  credentials and public links. Full suite **784 passed / 1 gated skip**;
   production build green.
 
 - 2026-11-06 — **One-time setup allowance:** replaced the monthly setup cap with
@@ -1431,7 +1439,7 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
   any session write, with a regression test. Added OpenAPI 3.1 (`openapi.yaml`),
   graceful shutdown (`scripts/start-server.mjs`), bcrypt cost 12 with
   rehash-on-login, comparison pages, `sitemap.xml`, `robots.txt`, and
-  `security.txt`. Local full suite: **781 passed / 1 gated skip**; production
+  `security.txt`. Local full suite: **784 passed / 1 gated skip**; production
   build green.
 
 - 2026-11-06 — **Phase 10/11 production readiness and Phase 12 GTM:** added the

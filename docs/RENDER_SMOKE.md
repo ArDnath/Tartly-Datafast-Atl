@@ -52,6 +52,7 @@ requested with its session cookie:
 | `/app/settings/preferences` | 200 |
 | `/app/settings/activation` | 200 |
 | `/app/settings/admin` | 200 (restricted copy for a non-platform-admin) |
+| `/app/settings/audit` | 200 (restricted copy for a non-platform-admin) |
 
 `GET /api/admin/accounts?query=smoke` returned **403** for the normal account,
 proving the UI route is not the access control. The smoke account/workspace were

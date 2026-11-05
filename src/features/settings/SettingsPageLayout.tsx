@@ -12,6 +12,7 @@ import {
   Globe2,
   Lock,
   Network,
+  ScrollText,
   Settings2,
   ShieldAlert,
   TrendingUp,
@@ -37,7 +38,8 @@ type SettingsKey =
   | 'billing'
   | 'security'
   | 'activation'
-  | 'admin';
+  | 'admin'
+  | 'audit';
 
 export function SettingsPageLayout({
   activeKey,
@@ -113,6 +115,12 @@ export function SettingsPageLayout({
             label: 'Platform ops',
             path: renderUrl('/app/settings/admin', false),
             icon: <ShieldAlert />,
+          },
+          {
+            id: 'audit' as const,
+            label: 'Audit trail',
+            path: renderUrl('/app/settings/audit', false),
+            icon: <ScrollText />,
           },
         ]
       : []),
