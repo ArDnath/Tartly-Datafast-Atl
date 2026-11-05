@@ -918,8 +918,9 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       `account`); the whole inherited analytics SQL engine moved to
       `features/analytics/server/queries/sql`; the tenant-scoped session cache
       moved beside it; `dashboard-breakdown`, `data`, `paymentCustomer`,
-      `redact`, `website-overview`, `stripe-amount`, `generate`, and
-      `board-types` moved into their owning feature libs. The public pixel
+      `redact`, `website-overview`, `stripe-amount`, and `generate` moved into
+      their owning feature libs. The frozen board type constants stay shared
+      with the central entity lookup. The public pixel
       and link collectors moved to `features/legacy/server/collect`, the
       website shell resolver moved into the analytics workbench, and the route
       layer no longer imports `@/queries`, `@/lib/prisma`, or `@/lib/redis`.
