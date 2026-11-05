@@ -28,7 +28,7 @@ export async function getWorkspaceEntitlements(
   now: Date = new Date(),
 ): Promise<WorkspaceEntitlements | null> {
   const workspace = await prisma.client.workspace.findFirst({
-    where: { id: workspaceId, deletedAt: null },
+    where: { id: workspaceId, deletedAt: null, suspendedAt: null },
     select: {
       id: true,
       planId: true,
