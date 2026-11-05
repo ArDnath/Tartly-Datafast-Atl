@@ -4,6 +4,7 @@ import {
   APP_SECRET_CONFIGURATION_ERROR_MESSAGE,
 } from '@/lib/app-config';
 import { SHARE_CONTEXT_HEADER, SHARE_TOKEN_HEADER } from '@/lib/constants';
+import { logger } from '@/lib/logger';
 import { redactSharedData, type SharedRedactionOptions } from '@/lib/share-redaction';
 
 export function ok() {
@@ -67,13 +68,29 @@ export function notFound(error?: Record<string, any>) {
 }
 
 export function serverError(error?: Record<string, any>) {
+  const source = error && typeof error === 'object' ? error : {};
+  const { errorObject, ...safe } = source;
+
+  // Never put a stack, query, or driver detail in a response. The object is
+  // logged for the operator with a short message only.
+  if (errorObject) {
+    logger.error('api.server_error', {
+      message:
+        errorObject instanceof Error
+          ? errorObject.message
+          : typeof errorObject === 'object' && errorObject?.message
+            ? String(errorObject.message)
+            : String(errorObject),
+    });
+  }
+
   return Response.json(
     {
       error: {
         message: 'Server error',
         code: 'server-error',
         status: 500,
-        ...error,
+        ...safe,
       },
     },
     { status: 500 },

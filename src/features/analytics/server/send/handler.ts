@@ -1,5 +1,4 @@
 import { isbot } from 'isbot';
-import { serializeError } from 'serialize-error';
 import { z } from 'zod';
 import { getFilteredAttributionQuery } from '@/features/analytics/lib/attribution-query';
 import {
@@ -18,6 +17,7 @@ import { getClientInfo, hasBlockedIp } from '@/features/analytics/lib/detect';
 import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import { fetchWebsite } from '@/lib/load';
 import { getPaymentReturnDetection } from '@/features/payments/lib/payment-detection';
+import { logger } from '@/lib/logger';
 import { parseRequest } from '@/lib/request';
 import { badRequest, forbidden, json, serverError } from '@/lib/response';
 import { anyObjectParam, urlOrPathParam } from '@/lib/schema';
@@ -563,12 +563,11 @@ export async function POST(request: Request) {
       }
     }
 
-    const error = serializeError(e);
+    logger.error('collector.send_failed', {
+      message: e instanceof Error ? e.message : String(e),
+    });
 
-    // eslint-disable-next-line no-console
-    console.log(error);
-
-    return serverError({ errorObject: error });
+    return serverError();
   }
 }
 
