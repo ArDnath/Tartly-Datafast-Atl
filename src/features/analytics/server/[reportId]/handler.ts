@@ -2,7 +2,7 @@ import { parseRequest } from '@/lib/request';
 import { forbidden, json, notFound, ok, unauthorized } from '@/lib/response';
 import { reportSchema } from '@/lib/schema';
 import { getShareSectionForReportType, isShareSectionAllowed } from '@/lib/share-sections';
-import { canDeleteReport, canUpdateReport, canViewReport } from '@/permissions';
+import { canDeleteReport, canUpdateReport, canViewReport } from '@/features/analytics/lib/report-permissions';
 import { deleteReport, getReport, updateReport } from '@/queries/prisma';
 
 export async function GET(request: Request, { params }: { params: Promise<{ reportId: string }> }) {

@@ -132,6 +132,13 @@ const SHARED_LIB_MODULES = new Set([
 /** Shared client state. Domain stores belong in `src/features/<domain>/store`. */
 const SHARED_STORE_MODULES = new Set(['app.ts']);
 
+/**
+ * `src/permissions` is the central tenant authorization boundary. Domain-only
+ * permission checks (reports, local users, frozen legacy entities) live with
+ * their feature; only website/entity authorization stays shared.
+ */
+const SHARED_PERMISSIONS_MODULES = new Set(['entity.ts', 'index.ts', 'website.ts']);
+
 function walk(directory: string): string[] {
   return readdirSync(directory).flatMap(entry => {
     const path = join(directory, entry);
@@ -222,9 +229,25 @@ describe('application source layout', () => {
     expect(domainStores).toEqual([]);
   });
 
+  test('src/permissions contains central tenant authorization only', () => {
+    const modules = readdirSync(join(SRC, 'permissions')).filter(
+      entry => !entry.includes('.test.') && statSync(join(SRC, 'permissions', entry)).isFile(),
+    );
+
+    const domainModules = modules.filter(entry => !SHARED_PERMISSIONS_MODULES.has(entry)).sort();
+
+    expect(domainModules).toEqual([]);
+    expect(existsSync(join(SRC, 'permissions/board.ts'))).toBe(false);
+    expect(existsSync(join(SRC, 'permissions/link.ts'))).toBe(false);
+    expect(existsSync(join(SRC, 'permissions/pixel.ts'))).toBe(false);
+    expect(existsSync(join(SRC, 'permissions/report.ts'))).toBe(false);
+    expect(existsSync(join(SRC, 'permissions/user.ts'))).toBe(false);
+  });
+
   test('domain helpers live in their feature module', () => {
     const expected = [
       'account/hooks/useUsersQuery.ts',
+      'account/lib/permissions.ts',
       'account/server/users/handler.ts',
       'account/settings/ProfilePage.tsx',
       'account/settings/SecuritySettingsPage.tsx',
@@ -232,6 +255,7 @@ describe('application source layout', () => {
       'analytics/lib/attribution-query.ts',
       'analytics/lib/collector-cache.ts',
       'analytics/lib/dashboard-overview.ts',
+      'analytics/lib/report-permissions.ts',
       'analytics/workbench/WebsiteLayout.tsx',
       'analytics/workbench/WebsiteHeader.tsx',
       'analytics/workbench/WebsitePage.tsx',
@@ -242,6 +266,7 @@ describe('application source layout', () => {
       'auth/server/registration.ts',
       'billing/UsageSettingsPage.tsx',
       'legacy/lib/legacy-features.ts',
+      'legacy/lib/permissions.ts',
       'payments/lib/payment-detection.ts',
       'payments/settings/IntegrationsSettingsPage.tsx',
       'system/lib/oss-version.ts',
@@ -282,6 +307,7 @@ describe('application source layout', () => {
       'hooks/usePixel.ts',
       'hooks/usePixelQuery.ts',
       'lib/legacy-features.ts',
+      'lib/permissions.ts',
       'links/LinkProvider.tsx',
       'links/[linkId]/LinkControls.tsx',
       'links/[linkId]/LinkHeader.tsx',

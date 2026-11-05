@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { checkAuth } from '@/lib/auth';
 import { checkPassword } from '@/lib/password';
-import { canCreateUser, canViewUsers } from '@/permissions';
+import { canCreateUser, canViewUsers } from '@/features/account/lib/permissions';
 import { createUser, getUserByUsername, getUsers } from '@/queries/prisma';
 import { GET, POST } from './route';
 
@@ -13,7 +13,7 @@ vi.mock('@/lib/crypto', () => ({
   uuid: vi.fn(() => '11111111-1111-4111-8111-111111111111'),
 }));
 
-vi.mock('@/permissions', () => ({
+vi.mock('@/features/account/lib/permissions', () => ({
   canCreateUser: vi.fn(),
   canViewUsers: vi.fn(),
 }));

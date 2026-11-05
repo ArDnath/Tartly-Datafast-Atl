@@ -1,5 +1,9 @@
 import type { Auth } from '@/lib/types';
 
+/**
+ * Platform-admin user management. Local user administration is not a tenant
+ * grant; only the platform-admin allowlist may list or create accounts.
+ */
 export async function canCreateUser({ user }: Auth) {
   return user?.isPlatformAdmin ?? false;
 }

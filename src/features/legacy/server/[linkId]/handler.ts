@@ -1,7 +1,7 @@
 import { legacyFeatureDisabled } from '@/features/legacy/lib/legacy-features';
 import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
-import { canViewLink } from '@/permissions';
+import { canViewLink } from '@/features/legacy/lib/permissions';
 import { getLink } from '@/queries/prisma';
 
 export async function GET(request: Request, { params }: { params: Promise<{ linkId: string }> }) {

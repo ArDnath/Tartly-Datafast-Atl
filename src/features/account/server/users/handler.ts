@@ -6,7 +6,7 @@ import { hashPassword } from '@/lib/password';
 import { getQueryFilters, parseRequest } from '@/lib/request';
 import { badRequest, json, unauthorized } from '@/lib/response';
 import { pagingParams, searchParams, userRoleParam } from '@/lib/schema';
-import { canCreateUser, canViewUsers } from '@/permissions';
+import { canCreateUser, canViewUsers } from '@/features/account/lib/permissions';
 import { createUser, getUserByUsername, getUsers } from '@/queries/prisma';
 
 export async function GET(request: Request) {

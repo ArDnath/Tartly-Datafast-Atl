@@ -56,13 +56,13 @@ app  ->  features  ->  components / lib / queries / permissions / store
 
 | Domain | Owns |
 | --- | --- |
-| `account` | `/api/me` profile, password, owned websites, account/security/preferences settings, local-user admin |
-| `analytics` | the signed-in website workbench (overview, reports, sessions, events, replay, realtime, cohorts, compare, segments), ingestion (`send`, `record`, `batch`), heartbeat, report/metric handlers, analytics widgets, filters, and query hooks |
+| `account` | `/api/me` profile, password, owned websites, account/security/preferences settings, local-user admin and permission checks |
+| `analytics` | the signed-in website workbench (overview, reports, sessions, events, replay, realtime, cohorts, compare, segments), ingestion (`send`, `record`, `batch`), heartbeat, report/metric handlers and report permission checks, analytics widgets, filters, and query hooks |
 | `app-shell` | signed-in shell, top nav, notices, workspace switcher, user menu |
 | `auth` | login, signup, verification, reset, logout, auth query hooks |
 | `billing` | plan and usage settings screen (platform billing arrives in Phase 5) |
 | `docs` | public documentation shell and provider revenue guides |
-| `legacy` | frozen boards/links/pixels APIs and the share-rendered link/pixel pages; list, edit, and board UI are deleted |
+| `legacy` | frozen boards/links/pixels APIs and the share-rendered link/pixel pages, with their read permissions; list, edit, and board UI are deleted |
 | `marketing` | landing and pricing |
 | `onboarding` | onboarding canvas and website setup |
 | `payments` | provider connections, manual payments, provider webhooks, provider clients/backfills, credential encryption, payment provider UI, integration settings |
@@ -230,6 +230,13 @@ The restructure is organizational only. Tenant isolation still runs through
 `src/permissions/website.ts` and `src/lib/workspace-auth.ts`; handlers in
 `features/websites/server` must resolve the website from the authorized
 workspace before reading or writing. See `docs/TENANCY.md`.
+
+`src/permissions` now contains only the central website/entity authorization
+boundary (`website.ts`, `entity.ts`, the barrel). Report, local-user, and frozen
+legacy permission checks live in `features/analytics/lib/report-permissions.ts`,
+`features/account/lib/permissions.ts`, and `features/legacy/lib/permissions.ts`.
+That keeps domain authorization next to the handlers that use it without
+weakening the shared website/workspace check.
 
 ## Why this shape
 

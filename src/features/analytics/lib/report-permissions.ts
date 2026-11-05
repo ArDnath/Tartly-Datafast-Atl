@@ -1,6 +1,6 @@
 import type { Report } from '@/generated/prisma/client';
 import type { Auth } from '@/lib/types';
-import { canDeleteWebsite, canUpdateWebsite, canViewWebsite } from './website';
+import { canDeleteWebsite, canUpdateWebsite, canViewWebsite } from '@/permissions';
 
 /**
  * Reports are tenant data. Access is derived from the website they belong to,

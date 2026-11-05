@@ -4,7 +4,7 @@
 - **Repository:** <https://github.com/talivia-group/talivia> (MIT), forked locally at
   `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-05
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 is complete: the source restructure (app, server, domain UI/hooks/lib/store) is finished and enforced, the dead legacy dashboard UI is pruned, the portfolio now shows MRR by first-touch channel, and the brand/contrast locks are automated. A final domain split now moves the whole website analytics workbench and its handlers into `features/analytics`, leaving `features/websites` as site management only. The settings catch-all is gone too: `features/settings` is now the shell and overview only, while account/security/preferences, workspace, website list, integrations, and plan/usage screens live with their owning domains. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat. Phase 9 is complete: the source restructure (app, server, domain UI/hooks/lib/store) is finished and enforced, the dead legacy dashboard UI is pruned, the portfolio now shows MRR by first-touch channel, and the brand/contrast locks are automated. A final domain split now moves the whole website analytics workbench and its handlers into `features/analytics`, leaving `features/websites` as site management only. The settings catch-all is gone too: `features/settings` is now the shell and overview only, while account/security/preferences, workspace, website list, integrations, and plan/usage screens live with their owning domains. `src/permissions` is now the shared website/entity authorization boundary only; report, local-user, and frozen legacy permission checks live with their features. Phase 6 usage metering and enforcement shipped (events + replay, usage page, in-app notices). Next: Phase 5 (platform billing) and Phase 7.
 
 ## Overall progress
 
@@ -15,7 +15,7 @@
   `SKIP_DB_CHECK=1`; the local PostgreSQL instance on :5433 was down after a
   harness restart, so the DB check/migration step could not run; `tsc --noEmit`
   clean; `biome lint` clean). Full test run:
-  **641 passed / 0 failed** under `TZ=UTC`.
+  **642 passed / 0 failed** under `TZ=UTC`.
 - Runtime smoke: the new public docs routes return 200, and `/app/settings`,
   `/app/settings/integrations`, `/app/settings/security`, `/app/settings/websites`,
   and `/app/settings/billing` return 200 with an authenticated session. The
@@ -904,6 +904,15 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
       `features/billing` domain. Route files point at the owning domain, and
       `app-structure.test.ts` pins the shell and forbids the old catch-all
       directories. — proof: typecheck, lint, and **641/641 tests** pass.
+- [x] **UI-24 — Permission ownership completion (new):** `src/permissions` is
+      now only the shared website/entity authorization boundary
+      (`website.ts`, `entity.ts`, the barrel). Report checks moved to
+      `features/analytics/lib/report-permissions.ts`, local-user/platform-admin
+      checks to `features/account/lib/permissions.ts`, and frozen board/link/
+      pixel read checks to `features/legacy/lib/permissions.ts`; the unused
+      legacy update/delete checks were deleted. Route tests mock the owning
+      feature module, and `app-structure.test.ts` enforces the permissions
+      allowlist. — proof: typecheck, lint, and **642/642 tests** pass.
 
 ### Acceptance criteria
 
@@ -1055,12 +1064,23 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
    (app, server, domain UI/hooks/lib/store) and the legacy UI prune are complete
    and enforced by the structure test. Settings ownership is complete:
    `features/settings` is the shell only, and each domain owns its settings
-   screen. Billing history waits for Phase 5.
+   screen. Permission ownership is likewise complete: `src/permissions` is the
+   shared website/entity boundary only. Billing history waits for Phase 5.
 8. **Phase 10:** legal drafts, abuse protection, transactional email, ops.
 9. **Phase 11:** security review, load test, CI, deployment/runbook.
 10. **Phase 12:** go-to-market.
 
 ## Changelog
+
+- 2026-11-05 — **Permission ownership restructure (Phase 9 / UI-24):**
+  `src/permissions` now holds only the central website/entity authorization
+  boundary. Report, platform-admin user, and frozen legacy read checks moved to
+  `features/analytics/lib/report-permissions.ts`,
+  `features/account/lib/permissions.ts`, and
+  `features/legacy/lib/permissions.ts`. Unused legacy update/delete permission
+  functions were deleted, route tests now mock the owning feature module, and
+  `app-structure.test.ts` enforces the reduced permissions allowlist. Typecheck
+  and lint are clean; **642/642 tests** pass.
 
 - 2026-11-05 — **Settings ownership restructure (Phase 9 / UI-23):** dissolved
   the `features/settings` catch-all. Account, security, and preference screens

@@ -4,7 +4,7 @@ import { ROLES } from '@/lib/constants';
 import { parseRequest } from '@/lib/request';
 import { badRequest, json, notFound, unauthorized } from '@/lib/response';
 import { userRoleParam } from '@/lib/schema';
-import { canUpdateUser, canViewUser } from '@/permissions';
+import { canUpdateUser, canViewUser } from '@/features/account/lib/permissions';
 import { getUser, getUserByUsername, updateUser } from '@/queries/prisma';
 
 export async function GET(request: Request, { params }: { params: Promise<{ userId: string }> }) {
