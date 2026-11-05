@@ -17,13 +17,18 @@ test('public visitor metrics count durable visitors rather than rolling sessions
 
   for (const file of visitorMetricFiles) {
     const query = source(file);
-    expect(query).toMatch(
-      /(?:count\(distinct\s+|uniq\()(?:(?:website_event\.)?visitor_id)/,
-    );
-    expect(query).not.toMatch(
-      /(?:count\(distinct\s+|uniq\()(?:(?:website_event\.)?session_id)/,
-    );
+    expect(query).toMatch(/(?:count\(distinct\s+|uniq\()(?:(?:website_event\.)?visitor_id)/);
+    expect(query).not.toMatch(/(?:count\(distinct\s+|uniq\()(?:(?:website_event\.)?session_id)/);
   }
+});
+
+test('direct and referral channels tolerate null referrer/query columns from imports', () => {
+  const channels = source('src/features/analytics/server/queries/sql/getChannelMetrics.ts');
+
+  expect(channels).toContain("coalesce(referrer_domain, '') = '' and coalesce(url_query, '') = ''");
+  expect(channels).toContain(
+    "coalesce(referrer_domain, '') != '' and referrer_domain != regexp_replace(hostname, '^www.', '')",
+  );
 });
 
 test('cohorts, retention, goals, and funnels follow a visitor across sessions', () => {

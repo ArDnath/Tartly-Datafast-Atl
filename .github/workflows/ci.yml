@@ -42,4 +42,9 @@ jobs:
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm exec prisma migrate deploy
+      - name: Analytics smoke (PostgreSQL)
+        run: pnpm exec vitest run --config vitest.phase7.config.ts src/features/analytics/server/queries/phase7-analytics-smoke.test.ts
+        env:
+          RUN_PHASE7_DB_SMOKE: '1'
+          PHASE7_DATABASE_URL: postgresql://talivia:talivia@localhost:5432/talivia_ci
       - run: pnpm build

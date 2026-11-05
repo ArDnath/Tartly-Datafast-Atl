@@ -5,20 +5,24 @@
   (public, `origin`; default branch `main`)
 - **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
   forked locally at `/home/ariyaman/Dev/fight/efforts/revenuelens`
-- **Last updated:** 2026-11-05
-- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat; Phase 9 complete. The source restructure is finished and enforced: `src/app` is routing only, every domain owns its UI/hooks/lib/server/queries, `src/lib` and `src/queries` are allowlisted shared kernels, and route tests live beside feature handlers. Phase 6 usage metering shipped. **Phase 5 platform billing now ships behind a separate `features/billing` domain:** Dodo checkout, customer portal, cancel-at-period-end, plan changes, signed Standard Webhooks verification, idempotent and out-of-order-safe lifecycle reduction, provider-derived entitlements, real invoice history, a billing settings panel, and 22 new tests. It is marked **done with caveats** because no Dodo test/live credentials exist here, so live checkout and webhook delivery still need the human. The analytics Dodo integration remains a completely separate context. Next: live Dodo verification, then Phase 7 (analytics validation, attribution journeys, replay retention).
+- **Last updated:** 2026-11-06
+- **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat; Phase 9 complete. The source restructure is finished and enforced: `src/app` is routing only, every domain owns its UI/hooks/lib/server/queries, `src/lib` and `src/queries` are allowlisted shared kernels, and route tests live beside feature handlers. Phase 6 usage metering shipped. **Phase 5 platform billing now ships behind a separate `features/billing` domain:** Dodo checkout, customer portal, cancel-at-period-end, plan changes, signed Standard Webhooks verification, idempotent and out-of-order-safe lifecycle reduction, provider-derived entitlements, real invoice history, a billing settings panel, and 22 new tests. It is marked **done with caveats** because no Dodo test/live credentials exist here, so live checkout and webhook delivery still need the human. **Phase 7 is complete with caveats:** a real PostgreSQL smoke run proved 48 analytics assertions, the attribution journey suite covers organic/paid/referral/direct/recurring/unattributed paths, replay gating and masking are tested, a daily tenant-scoped retention job now deletes expired payloads, and the provider capability table is code-verified. Live provider webhooks, ClickHouse, browser recorder runtime, and load/concurrency remain unverified. Next: finish Phase 8 (framework guides, activation funnel, MCP/CLI), then Phase 10 operations.
 
 ## Overall progress
 
 - Total phases: **12** (0–11 product/build, 12 go-to-market)
-- Phases complete: **4 full, 3 with caveats** (Phase 2: copy-with-data rehearsal; Phase 4: live Resend delivery; Phase 5: live Dodo test mode)
-- Overall percent (average of phases 0–11): **66%**
-- Build state at last check: **green** (`next build` exit 0 with
-  `SKIP_DB_CHECK=1`; `tsc --noEmit` clean; `biome lint` clean). Full test run:
-  **668 passed / 0 failed** under `TZ=UTC`.
+- Phases complete: **4 full, 4 with caveats** (Phase 2: copy-with-data rehearsal;
+  Phase 4: live Resend delivery; Phase 5: live Dodo test mode; Phase 7: live
+  provider webhooks, ClickHouse, browser recorder runtime, load/concurrency)
+- Overall percent (average of phases 0–11): **75%**
+- Build state at last check: **green** (`tsc --noEmit` clean; `biome lint`
+  clean). Full test run: **693 passed / 0 failed / 1 gated skip** under
+  `TZ=UTC`; the Phase 7 PostgreSQL smoke adds **48 live assertions** when run
+  explicitly.
 - GitHub CI: **green on `main`**. The workflow starts PostgreSQL 17, runs
-  `pnpm build-db`, lint, the full suite, `prisma migrate deploy`, and
-  `pnpm build` on every pull request and on `main`.
+  `pnpm build-db`, lint, the full suite, `prisma migrate deploy`, the Phase 7
+  analytics smoke against the migrated database, and `pnpm build` on every pull
+  request and on `main`.
 - Delivery history: the work was pushed as six phase branches and merged
   through pull requests #1–#6:
   `feature/phase-0-2-foundation`, `feature/phase-3-4-isolation-auth`,
@@ -58,7 +62,7 @@ No third plan, no free tier, no hidden limits.
 | 4 | Authentication and account management | DONE_WITH_CAVEATS | 100% | 2026-11-05 | 2026-11-05 | live Resend send |
 | 5 | Platform billing (Dodo) | DONE_WITH_CAVEATS | 90% | 2026-11-05 | 2026-11-05 | live Dodo test mode |
 | 6 | Plans, pricing economics, usage | IN_PROGRESS | 75% | 2026-11-04 | — | live concurrency proof; owner approval of limits; notice emails |
-| 7 | Analytics validation, integrations, replay | NOT_STARTED | 0% | — | — | none |
+| 7 | Analytics validation, integrations, replay | DONE_WITH_CAVEATS | 100% | 2026-11-05 | 2026-11-06 | live provider webhooks; ClickHouse; browser recorder runtime; load/concurrency |
 | 8 | Onboarding and developer experience | IN_PROGRESS | 40% | 2026-11-04 | — | guides, activation, MCP |
 | 9 | Rebrand and product UI | DONE | 100% | 2026-11-04 | 2026-11-05 | none |
 | 10 | Compliance, abuse, email, operations | NOT_STARTED | 0% | — | — | legal review |
@@ -680,40 +684,112 @@ migration connections.
 
 ### Tasks
 
-- [ ] Validate visitors, unique visitors, pageviews, sessions, bounce rate,
+- [x] Validate visitors, unique visitors, pageviews, sessions, bounce rate,
       duration, geography, browsers, OS, devices, screens, referrers, landing
-      and exit pages, UTM, real-time dashboard.
-- [ ] Keep first-touch and last-touch attribution. Tests from realistic
+      and exit pages, UTM, real-time dashboard. — proof:
+      `docs/ANALYTICS_VALIDATION.md`; `phase7-smoke.ts` seeded an isolated
+      website and passed **48 assertions** against PostgreSQL 17 on 2026-11-06
+      (pageviews 7, visitors 3, visits 4, bounces 2, 180 s duration, top/
+      landing/exit pages, referrers, UTM source/campaign, browser, OS, device,
+      screen, country, language, channels, date range, real-time totals, and
+      active visitors). The seeded rows were removed in a `finally` block.
+- [x] Keep first-touch and last-touch attribution. Tests from realistic
       journeys (organic, paid, referral, multi-touch, recurring revenue). Fix
-      only verified bugs and log each.
-- [ ] Payment integrations (Stripe, Dodo, Lemon Squeezy, Polar, Yolfi, Manual
+      only verified bugs and log each. — proof:
+      `src/features/payments/server/queries/attribution-journeys.test.ts`
+      (organic → paid retarget, referral last touch, direct purchase, recurring
+      subscription history, unattributed payment) and
+      `revenueAttribution.test.ts` (first-touch default, last-touch switch).
+      One verified bug was fixed: `getChannelMetrics` now treats `NULL`
+      referrer/query columns (legacy/import rows) as direct/referral instead of
+      only empty strings; a unit test pins the null-safe SQL and the smoke suite
+      seeds a `NULL` direct event.
+- [x] Payment integrations (Stripe, Dodo, Lemon Squeezy, Polar, Yolfi, Manual
       Payment API): verify capabilities in code. Per-website/per-workspace
       connections. Encrypt credentials. Validate webhooks. Handle subscriptions,
       renewals, cancellations, refunds, disputes, duplicates. Never return
-      secrets.
-- [ ] Session replay: gate by plan entitlement, meter separately, enforce
+      secrets. — proof: `docs/PAYMENT_PROVIDER_CAPABILITIES.md` records the
+      code-verified matrix and explicit gaps (Dodo subscription lifecycle,
+      non-Stripe disputes, historical import limits). Connections remain
+      per-website; new secrets are `enc:`-encrypted; webhook handlers dedupe by
+      provider event and never return credential refs. Live delivery is
+      **UNVERIFIED**.
+- [x] Session replay: gate by plan entitlement, meter separately, enforce
       retention, mask sensitive inputs by default, respect consent, isolate per
-      tenant, payloads outside tenant tables.
-- [ ] Retention jobs: delete data older than plan allows; tenant-safe and
-      idempotent.
+      tenant, payloads outside tenant tables. — proof:
+      `src/features/analytics/server/record/handler.test.ts` (9 tests: Starter
+      and no-plan rejection before reservation, Pro metering, over-limit
+      rejection, failed-write release, website switch, legacy workspace,
+      missing/invalid session token). `src/recorder/privacy.js` +
+      `privacy.test.ts` prove `maskAllInputs: true` by default, strict text
+      masking, and `data-consent="required"` gating via
+      `window.__taliviaSetConsent` or `talivia:consent`. Replay bytes stay in
+      website-scoped `session_replay`, outside tenant relational tables.
+- [x] Retention jobs: delete data older than plan allows; tenant-safe and
+      idempotent. — proof:
+      `src/features/system/cron/jobs/analytics-retention.ts` runs daily at
+      03:30 UTC, resolves each website's plan, deletes replays, event data,
+      session data, events, sessions, and analytics revenue past the cutoff,
+      and detaches durable payment/subscription links first. Every mutation
+      carries `websiteId`; `ANALYTICS_RETENTION_DRY_RUN=true` counts only. Five
+      unit tests cover Starter/Pro windows, no-replay purge, dry-run, targeted
+      ids/idempotency, and the website boundary. The live smoke proved a
+      200-day-old event/session and the replay payload were removed while
+      recent data survived.
 
 ### Acceptance criteria
 
-- [ ] Attribution journey suite passes.
-- [ ] Provider capability table in docs with verified capabilities + limits.
-- [ ] Replay unavailable on plans without it; masking demonstrated.
+- [x] Attribution journey suite passes. — proof:
+      `attribution-journeys.test.ts` (5 tests) and the first/last model tests in
+      `revenueAttribution.test.ts`; full suite green.
+- [x] Provider capability table in docs with verified capabilities + limits. —
+      proof: `docs/PAYMENT_PROVIDER_CAPABILITIES.md` (status code-verified
+      2026-11-06; live columns marked UNVERIFIED).
+- [x] Replay unavailable on plans without it; masking demonstrated. — proof:
+      `record/handler.test.ts` rejects Starter/no-plan before reservation;
+      `privacy.test.ts` proves default input masking, strict text masking, and
+      the consent gate.
 
 ### Decisions made
 
-- (pending)
+- Retention is per website, not per workspace, because events and replays are
+  stored by `websiteId`; the plan is resolved from the owning workspace. This
+  keeps every delete statement bound to one tenant key.
+- A plan without a replay entitlement has no replay storage, so the retention
+  job removes **all** replay payloads for that website. A downgrade purges
+  replay rather than keeping data the plan no longer grants.
+- Durable payment, subscription, refund, dispute, invoice, usage, audit, and
+  billing rows are never deleted by analytics retention. Only their optional
+  links to expired events/sessions are detached.
+- The retention job deletes in one transaction per website. This is simple and
+  safe for the current dataset; batching is a documented pre-scale follow-up.
+- Replay consent is opt-in for the host page (`data-consent="required"`); the
+  default stays implicit so the inherited analytics product keeps working. A
+  host grants consent with `window.__taliviaSetConsent(true)` or a
+  `talivia:consent` event. Revoking stops the recorder; it does not restart.
+- `NULL` and empty-string referrers are both treated as direct/absent. This is
+  a compatibility fix, not a change to channel definitions.
 
 ### Unverified / Assumed
 
-- (pending)
+- **UNVERIFIED:** live webhook delivery for every provider (no provider
+  accounts). See the capability table.
+- **UNVERIFIED:** the ClickHouse query branch and Kafka replay path (not
+  deployed in this fork).
+- **UNVERIFIED:** a real browser recording with rrweb after the masking/consent
+  change. Policy is unit-tested; the bundle was not exercised in a browser.
+- **UNVERIFIED:** retention and ingestion under load. The smoke seed is small
+  and single-instance; no parallel-ingestion or million-row test was run.
+- **ASSUMED:** session replay raw bytes in `session_replay` satisfy the
+  "payloads outside tenant relational tables" rule because they are compressed,
+  website-scoped event-store rows, not membership/billing/tenant tables.
 
 ### Needs from the human
 
 - Provider test accounts/webhook secrets for live end-to-end verification.
+- A browser walkthrough of recorder masking/consent on a real site.
+- Approve whether retention should keep session/visitor identity rows longer
+  than event payloads (current job deletes both at the plan cutoff).
 
 ---
 
@@ -1159,8 +1235,10 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
    a paid plan before onboarding creates a website.
 4. **Phase 6 finish:** owner approval of limits, live parallel-ingestion proof,
    notice emails (Phase 10), provider-driven periods after Phase 5.
-5. **Phase 7:** attribution journey tests, provider capability table, replay
-   entitlements/masking/retention jobs.
+5. **Phase 7 caveats:** live provider webhooks, ClickHouse branch, a real
+   browser recorder/masking walkthrough, and load/concurrency proof. The
+   attribution suite, capability table, replay gating/masking, retention job,
+   and 48-assertion PostgreSQL analytics smoke are complete.
 6. **Phase 8 finish:** framework guides, activation events/admin funnel,
    `llms.txt`, MCP/CLI verification.
 7. **Phase 9 complete:** the portfolio MRR-by-channel panel, the config-derived
@@ -1180,6 +1258,24 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 10. **Phase 12:** go-to-market.
 
 ## Changelog
+
+- 2026-11-06 — **Phase 7 (analytics validation, attribution, replay,
+  retention):** added a gated PostgreSQL smoke
+  (`phase7-smoke.ts` / `vitest.phase7.config.ts`) that seeds an isolated website
+  and passes 48 assertions across pageviews, visitors, visits, bounce input,
+  duration, top/landing/exit pages, referrers, UTM, browser, OS, device, screen,
+  country, language, channels, date range, real-time totals, active visitors,
+  and retention. Added the five-journey attribution suite (organic, paid
+  retargeting, referral, direct, recurring, unattributed), first/last-touch
+  report-model tests, and a verified fix for `NULL` referrer/query rows in the
+  PostgreSQL channel query. Added 9 replay-gating tests, default input masking
+  and a consent gate in the recorder, and a daily tenant-scoped analytics
+  retention job with dry-run support, 5 tests, and cron wiring. Documented the
+  proof in `docs/ANALYTICS_VALIDATION.md` and the code-verified provider matrix
+  in `docs/PAYMENT_PROVIDER_CAPABILITIES.md`. Typecheck and lint are clean; full
+  suite **693 passed / 0 failed / 1 gated skip**; the live smoke adds 48
+  assertions on PostgreSQL. Live provider webhooks, ClickHouse, browser
+  recorder runtime, and load/concurrency remain unverified.
 
 - 2026-11-05 — **GitHub delivery and CI:** moved `origin` to
   <https://github.com/ArDnath/Tartly-Datafast-Atl>, kept Talivia as `upstream`,
