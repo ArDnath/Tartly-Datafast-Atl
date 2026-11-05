@@ -231,6 +231,7 @@ export function PricingPage() {
         <p>{BRAND.tagline}. Independent product, built on an MIT-licensed analytics core.</p>
         <div className={styles.footerLinks}>
           <a href={`mailto:${BRAND.supportEmail}`}>Support</a>
+          <Link href="/alternatives">Compare</Link>
           <Link href="/legal">Legal</Link>
           <Link href="/login">Sign in</Link>
         </div>

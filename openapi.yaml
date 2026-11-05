@@ -1,0 +1,391 @@
+openapi: 3.1.0
+info:
+  title: RevenueLens API
+  version: 1.0.0
+  description: |
+    Public and operator API surfaces for RevenueLens. The analytics dashboard
+    uses cookie-authenticated internal routes that are documented by their
+    handler tests; this contract covers the integration, developer, billing,
+    and operator endpoints that external clients use.
+
+    Authentication:
+    - Browser/session endpoints use the HttpOnly session cookie set by
+      `POST /api/auth/login`.
+    - Developer endpoints use a website-scoped API key:
+      `Authorization: Bearer <website-api-key>`.
+    - Platform operator endpoints require the platform-admin allowlist.
+
+    All responses that contain an error use
+    `{ "error": { "code", "message", "status" } }`.
+servers:
+  - url: https://revenuelens.app
+    description: Production placeholder; replace with the real domain.
+  - url: http://localhost:3000
+    description: Local development.
+tags:
+  - name: Health
+  - name: Auth
+  - name: Developer
+  - name: Account
+  - name: Operator
+  - name: Billing
+
+paths:
+  /api/health/live:
+    get:
+      tags: [Health]
+      summary: Process liveness
+      security: []
+      responses:
+        "200":
+          description: The process can answer HTTP.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, service, version]
+                properties:
+                  ok: { type: boolean, const: true }
+                  service: { type: string, const: revenuelens }
+                  version: { type: string }
+
+  /api/health/ready:
+    get:
+      tags: [Health]
+      summary: Dependency readiness
+      security: []
+      responses:
+        "200":
+          description: The database is reachable.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, database]
+                properties:
+                  ok: { type: boolean, const: true }
+                  database: { type: string, const: up }
+                  version: { type: string }
+        "503":
+          description: The database is unreachable. No internal detail is returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean, const: false }
+                  database: { type: string, const: down }
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Sign in with email and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string, format: email }
+                password: { type: string, minLength: 1, maxLength: 72 }
+      responses:
+        "200":
+          description: Signed in. Sets the HttpOnly session cookie.
+          headers:
+            Set-Cookie:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Create an account, personal workspace, and OWNER membership
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string, format: email, maxLength: 255 }
+                password: { type: string, minLength: 8, maxLength: 72 }
+                workspaceName: { type: string, maxLength: 100 }
+      responses:
+        "200":
+          description: Account created and signed in.
+        "400":
+          description: Validation failure, including disposable email domains.
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /api/me/export:
+    get:
+      tags: [Account]
+      summary: Export the signed-in user's account metadata as JSON
+      responses:
+        "200":
+          description: Portable account export. Never contains secrets or other members' data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exportedAt: { type: string, format: date-time }
+                  formatVersion: { type: integer, const: 1 }
+                  account: { type: object }
+                  workspaces: { type: array, items: { type: object } }
+                  activeSessions: { type: array, items: { type: object } }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/developer/verify:
+    get:
+      tags: [Developer]
+      summary: Verify that a website is installed and receiving events
+      security: [{ websiteApiKey: [] }]
+      responses:
+        "200":
+          description: Installation facts for the key's website.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  websiteId: { type: string, format: uuid }
+                  domain: { type: string, nullable: true }
+                  eventCount: { type: integer, minimum: 0 }
+                  lastEventAt: { type: string, format: date-time, nullable: true }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/developer/events:
+    get:
+      tags: [Developer]
+      summary: List recent pageviews for the key's website
+      security: [{ websiteApiKey: [] }]
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: Recent events. Event properties are omitted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string, format: uuid }
+                        urlPath: { type: string }
+                        createdAt: { type: string, format: date-time }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/developer/diagnose:
+    get:
+      tags: [Developer]
+      summary: Diagnose installation problems with a concrete fix per check
+      security: [{ websiteApiKey: [] }]
+      responses:
+        "200":
+          description: Diagnosis result.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, checks]
+                properties:
+                  ok: { type: boolean }
+                  checks:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, status, message]
+                      properties:
+                        id: { type: string }
+                        status: { type: string, enum: [ok, warning, error] }
+                        message: { type: string }
+                        fix: { type: string }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/admin/accounts:
+    get:
+      tags: [Operator]
+      summary: Search users and workspaces for abuse controls
+      description: Platform-admin only. Returns operator fields, never credentials or customer event data.
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema: { type: string, minLength: 2, maxLength: 255 }
+      responses:
+        "200":
+          description: Matching users and workspaces.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/admin/users/{userId}/suspension:
+    get:
+      tags: [Operator]
+      summary: Read a user's suspension state
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "200":
+          description: Suspension state.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags: [Operator]
+      summary: Suspend or unsuspend a user
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuspensionInput"
+      responses:
+        "200":
+          description: Updated suspension state. A suspension revokes live sessions.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/admin/workspaces/{workspaceId}/suspension:
+    get:
+      tags: [Operator]
+      summary: Read a workspace's suspension state
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      responses:
+        "200":
+          description: Suspension state.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags: [Operator]
+      summary: Suspend or unsuspend a workspace
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuspensionInput"
+      responses:
+        "200":
+          description: Updated suspension state.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/billing/webhook/dodo:
+    post:
+      tags: [Billing]
+      summary: Dodo Payments platform-billing webhook
+      description: |
+        Verifies the Standard Webhooks signature over the raw body and is
+        idempotent by webhook id. This is platform billing (context A), not a
+        customer's own Dodo analytics integration.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Event accepted, duplicated, or recorded as unsupported.
+        "400":
+          description: Invalid signature or malformed payload.
+
+components:
+  securitySchemes:
+    websiteApiKey:
+      type: http
+      scheme: bearer
+      description: Website-scoped API key created in Settings → Websites → API keys.
+  parameters:
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    WorkspaceId:
+      name: workspaceId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  schemas:
+    User:
+      type: object
+      required: [id, username]
+      properties:
+        id: { type: string, format: uuid }
+        username: { type: string, format: email }
+        displayName: { type: string, nullable: true }
+        role: { type: string }
+        emailVerifiedAt: { type: string, format: date-time, nullable: true }
+        isPlatformAdmin: { type: boolean }
+    SuspensionInput:
+      type: object
+      required: [suspended]
+      properties:
+        suspended: { type: boolean }
+        reason: { type: string, maxLength: 500 }
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, status]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            status: { type: integer }
+  responses:
+    Unauthorized:
+      description: Missing or invalid credentials.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: Authenticated but not allowed.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    TooManyRequests:
+      description: Rate limit exceeded. Includes Retry-After.
+      headers:
+        Retry-After:
+          schema: { type: integer }
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"

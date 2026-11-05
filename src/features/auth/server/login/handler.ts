@@ -4,7 +4,7 @@ import { createAuthResponse, normalizeUsername } from '@/lib/auth-user';
 import { assertAppSecret } from '@/lib/crypto';
 import { isSameOriginRequest } from '@/lib/csrf';
 import { getIpAddress } from '@/lib/ip';
-import { checkPassword } from '@/lib/password';
+import { checkPassword, hashPassword, needsPasswordRehash } from '@/lib/password';
 import { consumeRateLimit, hashRateLimitSubject, rateLimitKey } from '@/lib/rate-limit';
 import { parseRequest } from '@/lib/request';
 import {
@@ -14,7 +14,8 @@ import {
   tooManyRequests,
   unauthorized,
 } from '@/lib/response';
-import { getUserByUsername } from '@/queries/prisma';
+import { getUserByUsername, updateUser } from '@/queries/prisma';
+import { logger } from '@/lib/logger';
 
 const schema = z.object({
   username: z.string().trim().min(1).max(255).regex(/^\S+$/),
@@ -75,6 +76,19 @@ export async function POST(request: Request) {
       code: 'invalid-credentials',
       message: 'Invalid credentials',
     });
+  }
+
+  // Opportunistic upgrade from the inherited bcrypt cost 10. The plaintext is
+  // available only during this request and is never logged or stored.
+  if (needsPasswordRehash(user.password)) {
+    try {
+      await updateUser(user.id, { password: hashPassword(body.password) });
+    } catch (cause) {
+      logger.warn('auth.password_rehash_failed', {
+        userId: user.id,
+        error: cause instanceof Error ? cause.message : String(cause),
+      });
+    }
   }
 
   const auth = await createAuthResponse(user, request);

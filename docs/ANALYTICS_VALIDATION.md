@@ -129,3 +129,12 @@ lost its replay payload.
 - **Retention at scale:** the job deletes per website in one transaction. It
   was proven on a small seeded website, not on a multi-million-row store. Add
   batching before a high-volume launch if lock time becomes a problem.
+
+## Load and concurrency probe (2026-11-06)
+
+`docs/LOAD_TEST.md` records 10,000 accepted events at 50 concurrent clients on
+the production build against local PostgreSQL 17: 157 req/s, p50 302 ms, p95 412
+ms, p99 480 ms, 0 errors, 10,001 stored rows and a matching usage counter. The
+probe found a deleted-workspace session leak; the collector now resolves
+entitlements and reserves usage before any session write. This is a single-node
+probe, not a sustained soak or a distributed 1M-RPS proof.
