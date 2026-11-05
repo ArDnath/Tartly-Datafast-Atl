@@ -1,8 +1,10 @@
 # RevenueLens — Phase Tracker
 
 - **Project:** RevenueLens (working brand; final brand TBD)
-- **Repository:** <https://github.com/talivia-group/talivia> (MIT), forked locally at
-  `/home/ariyaman/Dev/fight/efforts/revenuelens`
+- **Primary repository:** <https://github.com/ArDnath/Tartly-Datafast-Atl>
+  (public, `origin`; default branch `main`)
+- **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
+  forked locally at `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-05
 - **Current phase:** Phase 3 complete; Phase 4 complete with email-provider caveat; Phase 9 complete. The source restructure is finished and enforced: `src/app` is routing only, every domain owns its UI/hooks/lib/server/queries, `src/lib` and `src/queries` are allowlisted shared kernels, and route tests live beside feature handlers. Phase 6 usage metering shipped. **Phase 5 platform billing now ships behind a separate `features/billing` domain:** Dodo checkout, customer portal, cancel-at-period-end, plan changes, signed Standard Webhooks verification, idempotent and out-of-order-safe lifecycle reduction, provider-derived entitlements, real invoice history, a billing settings panel, and 22 new tests. It is marked **done with caveats** because no Dodo test/live credentials exist here, so live checkout and webhook delivery still need the human. The analytics Dodo integration remains a completely separate context. Next: live Dodo verification, then Phase 7 (analytics validation, attribution journeys, replay retention).
 
@@ -14,6 +16,14 @@
 - Build state at last check: **green** (`next build` exit 0 with
   `SKIP_DB_CHECK=1`; `tsc --noEmit` clean; `biome lint` clean). Full test run:
   **668 passed / 0 failed** under `TZ=UTC`.
+- GitHub CI: **green on `main`**. The workflow starts PostgreSQL 17, runs
+  `pnpm build-db`, lint, the full suite, `prisma migrate deploy`, and
+  `pnpm build` on every pull request and on `main`.
+- Delivery history: the work was pushed as six phase branches and merged
+  through pull requests #1–#6:
+  `feature/phase-0-2-foundation`, `feature/phase-3-4-isolation-auth`,
+  `feature/phase-9-revenue-workbench`, `feature/phase-6-usage-metering`,
+  `feature/phase-9-modular-monolith`, and `feature/phase-5-platform-billing`.
 - Runtime smoke: the new public docs routes return 200, and `/app/settings`,
   `/app/settings/integrations`, `/app/settings/security`, `/app/settings/websites`,
   and `/app/settings/billing` return 200 with an authenticated session. The
@@ -1170,6 +1180,13 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 10. **Phase 12:** go-to-market.
 
 ## Changelog
+
+- 2026-11-05 — **GitHub delivery and CI:** moved `origin` to
+  <https://github.com/ArDnath/Tartly-Datafast-Atl>, kept Talivia as `upstream`,
+  pushed `main`, and delivered the completed work as six phase branches merged
+  through pull requests #1–#6. Restricted the push trigger to `main` so each
+  pull request runs one verification job. CI passed on every PR and on the
+  final `main` (PostgreSQL 17, lint, 668 tests, migrations, production build).
 
 - 2026-11-05 — **Platform billing (Phase 5):** added a separate `features/billing`
   domain (context A) with a `BillingProvider` contract and Dodo implementation,
