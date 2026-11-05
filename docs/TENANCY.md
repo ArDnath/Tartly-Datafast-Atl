@@ -136,14 +136,16 @@ re-checks membership. Clearing the cookie shows all accessible workspaces.
 - `src/lib/tenant-boundaries.test.ts` — every route under `api/websites`,
   `api/reports`, `api/users`, and `api/workspaces` must call an authorization
   helper or be on the explicit self-scoped allowlist.
-- `src/lib/registration.test.ts` — transaction behaviour and duplicate accounts.
-- `src/lib/workspace-invitations.test.ts` — hashing, expiry, email matching,
-  member limits, revocation.
+- `src/features/auth/server/registration.test.ts` — transaction behaviour and
+  duplicate accounts.
+- `src/features/workspaces/lib/workspace-invitations.test.ts` — hashing, expiry,
+  email matching, member limits, revocation.
 - `src/lib/auth-session.test.ts`, `src/lib/auth-cookie.test.ts`,
   `src/lib/auth-tokens.test.ts`, `src/lib/rate-limit.test.ts`,
   `src/lib/csrf.test.ts` — session hashing/expiry/revocation, cookie flags,
   single-use tokens, brute-force limits, cross-site rejection.
-- `src/lib/load.test.ts` — cached sessions are scoped by website.
+- `src/features/analytics/server/queries/session-cache.test.ts` — cached
+  sessions are scoped by website.
 - `src/app/api/payments/stripe/[websiteId]/webhook/route.test.ts` and
-  `src/lib/cron/jobs/provider-webhook-cleanup.test.ts` — webhook/job writes
-  stay on the website/job they were queued for.
+  `src/features/system/cron/jobs/provider-webhook-cleanup.test.ts` — webhook/job
+  writes stay on the website/job they were queued for.
