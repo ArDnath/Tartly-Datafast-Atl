@@ -1424,6 +1424,16 @@ feature is waiting on code.
 
 ## Changelog
 
+- 2026-11-06 — **Dependency hygiene (Phase 11 follow-up):** upstream released
+  the combined minimatch/brace-expansion fixes as same-major patches, so the
+  blocked follow-up in `docs/SECURITY_REVIEW.md` was closed with exact-version
+  overrides (`minimatch` 3.1.4/5.1.8/9.0.7/>=10.2.1, `@isaacs/brace-expansion`
+  >=5.0.1, `brace-expansion` >=1.1.17/>=2.1.3, `mysql2` >=3.23.1) and the
+  unused `del` dev dependency was removed. `pnpm audit`: 97 → 67 (high
+  38 → 14); `pnpm audit --prod --audit-level critical` still exits 0. A full
+  `pnpm gate` is green. Remaining advisories are dev/build tooling without a
+  same-major fix (documented in the security review).
+
 - 2026-11-06 — **One membership surface:** retired the duplicate per-website
   member system. Website Settings → Team now lists the owning workspace's
   members and links to workspace settings; the per-website member API routes,

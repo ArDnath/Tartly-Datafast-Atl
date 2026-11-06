@@ -79,19 +79,28 @@ they actually use instead of a wildcard on every API route.
 
 ## Dependency audit
 
-Command: `pnpm audit --prod` on 2026-11-06.
+Command: `pnpm audit` on 2026-11-06.
 
 - `zod` was upgraded from 4.4.3 to 4.6.7 to clear a high advisory.
 - Safe transitive overrides were applied for `browserslist`, `d3-color`, `defu`,
-  `fast-uri`, `hono`, `js-yaml`, `source-map-js`, and `svgo`.
-- Remaining high advisories: 18, all under build/dev tooling:
-  `del → rimraf → glob → minimatch`, `@svgr/cli → glob → minimatch`, and
-  Prisma CLI transitive packages (`deepmerge-ts`, `mysql2`). They are not loaded
-  by the Next.js runtime request path.
+  `fast-uri`, `hono`, `js-yaml`, `source-map-js`, `svgo`, `minimatch` (3.1.4 /
+  5.1.8 / 9.0.7 / >=10.2.1 by exact-version selector), `@isaacs/brace-expansion`
+  >=5.0.1, `brace-expansion` (>=1.1.17 / >=2.1.3), and `mysql2` >=3.23.1 (applied
+  2026-11-06; upstream released the combined minimatch/brace-expansion fixes as
+  same-major patches, so the follow-up was closed without forcing majors).
+  The unused `del` dev dependency was removed (nothing imported it; its
+  advisory chain was `del → rimraf → glob → minimatch`).
+- Remaining advisories after the above: 67 total (14 high), all in build/dev
+  tooling or Prisma CLI transitives (`vitest > vite`, `jsdom > undici`,
+  `@prisma/config > deepmerge-ts`, `tsup > sucrase > glob`, `rollup` plugin
+  transitive `serialize-javascript`, `picomatch`, `yaml`, `postcss-selector-parser`,
+  `esbuild`, `diff`, `fflate`, `valibot`, `@hono/node-server`, `diff`).
+  `deepmerge-ts` and the remaining `minimatch` advisory (`tsup` path, patched
+  only in major 11) have **no same-major fix**, so they were not forced. They
+  are not loaded by the Next.js runtime request path.
 - CI runs `pnpm audit --prod --audit-level critical`; there are **0 critical**.
-- Follow-up: replace `del`/`@svgr/cli` build steps or add a compatible override
-  once upstream releases a combined minimatch/brace-expansion fix. Track in
-  `docs/PHASES.md`; do not force incompatible major versions.
+  The only remaining prod-path high is `@prisma/config > deepmerge-ts` (CLI
+  transitive, patched only in a new major — not forced).
 
 ## Secrets
 
