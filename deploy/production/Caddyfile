@@ -16,7 +16,6 @@
 	}
 
 	reverse_proxy app:3000 {
-		lb_policy first_avail
 		health_uri /api/health/live
 		health_interval 10s
 		health_timeout 3s
