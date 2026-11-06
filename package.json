@@ -50,6 +50,7 @@
     "load:ingest": "node scripts/load-ingest.mjs",
     "worker:attribution": "tsx scripts/talivia-attribution-worker.ts",
     "rotate:provider-secrets": "tsx scripts/rotate-provider-secrets.ts",
+    "legacy:precheck": "tsx scripts/legacy-table-drop.ts",
     "proxy:lemonsqueezy-webhook": "tsx scripts/local-lemonsqueezy-webhook-proxy.ts",
     "lint": "biome lint .",
     "format": "biome format --write .",
