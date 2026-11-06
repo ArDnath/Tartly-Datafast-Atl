@@ -30,7 +30,7 @@
 - Overall percent (average of phases 0–12): **94%**
 - Build state at last check: **green** — `tsc --noEmit`, `biome lint`, and the
   full suite pass; the production build is exercised by `pnpm gate` and CI.
-  Latest local full run: **786 passed / 0 failed / 1 gated skip**, plus the
+  Latest local full run: **790 passed / 0 failed / 1 gated skip**, plus the
   explicit 48-assertion PostgreSQL analytics smoke and the recorded load probe.
 - GitHub CI: **green on `main`** for the last merged phase. CI starts
   PostgreSQL 17, runs `pnpm build-db`, lint, typecheck, the full suite,
@@ -51,9 +51,9 @@
 The codebase is feature-complete for a controlled launch. The full suite, lint,
 typecheck, production build, PostgreSQL analytics smoke, local ingestion load
 probe, rendered-surface smoke, email-token lifecycle, suspension/audit flows,
-one-time setup allowance, and tenant-isolation suites are green. Nine additional
-phase/security PRs (#7–#15) were delivered through the feature-branch → PR →
-CI → merge loop.
+one-time setup allowance, tenant-isolation suites, and the single workspace
+membership surface are green. Nine additional phase/security PRs (#7–#15) were
+delivered through the feature-branch → PR → CI → merge loop.
 
 What remains is **external verification and approval**, not missing product
 code:
@@ -65,6 +65,9 @@ code:
 5. A Neon production project with a restore rehearsal.
 6. A deployed-environment load test and hosting/DNS/TLS.
 7. Lawyer review of the legal drafts and confirmation of subprocessors.
+8. A copy-with-data rehearsal before dropping the legacy `Team` / `TeamUser` /
+   `website_member` tables. The application no longer writes per-website
+   members; those tables are read-only fallbacks for pre-workspace rows.
 
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
@@ -88,7 +91,7 @@ No third plan, no free tier, no hidden limits.
 | --- | --- | --- | --- | --- | --- | --- |
 | 0 | Audit and baseline | DONE | 100% | 2026-11-04 | 2026-11-04 | none |
 | 1 | Neon PostgreSQL, Prisma, environment | DONE_WITH_CAVEATS | 100% | 2026-11-04 | 2026-11-04 | Neon credentials |
-| 2 | Workspaces, memberships, RBAC | DONE_WITH_CAVEATS | 92% | 2026-11-04 | 2026-11-05 | copy-with-data rehearsal |
+| 2 | Workspaces, memberships, RBAC | DONE_WITH_CAVEATS | 95% | 2026-11-04 | 2026-11-05 | copy-with-data rehearsal; legacy table drop |
 | 3 | Tenant isolation hardening + tests | DONE | 100% | 2026-11-05 | 2026-11-05 | none (RLS deferred by decision) |
 | 4 | Authentication and account management | DONE_WITH_CAVEATS | 100% | 2026-11-05 | 2026-11-05 | live Resend send |
 | 5 | Platform billing (Dodo) | DONE_WITH_CAVEATS | 90% | 2026-11-05 | 2026-11-05 | live Dodo test mode |
@@ -266,8 +269,21 @@ migration connections.
       in **one transaction**. — proof: `src/lib/registration.ts`,
       `POST /api/auth/register`, `/signup`, 3 transaction tests. Usage period
       still arrives with metering in Phase 6.
-- [ ] Reuse/merge the existing `Team` / `WebsiteMember` model where it fits;
-      one permission system only. — **not merged**; legacy checks remain.
+- [x] One member surface: workspace membership now owns every member list,
+      invite, role, and removal. Website Settings → Team lists the owning
+      workspace's members and links to workspace settings; the duplicate
+      per-website member UI, hook, API routes, and handlers were deleted. —
+      proof: `src/features/websites/settings/WebsiteTeamSettings.tsx` reads
+      `/api/workspaces/[workspaceId]/members`; `WebsiteTeamSettings.test.tsx`
+      (3 tests) covers manage/read-only/no-workspace states;
+      `src/lib/app-structure.test.ts` fails if the per-website member surface
+      returns. This fixes a real bug where a website Team invite appeared to
+      grant access but the workspace authorization layer ignored it.
+- [ ] Drop the legacy `Team` / `TeamUser` rows and the `WebsiteMember` fallback
+      once all pre-workspace websites are migrated. — **UNVERIFIED**: requires
+      a data rehearsal on a copy of real installation data. `website_member`
+      remains a read-only fallback for legacy websites only; it is no longer
+      writable from the application.
 - [x] One central authorization module
       (`requireWorkspaceAccess(user, workspaceId, minRole)`) used by every API
       route and server action. — proof: `src/permissions/website.ts` now
@@ -1378,6 +1394,10 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 
 ## Remaining work (in order)
 
+The source restructure and every in-repo coding slice are complete. What remains
+is external verification plus one data-migration follow-up; no application
+feature is waiting on code.
+
 1. **External verification (highest priority):** run the Dodo test-mode
    checklist (`docs/PLATFORM_BILLING.md`), send one real Resend email, and
    deliver one webhook per analytics provider. Record results here.
@@ -1392,14 +1412,27 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
    tracker, and legal review (`docs/LAUNCH_CHECKLIST.md`).
 6. **Phase 6 finish:** owner approval of limits and a live parallel-ingestion
    proof. The code is complete; these are approvals/measurements.
-7. **Post-launch backlog:** OpenAPI publication, general queue workers, RLS
-   evaluation for enterprise, metrics/tracing collector, and build-tool
-   minimatch/brace-expansion upgrades when a compatible version exists.
-8. **Go-to-market execution:** re-verify competitor prices on launch day, run
+7. **Legacy table drop:** rehearse the migration on a copy of real data, confirm
+   every website has a workspace and effective access, then drop `team`,
+   `team_user`, and `website_member`. Until then they are read-only fallbacks.
+8. **Post-launch backlog:** general queue workers, RLS evaluation for enterprise,
+   metrics/tracing collector, and build-tool minimatch/brace-expansion upgrades
+   when a compatible version exists. OpenAPI publication is already done.
+9. **Go-to-market execution:** re-verify competitor prices on launch day, run
    the 30-day calendar (`docs/gtm/LAUNCH_PLAN.md`), and replace every assumed
    metric with a measured one.
 
 ## Changelog
+
+- 2026-11-06 — **One membership surface:** retired the duplicate per-website
+  member system. Website Settings → Team now lists the owning workspace's
+  members and links to workspace settings; the per-website member API routes,
+  handlers, and React Query hook were deleted, and `websiteMember.ts` is now a
+  read-only fallback for pre-workspace websites only. This fixes a real bug
+  where an invite in the website Team tab appeared to grant access but the
+  workspace authorization layer ignored it. Added 3 component tests and a
+  structure assertion that fails if the duplicate surface returns. Full suite
+  **790 passed / 1 gated skip**; typecheck, lint, and production build green.
 
 - 2026-11-06 — **Closed-tenant retention:** the analytics retention job
   previously filtered `website.deletedAt: null`, so deleting an account or

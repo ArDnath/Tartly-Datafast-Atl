@@ -26,7 +26,6 @@ vi.mock('@/lib/prisma', () => ({
 const { getTeamUser, getWebsite, getWebsiteMemberForUser } = await import('@/queries/prisma');
 const {
   canDeleteWebsite,
-  canManageWebsiteMembers,
   canUpdateWebsite,
   canViewWebsite,
   getWebsiteAccess,
@@ -97,7 +96,9 @@ describe('workspace tenant isolation for websites', () => {
     await expect(canViewWebsite(authA, 'website-a')).resolves.toBe(true);
     await expect(canUpdateWebsite(authA, 'website-a')).resolves.toBe(true);
     await expect(canDeleteWebsite(authA, 'website-a')).resolves.toBe(true);
-    await expect(canManageWebsiteMembers(authA, 'website-a')).resolves.toBe(true);
+    await expect(getWebsiteAccess(authA, 'website-a')).resolves.toMatchObject({
+      canManageMembers: true,
+    });
     await expect(getWebsiteAccess(authA, 'website-a')).resolves.toMatchObject({
       role: 'owner',
       canView: true,
@@ -130,7 +131,9 @@ describe('workspace tenant isolation for websites', () => {
     await expect(canViewWebsite(authA, 'website-a')).resolves.toBe(true);
     await expect(canUpdateWebsite(authA, 'website-a')).resolves.toBe(false);
     await expect(canDeleteWebsite(authA, 'website-a')).resolves.toBe(false);
-    await expect(canManageWebsiteMembers(authA, 'website-a')).resolves.toBe(false);
+    await expect(getWebsiteAccess(authA, 'website-a')).resolves.toMatchObject({
+      canManageMembers: false,
+    });
   });
 
   test('MEMBER can update but not delete or manage members', async () => {
@@ -138,7 +141,9 @@ describe('workspace tenant isolation for websites', () => {
 
     await expect(canUpdateWebsite(authA, 'website-a')).resolves.toBe(true);
     await expect(canDeleteWebsite(authA, 'website-a')).resolves.toBe(false);
-    await expect(canManageWebsiteMembers(authA, 'website-a')).resolves.toBe(false);
+    await expect(getWebsiteAccess(authA, 'website-a')).resolves.toMatchObject({
+      canManageMembers: false,
+    });
   });
 
   test('unknown workspace membership fails closed', async () => {
