@@ -3,10 +3,11 @@
  * require editing `BRAND_NAME` / `BRAND_DOMAIN` here (plus the raster favicons,
  * which are generated assets).
  *
- * RevenueLens is a working name. Do not treat it as a trademark.
+ * Tartly is the final product name; tartly.in is the production domain.
+ * Do not treat the name as a trademark claim beyond the owner's own use.
  */
-const BRAND_NAME = 'RevenueLens';
-const BRAND_DOMAIN = 'revenuelens.app';
+const BRAND_NAME = 'Tartly';
+const BRAND_DOMAIN = 'tartly.in';
 
 export const BRAND = {
   name: BRAND_NAME,

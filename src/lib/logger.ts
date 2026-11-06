@@ -115,7 +115,7 @@ export async function captureException(error: unknown, context: LogFields = {}):
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
-        service: 'revenuelens',
+        service: 'tartly',
         at: new Date().toISOString(),
         context: redactLogFields(context),
         error: serializeError(error),

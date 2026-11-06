@@ -1,6 +1,6 @@
 ---
 name: production-backend-readiness
-description: Mandatory production-grade backend engineering and readiness audit for every feature, API, migration, webhook, background job, and release in RevenueLens. Covers layering, REST/HTTP semantics, validation, BOLA/IDOR, auth, errors, migrations, indexes, caching, queues, storage, webhooks, config, observability, tests, containers, and CI.
+description: Mandatory production-grade backend engineering and readiness audit for every feature, API, migration, webhook, background job, and release in Tartly. Covers layering, REST/HTTP semantics, validation, BOLA/IDOR, auth, errors, migrations, indexes, caching, queues, storage, webhooks, config, observability, tests, containers, and CI.
 version: 2.0.0
 triggers:
   - feature-delivery

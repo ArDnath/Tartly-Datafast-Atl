@@ -20,7 +20,12 @@ describe('brand configuration propagation', () => {
       .filter(file => /\.(ts|tsx)$/.test(file))
       .filter(file => !file.includes('.test.'))
       .filter(file => relative(SRC, file) !== 'lib/brand.ts')
-      .filter(file => readFileSync(file, 'utf8').includes('RevenueLens'))
+      .filter(file => {
+        const content = readFileSync(file, 'utf8');
+
+        // Flag the retired name and any hardcode of the current name.
+        return content.includes('RevenueLens') || content.includes(BRAND.name);
+      })
       .map(file => relative(SRC, file));
 
     expect(offenders).toEqual([]);

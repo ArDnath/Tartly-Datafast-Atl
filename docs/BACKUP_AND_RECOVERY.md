@@ -1,6 +1,6 @@
 # Backup and recovery
 
-RevenueLens stores every durable record in PostgreSQL (Neon in production).
+Tartly stores every durable record in PostgreSQL (Neon in production).
 There is no separate event-store backup at launch: events, sessions, replay
 payloads, billing, usage, audit, and tenant rows all live in the same database.
 
@@ -50,15 +50,15 @@ pg_dump "$DATABASE_URL_UNPOOLED" \
   --format=custom \
   --no-owner \
   --no-privileges \
-  --file "revenuelens-$(date -u +%Y%m%dT%H%M%SZ).dump"
+  --file "tartly-$(date -u +%Y%m%dT%H%M%SZ).dump"
 ```
 
 Restore into a fresh database:
 
 ```bash
-createdb revenuelens_restore
-pg_restore --no-owner --no-privileges --dbname revenuelens_restore backup.dump
-DATABASE_URL=postgresql://.../revenuelens_restore pnpm exec prisma migrate deploy
+createdb tartly_restore
+pg_restore --no-owner --no-privileges --dbname tartly_restore backup.dump
+DATABASE_URL=postgresql://.../tartly_restore pnpm exec prisma migrate deploy
 ```
 
 `pg_restore` should report zero errors. A custom-format dump is preferred over

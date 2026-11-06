@@ -7,7 +7,7 @@ unsubscribe path and a lawful basis.
 
 ## 1. Welcome (immediately, after signup)
 
-**Subject:** Your RevenueLens workspace is ready
+**Subject:** Your Tartly workspace is ready
 **Body:** One next step only — add a website. Link to onboarding. No feature
 tour, no upsell.
 

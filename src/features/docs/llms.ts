@@ -59,9 +59,9 @@ All developer endpoints require a website-scoped API key:
 ## CLI and MCP
 
 \`\`\`bash
-npx revenuelens verify --api-key "$REVENUELENS_API_KEY"
-npx revenuelens events --api-key "$REVENUELENS_API_KEY" --limit 10
-npx revenuelens diagnose --api-key "$REVENUELENS_API_KEY"
+npx tartly verify --api-key "$REVENUELENS_API_KEY"
+npx tartly events --api-key "$REVENUELENS_API_KEY" --limit 10
+npx tartly diagnose --api-key "$REVENUELENS_API_KEY"
 \`\`\`
 
 The MCP server (stdio) exposes verify_installation, list_recent_events, and

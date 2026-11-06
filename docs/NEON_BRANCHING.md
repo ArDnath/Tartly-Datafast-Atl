@@ -1,6 +1,6 @@
 # Neon Branching and Migration Promotion
 
-RevenueLens uses Neon PostgreSQL as the primary relational database. This
+Tartly uses Neon PostgreSQL as the primary relational database. This
 document defines the branch model, connection strings, and how migrations move
 from development to production.
 
@@ -55,8 +55,8 @@ set both there.
 Example (`development` branch):
 
 ```dotenv
-DATABASE_URL=postgresql://user:pass@ep-dev-123-pooler.us-east-2.aws.neon.tech/revenuelens?sslmode=require
-DATABASE_URL_UNPOOLED=postgresql://user:pass@ep-dev-123.us-east-2.aws.neon.tech/revenuelens?sslmode=require
+DATABASE_URL=postgresql://user:pass@ep-dev-123-pooler.us-east-2.aws.neon.tech/tartly?sslmode=require
+DATABASE_URL_UNPOOLED=postgresql://user:pass@ep-dev-123.us-east-2.aws.neon.tech/tartly?sslmode=require
 ```
 
 Do not commit these. Store them in the host's secret manager and in a password

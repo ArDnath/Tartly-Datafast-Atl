@@ -20,13 +20,13 @@ one shown by the vendor. Nothing here is inferred. Re-verify on launch day.
 
 ## What the comparison may say
 
-- RevenueLens Starter ($7.99) is below the displayed entry prices of Plausible,
+- Tartly Starter ($7.99) is below the displayed entry prices of Plausible,
   Fathom, Simple Analytics, and Umami Pro.
-- RevenueLens Pro ($14.99) is below Fathom's $15 entry plan, Simple Analytics'
+- Tartly Pro ($14.99) is below Fathom's $15 entry plan, Simple Analytics'
   $20, and Umami Pro's $20, while allowing up to 20 websites.
-- RevenueLens includes revenue attribution on both plans. Plausible lists
+- Tartly includes revenue attribution on both plans. Plausible lists
   ecommerce revenue attribution on its Business plan ($19) in the fetched page.
-- Umami's Hobby plan is free; RevenueLens deliberately has no free tier.
+- Umami's Hobby plan is free; Tartly deliberately has no free tier.
   Compare features and capacity, not just the entry price.
 
 ## What the comparison must not say
@@ -38,6 +38,6 @@ one shown by the vendor. Nothing here is inferred. Re-verify on launch day.
 
 ## Positioning consequence
 
-At these prices, RevenueLens is not competing on raw pageview volume. It
+At these prices, Tartly is not competing on raw pageview volume. It
 competes on **revenue attribution at a solo-founder price**, with a narrow
 two-plan catalogue and no sales call.

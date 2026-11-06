@@ -1,6 +1,6 @@
-# RevenueLens — Phase Tracker
+# Tartly — Phase Tracker
 
-- **Project:** RevenueLens (working brand; final brand TBD)
+- **Project:** Tartly (final brand; production domain tartly.in, confirmed 2026-11-06)
 - **Primary repository:** <https://github.com/ArDnath/Tartly-Datafast-Atl>
   (public, `origin`; default branch `main`)
 - **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
@@ -1222,7 +1222,7 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 
 ### Needs from the human
 
-- Final brand name/domain/logo (RevenueLens is a placeholder).
+- Final brand name/domain: confirmed 2026-11-06 as **Tartly** / `tartly.in` in `src/lib/brand.ts`.
 
 ## Phase 10 — Compliance, abuse protection, email, operations
 

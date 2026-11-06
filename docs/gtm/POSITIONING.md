@@ -2,7 +2,7 @@
 
 ## One sentence
 
-**RevenueLens shows indie SaaS founders which traffic sources actually produce
+**Tartly shows indie SaaS founders which traffic sources actually produce
 paying customers, for $7.99/month.**
 
 ## Who it is for

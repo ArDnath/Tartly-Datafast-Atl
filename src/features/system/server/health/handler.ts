@@ -20,7 +20,7 @@ export async function GET() {
     return Response.json(
       {
         ok: true,
-        service: 'revenuelens',
+        service: 'tartly',
         database: 'up',
         version: process.env.BUILD_VERSION || 'local',
       },
@@ -30,7 +30,7 @@ export async function GET() {
     return Response.json(
       {
         ok: false,
-        service: 'revenuelens',
+        service: 'tartly',
         database: 'down',
         version: process.env.BUILD_VERSION || 'local',
       },

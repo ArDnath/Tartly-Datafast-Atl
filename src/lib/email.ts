@@ -3,7 +3,7 @@ import path from 'node:path';
 import debug from 'debug';
 import { BRAND } from '@/lib/brand';
 
-const log = debug('revenuelens:email');
+const log = debug('tartly:email');
 
 export interface EmailMessage {
   to: string;

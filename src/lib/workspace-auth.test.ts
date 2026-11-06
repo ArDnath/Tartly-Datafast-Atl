@@ -73,7 +73,7 @@ describe('workspace permission matrix', () => {
 
   test('slugifies workspace names safely', () => {
     expect(slugifyWorkspaceName('  Acme Studio  ')).toBe('acme-studio');
-    expect(slugifyWorkspaceName('RevenueLens / EU')).toBe('revenuelens-eu');
+    expect(slugifyWorkspaceName('Tartly / EU')).toBe('tartly-eu');
     expect(slugifyWorkspaceName('***')).toBe('workspace');
   });
 });

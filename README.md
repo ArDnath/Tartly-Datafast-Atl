@@ -1,10 +1,10 @@
-# RevenueLens
+# Tartly
 
 Revenue-first product analytics for developers and indie SaaS founders. Connect
 your site, connect your payments, and see which channels, campaigns, and pages
 actually make money.
 
-RevenueLens is a hosted, multi-tenant fork of the MIT-licensed
+Tartly is a hosted, multi-tenant fork of the MIT-licensed
 [Talivia](https://github.com/talivia-group/talivia) analytics engine. The
 tracker, ingestion path, session replay, attribution, and payment-provider
 integrations are retained; workspaces, billing, plans, and the product UI are
@@ -133,7 +133,7 @@ docs/             phase tracker, design system, tenancy, pricing, operations
 
 ## Licence and attribution
 
-RevenueLens is distributed under the MIT License. The original Talivia
+Tartly is distributed under the MIT License. The original Talivia
 copyright notice is retained in `LICENSE`; dependency and asset notices are in
-`THIRD_PARTY_NOTICES.md`. RevenueLens is not affiliated with or endorsed by
+`THIRD_PARTY_NOTICES.md`. Tartly is not affiliated with or endorsed by
 Talivia.

@@ -1,9 +1,10 @@
-# UI Design System — RevenueLens × Tartly
+# UI Design System — Tartly
 
-RevenueLens deliberately inherits the **visual language, colour scheme,
-typography, density, and onboarding motion** of the sibling Tartly product
-(`../tartly`), adapted from an email operator's desk to a revenue analytics
-workstation. This is not a logo swap: the same near-black instrument panel,
+Tartly deliberately inherits the **visual language, colour scheme,
+typography, density, and onboarding motion** of the sibling Tartly email
+product (`../tartly`), adapted from an email operator's desk to a revenue
+analytics workstation. This is not a logo swap: the same near-black instrument
+panel,
 tonal layering, single typeface, and quiet motion should be recognisable.
 
 The source of truth for the Tartly side:
@@ -29,7 +30,7 @@ system.
 A quiet, dark room where the numbers are the loudest thing. Surfaces are
 near-black, cards are one tonal step up, borders are hairlines, and a single
 warm blush signal is reserved for what matters: revenue, a live event, the next
-action. The AI/upstream accent gradient is **not** used here; RevenueLens is
+action. The AI/upstream accent gradient is **not** used here; Tartly is
 not an AI-authored product.
 
 Characteristics:

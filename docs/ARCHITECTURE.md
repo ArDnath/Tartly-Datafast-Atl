@@ -1,6 +1,6 @@
 # Architecture — Modular Monolith
 
-RevenueLens is one deployable Next.js application with explicit internal
+Tartly is one deployable Next.js application with explicit internal
 boundaries. The restructure keeps the inherited analytics engine intact while
 moving every product surface out of the router.
 
@@ -281,7 +281,7 @@ and currency-safe grouping are pure functions in
 
 ## Platform billing is a separate context
 
-`src/features/billing` charges workspace owners for RevenueLens (context A). It
+`src/features/billing` charges workspace owners for Tartly (context A). It
 is deliberately independent of `src/features/payments`, which holds the
 customer's own Stripe/Dodo/etc. revenue connections (context B).
 

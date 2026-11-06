@@ -3,7 +3,7 @@
 ## Pre-launch (T-10 to T-1)
 
 - Deploy to production, verify `/api/health/ready`, run the launch checklist.
-- Install the tracker on the RevenueLens marketing site and connect a real
+- Install the tracker on the Tartly marketing site and connect a real
   payment provider in test mode; capture a screenshot only if it is real.
 - Publish `/pricing`, `/docs/install`, `/legal`, and the first three guides.
 - Set up support inbox, status page, and error tracking.
@@ -29,14 +29,14 @@
 
 **Tagline:** Know which traffic makes money — $7.99/month.
 
-**Description:** RevenueLens connects your website and your payment provider so
+**Description:** Tartly connects your website and your payment provider so
 you can see revenue by channel, campaign, landing page, and visitor journey.
 First-touch and last-touch attribution, session replay on Pro, and two honest
 plans. No free tier, no fake dashboards. Built for indie SaaS founders.
 
 ### Show HN
 
-**Title:** Show HN: RevenueLens – revenue attribution for indie SaaS ($7.99/mo)
+**Title:** Show HN: Tartly – revenue attribution for indie SaaS ($7.99/mo)
 
 **Body:** I built a small analytics tool that joins pageviews to payments so you
 can see which channels actually produce revenue. It supports Stripe, Dodo,
@@ -63,7 +63,7 @@ r/analytics with a link only when relevant. Do not cross-post the same text.
 
 1. You can see traffic. You can see Stripe. You still can't see which channel
    paid you.
-2. RevenueLens joins the two: visitor → session → payment.
+2. Tartly joins the two: visitor → session → payment.
 3. First-touch and last-touch, so you can see both the discovery channel and the
    closer.
 4. Two plans: $7.99 Starter, $14.99 Pro. No free tier, no per-seat tax.

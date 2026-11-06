@@ -1,0 +1,59 @@
+# Tartly production stack on a single VPS.
+#
+# Runtime layout (operator-managed, outside git):
+#   /opt/tartly/app      <- clone of this repository
+#   /opt/tartly/runtime/.env          <- real secrets (chmod 600, gitignored)
+#   /opt/tartly/runtime/docker-compose.yml + Caddyfile  <- copied from deploy/production
+#
+# Start:
+#   docker compose -f deploy/production/docker-compose.yml up -d --build
+# Migrate (before first start and on releases that add migrations):
+#   docker compose -f deploy/production/docker-compose.yml run --rm app \
+#     pnpm exec prisma migrate deploy
+# Verify:
+#   curl -fsS https://tartly.in/api/health/live
+#   curl -fsS https://tartly.in/api/health/ready
+---
+services:
+  app:
+    build:
+      context: ${TARTLY_APP_DIR}
+      args:
+        BUILD_VERSION: ${BUILD_VERSION:-local}
+    env_file:
+      - .env
+    init: true
+    restart: always
+    expose:
+      - "3000"
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      TARTLY_DOMAIN: ${TARTLY_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+
+volumes:
+  caddy_data:
+  caddy_config:

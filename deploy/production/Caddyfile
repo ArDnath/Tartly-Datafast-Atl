@@ -1,0 +1,34 @@
+# Tartly edge — automatic TLS (Let's Encrypt), HTTP/2 + HTTP/3, compression.
+#
+# Caddy is the only public listener. Next.js never sees the internet directly.
+# The tracker, recorder, ingestion routes, and webhooks all pass through here;
+# Host and X-Forwarded-* are forwarded by default so webhook URLs resolve to
+# the public origin.
+{
+	email {$ACME_EMAIL}
+}
+
+{$TARTLY_DOMAIN} {
+	encode zstd gzip
+
+	header {
+		-Server
+	}
+
+	reverse_proxy app:3000 {
+		lb_policy first_avail
+		health_uri /api/health/live
+		health_interval 10s
+		health_timeout 3s
+		health_status 2xx
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}
+
+www.{$TARTLY_DOMAIN} {
+	redir https://{$TARTLY_DOMAIN}{uri} 308
+}

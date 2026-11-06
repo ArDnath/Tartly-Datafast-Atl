@@ -37,7 +37,7 @@ customer launch:
 
 | Asset | Path | Action |
 | --- | --- | --- |
-| Logo (dark) | `src/assets/logo.svg` | Replace with RevenueLens mark |
+| Logo (dark) | `src/assets/logo.svg` | Replace with Tartly mark |
 | Logo (light) | `src/assets/logo-white.svg` | Replace |
 | SVG component | `src/components/svg/Logo.tsx`, `LogoWhite.tsx` | Replace source |
 | Favicon | `public/favicon.svg`, `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png` | Regenerate |
