@@ -77,11 +77,23 @@ app  ->  features  ->  components / lib / queries / permissions / store
 | `settings` | the settings shell, grouped navigation, and settings overview |
 | `share` | public share shell, share widgets, and share APIs |
 | `system` | health, OSS update endpoints, and the cron scheduler/jobs |
-| `websites` | website CRUD, website settings, website list settings, imports/exports, API keys, members, shares, selectors/context |
+| `websites` | website CRUD, website settings, website list settings, imports/exports, API keys, shares, selectors/context |
 | `workspaces` | workspace CRUD, members, invitations, usage, active-workspace state, workspace settings |
 
 `src/features/legacy` is quarantined. Do not copy its patterns or add new
 imports from it.
+
+### One membership system
+
+Workspace membership is the only member surface. Website Settings → Team reads
+the owning workspace's members from
+`/api/workspaces/[workspaceId]/members` and links to workspace settings; there
+is no per-website member API, hook, or invite form. The inherited
+`website_member` and `team_user` tables remain read-only compatibility
+fallbacks for rows created before the workspace migration. New code must
+authorize through `src/permissions/website.ts` and
+`src/lib/workspace-auth.ts`, and `src/lib/app-structure.test.ts` fails if the
+duplicate per-website member surface returns.
 
 ## API route contract
 

@@ -150,11 +150,6 @@ export async function canViewWebsite(auth: Auth, websiteId: string) {
   return (await getWebsiteAccess(auth, websiteId)).canView;
 }
 
-export async function canViewAllWebsites({ user }: Auth) {
-  void user;
-  return false;
-}
-
 export async function canCreateWebsite({ user }: Auth) {
   // Workspace role and plan limits are enforced by the route. This helper
   // only answers "is there a signed-in principal?".
@@ -175,14 +170,6 @@ export async function canDeleteWebsite(auth: Auth, websiteId: string) {
   }
 
   return (await getWebsiteAccess(auth, websiteId)).canDelete;
-}
-
-export async function canManageWebsiteMembers(auth: Auth, websiteId: string) {
-  if (auth.shareToken) {
-    return false;
-  }
-
-  return (await getWebsiteAccess(auth, websiteId)).canManageMembers;
 }
 
 /**

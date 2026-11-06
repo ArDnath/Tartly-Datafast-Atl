@@ -558,6 +558,29 @@ describe('application source layout', () => {
     expect(unexpected).toEqual([]);
   });
 
+  test('workspace membership is the only member surface', () => {
+    expect(
+      existsSync(join(APP_ROOT, 'api/websites/[websiteId]/members')),
+      'per-website member API routes should be deleted',
+    ).toBe(false);
+    expect(
+      existsSync(join(FEATURES_ROOT, 'websites/server/[websiteId]/members')),
+      'per-website member handlers should be deleted',
+    ).toBe(false);
+    expect(
+      existsSync(join(FEATURES_ROOT, 'websites/hooks/useWebsiteMembersQuery.ts')),
+      'the per-website member hook should be deleted',
+    ).toBe(false);
+    expect(
+      existsSync(join(FEATURES_ROOT, 'workspaces/server/[workspaceId]/members/handler.ts')),
+      'workspace members are served by the workspaces domain',
+    ).toBe(true);
+    expect(
+      existsSync(join(FEATURES_ROOT, 'workspaces/settings/WorkspaceSettingsPage.tsx')),
+      'workspace member management lives in workspace settings',
+    ).toBe(true);
+  });
+
   test('settings is the settings shell only; each domain owns its settings screen', () => {
     const allowed = new Set([
       'SettingsHomePage.tsx',

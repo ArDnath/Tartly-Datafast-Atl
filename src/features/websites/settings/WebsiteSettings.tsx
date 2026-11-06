@@ -124,7 +124,7 @@ export function WebsiteSettings({
   const panels = {
     website: <WebsiteEditForm websiteId={websiteId} />,
     tracking: <WebsiteTrackingCode websiteId={websiteId} />,
-    team: <WebsiteTeamSettings websiteId={websiteId} />,
+    team: <WebsiteTeamSettings />,
     payments: <WebsiteRevenueSettings websiteId={websiteId} />,
     sharing: <WebsiteSharingSettings websiteId={websiteId} />,
     attribution: <WebsiteAttributionSettings websiteId={websiteId} />,
