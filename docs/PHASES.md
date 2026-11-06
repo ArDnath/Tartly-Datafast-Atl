@@ -1435,6 +1435,22 @@ feature is waiting on code.
 
 ## Changelog
 
+- 2026-11-06 — **Marketing landing restyle (DataFast reference):** rebuilt
+  `src/features/marketing/LandingPage.tsx` and `Landing.module.css` on the
+  visual system of <https://datafa.st> (fetched 2026-11-06): DM Sans, a
+  `#1f1f1f` canvas, `#262626` cards with `1.3rem` radii and 1px white/8% rings,
+  a single `#e16540` orange accent, a centred hero with a website-capture form,
+  a browser-framed revenue dashboard preview, integration marquee, three-step
+  how-it-works, 2×2 feature grid, pricing toggle, FAQ accordion, gradient CTA,
+  and multi-column footer. Content is Tartly's own and stays honest: the
+  preview is labelled **Sample data**, the review/testimonial wall and customer
+  counts are omitted rather than fabricated, and plan limits still come from
+  `src/lib/plans.ts`. The style layer is scoped to `/` only; the app, pricing,
+  docs, and auth surfaces keep the existing Tartly token system. Proof: local
+  dev render at `http://localhost:3000` (desktop + 390px mobile screenshots),
+  anchor navigation, monthly/yearly toggle, FAQ open/close, `biome check`,
+  `tsc --noEmit`, and the brand/plan/contrast tests (19/19) pass.
+
 - 2026-11-06 — **Dependency hygiene (Phase 11 follow-up):** upstream released
   the combined minimatch/brace-expansion fixes as same-major patches, so the
   blocked follow-up in `docs/SECURITY_REVIEW.md` was closed with exact-version
