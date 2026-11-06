@@ -1415,6 +1415,17 @@ feature is waiting on code.
 7. **Legacy table drop:** rehearse the migration on a copy of real data, confirm
    every website has a workspace and effective access, then drop `team`,
    `team_user`, and `website_member`. Until then they are read-only fallbacks.
+   The rehearsal tool is now in-repo: `pnpm legacy:precheck` reports orphan
+   websites, uncovered legacy membership rows, FKs referencing the three
+   tables, and remaining `team_id` references; `pnpm legacy:precheck --apply`
+   (locked behind the pass verdict) empties the child tables and detaches the
+   references on a rehearsal copy. It was proven against a local PostgreSQL 17
+   copy with seeded legacy rows: the fail path (orphan website + uncovered
+   member → no apply), the pass path, the apply path, and an idempotent second
+   apply all behaved as specced (2026-11-06). Remaining: run it against a copy
+   of REAL installation data, then add the DDL migration (drop constraints +
+   tables) in the same deploy as removing the Prisma models and the
+   `getWebsiteMemberForUser` fallback branch.
 8. **Post-launch backlog:** general queue workers, RLS evaluation for enterprise,
    metrics/tracing collector, and build-tool minimatch/brace-expansion upgrades
    when a compatible version exists. OpenAPI publication is already done.
@@ -1433,6 +1444,20 @@ feature is waiting on code.
   38 → 14); `pnpm audit --prod --audit-level critical` still exits 0. A full
   `pnpm gate` is green. Remaining advisories are dev/build tooling without a
   same-major fix (documented in the security review).
+
+- 2026-11-06 — **Legacy table drop rehearsal tool (Phase 2 follow-up):** added
+  `pnpm legacy:precheck` (`scripts/legacy-table-drop.ts`) for the mandatory
+  copy-with-data rehearsal before `team`/`team_user`/`website_member` can be
+  dropped. It reports row counts, websites without `workspace_id`, legacy
+  membership rows not covered by a workspace membership, FKs referencing the
+  three tables, and rows still carrying `team_id`; `--apply` refuses to run
+  unless every precondition passes, then empties the child tables and detaches
+  `team_id` references in one transaction. Proven against a throwaway local
+  PostgreSQL 17 cluster with seeded legacy rows: orphan/uncovered failure
+  blocks apply, the pass verdict allows it, the apply detaches and empties,
+  and a second apply is idempotent. What remains is running it against a copy
+  of real installation data and then adding the DDL migration together with
+  the Prisma model and fallback-read removal in one deploy.
 
 - 2026-11-06 — **One membership surface:** retired the duplicate per-website
   member system. Website Settings → Team now lists the owning workspace's
