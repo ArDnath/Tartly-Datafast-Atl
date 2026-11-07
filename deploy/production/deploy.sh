@@ -16,7 +16,7 @@
 # never prints .env contents and never reverses a migration automatically.
 
 set -Eeuo pipefail
-umask 077
+umask 022
 
 TARGET_SHA="${1:-}"
 APP_DIR="${APP_DIR:-/opt/tartly/app}"
@@ -80,7 +80,7 @@ rollback() {
   export BUILD_VERSION="$PREVIOUS_SHA"
   cd "$RUNTIME_DIR"
 
-  if "${COMPOSE[@]}" build --pull app && "${COMPOSE[@]}" up -d --no-deps app; then
+  if "${COMPOSE[@]}" build --pull app </dev/null && "${COMPOSE[@]}" up -d --no-deps app </dev/null; then
     if wait_for_health; then
       log "rollback to $PREVIOUS_SHA is healthy"
       return 0
@@ -100,15 +100,18 @@ cd "$APP_DIR"
 PREVIOUS_SHA=$(git rev-parse HEAD)
 
 log "fetching origin/main"
-git fetch --prune origin main
+git fetch --prune origin '+refs/heads/main:refs/remotes/origin/main'
 
 git cat-file -e "${TARGET_SHA}^{commit}" 2>/dev/null || die "target commit is not present"
 git merge-base --is-ancestor "$TARGET_SHA" origin/main || die "target commit is not on origin/main"
 
 # Move the checkout before reading any configuration from it. Untracked runtime
 # files are left alone, and the production .env is outside the repository.
-git checkout --force main >/dev/null
-git reset --hard "$TARGET_SHA" >/dev/null
+git checkout --force -B main "$TARGET_SHA" >/dev/null
+
+# Git applies the process umask on checkout. The build context and the
+# container user must be able to read every committed file.
+chmod -R u+rwX,go+rX "$APP_DIR"
 
 TARTLY_DOMAIN=$(read_env_value TARTLY_DOMAIN)
 HEALTH_URL="${APP_URL:-https://${TARTLY_DOMAIN}}"
@@ -122,13 +125,13 @@ export BUILD_VERSION="$TARGET_SHA"
 COMPOSE=(docker compose --env-file .env -f docker-compose.yml)
 
 log "building image tartly-app:$TARGET_SHA"
-"${COMPOSE[@]}" build --pull app
+"${COMPOSE[@]}" build --pull app </dev/null
 
 log "applying database migrations"
-"${COMPOSE[@]}" --profile tools run --rm migrate
+"${COMPOSE[@]}" --profile tools run --rm -T migrate </dev/null
 
 log "starting app"
-"${COMPOSE[@]}" up -d --no-deps app
+"${COMPOSE[@]}" up -d --no-deps app </dev/null
 
 if ! wait_for_health; then
   rollback || true
