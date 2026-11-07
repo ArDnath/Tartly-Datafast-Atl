@@ -16,18 +16,21 @@ one shown by the vendor. Nothing here is inferred. Re-verify on launch day.
 | Umami Cloud | $20/month Pro | 1M events/month, up to 20 websites, 10 team members, 2-year retention | same |
 | Umami Cloud | $200/month Business | 10M events, unlimited sites, session replay, heatmaps | same |
 | Talivia | $9.99/month "for your first year" | unlimited websites (homepage wording) | <https://talivia.com/> |
-| DataFast | **UNVERIFIED** | public price not present in server-rendered HTML; requires JS | <https://datafa.st/> |
+| DataFast | $9/mo Starter, $19/mo Growth at 10k events | 14-day trial; price rises with the traffic slider; 2 months free yearly | <https://datafa.st/> (re-checked 2026-11-07) |
 
 ## What the comparison may say
 
-- Tartly Starter ($7.99) is below the displayed entry prices of Plausible,
-  Fathom, Simple Analytics, and Umami Pro.
-- Tartly Pro ($14.99) is below Fathom's $15 entry plan, Simple Analytics'
-  $20, and Umami Pro's $20, while allowing up to 20 websites.
+- Tartly Starter ($7.99, 100k events) is below DataFast Starter ($9, 10k
+  events), Plausible Starter ($9), Fathom ($15), Simple Analytics ($20), and
+  Umami Pro ($20) as displayed on 2026-11-07.
+- Tartly Pro ($14.99, 1M events) is below DataFast Growth ($19, 10k events),
+  Fathom's $15 entry plan, Simple Analytics' $20, and Umami Pro's $20, while
+  allowing up to 50 websites.
 - Tartly includes revenue attribution on both plans. Plausible lists
   ecommerce revenue attribution on its Business plan ($19) in the fetched page.
-- Umami's Hobby plan is free; Tartly deliberately has no free tier.
-  Compare features and capacity, not just the entry price.
+- Tartly offers a 7-day trial with 2,000 events and 1 website, no card.
+  Umami's Hobby plan is free forever; compare the trial and the paid capacity,
+  not just the entry price.
 
 ## What the comparison must not say
 

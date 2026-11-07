@@ -165,7 +165,7 @@ function getLevel(value: number, max: number) {
 }
 
 function formatCellTitle(cell: ActivityCell) {
-  const date = new Intl.DateTimeFormat(undefined, {
+  const date = new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
   }).format(cell.date);
@@ -217,7 +217,7 @@ export function SessionActivityHeatmap({
 
           labels.push({
             key: `${cell.key}-${column}`,
-            label: new Intl.DateTimeFormat(undefined, { month: 'short' }).format(cell.date),
+            label: new Intl.DateTimeFormat('en-US', { month: 'short' }).format(cell.date),
             column,
           });
 
@@ -289,7 +289,7 @@ export function SessionActivityHeatmap({
           }}
         >
           <div className="talivia-tooltip-title">
-            {new Intl.DateTimeFormat(undefined, {
+            {new Intl.DateTimeFormat('en-US', {
               month: 'short',
               day: 'numeric',
               year: 'numeric',

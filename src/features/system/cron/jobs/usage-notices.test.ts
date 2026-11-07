@@ -16,7 +16,7 @@ function createClient(periods: any[]) {
 function period(overrides: Record<string, unknown> = {}) {
   return {
     workspaceId: 'workspace-1',
-    eventsCount: 40_000,
+    eventsCount: 80_000,
     warningNotifiedAt: null,
     limitNotifiedAt: null,
     workspace: {
@@ -46,8 +46,8 @@ describe('usage notices job', () => {
     expect(send.mock.calls[0][0]).toMatchObject({
       to: 'owner@example.com',
       level: 'warning',
-      used: 40_000,
-      limit: 50_000,
+      used: 80_000,
+      limit: 100_000,
       billingUrl: 'https://app.test/app/settings/billing',
     });
     expect(client.usagePeriod.updateMany).toHaveBeenCalledWith(
@@ -70,7 +70,7 @@ describe('usage notices job', () => {
   });
 
   test('sends the limit notice once the allowance is exhausted', async () => {
-    const client = createClient([period({ eventsCount: 50_000 })]);
+    const client = createClient([period({ eventsCount: 100_000 })]);
     const send = vi.fn(async (_message: any) => {});
 
     await runUsageNoticeJob({ ...options, client, send });
@@ -128,7 +128,7 @@ describe('usage notices job', () => {
   test('uses the provider plan when platform billing is active', async () => {
     const client = createClient([
       period({
-        eventsCount: 450_000,
+        eventsCount: 800_000,
         workspace: {
           name: 'Acme',
           planId: 'starter',
@@ -148,6 +148,6 @@ describe('usage notices job', () => {
     await runUsageNoticeJob({ ...options, client, send });
 
     expect(send).toHaveBeenCalledTimes(1);
-    expect(send.mock.calls[0][0]).toMatchObject({ level: 'warning', limit: 500_000 });
+    expect(send.mock.calls[0][0]).toMatchObject({ level: 'warning', limit: 1_000_000 });
   });
 });

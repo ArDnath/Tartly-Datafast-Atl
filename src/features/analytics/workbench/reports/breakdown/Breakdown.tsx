@@ -50,13 +50,13 @@ export function Breakdown({ websiteId, selectedFields = [], startDate, endDate }
             );
           })}
           <DataColumn id="visitors" label={t(labels.visitors)} align="end" width="120px">
-            {row => row?.visitors?.toLocaleString()}
+            {row => row?.visitors?.toLocaleString('en-US')}
           </DataColumn>
           <DataColumn id="visits" label={t(labels.visits)} align="end" width="120px">
-            {row => row?.visits?.toLocaleString()}
+            {row => row?.visits?.toLocaleString('en-US')}
           </DataColumn>
           <DataColumn id="views" label={t(labels.views)} align="end" width="120px">
-            {row => row?.views?.toLocaleString()}
+            {row => row?.views?.toLocaleString('en-US')}
           </DataColumn>
           <DataColumn id="bounceRate" label={t(labels.bounceRate)} align="end" width="120px">
             {row => {

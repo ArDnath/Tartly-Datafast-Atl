@@ -1,16 +1,21 @@
 import type { Metadata } from 'next';
-import { DM_Sans } from 'next/font/google';
-import { LandingPage } from '@/features/marketing/LandingPage';
+import { Domine } from 'next/font/google';
+import { LandingPage } from '@/features/marketing/landing/LandingPage';
 import { BRAND } from '@/lib/brand';
+import '@/features/marketing/landing/landing.css';
 
-const dmSans = DM_Sans({
+const domine = Domine({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
   display: 'swap',
+  variable: '--font-domine-family',
 });
 
 export default function HomePage() {
-  return <LandingPage className={dmSans.className} />;
+  return (
+    <div className={domine.variable}>
+      <LandingPage />
+    </div>
+  );
 }
 
 export const metadata: Metadata = {

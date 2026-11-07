@@ -6,6 +6,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { useEffect } from 'react';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { useLocale } from '@/components/hooks';
+import { hydrateAppStore } from '@/store/app';
 import 'chartjs-adapter-date-fns';
 
 const client = new QueryClient({
@@ -35,6 +36,10 @@ function MessagesProvider({ children }) {
 
 export function Providers({ children }) {
   const router = useRouter();
+
+  useEffect(() => {
+    hydrateAppStore();
+  }, []);
 
   function navigate(url: string) {
     if (shouldUseNativeLink(url)) {

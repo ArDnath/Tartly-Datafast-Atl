@@ -1,24 +1,22 @@
 'use client';
 import { Column, Tab, TabList, TabPanel, Tabs } from '@talivia/react-zen';
-import { type Key, useState } from 'react';
+import type { Key } from 'react';
 import { Panel } from '@/components/common/Panel';
-import { useMessages } from '@/components/hooks';
+import { useMessages, useStoredState } from '@/components/hooks';
 import { useAnalyticsOverlays } from '@/features/analytics/components/AnalyticsOverlayContext';
 import { WebsiteControls } from '@/features/analytics/workbench/WebsiteControls';
-import { getItem, setItem } from '@/lib/storage';
 import { ReplaysDataTable } from './ReplaysDataTable';
 import { SavedReplaysDataTable } from './SavedReplaysDataTable';
 
 const KEY_NAME = 'talivia.replays.tab';
 
 export function ReplaysPage({ websiteId }: { websiteId: string }) {
-  const [tab, setTab] = useState(getItem(KEY_NAME) || 'replays');
+  const [tab, setTab] = useStoredState(KEY_NAME, 'replays');
   const { openReplay } = useAnalyticsOverlays();
   const { t, labels } = useMessages();
 
   const handleSelect = (value: Key) => {
-    setItem(KEY_NAME, value);
-    setTab(value);
+    setTab(value.toString());
   };
 
   return (

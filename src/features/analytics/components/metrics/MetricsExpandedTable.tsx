@@ -11,8 +11,8 @@ import {
 } from '@/features/analytics/components/metrics/MetricLabel';
 import { useDashboardBreakdownQuery } from '@/features/analytics/hooks/useDashboardBreakdownQuery';
 import { useWebsiteExpandedMetricsQuery } from '@/features/analytics/hooks/useWebsiteExpandedMetricsQuery';
-import { SESSION_COLUMNS } from '@/lib/constants';
 import type { DashboardBreakdownRow } from '@/features/analytics/lib/dashboard-breakdown';
+import { SESSION_COLUMNS } from '@/lib/constants';
 import { formatLongCurrency, formatLongNumber, formatShortTime } from '@/lib/format';
 
 export interface MetricsExpandedTableProps {
@@ -123,13 +123,13 @@ function StandardMetricsExpandedTable({
                 )}
               </DataColumn>
               <DataColumn id="visitors" label={t(labels.visitors)} align="end" width="120px">
-                {row => row?.visitors?.toLocaleString()}
+                {row => row?.visitors?.toLocaleString('en-US')}
               </DataColumn>
               <DataColumn id="visits" label={t(labels.visits)} align="end" width="120px">
-                {row => row?.visits?.toLocaleString()}
+                {row => row?.visits?.toLocaleString('en-US')}
               </DataColumn>
               <DataColumn id="pageviews" label={t(labels.views)} align="end" width="120px">
-                {row => row?.pageviews?.toLocaleString()}
+                {row => row?.pageviews?.toLocaleString('en-US')}
               </DataColumn>
               {showBounceDuration && [
                 <DataColumn

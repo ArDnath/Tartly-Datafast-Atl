@@ -79,7 +79,7 @@ function formatDateLabel(date: string) {
   if (Number.isFinite(parsedDate.getTime())) {
     const hasTime = /[ T]\d{2}:\d{2}/.test(date) || /[ T]\d{2}$/.test(date);
 
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
       ...(hasTime ? { hour: 'numeric' } : {}),

@@ -31,6 +31,12 @@ describe('brand configuration propagation', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('the configured logo asset ships with the app', () => {
+    const logoPath = join(process.cwd(), 'public', BRAND.logo.mark.replace(/^\//, ''));
+
+    expect(statSync(logoPath).size).toBeGreaterThan(0);
+  });
+
   test('urls, emails, and legal entity are derived from the same name and domain', () => {
     expect(BRAND.url).toBe(`https://${BRAND.domain}`);
     expect(BRAND.supportEmail).toBe(`support@${BRAND.domain}`);
@@ -47,7 +53,7 @@ describe('brand configuration propagation', () => {
       'features/auth/LoginForm.tsx',
       'features/docs/content.ts',
       'features/docs/DocsPage.tsx',
-      'features/marketing/LandingPage.tsx',
+      'features/marketing/landing/LandingPage.tsx',
       'features/marketing/PricingPage.tsx',
       'features/onboarding/OnboardingFlow.tsx',
       'lib/email.ts',

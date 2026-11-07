@@ -4,6 +4,7 @@ import type {
   BillingProvider,
   CreateBillingCheckoutInput,
 } from '@/features/billing/server/provider';
+import { getPlan } from '@/lib/plans';
 
 /**
  * Dodo Payments implementation of the platform billing contract.
@@ -45,6 +46,9 @@ export function createDodoBillingProvider(
             },
         return_url: input.successUrl,
         cancel_url: input.cancelUrl,
+        subscription_data: {
+          trial_period_days: getPlan(input.planId).trialDays,
+        },
         metadata: {
           workspaceId: input.workspaceId,
           planId: input.planId,

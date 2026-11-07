@@ -150,7 +150,8 @@ Steps when keys are available:
 
 ## Deliberate non-goals
 
-- No trial by default. The two plans are paid from day one.
+- Checkout asks Dodo for a 7-day trial (`subscription_data.trial_period_days`).
+  The trial still becomes active only after the provider confirms it.
 - No invoice is invented before the provider issues one.
 - No plan activation from a success redirect or client-side state.
 - No reuse of the customer's analytics payment connections for charging them.

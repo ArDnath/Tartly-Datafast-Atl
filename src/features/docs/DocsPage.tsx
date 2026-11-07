@@ -4,9 +4,9 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { BrandWordmark } from '@/components/brand/BrandMark';
 import { BRAND } from '@/lib/brand';
-import { DOCS_HOME, REVENUE_GUIDES, type DocsGuide } from './content';
-import { getInstallSnippet, INSTALL_GUIDES, INSTALL_TROUBLESHOOTING } from './install-guides';
+import { DOCS_HOME, type DocsGuide, REVENUE_GUIDES } from './content';
 import styles from './Docs.module.css';
+import { getInstallSnippet, INSTALL_GUIDES, INSTALL_TROUBLESHOOTING } from './install-guides';
 
 function ExternalLink({ href, children }: { href: string; children: ReactNode }) {
   return (
@@ -266,7 +266,7 @@ export function DocsPage({ guide, install }: { guide?: DocsGuide; install?: bool
     <div className={styles.page}>
       <header className={styles.nav}>
         <Link href="/" className={styles.brandLink} aria-label={BRAND.name}>
-          <BrandWordmark />
+          <BrandWordmark gradient={false} />
         </Link>
         <nav className={styles.navLinks} aria-label="Main">
           <Link href="/pricing">Pricing</Link>
@@ -285,7 +285,7 @@ export function DocsPage({ guide, install }: { guide?: DocsGuide; install?: bool
       </main>
 
       <footer className={styles.footer}>
-        <span>
+        <span suppressHydrationWarning>
           © {new Date().getFullYear()} {BRAND.legalEntity}
         </span>
         <nav aria-label="Footer">

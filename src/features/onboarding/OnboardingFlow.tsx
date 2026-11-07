@@ -586,7 +586,7 @@ export function OnboardingFlow() {
                     {verifyState?.installed
                       ? `${verifyState.eventCount.toLocaleString('en-US')} event${
                           verifyState.eventCount === 1 ? '' : 's'
-                        } received${verifyState.lastEventAt ? ` · last at ${new Date(verifyState.lastEventAt).toLocaleTimeString()}` : ''}`
+                        } received${verifyState.lastEventAt ? ` · last at ${new Date(verifyState.lastEventAt).toLocaleTimeString('en-US')}` : ''}`
                       : 'Nothing has arrived yet. This is normal if you just deployed the script.'}
                   </p>
                 </div>

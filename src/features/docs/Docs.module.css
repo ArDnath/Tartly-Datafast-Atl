@@ -1,16 +1,15 @@
 .page {
-  --rl-canvas: #1b1b1b;
-  --rl-card: #222222;
-  --rl-muted: #262626;
-  --rl-fg: #f4f4f5;
-  --rl-muted-fg: #a1a1aa;
-  --rl-border: rgba(255, 255, 255, 0.08);
-  --rl-blush: #f2b4cb;
+  --rl-canvas: var(--marketing-canvas);
+  --rl-card: var(--marketing-surface);
+  --rl-muted: var(--marketing-surface-muted);
+  --rl-fg: var(--marketing-ink);
+  --rl-muted-fg: var(--marketing-muted);
+  --rl-border: var(--marketing-line);
+  --rl-blush: var(--marketing-blush);
+  --text-primary: var(--marketing-ink);
 
   min-height: 100vh;
-  background:
-    radial-gradient(820px 420px at 50% -12%, rgba(242, 180, 203, 0.06), transparent 70%),
-    var(--rl-canvas);
+  background: var(--rl-canvas);
   color: var(--rl-fg);
   font-family: var(--font-family), sans-serif;
   letter-spacing: -0.01em;
@@ -55,12 +54,12 @@
   border: 1px solid var(--rl-border);
   border-radius: 8px;
   color: var(--rl-fg) !important;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(31, 41, 55, 0.04);
 }
 
 .navCta:hover {
-  border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(31, 41, 55, 0.2);
+  background: rgba(31, 41, 55, 0.08);
 }
 
 .main {
@@ -110,7 +109,7 @@
 
 .sidebarLink:hover {
   color: var(--rl-fg);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(31, 41, 55, 0.05);
 }
 
 .sidebarLinkActive,
@@ -137,7 +136,7 @@
 
 .title {
   margin: 0;
-  color: #fff;
+  color: var(--marketing-ink-strong);
   font-size: clamp(2rem, 4.4vw, 2.8rem);
   font-weight: 600;
   letter-spacing: -0.045em;
@@ -163,7 +162,7 @@
 
 .sectionTitle {
   margin: 36px 0 12px;
-  color: #fff;
+  color: var(--marketing-ink-strong);
   font-size: 18px;
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -228,7 +227,7 @@
 
 .codeBlock {
   margin: 16px 0;
-  border: 1px solid var(--rl-border);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   background: #161616;
   overflow: hidden;
@@ -240,8 +239,8 @@
   justify-content: space-between;
   gap: 12px;
   padding: 8px 12px;
-  border-bottom: 1px solid var(--rl-border);
-  color: var(--rl-muted-fg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  color: #a1a1aa;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -288,8 +287,8 @@
 }
 
 .guideCard:hover {
-  border-color: rgba(255, 255, 255, 0.18);
-  background: #262626;
+  border-color: rgba(31, 41, 55, 0.2);
+  background: var(--rl-muted);
 }
 
 .guideCard h3 {
@@ -336,9 +335,9 @@
 }
 
 .primary {
-  border: 1px solid #f4f4f5;
-  color: #1b1b1b;
-  background: #f4f4f5;
+  border: 1px solid var(--marketing-ink);
+  color: var(--marketing-canvas);
+  background: var(--marketing-ink);
 }
 
 .secondary {
@@ -347,7 +346,7 @@
 }
 
 .secondary:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(31, 41, 55, 0.05);
 }
 
 .footer {

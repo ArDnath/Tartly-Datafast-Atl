@@ -1,22 +1,21 @@
 import { Button, Row } from '@talivia/react-zen';
-import { useState } from 'react';
-import { useMessages } from '@/components/hooks';
+import { useMessages, useStoredState } from '@/components/hooks';
 import { DateFilter } from '@/components/input/DateFilter';
 import { DATE_RANGE_CONFIG, DEFAULT_DATE_RANGE_VALUE } from '@/lib/constants';
-import { getItem, setItem } from '@/lib/storage';
+import { setDateRangeValue } from '@/store/app';
 
 export function DateRangeSetting() {
   const { t, labels } = useMessages();
-  const [date, setDate] = useState(getItem(DATE_RANGE_CONFIG) || DEFAULT_DATE_RANGE_VALUE);
+  const [date, setDate] = useStoredState(DATE_RANGE_CONFIG, DEFAULT_DATE_RANGE_VALUE);
 
   const handleChange = (value: string) => {
-    setItem(DATE_RANGE_CONFIG, value);
     setDate(value);
+    setDateRangeValue(value);
   };
 
   const handleReset = () => {
-    setItem(DATE_RANGE_CONFIG, DEFAULT_DATE_RANGE_VALUE);
     setDate(DEFAULT_DATE_RANGE_VALUE);
+    setDateRangeValue(DEFAULT_DATE_RANGE_VALUE);
   };
 
   return (

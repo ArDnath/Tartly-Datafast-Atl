@@ -22,7 +22,14 @@ export const BRAND = {
   noReplyEmail: `${BRAND_NAME} <no-reply@${BRAND_DOMAIN}>`,
   legalEntity: BRAND_NAME,
   logo: {
-    mark: '/brand-mark.svg',
+    /**
+     * The shared Tartly product mark copied from the sibling Tartly repo
+     * (`../tartly`). Kept as WebP at 192px so a 32px nav lockup downloads ~8KB
+     * instead of the 930px source. The raster favicons are generated from the
+     * same source.
+     */
+    mark: '/brand/tartly-mark.webp',
+    mark512: '/brand/tartly-mark-512.webp',
     alt: BRAND_NAME,
   },
   colors: {

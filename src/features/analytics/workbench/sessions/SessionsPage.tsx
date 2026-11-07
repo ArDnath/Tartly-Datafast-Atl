@@ -1,22 +1,20 @@
 'use client';
 import { Column, Tab, TabList, TabPanel, Tabs } from '@talivia/react-zen';
-import { type Key, useState } from 'react';
-import { WebsiteControls } from '@/features/analytics/workbench/WebsiteControls';
+import type { Key } from 'react';
 import { Panel } from '@/components/common/Panel';
-import { useMessages } from '@/components/hooks';
-import { getItem, setItem } from '@/lib/storage';
+import { useMessages, useStoredState } from '@/components/hooks';
+import { WebsiteControls } from '@/features/analytics/workbench/WebsiteControls';
 import { SessionProperties } from './SessionProperties';
 import { SessionsDataTable } from './SessionsDataTable';
 
 const KEY_NAME = 'talivia.sessions.tab';
 
 export function SessionsPage({ websiteId }) {
-  const [tab, setTab] = useState(getItem(KEY_NAME) || 'activity');
+  const [tab, setTab] = useStoredState(KEY_NAME, 'activity');
   const { t, labels } = useMessages();
 
   const handleSelect = (value: Key) => {
-    setItem(KEY_NAME, value);
-    setTab(value);
+    setTab(value.toString());
   };
 
   return (

@@ -24,17 +24,19 @@ built for the hosted SaaS.
 
 ## Plans
 
-Exactly two plans, no free tier:
+Two paid plans plus a 7-day free trial:
 
-| Plan | Monthly | Websites |
-| --- | --- | --- |
-| Starter | $7.99 | 1 |
-| Pro | $14.99 | up to 20 |
+| Plan | Monthly | Events / month | Websites |
+| --- | --- | --- | --- |
+| Free trial | $0 for 7 days | 2,000 | 1 |
+| Starter | $7.99 | 100,000 | 1 |
+| Pro | $14.99 | 1,000,000 | up to 50 |
 
-Plan data lives in `src/lib/plans.ts`. Event, replay, member, and retention
-allowances are defined there and in `docs/PRICING_ECONOMICS.md`. A new workspace
-has a **one-time 1,000-event setup allowance** to verify the tracker before
-checkout. It never resets and is not a free plan; ingestion pauses until a paid
+Plan data lives in `src/lib/plans.ts`. The traffic slider raises events and
+price together, from 10k to 2M Starter events (Pro scales to 10M). Event,
+replay, member, and retention allowances are defined there and in
+`docs/PRICING_ECONOMICS.md`. A new workspace gets **7 days and 2,000 events**
+without a card; after the trial, billable ingestion pauses until a paid
 subscription is active.
 
 ## Local development

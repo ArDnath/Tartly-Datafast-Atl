@@ -207,7 +207,7 @@ export function WorkspaceSettingsPage() {
                   <Text>{invitation.email}</Text>
                   <Text size="sm" color="muted">
                     {invitation.role.toLowerCase()} · expires{' '}
-                    {new Date(invitation.expiresAt).toLocaleDateString()}
+                    {new Date(invitation.expiresAt).toLocaleDateString('en-US')}
                   </Text>
                 </Column>
                 <Button size="sm" onPress={() => handleRevoke(invitation.id)}>
