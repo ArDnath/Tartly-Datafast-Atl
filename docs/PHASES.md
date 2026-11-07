@@ -137,8 +137,10 @@ shutdown or destructive action should be taken based on this tracker.
 - The first container scan found a CRITICAL `tar` advisory from the global
   pnpm installed in the runtime stage. The runtime image now starts through
   `scripts/start-docker.mjs` with no global pnpm, and the migration service
-  calls `./node_modules/.bin/prisma` directly. After the fix, a local Trivy
-  CRITICAL scan reports 0 findings, and the rebuilt container returns 200 from
+  calls `./node_modules/.bin/prisma` directly. The runtime stage now installs
+  production dependencies only and removes npm/npx, so build tooling and its
+  advisories never ship. After the fix, a local Trivy 0.70 scan reports 0
+  CRITICAL/HIGH findings, and the rebuilt container returns 200 from
   `/api/health/live` and `/api/health/ready` (`database: up`).
 - **UNVERIFIED — production deploy not executed in this session.** Neither
   known VPS address accepted `~/.ssh/tartly_ci` (`16.171.53.188` timed out;

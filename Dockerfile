@@ -11,6 +11,16 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN npm install -g pnpm@${PNPM_VERSION}
 RUN pnpm install --frozen-lockfile
 
+# Production-only dependency tree. Build tooling and test packages stay out of
+# the shipped image.
+FROM node:${NODE_IMAGE_VERSION} AS prod-deps
+ARG PNPM_VERSION
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN npm install -g pnpm@${PNPM_VERSION}
+RUN pnpm install --frozen-lockfile --prod
+
 # Rebuild the source code only when needed
 FROM node:${NODE_IMAGE_VERSION} AS builder
 ARG BUILD_VERSION="local"
@@ -41,8 +51,11 @@ ENV PATH="/app/node_modules/.bin:${PATH}"
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 RUN apk add --no-cache curl
+# The runtime only needs `node`. Removing npm and npx drops their bundled
+# dependency trees (and their advisories) from the shipped image.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=prod-deps /app/node_modules ./node_modules
 
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder /app/prisma ./prisma
