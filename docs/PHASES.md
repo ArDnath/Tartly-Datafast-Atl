@@ -134,6 +134,12 @@ shutdown or destructive action should be taken based on this tracker.
 - Evidence: `pnpm gate` green after the dependency changes; `pnpm audit --prod`
   clean; `bash -n deploy/production/deploy.sh` clean. The production container
   path is exercised by the `container` CI job.
+- The first container scan found a CRITICAL `tar` advisory from the global
+  pnpm installed in the runtime stage. The runtime image now starts through
+  `scripts/start-docker.mjs` with no global pnpm, and the migration service
+  calls `./node_modules/.bin/prisma` directly. After the fix, a local Trivy
+  CRITICAL scan reports 0 findings, and the rebuilt container returns 200 from
+  `/api/health/live` and `/api/health/ready` (`database: up`).
 - **UNVERIFIED — production deploy not executed in this session.** Neither
   known VPS address accepted `~/.ssh/tartly_ci` (`16.171.53.188` timed out;
   `13.61.123.152` returned `Permission denied (publickey)`), and the repository

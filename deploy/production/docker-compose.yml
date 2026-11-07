@@ -43,7 +43,7 @@ services:
       - .env
     environment:
       DATABASE_URL: ${DATABASE_URL_UNPOOLED}
-    command: ["pnpm", "exec", "prisma", "migrate", "deploy"]
+    command: ["./node_modules/.bin/prisma", "migrate", "deploy"]
     init: true
 
   caddy:

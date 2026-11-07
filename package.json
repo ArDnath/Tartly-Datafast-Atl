@@ -16,7 +16,7 @@
     "build": "npm-run-all check-env build-db check-db build-tracker build-recorder build-app",
     "start": "next start",
     "build-docker": "npm-run-all build-db build-tracker build-recorder build-app-docker",
-    "start-docker": "npm-run-all check-env check-db start-server",
+    "start-docker": "node scripts/start-docker.mjs",
     "start-env": "node scripts/start-env.js",
     "start-server": "node scripts/start-server.mjs",
     "build-app": "next build --webpack",

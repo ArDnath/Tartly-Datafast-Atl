@@ -59,7 +59,10 @@ scanning.
 
 `container` builds the production Docker image with the commit SHA as
 `BUILD_VERSION`, then scans the image with Trivy and fails on CRITICAL
-vulnerabilities with a fix available.
+vulnerabilities with a fix available. The runtime image starts with
+`node scripts/start-docker.mjs` and deliberately does not install a global
+pnpm; that removes an extra transitive package tree (including a vulnerable
+`tar`) from the image. Migrations run `./node_modules/.bin/prisma` directly.
 
 All third-party actions are pinned to full commit SHAs. Workflow permissions
 are read-only except `security-events: write` in the scanning jobs.
