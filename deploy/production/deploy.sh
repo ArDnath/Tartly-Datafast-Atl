@@ -16,7 +16,7 @@
 # never prints .env contents and never reverses a migration automatically.
 
 set -Eeuo pipefail
-umask 077
+umask 022
 
 TARGET_SHA="${1:-}"
 APP_DIR="${APP_DIR:-/opt/tartly/app}"
@@ -108,6 +108,10 @@ git merge-base --is-ancestor "$TARGET_SHA" origin/main || die "target commit is 
 # Move the checkout before reading any configuration from it. Untracked runtime
 # files are left alone, and the production .env is outside the repository.
 git checkout --force -B main "$TARGET_SHA" >/dev/null
+
+# Git applies the process umask on checkout. The build context and the
+# container user must be able to read every committed file.
+chmod -R u+rwX,go+rX "$APP_DIR"
 
 TARTLY_DOMAIN=$(read_env_value TARTLY_DOMAIN)
 HEALTH_URL="${APP_URL:-https://${TARTLY_DOMAIN}}"
