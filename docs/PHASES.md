@@ -34,13 +34,17 @@
   **67.6% statements / 55.6% branches / 63.4% functions / 68.0% lines**, plus
   the explicit 48-assertion PostgreSQL analytics smoke and the recorded load
   probe.
-- GitHub CI: **green on `main`** for the merged launch PR (#20, squash
-  `e20172d`, run 42387625857). The three-job pipeline starts PostgreSQL 17,
-  runs format, lint, typecheck, coverage tests, a clean production dependency
-  audit, `prisma migrate deploy`, the Phase 7 analytics smoke, and `pnpm build`,
-  then runs gitleaks, CodeQL, dependency review, and Trivy filesystem/container
-  scans. The first `Deploy production` run (42388368969) was **skipped**
-  because `DEPLOY_ENABLED` is not set.
+- GitHub CI: **green on `main`** (latest run 42396846690 for squash
+  `04d7023`). The three-job pipeline starts PostgreSQL 17, runs format, lint,
+  typecheck, coverage tests, a clean production dependency audit,
+  `prisma migrate deploy`, the Phase 7 analytics smoke, and `pnpm build`, then
+  runs gitleaks, CodeQL, dependency review, and Trivy filesystem/container
+  scans.
+- Production deploy: **live** at <https://tartly.in>. Deploy run 42397381387
+  succeeded for `04d7023`; `/api/health/live` and `/api/health/ready` return
+  200 with `version: 04d7023`, and `/`, `/pricing`, and `/docs` return 200.
+  The `production` environment now requires a reviewer, and `main` requires the
+  three CI checks, resolved conversations, and no force-push/deletion.
 - Delivery history: six phase branches delivered through pull requests #1–#6;
   the next slices follow the same feature-branch → PR → merge loop.
 - Runtime smoke: the public docs routes return 200, and `/app/settings`,
@@ -144,22 +148,23 @@ shutdown or destructive action should be taken based on this tracker.
   advisories never ship. After the fix, a local Trivy 0.70 scan reports 0
   CRITICAL/HIGH findings, and the rebuilt container returns 200 from
   `/api/health/live` and `/api/health/ready` (`database: up`).
-- **UNVERIFIED — production deploy not executed in this session.** Neither
-  known VPS address accepted `~/.ssh/tartly_ci` (`16.171.53.188` timed out;
-  `13.61.123.152` returned `Permission denied (publickey)`), and the repository
-  has no `production` environment, deploy secrets, `APP_URL`, or
-  `DEPLOY_ENABLED` variable. Exact human action:
-  1. authorize the `tartly_ci` public key for the deploy user on the VPS;
-  2. create the `production` environment with required reviewers;
-  3. set `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`,
-     `DEPLOY_KNOWN_HOSTS` as environment secrets;
-  4. set `APP_URL=https://tartly.in` and `DEPLOY_ENABLED=true`;
-  5. run `gh workflow run deploy.yml -f sha=<merged-main-sha>` and confirm
-     `/api/health/ready` returns 200.
-- **Merged:** PR #20 was squashed to `e20172d` on 2026-11-07. Branch CI passed
-  all three jobs, main CI run 42387625857 passed, and the deploy workflow
-  skipped cleanly instead of failing on missing credentials. Dependabot is now
-  active for npm, GitHub Actions, and Docker updates.
+- **VERIFIED — production deployed on 2026-11-07.** VPS
+  `201.18.197.194` (Ubuntu 26.04, Hostinger KVM 2); non-root `deploy` user in
+  the `docker` group; `tartly_ci` key authorized; `/opt/tartly/app` and
+  `/opt/tartly/runtime` owned by `deploy`; environment secrets
+  `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, and
+  variables `APP_URL=https://tartly.in`, `DEPLOY_ENABLED=true` are set.
+- Fixes found during the first real deploy: the VPS clone needed an explicit
+  `main` refspec; compose consumed the streamed deploy script from stdin;
+  `umask 077` produced unreadable runtime scripts; and the runtime `.env`
+  overrode the image `BUILD_VERSION`. All four are fixed in
+  `deploy/production/deploy.sh`, `Dockerfile`, and the compose service.
+- Final pipeline deploy: run 42397381387 succeeded for `04d7023`; the live
+  container reports `BUILD_VERSION=04d7023` and is healthy. Branch protection
+  and the production environment reviewer are enabled.
+- **Merged:** PR #20 (`e20172d`), PR #27 (`54f619b`), and PR #28 (`04d7023`)
+  were delivered through the feature-branch → PR → CI → merge loop. Dependabot
+  is active for npm, GitHub Actions, and Docker updates.
 
 ## Commercial contract (fixed by owner)
 
