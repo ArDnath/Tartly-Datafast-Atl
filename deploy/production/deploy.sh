@@ -100,15 +100,14 @@ cd "$APP_DIR"
 PREVIOUS_SHA=$(git rev-parse HEAD)
 
 log "fetching origin/main"
-git fetch --prune origin main
+git fetch --prune origin '+refs/heads/main:refs/remotes/origin/main'
 
 git cat-file -e "${TARGET_SHA}^{commit}" 2>/dev/null || die "target commit is not present"
 git merge-base --is-ancestor "$TARGET_SHA" origin/main || die "target commit is not on origin/main"
 
 # Move the checkout before reading any configuration from it. Untracked runtime
 # files are left alone, and the production .env is outside the repository.
-git checkout --force main >/dev/null
-git reset --hard "$TARGET_SHA" >/dev/null
+git checkout --force -B main "$TARGET_SHA" >/dev/null
 
 TARTLY_DOMAIN=$(read_env_value TARTLY_DOMAIN)
 HEALTH_URL="${APP_URL:-https://${TARTLY_DOMAIN}}"
