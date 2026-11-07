@@ -57,7 +57,7 @@ function LegalShell({
     <div className={styles.page}>
       <header className={styles.nav}>
         <Link href="/" aria-label={BRAND.name} className={styles.brand}>
-          <BrandWordmark />
+          <BrandWordmark gradient={false} />
         </Link>
         <nav aria-label="Main" className={styles.links}>
           <Link href="/pricing">Pricing</Link>

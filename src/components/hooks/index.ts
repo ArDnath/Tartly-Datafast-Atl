@@ -26,6 +26,7 @@ export * from './usePagedQuery';
 export * from './useRegionNames';
 export * from './useSlug';
 export * from './useSticky';
+export * from './useStoredState';
 export * from './useTimezone';
 export * from './useUpdateQuery';
 export * from './useUrlState';

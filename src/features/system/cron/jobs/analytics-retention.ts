@@ -7,8 +7,8 @@ import prisma from '@/lib/prisma';
  * Rules:
  * - Each website is reduced using the plan that currently owns it. The plan
  *   codes are read from `platform_subscription` first, then the workspace
- *   mirror, and finally Starter. There is no free tier, so Starter is the
- *   conservative floor for legacy rows.
+ *   mirror, and finally Starter. Trial-only workspaces have no paid plan, so
+ *   Starter is the conservative floor for legacy rows.
  * - The job is tenant-scoped: every delete and detach carries the website id.
  *   It never takes a tenant id from a request and never returns row contents.
  * - The job is idempotent. `deleteMany` and `updateMany` are safe to run twice;

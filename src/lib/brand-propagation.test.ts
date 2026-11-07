@@ -20,10 +20,21 @@ describe('brand configuration propagation', () => {
       .filter(file => /\.(ts|tsx)$/.test(file))
       .filter(file => !file.includes('.test.'))
       .filter(file => relative(SRC, file) !== 'lib/brand.ts')
-      .filter(file => readFileSync(file, 'utf8').includes('RevenueLens'))
+      .filter(file => {
+        const content = readFileSync(file, 'utf8');
+
+        // Flag the retired name and any hardcode of the current name.
+        return content.includes('RevenueLens') || content.includes(BRAND.name);
+      })
       .map(file => relative(SRC, file));
 
     expect(offenders).toEqual([]);
+  });
+
+  test('the configured logo asset ships with the app', () => {
+    const logoPath = join(process.cwd(), 'public', BRAND.logo.mark.replace(/^\//, ''));
+
+    expect(statSync(logoPath).size).toBeGreaterThan(0);
   });
 
   test('urls, emails, and legal entity are derived from the same name and domain', () => {
@@ -42,7 +53,7 @@ describe('brand configuration propagation', () => {
       'features/auth/LoginForm.tsx',
       'features/docs/content.ts',
       'features/docs/DocsPage.tsx',
-      'features/marketing/LandingPage.tsx',
+      'features/marketing/landing/LandingPage.tsx',
       'features/marketing/PricingPage.tsx',
       'features/onboarding/OnboardingFlow.tsx',
       'lib/email.ts',

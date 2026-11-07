@@ -3,10 +3,11 @@
  * require editing `BRAND_NAME` / `BRAND_DOMAIN` here (plus the raster favicons,
  * which are generated assets).
  *
- * RevenueLens is a working name. Do not treat it as a trademark.
+ * Tartly is the final product name; tartly.in is the production domain.
+ * Do not treat the name as a trademark claim beyond the owner's own use.
  */
-const BRAND_NAME = 'RevenueLens';
-const BRAND_DOMAIN = 'revenuelens.app';
+const BRAND_NAME = 'Tartly';
+const BRAND_DOMAIN = 'tartly.in';
 
 export const BRAND = {
   name: BRAND_NAME,
@@ -21,7 +22,14 @@ export const BRAND = {
   noReplyEmail: `${BRAND_NAME} <no-reply@${BRAND_DOMAIN}>`,
   legalEntity: BRAND_NAME,
   logo: {
-    mark: '/brand-mark.svg',
+    /**
+     * The shared Tartly product mark copied from the sibling Tartly repo
+     * (`../tartly`). Kept as WebP at 192px so a 32px nav lockup downloads ~8KB
+     * instead of the 930px source. The raster favicons are generated from the
+     * same source.
+     */
+    mark: '/brand/tartly-mark.webp',
+    mark512: '/brand/tartly-mark-512.webp',
     alt: BRAND_NAME,
   },
   colors: {

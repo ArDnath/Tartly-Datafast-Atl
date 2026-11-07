@@ -114,7 +114,7 @@ Copy this block into every PR description and tick each line.
 
 ## 4. Scale staging (1M-RPS skill, applied honestly)
 
-RevenueLens is a small multi-tenant SaaS, not a 1M-RPS edge fleet. The high-scale
+Tartly is a small multi-tenant SaaS, not a 1M-RPS edge fleet. The high-scale
 skill is applied in stages so we do not buy complexity we cannot operate:
 
 | Stage | Trigger | Required now |

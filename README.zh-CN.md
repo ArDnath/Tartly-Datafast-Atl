@@ -1,8 +1,8 @@
-# RevenueLens
+# Tartly
 
 面向开发者与独立 SaaS 创始人的收入优先产品分析。连接网站与支付渠道，查看哪些渠道、活动和页面真正带来收入。
 
-RevenueLens 是基于 MIT 许可的 [Talivia](https://github.com/talivia-group/talivia) 分析引擎构建的托管多租户分支。追踪脚本、数据采集、会话回放、归因和支付集成均保留；工作区、套餐和产品界面面向托管 SaaS 重构。
+Tartly 是基于 MIT 许可的 [Talivia](https://github.com/talivia-group/talivia) 分析引擎构建的托管多租户分支。追踪脚本、数据采集、会话回放、归因和支付集成均保留；工作区、套餐和产品界面面向托管 SaaS 重构。
 
 完整说明请阅读 [English README](./README.md)。
 
@@ -58,4 +58,4 @@ docker compose up -d postgres
 
 ## 许可
 
-RevenueLens 使用 MIT 许可证。原始 Talivia 版权声明保留在 `LICENSE` 中，依赖与资源声明见 `THIRD_PARTY_NOTICES.md`。RevenueLens 与 Talivia 无关联，也未获得其背书。
+Tartly 使用 MIT 许可证。原始 Talivia 版权声明保留在 `LICENSE` 中，依赖与资源声明见 `THIRD_PARTY_NOTICES.md`。Tartly 与 Talivia 无关联，也未获得其背书。

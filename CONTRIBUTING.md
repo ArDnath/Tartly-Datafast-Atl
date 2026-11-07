@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for helping improve RevenueLens.
+Thank you for helping improve Tartly.
 
 ## Development setup
 

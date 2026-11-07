@@ -1,10 +1,10 @@
-# RevenueLens
+# Tartly
 
 Revenue-first product analytics for developers and indie SaaS founders. Connect
 your site, connect your payments, and see which channels, campaigns, and pages
 actually make money.
 
-RevenueLens is a hosted, multi-tenant fork of the MIT-licensed
+Tartly is a hosted, multi-tenant fork of the MIT-licensed
 [Talivia](https://github.com/talivia-group/talivia) analytics engine. The
 tracker, ingestion path, session replay, attribution, and payment-provider
 integrations are retained; workspaces, billing, plans, and the product UI are
@@ -24,17 +24,19 @@ built for the hosted SaaS.
 
 ## Plans
 
-Exactly two plans, no free tier:
+Two paid plans plus a 7-day free trial:
 
-| Plan | Monthly | Websites |
-| --- | --- | --- |
-| Starter | $7.99 | 1 |
-| Pro | $14.99 | up to 20 |
+| Plan | Monthly | Events / month | Websites |
+| --- | --- | --- | --- |
+| Free trial | $0 for 7 days | 2,000 | 1 |
+| Starter | $7.99 | 100,000 | 1 |
+| Pro | $14.99 | 1,000,000 | up to 50 |
 
-Plan data lives in `src/lib/plans.ts`. Event, replay, member, and retention
-allowances are defined there and in `docs/PRICING_ECONOMICS.md`. A new workspace
-has a **one-time 1,000-event setup allowance** to verify the tracker before
-checkout. It never resets and is not a free plan; ingestion pauses until a paid
+Plan data lives in `src/lib/plans.ts`. The traffic slider raises events and
+price together, from 10k to 2M Starter events (Pro scales to 10M). Event,
+replay, member, and retention allowances are defined there and in
+`docs/PRICING_ECONOMICS.md`. A new workspace gets **7 days and 2,000 events**
+without a card; after the trial, billable ingestion pauses until a paid
 subscription is active.
 
 ## Local development
@@ -133,7 +135,7 @@ docs/             phase tracker, design system, tenancy, pricing, operations
 
 ## Licence and attribution
 
-RevenueLens is distributed under the MIT License. The original Talivia
+Tartly is distributed under the MIT License. The original Talivia
 copyright notice is retained in `LICENSE`; dependency and asset notices are in
-`THIRD_PARTY_NOTICES.md`. RevenueLens is not affiliated with or endorsed by
+`THIRD_PARTY_NOTICES.md`. Tartly is not affiliated with or endorsed by
 Talivia.

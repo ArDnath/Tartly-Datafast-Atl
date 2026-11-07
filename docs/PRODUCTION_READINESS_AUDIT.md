@@ -29,7 +29,7 @@ deferred to a measured scale trigger), **BLOCKED** (external credential).
 
 ## Deliberate staging
 
-RevenueLens is a micro-SaaS. The high-scale skill is applied in measured stages
+Tartly is a micro-SaaS. The high-scale skill is applied in measured stages
 (see `docs/ENGINEERING_STANDARDS.md` §4). The following are not missing by
 accident:
 

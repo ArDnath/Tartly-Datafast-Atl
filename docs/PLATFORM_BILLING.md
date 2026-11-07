@@ -1,11 +1,11 @@
 # Platform Billing — Dodo Payments (Phase 5)
 
-RevenueLens has **two separate payment contexts**. They must never share code,
+Tartly has **two separate payment contexts**. They must never share code,
 credentials, webhook routes, or models.
 
 | Context | Who pays | Where |
 | --- | --- | --- |
-| **A. Platform billing** | Workspace owners pay RevenueLens | `src/features/billing`, `/api/billing/*` |
+| **A. Platform billing** | Workspace owners pay Tartly | `src/features/billing`, `/api/billing/*` |
 | **B. Analytics integrations** | The customer's own buyers pay the customer | `src/features/payments`, `/api/payments/<provider>/[websiteId]/webhook` |
 
 The existing Dodo analytics integration is **context B**. It reads per-website
@@ -150,7 +150,8 @@ Steps when keys are available:
 
 ## Deliberate non-goals
 
-- No trial by default. The two plans are paid from day one.
+- Checkout asks Dodo for a 7-day trial (`subscription_data.trial_period_days`).
+  The trial still becomes active only after the provider confirms it.
 - No invoice is invented before the provider issues one.
 - No plan activation from a success redirect or client-side state.
 - No reuse of the customer's analytics payment connections for charging them.

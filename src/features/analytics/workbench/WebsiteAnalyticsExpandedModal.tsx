@@ -172,7 +172,7 @@ function GoalsAnalyticsPanel({ websiteId, onClose }: { websiteId: string; onClos
     <Column height="100%" minHeight="0" overflow="hidden">
       <AnalyticsHeader
         title="Goals"
-        description={`${goals.length.toLocaleString()} goals configured`}
+        description={`${goals.length.toLocaleString('en-US')} goals configured`}
         onClose={onClose}
       />
       <LoadingPanel

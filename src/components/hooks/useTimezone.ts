@@ -1,15 +1,16 @@
 import { formatInTimeZone, utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
 import { TIMEZONE_CONFIG, TIMEZONE_LEGACY } from '@/lib/constants';
-import { getTimezone, parseUtcTimestamp } from '@/lib/date';
+import { parseUtcTimestamp } from '@/lib/date';
 import { setItem } from '@/lib/storage';
 import { setTimezone, useApp } from '@/store/app';
 import { useLocale } from './useLocale';
 
 const selector = (state: { timezone: string }) => state.timezone;
+const localTimezoneSelector = (state: { localTimezone: string }) => state.localTimezone;
 
 export function useTimezone() {
   const timezone = useApp(selector);
-  const localTimeZone = getTimezone();
+  const localTimeZone = useApp(localTimezoneSelector);
   const { dateLocale } = useLocale();
 
   const saveTimezone = (value: string) => {

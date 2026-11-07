@@ -40,12 +40,12 @@ export function Pager({ page, pageSize, count, onPageChange, className }: PagerP
       gap="3"
       flexGrow={1}
     >
-      <Text>{t(labels.numberOfRecords, { x: count.toLocaleString() })}</Text>
+      <Text>{t(labels.numberOfRecords, { x: count.toLocaleString('en-US') })}</Text>
       <Row alignItems="center" justifyContent="flex-end" gap="3">
         <Text>
           {t(labels.pageOf, {
-            current: page.toLocaleString(),
-            total: maxPage.toLocaleString(),
+            current: page.toLocaleString('en-US'),
+            total: maxPage.toLocaleString('en-US'),
           })}
         </Text>
         <Row gap="1">

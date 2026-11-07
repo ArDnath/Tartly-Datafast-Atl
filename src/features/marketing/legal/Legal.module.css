@@ -1,15 +1,14 @@
 .page {
-  --rl-canvas: #1b1b1b;
-  --rl-card: #222222;
-  --rl-fg: #f4f4f5;
-  --rl-muted-fg: #a1a1aa;
-  --rl-border: rgba(255, 255, 255, 0.08);
-  --rl-blush: #f2b4cb;
+  --rl-canvas: var(--marketing-canvas);
+  --rl-card: var(--marketing-surface);
+  --rl-fg: var(--marketing-ink);
+  --rl-muted-fg: var(--marketing-muted);
+  --rl-border: var(--marketing-line);
+  --rl-blush: var(--marketing-blush);
+  --text-primary: var(--marketing-ink);
 
   min-height: 100vh;
-  background:
-    radial-gradient(820px 420px at 50% -12%, rgba(242, 180, 203, 0.06), transparent 70%),
-    var(--rl-canvas);
+  background: var(--rl-canvas);
   color: var(--rl-fg);
   font-family: var(--font-family), sans-serif;
 }
@@ -77,8 +76,8 @@
 }
 
 .notice {
-  border: 1px solid rgba(242, 180, 203, 0.28);
-  background: rgba(242, 180, 203, 0.07);
+  border: 1px solid rgba(242, 180, 203, 0.42);
+  background: rgba(242, 180, 203, 0.16);
   color: var(--rl-blush);
   border-radius: 12px;
   padding: 14px 16px;
@@ -104,7 +103,7 @@
 
 .section p {
   margin: 0 0 12px;
-  color: #d4d4d8;
+  color: var(--rl-fg);
   font-size: 14px;
   line-height: 1.75;
 }

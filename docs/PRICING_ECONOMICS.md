@@ -1,15 +1,19 @@
 # Pricing Economics
 
-- **Date:** 2026-11-04
-- **Owner-fixed prices:** Starter **$7.99/mo**, Pro **$14.99/mo**.
-- **No free tier. No third plan.**
-- **Website limits fixed:** Starter **1**, Pro **up to 20**.
-- Everything else (events, retention, replay, members) is proposed here and
-  must be approved before billing goes live.
+- **Date:** 2026-11-07 (supersedes the 2026-11-04 two-plan sheet)
+- **Owner-fixed entry prices:** Starter **$7.99/mo**, Pro **$14.99/mo** at
+  100k / 1M events.
+- **Two paid plans.** No third plan.
+- **Free trial:** **7 days**, **2,000 events**, **1 website**, no card.
+- **Website limits fixed:** Starter **1**, Pro **up to 50**.
+- **Traffic slider:** eight tiers from 10k to 2M Starter events. Pro scales
+  from 100k to 10M events. Prices rise with the tier and stay below DataFast's
+  published entry prices at the 10k comparison point.
+- Retention, replay, and members below are enforced in `src/lib/plans.ts`.
 
-> All prices below were fetched from the vendors' own pages on 2026-11-04.
-> Where a page would not render a value, it is marked **UNVERIFIED**. This is a
-> model, not a quote.
+> All competitor prices below were fetched from the vendors' own pages on
+> 2026-11-04 and re-checked on 2026-11-07. Where a page would not render a
+> value, it is marked **UNVERIFIED**. This is a model, not a quote.
 
 ---
 
@@ -25,9 +29,9 @@
 | **Simple Analytics** | **$20/mo** | 100k monthly pageviews, 1 user; +$20/mo per extra user; free hobby plan (1 user, 5 sites, 1 month history, badge required); 2 months free yearly. | <https://www.simpleanalytics.com/pricing> |
 
 **Takeaway:** the market entry point is $9–$20/mo for 10k–100k monthly units.
-Our $7.99 Starter is the cheapest paid entry among these, and $14.99 Pro sits
-between Plausible Growth and Fathom's 100k tier while including revenue
-attribution and 20 websites.
+Our $7.99 Starter includes 100k events and is the cheapest paid entry among
+these. Our $14.99 Pro includes 1M events and up to 50 websites, so it sits
+between Fathom's 100k and 1M tiers while including revenue attribution.
 
 **Talivia-specific caution:** Talivia Cloud's founding offer is temporarily
 $9.99 with *unlimited* sites/events for 12 months. We cannot match "unlimited"
@@ -43,10 +47,11 @@ limits are monthly and that overage pauses rather than surprises.
 | --- | --- | --- |
 | Monthly | **$7.99** | **$14.99** |
 | Annual (2 months free) | **$79.90** | **$149.90** |
-| Websites | **1** | **up to 20** |
-| Members | 1 | 5 |
-| Billable events / month | **50,000** | **500,000** |
-| Analytics retention | **90 days** | **180 days** |
+| Free trial | **7 days, 2,000 events, 1 site** | **7 days, 2,000 events, 1 site** |
+| Websites | **1** | **up to 50** |
+| Members | 1 | 10 |
+| Billable events / month | **100,000** | **1,000,000** |
+| Analytics retention | **90 days** | **365 days** |
 | Session replay | **not included** | **2,000 sessions/mo**, 30-day replay retention |
 | Payment connections | 1 | unlimited |
 | Revenue attribution | first + last touch | first + last touch, funnels, journeys |
@@ -55,18 +60,21 @@ limits are monthly and that overage pauses rather than surprises.
 
 Why these limits:
 
-- **50k events at $7.99** is 5× DataFast's 10k at $9 and 5× Plausible's 10k
+- **100k events at $7.99** is 10× DataFast's 10k at $9 and 10× Plausible's 10k
   pageviews at $9. It is still cheap to store for 90 days.
-- **500k events at $14.99** is 5× Fathom's 100k at $15 and half of Umami Pro's
-  1M at $20. Pro's 180-day retention keeps storage bounded.
+- **1M events at $14.99** is 10× Fathom's 100k at $15 and matches Umami Pro's
+  1M at $20 for less money. Pro's 365-day retention is bounded by the
+  retention job.
 - **Replay only on Pro** because rrweb payloads are 10–100× an event row. It
   becomes the main upgrade reason and protects the Starter margin.
-- **20 websites on Pro** matches the owner's requirement and Umami Pro's 20.
+- **50 websites on Pro** raises the previous 20-site cap above DataFast
+  Growth's 30 sites, while the entry price stays below Growth's $19/mo.
 - Annual at two months free is offered only because the modelled margin stays
   above 85% at every volume tier (below).
 
-These limits are a **proposal**, not yet enforced in code. Phase 6 implements
-metering and the 80%/100% policy.
+The traffic slider adds events and price together. The default tier is the
+owner-fixed $7.99 / $14.99 point; higher tiers are priced below the equivalent
+DataFast tier where a public comparison exists.
 
 ---
 
@@ -88,10 +96,10 @@ metering and the 80%/100% policy.
 
 Storage per customer:
 
-- Starter: 50k events × 3 months × 1 KB ≈ **0.15 GB**.
-- Pro: 500k events × 6 months × 1 KB ≈ **3.0 GB**, plus 2,000 replays ×
-  0.5 MB × 1 month ≈ **1.0 GB** → **~4.0 GB**.
-- Replay is kept 30 days; analytics 90/180 days. Old rows are deleted by the
+- Starter: 100k events × 3 months × 1 KB ≈ **0.3 GB**.
+- Pro: 1M events × 12 months × 1 KB ≈ **12.0 GB**, plus 2,000 replays ×
+  0.5 MB × 1 month ≈ **1.0 GB** → **~13.0 GB**.
+- Replay is kept 30 days; analytics 90/365 days. Old rows are deleted by the
   retention job (Phase 7). Without deletion the model fails.
 
 ---
@@ -101,38 +109,38 @@ Storage per customer:
 Fees = 4% of MRR + $0.40 per paying customer. Gross profit = net revenue −
 infrastructure − payment fees (support/founder time excluded).
 
-Storage at 100 customers: 70 × 0.15 + 30 × 4.0 = **130.5 GB** →
-**$45.68/mo** at $0.35/GB.
-At 500: 652.5 GB → **$228.38/mo**.
-At 1,000: 1,305 GB → **$456.75/mo**.
-At 5,000: 6,525 GB → **$2,283.75/mo**.
+Storage at 100 customers: 70 × 0.3 + 30 × 13.0 = **411 GB** →
+**$143.85/mo** at $0.35/GB.
+At 500: 2,055 GB → **$719.25/mo**.
+At 1,000: 4,110 GB → **$1,438.50/mo**.
+At 5,000: 20,550 GB → **$7,192.50/mo**.
 
 | Customers | MRR | Dodo fees | Net revenue | Neon compute | Neon storage | App + email + domain | Total cost | Gross profit | Margin |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 100 | $1,009 | $80.36 | $928.64 | $30 | $45.68 | $23 | $98.68 | $829.96 | **89.4%** |
-| 500 | $5,045 | $401.80 | $4,643.20 | $80 | $228.38 | $43 | $351.38 | $4,291.82 | **92.4%** |
-| 1,000 | $10,090 | $803.60 | $9,286.40 | $150 | $456.75 | $43 | $649.75 | $8,636.65 | **93.0%** |
-| 5,000 | $50,450 | $4,018.00 | $46,432.00 | $600 | $2,283.75 | $85 | $2,968.75 | $43,463.25 | **93.6%** |
+| 100 | $1,009 | $80.36 | $928.64 | $30 | $143.85 | $23 | $196.85 | $731.79 | **78.8%** |
+| 500 | $5,045 | $401.80 | $4,643.20 | $80 | $719.25 | $43 | $842.25 | $3,800.95 | **81.9%** |
+| 1,000 | $10,090 | $803.60 | $9,286.40 | $150 | $1,438.50 | $43 | $1,631.50 | $7,654.90 | **82.4%** |
+| 5,000 | $50,450 | $4,018.00 | $46,432.00 | $600 | $7,192.50 | $85 | $7,877.50 | $38,554.50 | **83.0%** |
 
 Notes:
 
 - The 100-customer margin is lowest because fixed app/email/domain costs are
-  spread over fewer accounts. It still clears 89%.
-- At 5,000 customers, 6.5 TB on Neon is not the right long-term store. Move
+  spread over fewer accounts. It still clears 78%.
+- At 5,000 customers, 20.5 TB on Neon is not the right long-term store. Move
   events to ClickHouse/object storage before that; ClickHouse Cloud lists
   **$0.2181/unit-hour** compute and **$25.30/TB-month** storage
-  (<https://clickhouse.com/pricing>, 2026-11-04). At 6.5 TB, ClickHouse storage
-  alone is ~$164/mo, materially cheaper than Neon at this volume.
+  (<https://clickhouse.com/pricing>, 2026-11-04). At 20.5 TB, ClickHouse storage
+  alone is ~$519/mo, materially cheaper than Neon at this volume.
 - Payment fees dominate variable cost. International cards (+3%) reduce margin
   by about 3 points; model them as a separate line once live.
 - Annual plans improve cash flow but do not change the monthly margin (Dodo
   charges per transaction; the effective fee on a single annual charge is
   lower per month).
 
-**Conclusion:** the owner-fixed prices work **if** Starter has no replay and
-Pro retention stays at 180 days. No price change is required. If replay is
-added to Starter, its margin falls below the 85% target at 100 customers
-because replay storage is the dominant variable.
+**Conclusion:** the owner-fixed entry prices still work with the larger event
+allowances **if** Starter has no replay and Pro retention stays at 365 days.
+Modelled margin is 78–83% across 100–5,000 customers. If replay is added to
+Starter, margin falls further because replay storage is the dominant variable.
 
 ---
 
@@ -171,7 +179,7 @@ because replay storage is the dominant variable.
 
 ## 7. Sources
 
-All fetched **2026-11-04**:
+All fetched **2026-11-04**; DataFast entry prices re-checked **2026-11-07**:
 
 1. DataFast — <https://datafa.st/> (pricing section, official markup).
 2. Talivia Cloud — <https://talivia.com/> (`#pricing`, JSON-LD).

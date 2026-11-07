@@ -9,7 +9,7 @@ export function GET() {
   return Response.json(
     {
       ok: true,
-      service: 'revenuelens',
+      service: 'tartly',
       version: process.env.BUILD_VERSION || 'local',
     },
     { headers: { 'Cache-Control': 'no-store' } },

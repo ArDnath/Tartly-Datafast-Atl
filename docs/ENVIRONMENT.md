@@ -112,8 +112,8 @@ Use the `development` branch connection strings (see
 `docs/NEON_BRANCHING.md`):
 
 ```dotenv
-DATABASE_URL=postgresql://...-pooler.../revenuelens?sslmode=require
-DATABASE_URL_UNPOOLED=postgresql://...direct.../revenuelens?sslmode=require
+DATABASE_URL=postgresql://...-pooler.../tartly?sslmode=require
+DATABASE_URL_UNPOOLED=postgresql://...direct.../tartly?sslmode=require
 ```
 
 Then:

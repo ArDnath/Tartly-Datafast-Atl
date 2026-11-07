@@ -1,11 +1,11 @@
-# RevenueLens — Phase Tracker
+# Tartly — Phase Tracker
 
-- **Project:** RevenueLens (working brand; final brand TBD)
+- **Project:** Tartly (final brand; production domain tartly.in, confirmed 2026-11-06)
 - **Primary repository:** <https://github.com/ArDnath/Tartly-Datafast-Atl>
   (public, `origin`; default branch `main`)
 - **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
   forked locally at `/home/ariyaman/Dev/fight/efforts/revenuelens`
-- **Last updated:** 2026-11-06
+- **Last updated:** 2026-11-07
 - **Current phase:** Phases 10, 11, and 12 are implemented. A real local
   ingestion run (10,000 events, 50 concurrent clients, 157 req/s, p95 412 ms,
   0 errors) is recorded in `docs/LOAD_TEST.md`, and the run exposed and fixed a
@@ -28,14 +28,17 @@
 - Phases complete: **8 full, 5 with caveats** (external credentials or measured
   proof still required)
 - Overall percent (average of phases 0–12): **94%**
-- Build state at last check: **green** — `tsc --noEmit`, `biome lint`, and the
-  full suite pass; the production build is exercised by `pnpm gate` and CI.
-  Latest local full run: **790 passed / 0 failed / 1 gated skip**, plus the
-  explicit 48-assertion PostgreSQL analytics smoke and the recorded load probe.
-- GitHub CI: **green on `main`** for the last merged phase. CI starts
-  PostgreSQL 17, runs `pnpm build-db`, lint, typecheck, the full suite,
-  `prisma migrate deploy`, the Phase 7 analytics smoke, a critical dependency
-  audit, and `pnpm build` on every pull request and on `main`.
+- Build state at last check: **green** — `pnpm gate` (Biome format, Biome
+  lint, `tsc --noEmit`, coverage-enforced tests, production build) passes.
+  Latest local full run: **174 test files passed / 1 gated skip**, coverage
+  **67.6% statements / 55.6% branches / 63.4% functions / 68.0% lines**, plus
+  the explicit 48-assertion PostgreSQL analytics smoke and the recorded load
+  probe.
+- GitHub CI: the next branch push runs the new three-job pipeline. It starts
+  PostgreSQL 17, runs format, lint, typecheck, coverage tests, a clean
+  production dependency audit, `prisma migrate deploy`, the Phase 7 analytics
+  smoke, and `pnpm build`, then runs gitleaks, CodeQL, dependency review,
+  Trivy filesystem and container scans.
 - Delivery history: six phase branches delivered through pull requests #1–#6;
   the next slices follow the same feature-branch → PR → merge loop.
 - Runtime smoke: the public docs routes return 200, and `/app/settings`,
@@ -72,18 +75,104 @@ code:
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
 
+## 2026-11-07 — Pricing, trial, and landing update
+
+- `src/lib/plans.ts` is now the single source for the 7-day / 2,000-event
+  trial, the eight traffic tiers, and the two paid plans.
+- Entitlements, usage metering, and ingestion enforce the trial window:
+  2,000 events and 1 website for 7 days, then billable ingestion pauses.
+- Dodo checkout requests `subscription_data.trial_period_days` =
+  `plan.trialDays` (7). Provider confirmation still controls activation.
+- The landing pricing section and `/pricing` share the traffic slider and the
+  free-trial card. The slider changes events and price in both paid cards.
+- The eight-report tour is a two-row marquee again: four capability cards per row,
+  scrolling in opposite directions, pausing on hover and falling back to a static
+  grid under `prefers-reduced-motion`. An interactive list variant was tried and
+  removed because the original carousel effect read better on the landing page.
+- The final CTA is a rectangular blush button with no sparkle icon.
+- Hydration hardening: the app store now starts from deterministic server
+  defaults (`en-US`, `UTC`, the default date range) and applies stored
+  locale/timezone/date-range preferences in a client effect. Tab preferences
+  and the date-range setting use `useStoredState`, so localStorage is never
+  read during the first render. Date/number output uses an explicit `en-US`
+  locale. The landing, pricing, docs, login, and signup pages were reloaded in
+  a real browser with stored preferences and produced no hydration warnings.
+- Evidence: `src/lib/plans.test.ts`, `src/lib/entitlements.test.ts`,
+  `src/lib/usage.test.ts`, `src/features/analytics/server/send/handler.test.ts`,
+  and `src/features/marketing/landing/LandingPage.test.tsx`.
+- **UNVERIFIED:** Dodo product IDs for each traffic tier do not exist yet.
+  Checkout still maps Starter/Pro to the configured monthly/annual products;
+  create one product per tier before selling tier-specific prices live.
+
+## 2026-11-07 — CI/CD, coverage enforcement, and supply-chain hardening
+
+- CI is now split into three gated jobs in `.github/workflows/ci.yml`:
+  `verify` (format, lint, typecheck, coverage-enforced tests, production audit,
+  migrations, PostgreSQL analytics smoke, production build), `security`
+  (gitleaks full-history scan, dependency review, CodeQL
+  extended/quality queries, Trivy filesystem/secret/misconfiguration scan), and
+  `container` (production image build plus CRITICAL image scan). All
+  third-party actions are pinned to full commit SHAs.
+- `pnpm gate` now runs Vitest with V8 coverage. Floors are statements 65%,
+  branches 50%, functions 60%, lines 65%, just below the measured baseline
+  (67.6 / 55.6 / 63.4 / 68.0). Reports are uploaded from CI.
+- Production dependency audit is clean: `pnpm audit --prod` reports
+  "No known vulnerabilities found". `pnpm.overrides` pins patched transitive
+  versions (`deepmerge-ts`, `@hono/node-server`, `baseline-browser-mapping`,
+  `undici`, `vite`, `ua-parser-js`, `esbuild`, DiceBear, `fflate`, `valibot`).
+  `@svgr/cli` moved to devDependencies because it is build-only.
+- Remaining moderate/low advisories are in dev tooling (Vitest/Vite test
+  runtime, PostCSS/rollup plugins). They do not enter the production image and
+  do not fail the production audit; they are tracked for the next tool upgrade.
+- `.github/workflows/deploy.yml` deploys the exact SHA that passed CI, after a
+  `production` environment approval. `deploy/production/deploy.sh` builds an
+  immutable image tag, applies migrations with `DATABASE_URL_UNPOOLED`,
+  restarts only the app container, waits for `/api/health/ready`, and
+  automatically redeploys the previous SHA when readiness fails.
+- `docs/CI_CD.md` records the required environment, secrets, variables,
+  branch-protection checks, manual deploy, and rollback commands.
+- Evidence: `pnpm gate` green after the dependency changes; `pnpm audit --prod`
+  clean; `bash -n deploy/production/deploy.sh` clean. The production container
+  path is exercised by the `container` CI job.
+- The first container scan found a CRITICAL `tar` advisory from the global
+  pnpm installed in the runtime stage. The runtime image now starts through
+  `scripts/start-docker.mjs` with no global pnpm, and the migration service
+  calls `./node_modules/.bin/prisma` directly. The runtime stage now installs
+  production dependencies only and removes npm/npx, so build tooling and its
+  advisories never ship. After the fix, a local Trivy 0.70 scan reports 0
+  CRITICAL/HIGH findings, and the rebuilt container returns 200 from
+  `/api/health/live` and `/api/health/ready` (`database: up`).
+- **UNVERIFIED — production deploy not executed in this session.** Neither
+  known VPS address accepted `~/.ssh/tartly_ci` (`16.171.53.188` timed out;
+  `13.61.123.152` returned `Permission denied (publickey)`), and the repository
+  has no `production` environment, deploy secrets, `APP_URL`, or
+  `DEPLOY_ENABLED` variable. Exact human action:
+  1. authorize the `tartly_ci` public key for the deploy user on the VPS;
+  2. create the `production` environment with required reviewers;
+  3. set `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`,
+     `DEPLOY_KNOWN_HOSTS` as environment secrets;
+  4. set `APP_URL=https://tartly.in` and `DEPLOY_ENABLED=true`;
+  5. run `gh workflow run deploy.yml -f sha=<merged-main-sha>` and confirm
+     `/api/health/ready` returns 200.
+
 ## Commercial contract (fixed by owner)
 
-Exactly two plans and **no free tier**:
+Two plans and a **7-day free trial** (owner update, 2026-11-07):
 
-| Plan | Monthly | Annual (2 months free) | Websites | Members |
-| --- | --- | --- | --- | --- |
-| Starter | **$7.99** | **$79.90** | **1** | 1 |
-| Pro | **$14.99** | **$149.90** | **up to 20** | 5 (proposed) |
+| Plan | Monthly | Annual (2 months free) | Events / month | Websites | Members |
+| --- | --- | --- | --- | --- | --- |
+| Free trial | **$0 for 7 days** | n/a | **2,000** | **1** | 1 |
+| Starter | **$7.99** | **$79.90** | **100,000** | **1** | 1 |
+| Pro | **$14.99** | **$149.90** | **1,000,000** | **up to 50** | 10 |
 
-Event allowances, retention, replay allowance, and feature flags must be
-proposed from the economics model in Phase 6 and approved by the owner.
-No third plan, no free tier, no hidden limits.
+The pricing slider moves through eight traffic tiers from 10k to 2M Starter
+events (Pro 100k to 10M) and raises the price with the allowance. The default
+tier is the owner-fixed $7.99 / $14.99 point. No third paid plan and no hidden
+limits. Event, retention, replay, and feature limits live in
+`src/lib/plans.ts`; the trial is time-limited and never renews.
+
+Historical phase notes below that mention the old 50k/500k limits or "no free
+tier" are superseded by this section.
 
 ## Phase status
 
@@ -1222,7 +1311,7 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 
 ### Needs from the human
 
-- Final brand name/domain/logo (RevenueLens is a placeholder).
+- Final brand name/domain: confirmed 2026-11-06 as **Tartly** / `tartly.in` in `src/lib/brand.ts`.
 
 ## Phase 10 — Compliance, abuse protection, email, operations
 
@@ -1434,6 +1523,38 @@ feature is waiting on code.
    metric with a measured one.
 
 ## Changelog
+
+- 2026-11-06 — **Landing page alternation (Talivia + DataFast references):**
+  rebuilt `/` as alternating dark Talivia-style and light DataFast-style
+  bands without copying claims, prices, or social proof. The dark opening
+  uses a centred hero, a website-capture form, and a working interactive
+  demo (7/30/90-day ranges, Overview/Traffic/Journeys tabs, channel,
+  referrer, campaign, and keyword dimensions, selectable source detail, and
+  an expandable "View full demo" panel). Light bands carry the three-step
+  install story, the four-feature grid, the agent/CLI panel, the tool
+  compatibility tiles, and the FAQ; dark bands carry the shared
+  traffic/revenue timeline, first/last-touch referrer comparison, and the
+  session-activity timeline. Every figure is labelled illustrative or sample
+  data, plan limits still come from `src/lib/plans.ts`, and the blush signal
+  accent plus `BRAND` values remain centralised. Proof: `LandingPage.test.tsx`
+  (6 interaction tests), full suite **797 passed / 1 skipped**, `biome
+  format`/`lint`, `tsc --noEmit`, and `pnpm build` all green; desktop
+  (1440px) and mobile (390px) headless screenshots reviewed.
+- 2026-11-06 — **Marketing landing restyle (DataFast reference):** rebuilt
+  `src/features/marketing/LandingPage.tsx` and `Landing.module.css` on the
+  visual system of <https://datafa.st> (fetched 2026-11-06): DM Sans, a
+  `#1f1f1f` canvas, `#262626` cards with `1.3rem` radii and 1px white/8% rings,
+  a single `#e16540` orange accent, a centred hero with a website-capture form,
+  a browser-framed revenue dashboard preview, integration marquee, three-step
+  how-it-works, 2×2 feature grid, pricing toggle, FAQ accordion, gradient CTA,
+  and multi-column footer. Content is Tartly's own and stays honest: the
+  preview is labelled **Sample data**, the review/testimonial wall and customer
+  counts are omitted rather than fabricated, and plan limits still come from
+  `src/lib/plans.ts`. The style layer is scoped to `/` only; the app, pricing,
+  docs, and auth surfaces keep the existing Tartly token system. Proof: local
+  dev render at `http://localhost:3000` (desktop + 390px mobile screenshots),
+  anchor navigation, monthly/yearly toggle, FAQ open/close, `biome check`,
+  `tsc --noEmit`, and the brand/plan/contrast tests (19/19) pass.
 
 - 2026-11-06 — **Dependency hygiene (Phase 11 follow-up):** upstream released
   the combined minimatch/brace-expansion fixes as same-major patches, so the

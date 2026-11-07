@@ -70,7 +70,7 @@ describe('analytics retention job', () => {
     expect(transaction).toHaveBeenCalledTimes(2);
 
     const starterCutoff = new Date(NOW.getTime() - 90 * 24 * 60 * 60 * 1000);
-    const proCutoff = new Date(NOW.getTime() - 180 * 24 * 60 * 60 * 1000);
+    const proCutoff = new Date(NOW.getTime() - 365 * 24 * 60 * 60 * 1000);
     const proReplayCutoff = new Date(NOW.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     expect(client.websiteEvent.deleteMany).toHaveBeenCalledWith({

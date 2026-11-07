@@ -1,0 +1,228 @@
+/* Comparison pages share the warm marketing canvas with the rest of the public
+   surfaces. These styles used to live in the landing-page module; the landing
+   page now uses its own Tailwind layer, so the comparison pages own theirs. */
+.page {
+  --canvas: var(--marketing-canvas);
+  --card: var(--marketing-surface);
+  --text: var(--marketing-ink);
+  --muted: var(--marketing-muted);
+  --line: var(--marketing-line);
+  --accent: var(--marketing-blush);
+  --blush: var(--marketing-blush-soft);
+  --text-primary: var(--marketing-ink);
+
+  min-height: 100vh;
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-family), sans-serif;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page *,
+.page *::before,
+.page *::after {
+  box-sizing: border-box;
+}
+
+.page a {
+  color: inherit;
+}
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 251, 235, 0.88);
+  backdrop-filter: blur(12px);
+}
+
+.brandLink {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 14px;
+}
+
+.navLinks a {
+  text-decoration: none;
+  transition: opacity 160ms ease;
+}
+
+.navLinks a:hover {
+  opacity: 0.65;
+}
+
+.navCta {
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--blush);
+  color: var(--marketing-blush-ink) !important;
+  font-weight: 600;
+}
+
+.main {
+  width: min(1080px, 100%);
+  margin: 0 auto;
+  padding: 64px 24px 96px;
+}
+
+.section {
+  padding: 40px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.section:last-child {
+  border-bottom: 0;
+}
+
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 14px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  max-width: 760px;
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  line-height: 1.06;
+}
+
+.subtitle {
+  max-width: 680px;
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.sectionTitle {
+  margin: 0 0 16px;
+  font-size: 24px;
+  font-weight: 720;
+  letter-spacing: -0.02em;
+}
+
+.sectionSubtitle {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.proofGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.proof {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.proof h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.proof p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.proof p + p {
+  margin-top: 8px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.primary {
+  background: var(--blush);
+  color: var(--marketing-blush-ink);
+}
+
+.secondary {
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: min(1080px, 100%);
+  margin: 0 auto;
+  padding: 24px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+@media (max-width: 720px) {
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .navLinks {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

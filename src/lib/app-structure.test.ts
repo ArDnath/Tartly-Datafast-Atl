@@ -63,7 +63,7 @@ const NEXT_CONFIG =
 const SHARED_ROOTS = ['components', 'lib', 'permissions', 'queries', 'store'];
 
 /** Shared design-system / infrastructure directories under src/components. */
-const SHARED_COMPONENT_DIRS = ['brand', 'charts', 'common', 'hooks', 'input', 'svg'];
+const SHARED_COMPONENT_DIRS = ['backgrounds', 'brand', 'charts', 'common', 'hooks', 'input', 'svg'];
 
 /**
  * `src/lib` is the cross-cutting infrastructure layer. Domain helpers belong
@@ -298,7 +298,9 @@ describe('application source layout', () => {
   });
 
   test('src/store contains shared client state only', () => {
-    const modules = readdirSync(join(SRC, 'store'));
+    const modules = readdirSync(join(SRC, 'store')).filter(
+      entry => !entry.includes('.test.') && statSync(join(SRC, 'store', entry)).isFile(),
+    );
 
     const domainStores = modules.filter(entry => !SHARED_STORE_MODULES.has(entry)).sort();
 

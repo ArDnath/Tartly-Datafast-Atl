@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * RevenueLens CLI — verify an installation without the browser.
+ * Tartly CLI — verify an installation without the browser.
  *
  * Usage:
- *   node scripts/revenuelens-cli.mjs verify   [--api-key KEY] [--url URL] [--json]
- *   node scripts/revenuelens-cli.mjs events   [--api-key KEY] [--limit 20] [--json]
- *   node scripts/revenuelens-cli.mjs diagnose [--api-key KEY] [--json]
+ *   node scripts/tartly-cli.mjs verify   [--api-key KEY] [--url URL] [--json]
+ *   node scripts/tartly-cli.mjs events   [--api-key KEY] [--limit 20] [--json]
+ *   node scripts/tartly-cli.mjs diagnose [--api-key KEY] [--json]
  *
  * The key must be a website API key created in Settings → Websites → API keys.
  * It is sent only to the configured origin; the CLI never prints it.
@@ -40,24 +40,24 @@ function parseArgs(argv) {
 }
 
 function usage() {
-  return `RevenueLens CLI
+  return `Tartly CLI
 
-  revenuelens verify   [--api-key KEY] [--url URL] [--json]
-  revenuelens events   [--api-key KEY] [--limit 20] [--json]
-  revenuelens diagnose [--api-key KEY] [--url URL] [--json]
+  tartly verify   [--api-key KEY] [--url URL] [--json]
+  tartly events   [--api-key KEY] [--limit 20] [--json]
+  tartly diagnose [--api-key KEY] [--url URL] [--json]
 
 Environment:
-  REVENUELENS_API_KEY   website API key (required unless --api-key is passed)
-  REVENUELENS_URL       app origin (default: ${DEFAULT_URL})
+  TARTLY_API_KEY   website API key (required unless --api-key is passed)
+  TARTLY_URL       app origin (default: ${DEFAULT_URL})
 `;
 }
 
 function resolveConfig(options) {
-  const apiKey = options.apiKey || process.env.REVENUELENS_API_KEY;
-  const url = (options.url || process.env.REVENUELENS_URL || DEFAULT_URL).replace(/\/$/, '');
+  const apiKey = options.apiKey || process.env.TARTLY_API_KEY;
+  const url = (options.url || process.env.TARTLY_URL || DEFAULT_URL).replace(/\/$/, '');
 
   if (!apiKey) {
-    throw new Error('Missing API key. Set REVENUELENS_API_KEY or pass --api-key.');
+    throw new Error('Missing API key. Set TARTLY_API_KEY or pass --api-key.');
   }
 
   return { apiKey, url };
@@ -140,7 +140,7 @@ async function main() {
       options.json ? `${JSON.stringify(payload, null, 2)}\n` : `${formatDiagnose(payload)}\n`,
     );
   } else {
-    throw new Error(`Unknown command: ${options.command}. Run "revenuelens help".`);
+    throw new Error(`Unknown command: ${options.command}. Run "tartly help".`);
   }
 
   if (options.command === 'diagnose' && options.json === false && !payload.diagnosis.ok) {
