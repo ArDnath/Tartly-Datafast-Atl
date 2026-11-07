@@ -115,13 +115,17 @@ human action. No launch claim is allowed without a stored result.
 - [x] Multi-stage Docker image, non-root user, health check, compose stack.
 - [x] Environment reference and Neon branching guide.
 - [x] Runbook, backup/recovery, secrets rotation.
-- [ ] Hosting account, domain/DNS, TLS, custom tracker domain.
-      **UNVERIFIED**: owner action.
-- [ ] Production environment variables and first deploy.
-      **UNVERIFIED**: needs the VPS host key to be authorized for
-      `~/.ssh/tartly_ci`, then the `production` environment secrets
-      (`DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`),
-      `APP_URL`, and `DEPLOY_ENABLED=true` (`docs/CI_CD.md`).
+- [x] Hosting account, domain/DNS, TLS, custom tracker domain.
+      Evidence: `https://tartly.in` serves HTTP/2 with a valid certificate;
+      `/`, `/pricing`, and `/docs` return 200.
+- [x] Production environment variables and first deploy.
+      Evidence: VPS `201.18.197.194`, non-root `deploy` user, `production`
+      environment secrets/variables, and deploy run 42397381387 for
+      `04d7023`. `/api/health/live` and `/api/health/ready` return 200 with the
+      deployed version; `/api/health/ready` reports `database: up`.
+- [x] Production environment requires a reviewer; `main` requires the Verify,
+      Security, and Container checks, resolved conversations, and rejects
+      force-pushes and branch deletion (`docs/CI_CD.md`).
 
 ## Go-to-market
 
