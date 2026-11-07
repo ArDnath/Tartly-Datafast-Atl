@@ -6,25 +6,42 @@ secrets into a ticket or chat.
 
 ## 1. Deploy
 
-1. Merge a green PR to `main`.
-2. Build an immutable image tagged with the commit SHA.
-3. Run migrations as a separate release step:
-   ```bash
-   DATABASE_URL_UNPOOLED=<direct-url> pnpm exec prisma migrate deploy
-   ```
-4. Start the new image; wait for `/api/health/ready` to return 200.
-5. Check `/api/health/live`, sign in, open one dashboard, and confirm one event
-   arrives from a test website.
-6. Keep the previous image SHA for rollback.
+Automatic path: merge a green PR to `main`. The `CI` workflow must pass, then
+`Deploy production` runs `deploy/production/deploy.sh` for the exact merged SHA
+after the `production` environment approval. It builds an immutable image tagged
+with the commit SHA, runs `prisma migrate deploy`, restarts only the app
+container, and waits for `/api/health/ready`. See `docs/CI_CD.md` for the
+one-time host and secret setup.
+
+Manual path (same script, same guarantees):
+
+```bash
+gh workflow run deploy.yml -f sha=<40-char-main-sha>
+```
+
+After either path:
+
+1. Confirm `/api/health/live` and `/api/health/ready` return 200.
+2. Sign in, open one dashboard, and confirm one event arrives from a test
+   website.
+3. Keep the previous commit SHA for rollback.
+
+If all five deploy values are missing, the job skips when `DEPLOY_ENABLED` is
+not `true`; it never attempts an unauthenticated or unpinned-host deploy.
 
 ## 2. Roll back
 
-1. Redeploy the previous image SHA.
-2. Do not reverse a Prisma migration automatically. If the bad deploy included
+1. Redeploy the previous known-good commit SHA:
+   ```bash
+   gh workflow run deploy.yml -f sha=<previous-40-char-main-sha>
+   ```
+2. `deploy.sh` redeploys that SHA automatically when readiness fails during a
+   deploy. A manual rollback must use a SHA that is already on `origin/main`.
+3. Do not reverse a Prisma migration automatically. If the bad deploy included
    a migration, restore the pre-deploy Neon branch or ship a corrective forward
    migration.
-3. Confirm readiness and the smoke checks above.
-4. Record the incident and SHAs in `docs/PHASES.md`.
+4. Confirm readiness and the smoke checks above.
+5. Record the incident and SHAs in `docs/PHASES.md`.
 
 ## 3. Readiness fails (database down)
 

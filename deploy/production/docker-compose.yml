@@ -16,6 +16,7 @@
 ---
 services:
   app:
+    image: tartly-app:${BUILD_VERSION:-local}
     build:
       context: ${TARTLY_APP_DIR}
       args:
@@ -31,6 +32,19 @@ services:
       options:
         max-size: 10m
         max-file: "5"
+
+  # One-shot release step. `prisma migrate deploy` must use the direct Neon
+  # host, while the running app uses the pooled host. The profile keeps this
+  # service out of `up`.
+  migrate:
+    image: tartly-app:${BUILD_VERSION:-local}
+    profiles: ["tools"]
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL_UNPOOLED}
+    command: ["pnpm", "exec", "prisma", "migrate", "deploy"]
+    init: true
 
   caddy:
     image: caddy:2-alpine

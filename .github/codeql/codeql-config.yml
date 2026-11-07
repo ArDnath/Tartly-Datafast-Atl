@@ -1,0 +1,17 @@
+name: Tartly CodeQL configuration
+
+# Scan application and build code, not generated output or vendored assets.
+paths-ignore:
+  - node_modules
+  - .next
+  - coverage
+  - generated
+  - src/generated
+  - public/script.js
+  - public/recorder.js
+  - docs
+  - '**/*.min.js'
+
+queries:
+  - uses: security-extended
+  - uses: security-and-quality
