@@ -58,8 +58,9 @@ filesystem/secret/misconfiguration scanning. SARIF is uploaded to GitHub code
 scanning.
 
 `container` builds the production Docker image with the commit SHA as
-`BUILD_VERSION`, then scans the image with Trivy and fails on CRITICAL
-vulnerabilities with a fix available. The runtime image starts with
+`BUILD_VERSION`, then scans the image with Trivy and fails on CRITICAL/HIGH
+vulnerabilities with a fix available. A second non-blocking scan uploads the
+full severity inventory for visibility. The runtime image starts with
 `node scripts/start-docker.mjs`, installs only production dependencies, and
 removes npm/npx plus the global pnpm tree. That keeps build tooling and their
 transitive advisories out of the shipped image. Migrations run

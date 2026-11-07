@@ -197,18 +197,41 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Scan image (Trivy)
+      # Trivy's SARIF mode collects every severity by default, so a plain
+      # `severity: CRITICAL` scan still exits 1 on medium findings. Keep the
+      # blocking gate to CRITICAL/HIGH and upload the complete inventory in a
+      # separate non-blocking scan for visibility.
+      - name: Scan image for blocking findings (Trivy)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: tartly:ci-${{ github.sha }}
           scanners: vuln
-          severity: CRITICAL
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          limit-severities-for-sarif: 'true'
+          format: sarif
+          output: trivy-image-blocking.sarif
+          exit-code: '1'
+
+      - name: Upload blocking image scan SARIF
+        if: always() && hashFiles('trivy-image-blocking.sarif') != ''
+        uses: github/codeql-action/upload-sarif@5895b2c9be147bc7f1c75ce72c5cb577febb1907 # v4
+        with:
+          sarif_file: trivy-image-blocking.sarif
+          category: trivy-image-blocking
+
+      - name: Full image inventory (advisory)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: tartly:ci-${{ github.sha }}
+          scanners: vuln
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
           ignore-unfixed: true
           format: sarif
           output: trivy-image.sarif
-          exit-code: '1'
+          exit-code: '0'
 
-      - name: Upload image scan SARIF
+      - name: Upload full image inventory SARIF
         if: always() && hashFiles('trivy-image.sarif') != ''
         uses: github/codeql-action/upload-sarif@5895b2c9be147bc7f1c75ce72c5cb577febb1907 # v4
         with:
