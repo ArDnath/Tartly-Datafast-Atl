@@ -80,7 +80,7 @@ rollback() {
   export BUILD_VERSION="$PREVIOUS_SHA"
   cd "$RUNTIME_DIR"
 
-  if "${COMPOSE[@]}" build --pull app && "${COMPOSE[@]}" up -d --no-deps app; then
+  if "${COMPOSE[@]}" build --pull app </dev/null && "${COMPOSE[@]}" up -d --no-deps app </dev/null; then
     if wait_for_health; then
       log "rollback to $PREVIOUS_SHA is healthy"
       return 0
@@ -121,13 +121,13 @@ export BUILD_VERSION="$TARGET_SHA"
 COMPOSE=(docker compose --env-file .env -f docker-compose.yml)
 
 log "building image tartly-app:$TARGET_SHA"
-"${COMPOSE[@]}" build --pull app
+"${COMPOSE[@]}" build --pull app </dev/null
 
 log "applying database migrations"
-"${COMPOSE[@]}" --profile tools run --rm migrate
+"${COMPOSE[@]}" --profile tools run --rm -T migrate </dev/null
 
 log "starting app"
-"${COMPOSE[@]}" up -d --no-deps app
+"${COMPOSE[@]}" up -d --no-deps app </dev/null
 
 if ! wait_for_health; then
   rollback || true
