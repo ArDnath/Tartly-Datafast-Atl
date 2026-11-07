@@ -23,6 +23,8 @@ services:
         BUILD_VERSION: ${BUILD_VERSION:-local}
     env_file:
       - .env
+    environment:
+      BUILD_VERSION: ${BUILD_VERSION:-local}
     init: true
     restart: always
     expose:
