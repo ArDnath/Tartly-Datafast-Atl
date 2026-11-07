@@ -1,11 +1,13 @@
 /**
- * The single source of truth for the paid plans.
+ * The single source of truth for pricing, limits, and the free trial.
  *
- * Rules (owner-fixed):
- * - Exactly two plans: Starter and Pro.
- * - No free tier.
- * - Starter $7.99/mo, Pro $14.99/mo.
- * - Starter 1 website, Pro up to 20 websites.
+ * Commercial model (owner-fixed, updated 2026-11-07):
+ * - Two paid plans: Starter and Pro.
+ * - A 7-day free trial with 2,000 events and 1 website. It is not a third plan
+ *   and it never renews by itself.
+ * - Starter $7.99/mo at 100,000 events; Pro $14.99/mo at 1,000,000 events.
+ * - Pro includes 50 websites. Starter includes 1.
+ * - The traffic slider raises the included events and the price together.
  *
  * Any UI or API that needs a limit must read it from here. Do not hardcode
  * plan limits in components, routes, or webhook handlers.
@@ -50,10 +52,93 @@ export interface Plan {
   replayRetentionDays: number;
   /** Payment provider connections. `null` means unlimited. */
   paymentConnectionLimit: number | null;
+  /** Provider-confirmed trial length offered at checkout. */
+  trialDays: number;
   features: readonly PlanFeature[];
   /** Shown first in the pricing UI. */
   highlight?: boolean;
 }
+
+export interface TrafficTier {
+  /** Included events per month on Starter. */
+  starterEventsPerMonth: number;
+  /** Included events per month on Pro. */
+  proEventsPerMonth: number;
+  /** Integer cents for Starter at this traffic tier. */
+  starterPriceCents: number;
+  /** Integer cents for Pro at this traffic tier. */
+  proPriceCents: number;
+}
+
+/**
+ * Traffic tiers shown by the pricing slider. The default tier is the
+ * owner-fixed price point. Every entry stays below DataFast's published
+ * $9/mo Starter and $19/mo Growth entry prices while including more events.
+ */
+export const TRAFFIC_TIERS: readonly TrafficTier[] = [
+  {
+    starterEventsPerMonth: 10_000,
+    proEventsPerMonth: 100_000,
+    starterPriceCents: 599,
+    proPriceCents: 1099,
+  },
+  {
+    starterEventsPerMonth: 25_000,
+    proEventsPerMonth: 250_000,
+    starterPriceCents: 699,
+    proPriceCents: 1299,
+  },
+  {
+    starterEventsPerMonth: 50_000,
+    proEventsPerMonth: 500_000,
+    starterPriceCents: 749,
+    proPriceCents: 1399,
+  },
+  {
+    starterEventsPerMonth: 100_000,
+    proEventsPerMonth: 1_000_000,
+    starterPriceCents: 799,
+    proPriceCents: 1499,
+  },
+  {
+    starterEventsPerMonth: 250_000,
+    proEventsPerMonth: 2_500_000,
+    starterPriceCents: 1199,
+    proPriceCents: 2299,
+  },
+  {
+    starterEventsPerMonth: 500_000,
+    proEventsPerMonth: 5_000_000,
+    starterPriceCents: 1699,
+    proPriceCents: 3199,
+  },
+  {
+    starterEventsPerMonth: 1_000_000,
+    proEventsPerMonth: 10_000_000,
+    starterPriceCents: 2499,
+    proPriceCents: 4799,
+  },
+  {
+    starterEventsPerMonth: 2_000_000,
+    proEventsPerMonth: 10_000_000,
+    starterPriceCents: 3999,
+    proPriceCents: 7499,
+  },
+] as const;
+
+/** The owner-fixed price point: $7.99 Starter / $14.99 Pro. */
+export const DEFAULT_TRAFFIC_TIER_INDEX = 3;
+
+export const FREE_TRIAL_DAYS = 7;
+export const FREE_TRIAL_EVENTS = 2_000;
+export const FREE_TRIAL_WEBSITES = 1;
+export const FREE_TRIAL_MEMBERS = 1;
+
+/**
+ * Legacy name kept for the ingestion path. The setup allowance is now the
+ * 7-day trial allowance, so there is one number to change.
+ */
+export const SETUP_EVENT_ALLOWANCE = FREE_TRIAL_EVENTS;
 
 export const PLANS: readonly Plan[] = [
   {
@@ -61,35 +146,37 @@ export const PLANS: readonly Plan[] = [
     name: 'Starter',
     tagline: 'Your first revenue signal',
     description:
-      'One site, real revenue attribution, and enough events to find the channel that actually pays.',
+      'One site, real revenue attribution, and 100,000 events to find the channel that actually pays.',
     monthlyPriceCents: 799,
     annualPriceCents: 7990,
     currency: 'USD',
     websiteLimit: 1,
     memberLimit: 1,
-    eventsPerMonth: 50_000,
+    eventsPerMonth: 100_000,
     retentionDays: 90,
     replaySessionsPerMonth: 0,
     replayRetentionDays: 0,
     paymentConnectionLimit: 1,
+    trialDays: FREE_TRIAL_DAYS,
     features: ['revenue_attribution', 'funnels', 'csv_export'],
   },
   {
     id: 'pro',
     name: 'Pro',
-    tagline: 'For indie SaaS and small teams',
+    tagline: 'For indie SaaS, teams, and small agencies',
     description:
-      'Up to 20 sites, 10× the event allowance, session replay, advanced attribution, and client-ready reporting.',
+      'Up to 50 sites, 1,000,000 events, session replay, advanced attribution, and client-ready reporting.',
     monthlyPriceCents: 1499,
     annualPriceCents: 14990,
     currency: 'USD',
-    websiteLimit: 20,
-    memberLimit: 5,
-    eventsPerMonth: 500_000,
-    retentionDays: 180,
+    websiteLimit: 50,
+    memberLimit: 10,
+    eventsPerMonth: 1_000_000,
+    retentionDays: 365,
     replaySessionsPerMonth: 2_000,
     replayRetentionDays: 30,
     paymentConnectionLimit: null,
+    trialDays: FREE_TRIAL_DAYS,
     features: [
       'revenue_attribution',
       'advanced_attribution',
@@ -108,13 +195,23 @@ export const PLANS: readonly Plan[] = [
 
 const PLAN_MAP = new Map<PlanId, Plan>(PLANS.map(plan => [plan.id, plan]));
 
-/**
- * One-time install-verification allowance for a workspace with no active paid
- * subscription. This is NOT a free plan and never resets: it exists only so
- * onboarding can verify the tracker before checkout. After it is consumed,
- * billable ingestion pauses until the workspace subscribes.
- */
-export const SETUP_EVENT_ALLOWANCE = 1_000;
+export interface FreeTrialState {
+  active: boolean;
+  endsAt: Date | null;
+}
+
+export function getFreeTrialState(
+  workspaceCreatedAt: Date | null | undefined,
+  now: Date = new Date(),
+): FreeTrialState {
+  if (!workspaceCreatedAt) {
+    return { active: false, endsAt: null };
+  }
+
+  const endsAt = new Date(workspaceCreatedAt.getTime() + FREE_TRIAL_DAYS * 24 * 60 * 60 * 1000);
+
+  return { active: now.getTime() < endsAt.getTime(), endsAt };
+}
 
 export function isPlanId(value: unknown): value is PlanId {
   return typeof value === 'string' && (PLAN_IDS as readonly string[]).includes(value);
@@ -159,4 +256,56 @@ export function formatAnnualPrice(plan: Plan): string {
 
 export function annualSavingsCents(plan: Plan): number {
   return plan.monthlyPriceCents * 12 - plan.annualPriceCents;
+}
+
+export function clampTrafficTierIndex(index: number): number {
+  if (!Number.isFinite(index)) {
+    return DEFAULT_TRAFFIC_TIER_INDEX;
+  }
+
+  return Math.min(TRAFFIC_TIERS.length - 1, Math.max(0, Math.round(index)));
+}
+
+export function getTrafficTier(index: number): TrafficTier {
+  return TRAFFIC_TIERS[clampTrafficTierIndex(index)];
+}
+
+export function getTrafficEvents(planId: PlanId, index: number): number {
+  const tier = getTrafficTier(index);
+
+  return planId === 'pro' ? tier.proEventsPerMonth : tier.starterEventsPerMonth;
+}
+
+export function getTrafficPriceCents(planId: PlanId, index: number): number {
+  const tier = getTrafficTier(index);
+
+  return planId === 'pro' ? tier.proPriceCents : tier.starterPriceCents;
+}
+
+/** Annual price for a traffic tier: monthly price × 10 (two months free). */
+export function getTrafficAnnualCents(planId: PlanId, index: number): number {
+  return getTrafficPriceCents(planId, index) * 10;
+}
+
+export function getTrafficDisplayPriceCents(
+  planId: PlanId,
+  index: number,
+  billing: 'monthly' | 'annual',
+): number {
+  const monthly = getTrafficPriceCents(planId, index);
+
+  return billing === 'annual' ? Math.round((monthly * 10) / 12) : monthly;
+}
+
+export function formatTrafficEvents(events: number): string {
+  if (events >= 1_000_000) {
+    const millions = events / 1_000_000;
+    return `${Number.isInteger(millions) ? millions : millions.toFixed(1).replace(/\.0$/, '')}M`;
+  }
+
+  if (events >= 1_000) {
+    return `${Math.round(events / 1_000)}k`;
+  }
+
+  return String(events);
 }

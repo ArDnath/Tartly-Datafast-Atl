@@ -2,7 +2,7 @@ import debug from 'debug';
 import { hash } from '@/lib/crypto';
 import prisma from '@/lib/prisma';
 
-const log = debug('revenuelens:rate-limit');
+const log = debug('tartly:rate-limit');
 
 /**
  * Fixed-window rate limiting backed by PostgreSQL.

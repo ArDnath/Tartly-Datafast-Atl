@@ -1,11 +1,14 @@
 import { ListItem, Row, Select } from '@talivia/react-zen';
 import { useMessages, useUrlState } from '@/components/hooks/index';
-import { DATE_RANGE_CONFIG, DEFAULT_DATE_RANGE_VALUE } from '@/lib/constants';
-import { getItem } from '@/lib/storage';
+import { DEFAULT_DATE_RANGE_VALUE } from '@/lib/constants';
+import { useApp } from '@/store/app';
+
+const dateRangeSelector = (state: { dateRangeValue: string }) => state.dateRangeValue;
 
 export function UnitFilter() {
   const { t, labels } = useMessages();
   const { query, patch } = useUrlState();
+  const storedDateRange = useApp(dateRangeSelector);
 
   const DATE_RANGE_UNIT_CONFIG = {
     '0week': {
@@ -35,7 +38,7 @@ export function UnitFilter() {
   };
 
   const unitConfig =
-    DATE_RANGE_UNIT_CONFIG[query.date || getItem(DATE_RANGE_CONFIG) || DEFAULT_DATE_RANGE_VALUE];
+    DATE_RANGE_UNIT_CONFIG[query.date || storedDateRange || DEFAULT_DATE_RANGE_VALUE];
 
   if (!unitConfig) {
     return null;

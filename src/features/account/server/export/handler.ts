@@ -110,7 +110,7 @@ export async function GET(request: Request) {
   return new Response(JSON.stringify(payload, null, 2), {
     headers: {
       'Cache-Control': 'no-store',
-      'Content-Disposition': `attachment; filename="revenuelens-account-${user.id}.json"`,
+      'Content-Disposition': `attachment; filename="tartly-account-${user.id}.json"`,
       'Content-Type': 'application/json; charset=utf-8',
     },
   });

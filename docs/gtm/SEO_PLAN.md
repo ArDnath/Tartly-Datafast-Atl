@@ -37,11 +37,12 @@
    examples, common mistakes.
 6. **A 15-minute install for Next.js, React, Vite, Astro, and Remix.** Use the
    generated install guides; label anything not runtime-tested.
-7. **Why we have no free tier.** Unit economics, abuse, support, and the
-   $7.99 promise. Link `docs/PRICING_ECONOMICS.md` numbers only where public.
-8. **Plausible vs RevenueLens.** Traffic analytics vs revenue attribution;
+7. **Why the trial is 7 days and 2,000 events.** Unit economics, abuse,
+   support, and the $7.99 promise. Link `docs/PRICING_ECONOMICS.md` numbers
+   only where public.
+8. **Plausible vs Tartly.** Traffic analytics vs revenue attribution;
    source-dated price table.
-9. **Fathom vs RevenueLens.** Simplicity vs revenue loop; source-dated.
+9. **Fathom vs Tartly.** Simplicity vs revenue loop; source-dated.
 10. **What a founder should do in the first 7 days after install.** Verify,
     connect payments, tag one campaign, read the first revenue report.
 

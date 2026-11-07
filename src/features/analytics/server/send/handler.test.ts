@@ -1,6 +1,16 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { parseCollectorCacheToken } from '@/features/analytics/lib/collector-cache';
 import { getClientInfo } from '@/features/analytics/lib/detect';
+import {
+  createSession,
+  saveEvent,
+  updateSessionDistinctId,
+} from '@/features/analytics/server/queries/sql';
+import {
+  ensureVisitorContext,
+  upsertCustomerIdentityLink,
+  upsertVisitorContext,
+} from '@/features/payments/server/queries/attribution';
 import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import { fetchWebsite } from '@/lib/load';
 import { parseRequest } from '@/lib/request';
@@ -10,17 +20,7 @@ import {
   reserveEventUsage,
   reserveSetupEventUsage,
 } from '@/lib/usage';
-import {
-  ensureVisitorContext,
-  upsertCustomerIdentityLink,
-  upsertVisitorContext,
-} from '@/features/payments/server/queries/attribution';
 import { getWebsiteAttributionRuntimeConfig } from '@/queries/prisma/website';
-import {
-  createSession,
-  saveEvent,
-  updateSessionDistinctId,
-} from '@/features/analytics/server/queries/sql';
 import { POST } from './handler';
 
 vi.mock('@/features/analytics/lib/collector-cache', () => ({
@@ -256,20 +256,21 @@ test('rejects a website whose workspace is unavailable before creating a session
   expect(reserveEventUsage).not.toHaveBeenCalled();
 });
 
-test('caps a setup-only workspace at the verification allowance', async () => {
+test('caps a trial workspace at the free-trial allowance', async () => {
   const workspaceId = '6b7c2d44-8f25-4b50-8d4f-9f0f3b1f1b1b';
 
   vi.mocked(fetchWebsite).mockResolvedValue({ id: websiteId, workspaceId } as any);
   vi.mocked(getWorkspaceEntitlements).mockResolvedValue({
     active: false,
+    trial: true,
     setup: true,
     plan: { eventsPerMonth: 50_000 },
   } as any);
   vi.mocked(reserveSetupEventUsage).mockResolvedValue({
     allowed: false,
-    used: 1_000,
-    limit: 1_000,
-    hardLimit: 1_000,
+    used: 2_000,
+    limit: 2_000,
+    hardLimit: 2_000,
   });
   vi.mocked(parseRequest).mockResolvedValue({
     body: {
@@ -289,26 +290,60 @@ test('caps a setup-only workspace at the verification allowance', async () => {
   );
   const body = await response.json();
 
-  expect(reserveSetupEventUsage).toHaveBeenCalledWith(workspaceId, 1_000);
-  expect(body).toMatchObject({ ok: false, reason: 'subscription_required', limit: 1_000 });
+  expect(reserveSetupEventUsage).toHaveBeenCalledWith(workspaceId, 2_000);
+  expect(body).toMatchObject({ ok: false, reason: 'trial_limit_reached', limit: 2_000 });
   expect(createSession).not.toHaveBeenCalled();
   expect(saveEvent).not.toHaveBeenCalled();
 });
 
-test('releases a setup reservation when the event write fails', async () => {
+test('rejects an expired trial before creating a session', async () => {
   const workspaceId = '6b7c2d44-8f25-4b50-8d4f-9f0f3b1f1b1b';
 
   vi.mocked(fetchWebsite).mockResolvedValue({ id: websiteId, workspaceId } as any);
   vi.mocked(getWorkspaceEntitlements).mockResolvedValue({
     active: false,
+    trial: false,
+    setup: true,
+    plan: { eventsPerMonth: 50_000 },
+  } as any);
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        website: websiteId,
+        visitorId: 'v_visitor',
+        sessionId: 's_session',
+        hostname: 'shop.example',
+        url: 'https://shop.example/pricing',
+      },
+    },
+  } as any);
+
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
+  const body = await response.json();
+
+  expect(body).toMatchObject({ ok: false, reason: 'subscription_required', limit: 0 });
+  expect(reserveSetupEventUsage).not.toHaveBeenCalled();
+  expect(createSession).not.toHaveBeenCalled();
+});
+
+test('releases a trial reservation when the event write fails', async () => {
+  const workspaceId = '6b7c2d44-8f25-4b50-8d4f-9f0f3b1f1b1b';
+
+  vi.mocked(fetchWebsite).mockResolvedValue({ id: websiteId, workspaceId } as any);
+  vi.mocked(getWorkspaceEntitlements).mockResolvedValue({
+    active: false,
+    trial: true,
     setup: true,
     plan: { eventsPerMonth: 50_000 },
   } as any);
   vi.mocked(reserveSetupEventUsage).mockResolvedValue({
     allowed: true,
     used: 1,
-    limit: 1_000,
-    hardLimit: 1_000,
+    limit: 2_000,
+    hardLimit: 2_000,
   });
   vi.mocked(saveEvent).mockRejectedValueOnce(new Error('write failed'));
   vi.mocked(parseRequest).mockResolvedValue({

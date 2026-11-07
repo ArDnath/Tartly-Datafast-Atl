@@ -1,15 +1,23 @@
 import { billingSubscriptionHasAccess } from '@/lib/billing-lifecycle';
+import {
+  FREE_TRIAL_MEMBERS,
+  FREE_TRIAL_WEBSITES,
+  getFreeTrialState,
+  getPlan,
+  getPlanOrNull,
+  type Plan,
+  type PlanFeature,
+  planHasFeature,
+} from '@/lib/plans';
 import prisma from '@/lib/prisma';
-import { getPlan, getPlanOrNull, type Plan, type PlanFeature, planHasFeature } from '@/lib/plans';
 
 /**
  * Plan entitlements are derived from backend billing records, never from the
  * UI and never from a checkout redirect.
  *
- * The `platform_subscription` row is written only by a verified provider
- * webhook (or a provider-confirmed plan change). A workspace without one keeps
- * Starter setup limits but `active` stays false, so no paid feature is
- * unlocked for free.
+ * A workspace without a provider-confirmed subscription is in its 7-day free
+ * trial (2,000 events, one website). When the trial ends, paid features and
+ * ingestion stay locked until a subscription is active.
  */
 
 export interface WorkspaceEntitlements {
@@ -19,7 +27,10 @@ export interface WorkspaceEntitlements {
   subscriptionStatus: string;
   /** True only when the provider has confirmed paid access. */
   active: boolean;
-  /** True when `active` is false; the workspace may only use the setup allowance. */
+  /** True while the workspace is inside its 7-day free trial. */
+  trial: boolean;
+  trialEndsAt: Date | null;
+  /** True when `active` is false; only trial limits are available. */
   setup: boolean;
 }
 
@@ -33,6 +44,7 @@ export async function getWorkspaceEntitlements(
       id: true,
       planId: true,
       subscriptionStatus: true,
+      createdAt: true,
       platformSubscription: {
         select: {
           planId: true,
@@ -67,15 +79,18 @@ export async function getWorkspaceEntitlements(
       planId: subscription.planId,
       subscriptionStatus: subscription.lifecycleStatus,
       active,
+      trial: active && subscription.lifecycleStatus === 'TRIALING',
+      trialEndsAt: null,
       setup: !active,
     };
   }
 
   // Pre-billing workspaces have no subscription row. They keep their stored
-  // plan for setup limits, but only an explicit legacy status counts as paid.
+  // plan for limits, but only an explicit legacy status counts as paid.
   const plan = getPlanOrNull(workspace.planId) || getPlan('starter');
   const active =
     workspace.subscriptionStatus === 'active' || workspace.subscriptionStatus === 'trialing';
+  const freeTrial = getFreeTrialState(workspace.createdAt, now);
 
   return {
     workspaceId: workspace.id,
@@ -83,6 +98,8 @@ export async function getWorkspaceEntitlements(
     planId: workspace.planId,
     subscriptionStatus: workspace.subscriptionStatus,
     active,
+    trial: active || freeTrial.active,
+    trialEndsAt: active ? null : freeTrial.endsAt,
     setup: !active,
   };
 }
@@ -99,9 +116,25 @@ export function entitlementsHaveFeature(
 }
 
 export function getWebsiteLimit(entitlements: WorkspaceEntitlements | null): number {
-  return entitlements?.plan?.websiteLimit ?? 0;
+  if (!entitlements) {
+    return 0;
+  }
+
+  if (entitlements.active) {
+    return entitlements.plan?.websiteLimit ?? 0;
+  }
+
+  return entitlements.trial ? FREE_TRIAL_WEBSITES : 0;
 }
 
 export function getMemberLimit(entitlements: WorkspaceEntitlements | null): number {
-  return entitlements?.plan?.memberLimit ?? 0;
+  if (!entitlements) {
+    return 0;
+  }
+
+  if (entitlements.active) {
+    return entitlements.plan?.memberLimit ?? 0;
+  }
+
+  return entitlements.trial ? FREE_TRIAL_MEMBERS : 0;
 }

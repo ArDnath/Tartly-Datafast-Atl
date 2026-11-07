@@ -35,7 +35,7 @@ export type TrackedProperties = {
    * Page title
    *
    * @description extracted from `document.querySelector('head > title')`
-   * @example 'RevenueLens'
+   * @example 'Tartly'
    */
   title: string;
 

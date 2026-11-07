@@ -1,9 +1,21 @@
 import type { Metadata } from 'next';
+import { Domine } from 'next/font/google';
+import { LandingPage } from '@/features/marketing/landing/LandingPage';
 import { BRAND } from '@/lib/brand';
-import { LandingPage } from '@/features/marketing/LandingPage';
+import '@/features/marketing/landing/landing.css';
+
+const domine = Domine({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-domine-family',
+});
 
 export default function HomePage() {
-  return <LandingPage />;
+  return (
+    <div className={domine.variable}>
+      <LandingPage />
+    </div>
+  );
 }
 
 export const metadata: Metadata = {

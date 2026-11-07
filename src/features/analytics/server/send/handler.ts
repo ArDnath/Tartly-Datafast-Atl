@@ -6,27 +6,40 @@ import {
   createCollectorCacheToken,
   parseCollectorCacheToken,
 } from '@/features/analytics/lib/collector-cache';
-import { COLLECTION_TYPE, EVENT_TYPE } from '@/lib/constants';
 import {
   CROSS_DOMAIN_LINKER_TTL_MS,
   createCrossDomainLinker,
   parseCrossDomainLinker,
 } from '@/features/analytics/lib/cross-domain-linker';
-import { getSalt, secret, uuid } from '@/lib/crypto';
 import { getClientInfo, hasBlockedIp } from '@/features/analytics/lib/detect';
-import { getWorkspaceEntitlements } from '@/lib/entitlements';
-import { fetchWebsite } from '@/lib/load';
-import { getPaymentReturnDetection } from '@/features/payments/lib/payment-detection';
-import { logger } from '@/lib/logger';
-import { parseRequest } from '@/lib/request';
-import { badRequest, forbidden, json, serverError } from '@/lib/response';
-import { anyObjectParam, urlOrPathParam } from '@/lib/schema';
+import { isTrackerOriginAllowed } from '@/features/analytics/lib/tracker-origin';
 import {
   getTrackingSessionId,
   getTrackingVisitorId,
 } from '@/features/analytics/lib/tracking-identity';
+import {
+  createSession,
+  saveEvent,
+  saveSessionData,
+  updateSessionDistinctId,
+} from '@/features/analytics/server/queries/sql';
+import { getPaymentReturnDetection } from '@/features/payments/lib/payment-detection';
+import {
+  ensureVisitorContext,
+  savePaymentDetectionEvent,
+  upsertCustomerIdentityLink,
+  upsertVisitorContext,
+} from '@/features/payments/server/queries/attribution';
+import { COLLECTION_TYPE, EVENT_TYPE } from '@/lib/constants';
+import { getSalt, secret, uuid } from '@/lib/crypto';
+import { getWorkspaceEntitlements } from '@/lib/entitlements';
+import { fetchWebsite } from '@/lib/load';
+import { logger } from '@/lib/logger';
+import { FREE_TRIAL_EVENTS } from '@/lib/plans';
+import { parseRequest } from '@/lib/request';
+import { badRequest, forbidden, json, serverError } from '@/lib/response';
+import { anyObjectParam, urlOrPathParam } from '@/lib/schema';
 import { safeDecodeURI, safeDecodeURIComponent } from '@/lib/url';
-import { SETUP_EVENT_ALLOWANCE } from '@/lib/plans';
 import {
   EVENT_GRACE,
   isBillableEvent,
@@ -35,20 +48,7 @@ import {
   reserveEventUsage,
   reserveSetupEventUsage,
 } from '@/lib/usage';
-import { isTrackerOriginAllowed } from '@/features/analytics/lib/tracker-origin';
-import {
-  ensureVisitorContext,
-  savePaymentDetectionEvent,
-  upsertCustomerIdentityLink,
-  upsertVisitorContext,
-} from '@/features/payments/server/queries/attribution';
 import { getWebsiteAttributionRuntimeConfig } from '@/queries/prisma/website';
-import {
-  createSession,
-  saveEvent,
-  saveSessionData,
-  updateSessionDistinctId,
-} from '@/features/analytics/server/queries/sql';
 
 const schema = z.object({
   type: z.enum(['event', 'identify', 'performance', 'linker']),
@@ -237,14 +237,23 @@ export async function POST(request: Request) {
       }
 
       if (isBillableEvent(eventType)) {
+        if (!entitlements.active && !entitlements.trial) {
+          return json({
+            ok: false,
+            reason: 'subscription_required',
+            limit: 0,
+            used: 0,
+          });
+        }
+
         const reservation = entitlements.active
           ? await reserveEventUsage(workspaceId, entitlements.plan.eventsPerMonth, EVENT_GRACE)
-          : await reserveSetupEventUsage(workspaceId, SETUP_EVENT_ALLOWANCE);
+          : await reserveSetupEventUsage(workspaceId, FREE_TRIAL_EVENTS);
 
         if (!reservation.allowed) {
           return json({
             ok: false,
-            reason: entitlements.active ? 'usage_limit_reached' : 'subscription_required',
+            reason: entitlements.active ? 'usage_limit_reached' : 'trial_limit_reached',
             limit: reservation.limit,
             used: reservation.used,
           });

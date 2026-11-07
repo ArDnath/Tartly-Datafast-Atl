@@ -1,6 +1,6 @@
 # Onboarding Specification
 
-RevenueLens onboarding copies Tartly's shell, motion, copy rhythm, and
+Tartly onboarding copies Tartly's shell, motion, copy rhythm, and
 welcome moment, then adapts the steps to a revenue analytics SaaS.
 
 - **Route:** `/onboarding` (authenticated; redirects to `/login` otherwise)
@@ -17,7 +17,7 @@ welcome moment, then adapts the steps to a revenue analytics SaaS.
 
 The following behaviour is intentionally copied:
 
-| Tartly behaviour | Tartly file | RevenueLens implementation |
+| Tartly (email client) behaviour | Reference file | Tartly implementation |
 | --- | --- | --- |
 | Full-height centred canvas, 440px content column | `onboarding-step-layout.tsx`, `ONBOARDING_CONTENT_BLOCK_WIDTH = 440` | `.stepPanel { width: min(440px, 100%) }` |
 | Logo → title → subtitle → form | `onboarding-step-layout.tsx` | `StepHeading` |
@@ -50,7 +50,7 @@ states remain visible until the tracker and a payment provider produce data.
 
 ### Step 0 — Welcome
 
-- Brand mark, `Welcome to RevenueLens`, one-sentence promise.
+- Brand mark, `Welcome to Tartly`, one-sentence promise.
 - Primary: **Get started**. Text: **Skip intro**.
 - Auto-advances after 4.2s (0.9s with reduced motion).
 - CSS: halftone field `scale(1.08) → 1`, opacity `0 → 1 → 0.42`; wordmark

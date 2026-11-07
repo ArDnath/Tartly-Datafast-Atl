@@ -8,7 +8,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# Project: RevenueLens (working brand name)
+# Project: Tartly (working brand name)
 
 Fork of <https://github.com/talivia-group/talivia> (MIT). We are turning the
 self-hosted Talivia analytics product into a hosted, multi-tenant,
@@ -120,8 +120,8 @@ exact human action, and continue with the rest of the phase.
 
 ## UI mandate
 
-RevenueLens inherits **Tartly's visual language and onboarding motion** from
-the sibling repository (`../tartly`):
+Tartly inherits its visual language and onboarding motion from the sibling
+Tartly repository (`../tartly`, the AI email client that seeded the design):
 
 - near-black canvas, raised tonal cards, hairline borders, one warm blush
   signal accent, flat-by-default surfaces with state-driven lift;

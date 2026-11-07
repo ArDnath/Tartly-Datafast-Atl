@@ -64,9 +64,7 @@ test('creates a website-scoped API key and shows its secret once', async () => {
   );
   expect(apiState.refetch).toHaveBeenCalled();
   expect(screen.getByRole('textbox', { name: 'New API key' })).toHaveValue('tlv_new_secret');
-  expect(
-    screen.getByText(/only time RevenueLens will show the complete secret/i),
-  ).toBeInTheDocument();
+  expect(screen.getByText(/only time Tartly will show the complete secret/i)).toBeInTheDocument();
 });
 
 test('requires confirmation before revoking an API key', async () => {

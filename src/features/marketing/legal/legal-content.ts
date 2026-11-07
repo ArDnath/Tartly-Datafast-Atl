@@ -93,8 +93,8 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
       {
         heading: 'Plans and billing',
         body: [
-          `${BRAND.name} has exactly two paid plans: Starter and Pro. There is no free tier. Prices and limits are shown on the pricing page and are read from the same config the product enforces.`,
-          'A new workspace may collect a small, one-time setup allowance (currently 1,000 events, never reset) to verify the tracker before subscribing. After that allowance, billable ingestion pauses until a paid subscription is active. The setup allowance is not a free plan and does not include paid features.',
+          `${BRAND.name} has two paid plans: Starter and Pro. Every workspace starts with a 7-day free trial. Prices and limits are shown on the pricing page and are read from the same config the product enforces.`,
+          'The free trial includes 2,000 events and 1 website for 7 days. No card is required. When the trial ends, billable ingestion pauses until a paid subscription is active; your dashboard and reports stay readable. The trial does not renew automatically.',
           'Subscriptions renew automatically until cancelled. Cancelling schedules the subscription to end at the current paid period; access continues until that date. Taxes and payment-provider fees are handled by the billing provider.',
         ],
       },

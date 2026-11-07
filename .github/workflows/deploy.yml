@@ -1,0 +1,110 @@
+name: Deploy production
+
+# Runs only after CI succeeds for a push to main. It is intentionally
+# disabled until the operator creates the production environment and the
+# deployment secrets, then sets the repository variable DEPLOY_ENABLED=true.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit SHA on main to deploy (defaults to the current main head)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  APP_DIR: /opt/tartly/app
+  RUNTIME_DIR: /opt/tartly/runtime
+
+jobs:
+  deploy:
+    name: Deploy to the production VPS
+    if: >-
+      vars.DEPLOY_ENABLED == 'true' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: production
+      url: ${{ vars.APP_URL }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout the exact commit that passed CI
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || inputs.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Validate deployment configuration
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS APP_URL; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing required deployment value: $name"
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ] || exit 1
+
+      - name: Install SSH key
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          key_dir="${RUNNER_TEMP}/deploy-ssh"
+          install -m 700 -d "$key_dir"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$key_dir/id_ed25519"
+          chmod 600 "$key_dir/id_ed25519"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$key_dir/known_hosts"
+          chmod 600 "$key_dir/known_hosts"
+
+      - name: Deploy, migrate, verify, roll back on failure
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          TARGET_SHA: ${{ github.event.workflow_run.head_sha || inputs.sha || github.sha }}
+          APP_URL: ${{ vars.APP_URL }}
+          RUNNER_TEMP: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          case "$TARGET_SHA" in
+            (*[!0-9a-f]*|'') echo "::error::Invalid commit SHA"; exit 1 ;;
+          esac
+          ssh -i "$RUNNER_TEMP/deploy-ssh/id_ed25519" \
+            -o UserKnownHostsFile="$RUNNER_TEMP/deploy-ssh/known_hosts" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ServerAliveInterval=30 \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "APP_DIR='$APP_DIR' RUNTIME_DIR='$RUNTIME_DIR' APP_URL='$APP_URL' bash -s -- '$TARGET_SHA'" \
+            < deploy/production/deploy.sh
+
+      - name: External readiness check
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error \
+            --retry 12 --retry-delay 5 --retry-connrefused \
+            --max-time 10 "$APP_URL/api/health/ready"

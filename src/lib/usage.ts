@@ -1,8 +1,17 @@
-import { uuid } from '@/lib/crypto';
 import { billingSubscriptionHasAccess } from '@/lib/billing-lifecycle';
+import { uuid } from '@/lib/crypto';
+import {
+  FREE_TRIAL_EVENTS,
+  FREE_TRIAL_MEMBERS,
+  FREE_TRIAL_WEBSITES,
+  getFreeTrialState,
+  getPlan,
+  getPlanOrNull,
+  type Plan,
+  SETUP_EVENT_ALLOWANCE,
+} from '@/lib/plans';
 import prisma from '@/lib/prisma';
 import { isUniqueConstraintError } from '@/lib/prisma-error';
-import { getPlan, getPlanOrNull, SETUP_EVENT_ALLOWANCE, type Plan } from '@/lib/plans';
 
 /**
  * Usage metering and plan enforcement.
@@ -46,7 +55,9 @@ export interface WorkspaceUsageSnapshot {
   subscriptionStatus: string;
   /** True only when the provider confirms paid access. */
   active: boolean;
-  /** True when the workspace only has the install-verification allowance. */
+  /** True while the workspace is inside its 7-day free trial. */
+  trial: boolean;
+  /** True when paid access is inactive; only trial limits are available. */
   setup: boolean;
   periodStart: Date;
   periodEnd: Date;
@@ -439,6 +450,7 @@ export async function getWorkspaceUsage(
         planId: true,
         subscriptionStatus: true,
         setupEventsCount: true,
+        createdAt: true,
         platformSubscription: {
           select: {
             planId: true,
@@ -494,6 +506,9 @@ export async function getWorkspaceUsage(
         now,
       )
     : workspace.subscriptionStatus === 'active' || workspace.subscriptionStatus === 'trialing';
+  const freeTrial = getFreeTrialState(workspace.createdAt, now);
+  const trial = active || freeTrial.active;
+  const trialEventAllowance = freeTrial.active ? FREE_TRIAL_EVENTS : 0;
 
   return {
     workspaceId: workspace.id,
@@ -501,13 +516,14 @@ export async function getWorkspaceUsage(
     plan,
     subscriptionStatus,
     active,
+    trial,
     setup: !active,
     periodStart,
     periodEnd,
     resetAt: periodEnd,
     events: createUsageMeter(
       active ? (period?.eventsCount ?? 0) : workspace.setupEventsCount,
-      active ? plan.eventsPerMonth : SETUP_EVENT_ALLOWANCE,
+      active ? plan.eventsPerMonth : trialEventAllowance,
       active ? EVENT_GRACE : 0,
     ),
     replays: createUsageMeter(
@@ -515,8 +531,14 @@ export async function getWorkspaceUsage(
       active ? plan.replaySessionsPerMonth : 0,
       active ? REPLAY_GRACE : 0,
     ),
-    websites: { used: websiteCount, limit: plan.websiteLimit },
-    members: { used: memberCount + pendingInvites, limit: plan.memberLimit },
+    websites: {
+      used: websiteCount,
+      limit: active ? plan.websiteLimit : freeTrial.active ? FREE_TRIAL_WEBSITES : 0,
+    },
+    members: {
+      used: memberCount + pendingInvites,
+      limit: active ? plan.memberLimit : freeTrial.active ? FREE_TRIAL_MEMBERS : 0,
+    },
   };
 }
 

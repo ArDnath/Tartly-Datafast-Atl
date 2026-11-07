@@ -1,6 +1,6 @@
 # Tenant isolation and application structure
 
-This is the authoritative description of how RevenueLens decides who may read
+This is the authoritative description of how Tartly decides who may read
 or change tenant data. If code and this document disagree, the code is wrong.
 
 ## The tenant boundary

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
+import { Inter } from 'next/font/google';
 import { Suspense } from 'react';
 import { BRAND } from '@/lib/brand';
 import { getBaseUrl } from '@/lib/get-base-url';
@@ -7,11 +8,22 @@ import { Providers } from './Providers';
 import '@talivia/react-zen/styles.full.css';
 import './global.css';
 
-const FAVICON_VERSION = '20260625';
+/**
+ * Tartly uses Inter throughout — dashboard chrome, figures and the marketing
+ * page. Loading it as a CSS variable keeps `--font-family` in global.css as
+ * the single switch that every surface (CSS modules included) reads.
+ */
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
+
+const FAVICON_VERSION = '20261106';
 
 export default function ({ children }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" className={`dark ${inter.variable}`} suppressHydrationWarning>
       <head>
         <link rel="icon" href={`/favicon.ico?v=${FAVICON_VERSION}`} />
         <link
@@ -41,9 +53,10 @@ export default function ({ children }) {
         <link
           rel="mask-icon"
           href={`/safari-pinned-tab.svg?v=${FAVICON_VERSION}`}
-          color="#0d0d0d"
+          color="#1b1b1b"
         />
-        <meta name="msapplication-TileColor" content="#0d0d0d" />
+        <meta name="msapplication-TileColor" content="#1b1b1b" />
+        <meta name="theme-color" content="#1b1b1b" />
       </head>
       <body>
         <Suspense>

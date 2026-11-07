@@ -1,4 +1,4 @@
-# SaaS Conversion Audit — Talivia → RevenueLens
+# SaaS Conversion Audit — Talivia → Tartly
 
 - **Date:** 2026-11-04
 - **Source:** `https://github.com/talivia-group/talivia` @ `9b7ad2a`

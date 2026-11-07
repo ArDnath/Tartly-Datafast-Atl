@@ -1,0 +1,73 @@
+# Tartly production stack on a single VPS.
+#
+# Runtime layout (operator-managed, outside git):
+#   /opt/tartly/app      <- clone of this repository
+#   /opt/tartly/runtime/.env          <- real secrets (chmod 600, gitignored)
+#   /opt/tartly/runtime/docker-compose.yml + Caddyfile  <- copied from deploy/production
+#
+# Start:
+#   docker compose -f deploy/production/docker-compose.yml up -d --build
+# Migrate (before first start and on releases that add migrations):
+#   docker compose -f deploy/production/docker-compose.yml run --rm app \
+#     pnpm exec prisma migrate deploy
+# Verify:
+#   curl -fsS https://tartly.in/api/health/live
+#   curl -fsS https://tartly.in/api/health/ready
+---
+services:
+  app:
+    image: tartly-app:${BUILD_VERSION:-local}
+    build:
+      context: ${TARTLY_APP_DIR}
+      args:
+        BUILD_VERSION: ${BUILD_VERSION:-local}
+    env_file:
+      - .env
+    init: true
+    restart: always
+    expose:
+      - "3000"
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+
+  # One-shot release step. `prisma migrate deploy` must use the direct Neon
+  # host, while the running app uses the pooled host. The profile keeps this
+  # service out of `up`.
+  migrate:
+    image: tartly-app:${BUILD_VERSION:-local}
+    profiles: ["tools"]
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL_UNPOOLED}
+    command: ["./node_modules/.bin/prisma", "migrate", "deploy"]
+    init: true
+
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      TARTLY_DOMAIN: ${TARTLY_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+
+volumes:
+  caddy_data:
+  caddy_config:

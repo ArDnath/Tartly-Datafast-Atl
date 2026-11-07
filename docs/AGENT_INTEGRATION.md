@@ -1,6 +1,6 @@
 # Agent and CLI integration
 
-RevenueLens exposes three read-only checks so an AI agent or a CI job can verify
+Tartly exposes three read-only checks so an AI agent or a CI job can verify
 an installation without a browser. All three use a **website-scoped API key**;
 there is no account-wide token and no way to name another tenant's website.
 
@@ -26,9 +26,9 @@ payments API. The response never contains the key.
 ## CLI
 
 ```bash
-pnpm revenuelens verify   --api-key "$REVENUELENS_API_KEY"
-pnpm revenuelens events   --api-key "$REVENUELENS_API_KEY" --limit 10
-pnpm revenuelens diagnose --api-key "$REVENUELENS_API_KEY"
+pnpm tartly verify   --api-key "$REVENUELENS_API_KEY"
+pnpm tartly events   --api-key "$REVENUELENS_API_KEY" --limit 10
+pnpm tartly diagnose --api-key "$REVENUELENS_API_KEY"
 ```
 
 Add `--json` for machine-readable output. `diagnose` exits with status 1 when a
@@ -37,7 +37,7 @@ check fails. The origin defaults to `http://localhost:3000`; set
 
 ## MCP server
 
-`scripts/revenuelens-mcp.mjs` is a dependency-free stdio MCP server. It exposes:
+`scripts/tartly-mcp.mjs` is a dependency-free stdio MCP server. It exposes:
 
 - `verify_installation`
 - `list_recent_events`
@@ -48,11 +48,11 @@ Client configuration:
 ```json
 {
   "mcpServers": {
-    "revenuelens": {
+    "tartly": {
       "command": "node",
-      "args": ["scripts/revenuelens-mcp.mjs"],
+      "args": ["scripts/tartly-mcp.mjs"],
       "env": {
-        "REVENUELENS_URL": "https://revenuelens.app",
+        "REVENUELENS_URL": "https://tartly.app",
         "REVENUELENS_API_KEY": "<website-api-key>"
       }
     }

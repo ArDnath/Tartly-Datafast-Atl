@@ -5,16 +5,27 @@ import { useState } from 'react';
 import { BrandWordmark } from '@/components/brand/BrandMark';
 import { BRAND } from '@/lib/brand';
 import {
+  DEFAULT_TRAFFIC_TIER_INDEX,
+  FREE_TRIAL_DAYS,
+  FREE_TRIAL_EVENTS,
+  FREE_TRIAL_WEBSITES,
+  formatTrafficEvents,
+  formatUsd,
+  getPlan,
+  getTrafficAnnualCents,
+  getTrafficDisplayPriceCents,
+  getTrafficEvents,
+  getTrafficPriceCents,
+  getTrafficTier,
   PLANS,
   type Plan,
-  formatMonthlyPrice,
-  formatUsd,
-  annualSavingsCents,
-  getPlan,
+  TRAFFIC_TIERS,
 } from '@/lib/plans';
 import styles from './Pricing.module.css';
 
 type Billing = 'monthly' | 'annual';
+
+const SLIDER_LABELS = [0, 2, 3, 5, TRAFFIC_TIERS.length - 1];
 
 function Check() {
   return (
@@ -31,15 +42,15 @@ function Check() {
   );
 }
 
-function featureList(plan: Plan, billing: Billing) {
+function featureList(plan: Plan, events: number, billing: Billing) {
   const items = [
+    `${events.toLocaleString('en-US')} events / month`,
     `${plan.websiteLimit} website${plan.websiteLimit === 1 ? '' : 's'}`,
-    `${plan.eventsPerMonth.toLocaleString('en-US')} events / month`,
     `${plan.retentionDays}-day analytics retention`,
     `${plan.memberLimit} team member${plan.memberLimit === 1 ? '' : 's'}`,
     plan.replaySessionsPerMonth
       ? `${plan.replaySessionsPerMonth.toLocaleString('en-US')} replays / month`
-      : 'Session replay not included',
+      : 'Session replay available on Pro',
     plan.paymentConnectionLimit === null
       ? 'Unlimited payment connections'
       : `${plan.paymentConnectionLimit} payment connection`,
@@ -70,12 +81,15 @@ function featureList(plan: Plan, billing: Billing) {
 
 export function PricingPage() {
   const [billing, setBilling] = useState<Billing>('monthly');
+  const [tierIndex, setTierIndex] = useState(DEFAULT_TRAFFIC_TIER_INDEX);
+  const tier = getTrafficTier(tierIndex);
+  const sliderPercent = (tierIndex / (TRAFFIC_TIERS.length - 1)) * 100;
 
   return (
     <main className={styles.page}>
       <header className={styles.nav}>
         <Link href="/" className={styles.brandLink} aria-label={BRAND.name}>
-          <BrandWordmark />
+          <BrandWordmark gradient={false} />
         </Link>
         <nav className={styles.navLinks} aria-label="Main">
           <a href="#plans">Pricing</a>
@@ -88,12 +102,49 @@ export function PricingPage() {
       </header>
 
       <section className={styles.hero}>
-        <p className={styles.eyebrow}>Two plans. No free tier.</p>
-        <h1 className={styles.title}>Revenue analytics for the price of a coffee.</h1>
+        <p className={styles.eyebrow}>Two plans. A {FREE_TRIAL_DAYS}-day free trial.</p>
+        <h1 className={styles.title}>Revenue analytics that grows with your traffic.</h1>
         <p className={styles.subtitle}>
-          {BRAND.promise} Every plan includes first- and last-touch attribution, funnels, and
-          exports. No per-seat surprises, no unlimited promise we cannot keep.
+          Start free with {FREE_TRIAL_EVENTS.toLocaleString('en-US')} events and{' '}
+          {FREE_TRIAL_WEBSITES} website. Move the traffic slider to see the event allowance and
+          price for each plan. No per-seat surprises.
         </p>
+
+        <div className={styles.trafficPanel}>
+          <div className={styles.trafficHead}>
+            <div>
+              <p className={styles.trafficLabel}>Monthly traffic</p>
+              <p className={styles.trafficValue}>
+                Starter {formatTrafficEvents(tier.starterEventsPerMonth)} · Pro{' '}
+                {formatTrafficEvents(tier.proEventsPerMonth)} events
+              </p>
+            </div>
+            <span className={styles.trafficPill}>
+              Up to {formatTrafficEvents(tier.starterEventsPerMonth)} events / month
+            </span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={TRAFFIC_TIERS.length - 1}
+            step={1}
+            value={tierIndex}
+            onChange={event => setTierIndex(Number(event.target.value))}
+            aria-label="Monthly traffic"
+            aria-valuetext={`${tier.starterEventsPerMonth.toLocaleString('en-US')} Starter events, ${tier.proEventsPerMonth.toLocaleString('en-US')} Pro events`}
+            className={styles.range}
+            style={{
+              background: `linear-gradient(to right, #1f2937 0%, #1f2937 ${sliderPercent}%, #e5e7eb ${sliderPercent}%, #e5e7eb 100%)`,
+            }}
+          />
+          <div className={styles.rangeLabels}>
+            {SLIDER_LABELS.map(index => (
+              <span key={index}>
+                {formatTrafficEvents(getTrafficTier(index).starterEventsPerMonth)}
+              </span>
+            ))}
+          </div>
+        </div>
 
         <div className={styles.billingToggle} role="group" aria-label="Billing period">
           <button
@@ -113,14 +164,23 @@ export function PricingPage() {
             Yearly <span className={styles.toggleNote}>2 months free</span>
           </button>
         </div>
+
+        <div className={styles.trialNote}>
+          <span>
+            <strong>{FREE_TRIAL_DAYS}-day free trial included.</strong>{' '}
+            {FREE_TRIAL_EVENTS.toLocaleString('en-US')} events and {FREE_TRIAL_WEBSITES} website, no
+            card required.
+          </span>
+          <Link href="/signup?trial=1">Start free trial →</Link>
+        </div>
       </section>
 
       <section className={styles.plans} id="plans" aria-label="Plans">
         {PLANS.map(plan => {
-          const price =
-            billing === 'monthly'
-              ? formatMonthlyPrice(plan)
-              : formatUsd(Math.round(plan.annualPriceCents / 12));
+          const events = getTrafficEvents(plan.id, tierIndex);
+          const price = getTrafficDisplayPriceCents(plan.id, tierIndex, billing);
+          const monthly = getTrafficPriceCents(plan.id, tierIndex);
+          const annual = getTrafficAnnualCents(plan.id, tierIndex);
 
           return (
             <article
@@ -137,26 +197,24 @@ export function PricingPage() {
               </div>
 
               <div className={styles.priceRow}>
-                <span className={styles.price}>{price}</span>
+                <span className={styles.price}>{formatUsd(price)}</span>
                 <span className={styles.period}>/ month</span>
               </div>
               <p className={styles.billingNote}>
                 {billing === 'monthly'
                   ? 'Billed monthly. Cancel any time.'
-                  : `Billed ${formatUsd(plan.annualPriceCents)} yearly — you save ${formatUsd(
-                      annualSavingsCents(plan),
-                    )}.`}
+                  : `Billed ${formatUsd(annual)} yearly — you save ${formatUsd(monthly * 2)}.`}
               </p>
 
               <Link
-                href={`/login?returnUrl=${encodeURIComponent(`/app?plan=${plan.id}`)}`}
+                href={`/signup?plan=${plan.id}&events=${events}`}
                 className={plan.highlight ? styles.ctaPrimary : styles.ctaSecondary}
               >
-                Start with {plan.name}
+                Start {FREE_TRIAL_DAYS}-day free trial
               </Link>
 
               <ul className={styles.features}>
-                {featureList(plan, billing).map(item => (
+                {featureList(plan, events, billing).map(item => (
                   <li key={item}>
                     <Check />
                     <span>{item}</span>
@@ -188,12 +246,12 @@ export function PricingPage() {
           </p>
         </div>
         <div>
-          <h2>Why no free plan?</h2>
+          <h2>How does the free trial work?</h2>
           <p>
-            A free plan would be paid for by the customers who do pay. Two honest paid plans keep
-            the product and the price sustainable. A new workspace gets a one-time setup allowance
-            (1,000 events) to verify the tracker before checkout; after that, ingestion pauses until
-            you subscribe. It is not a free tier. You can cancel at the end of any period.
+            Every new workspace gets {FREE_TRIAL_DAYS} days with{' '}
+            {FREE_TRIAL_EVENTS.toLocaleString('en-US')} events and {FREE_TRIAL_WEBSITES} website. No
+            card is required and the trial does not renew. When it ends, pick the traffic tier that
+            fits and keep the reports you already built.
           </p>
         </div>
       </section>
@@ -203,15 +261,26 @@ export function PricingPage() {
         <details>
           <summary>Do I need a credit card to start?</summary>
           <p>
-            You can create a workspace and verify the tracker before paying. The one-time setup
-            allowance is 1,000 events; continued ingestion requires Starter or Pro.
+            No. The {FREE_TRIAL_DAYS}-day trial includes {FREE_TRIAL_EVENTS.toLocaleString('en-US')}{' '}
+            events and {FREE_TRIAL_WEBSITES} website. Add a payment method only when you choose
+            Starter or Pro.
           </p>
         </details>
         <details>
           <summary>Can I change plans?</summary>
           <p>
-            Yes. Upgrades take effect immediately and downgrades at the end of the paid period.
-            {` `}Plan data lives in one config, so the limits you see are the limits enforced.
+            Yes. Upgrades take effect immediately and downgrades at the end of the paid period. Plan
+            data lives in one config, so the limits you see are the limits enforced.
+          </p>
+        </details>
+        <details>
+          <summary>What happens when my traffic grows?</summary>
+          <p>
+            Move the traffic slider to the tier you need. Starter scales to{' '}
+            {formatTrafficEvents(TRAFFIC_TIERS[TRAFFIC_TIERS.length - 1].starterEventsPerMonth)}{' '}
+            events and Pro scales to{' '}
+            {formatTrafficEvents(TRAFFIC_TIERS[TRAFFIC_TIERS.length - 1].proEventsPerMonth)} events
+            per month.
           </p>
         </details>
         <details>
@@ -232,7 +301,7 @@ export function PricingPage() {
       </section>
 
       <footer className={styles.footer}>
-        <BrandWordmark size={24} />
+        <BrandWordmark size={24} gradient={false} />
         <p>{BRAND.tagline}. Independent product, built on an MIT-licensed analytics core.</p>
         <div className={styles.footerLinks}>
           <a href={`mailto:${BRAND.supportEmail}`}>Support</a>

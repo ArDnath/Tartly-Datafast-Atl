@@ -5,8 +5,9 @@ human action. No launch claim is allowed without a stored result.
 
 ## Product and plans
 
-- [x] Exactly two paid plans, no free tier: Starter $7.99/1 website, Pro
-      $14.99/20 websites (`src/lib/plans.ts`, tests).
+- [x] Two paid plans plus a 7-day free trial: Free trial 2,000 events/1
+      website, Starter $7.99/100k events/1 website, Pro $14.99/1M events/50
+      websites (`src/lib/plans.ts`, tests).
 - [x] Plan limits enforced server-side; no hardcoded limits in components.
 - [x] Landing, pricing, docs, legal, login, signup reachable.
 - [x] Onboarding: welcome → workspace → website → install → verify → payments →
@@ -104,15 +105,23 @@ human action. No launch claim is allowed without a stored result.
 
 ## Deployment and CI
 
-- [x] CI: install, Prisma, lint, typecheck, tests, PostgreSQL analytics smoke,
-      critical audit, production build.
+- [x] CI: install, Prisma, lint, typecheck, coverage-enforced tests,
+      PostgreSQL analytics smoke, high-severity production audit, production
+      build (`docs/CI_CD.md`).
+- [x] Security CI: gitleaks history scan, CodeQL extended/quality queries,
+      dependency review, Trivy filesystem and container scans, SARIF upload.
+- [x] Deployment pipeline with immutable SHA tag, direct-URL migrations,
+      readiness gate, and automatic rollback (`deploy/production/deploy.sh`).
 - [x] Multi-stage Docker image, non-root user, health check, compose stack.
 - [x] Environment reference and Neon branching guide.
 - [x] Runbook, backup/recovery, secrets rotation.
 - [ ] Hosting account, domain/DNS, TLS, custom tracker domain.
       **UNVERIFIED**: owner action.
 - [ ] Production environment variables and first deploy.
-      **UNVERIFIED**: owner action.
+      **UNVERIFIED**: needs the VPS host key to be authorized for
+      `~/.ssh/tartly_ci`, then the `production` environment secrets
+      (`DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`),
+      `APP_URL`, and `DEPLOY_ENABLED=true` (`docs/CI_CD.md`).
 
 ## Go-to-market
 

@@ -2,8 +2,8 @@
 
 ## From Plausible
 
-1. Add your site in RevenueLens and install the new snippet.
-2. Run both trackers for one week. RevenueLens accepts a `data-domain`-style
+1. Add your site in Tartly and install the new snippet.
+2. Run both trackers for one week. Tartly accepts a `data-domain`-style
    hostname, but use its own `data-website-id`.
 3. Import historical pageviews with the Plausible importer in website settings
    (CSV export from Plausible).
@@ -31,7 +31,7 @@ invent matches.
 
 1. Export events from Umami Cloud/self-hosted.
 2. Use the Umami importer; it accepts the standard CSV/JSON export shape.
-3. Install the RevenueLens tracker.
+3. Install the Tartly tracker.
 4. Recreate goals, funnels, and segments. Umami's saved reports do not transfer
    automatically.
 5. Connect payments and verify the first attributed event.
@@ -50,16 +50,16 @@ invent matches.
 DataFast is the closest revenue-first competitor. Do not promise an automatic
 import. Current plan:
 
-1. Install RevenueLens in parallel.
+1. Install Tartly in parallel.
 2. Import pageview CSVs if exported.
 3. Reconnect the same payment provider; historical payment rows are imported by
    the provider connection when supported.
 4. Compare a full week of revenue before switching.
-5. Keep DataFast until the first RevenueLens-attributed payment is verified.
+5. Keep DataFast until the first Tartly-attributed payment is verified.
 
 ## From Talivia (self-hosted or Cloud)
 
-1. The RevenueLens importer accepts the Talivia export format
+1. The Tartly importer accepts the Talivia export format
    (`/api/websites/[websiteId]/imports/talivia`).
 2. Website IDs and tracking IDs are preserved by the import path where possible.
 3. Payment connections must be re-authorized because provider credentials are

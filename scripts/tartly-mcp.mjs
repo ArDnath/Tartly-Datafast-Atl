@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 /**
- * RevenueLens MCP server (stdio, no dependencies).
+ * Tartly MCP server (stdio, no dependencies).
  *
  * Configure it in an MCP client:
  *
  *   {
  *     "mcpServers": {
- *       "revenuelens": {
+ *       "tartly": {
  *         "command": "node",
- *         "args": ["scripts/revenuelens-mcp.mjs"],
+ *         "args": ["scripts/tartly-mcp.mjs"],
  *         "env": {
- *           "REVENUELENS_URL": "http://localhost:3000",
- *           "REVENUELENS_API_KEY": "…"
+ *           "TARTLY_URL": "http://localhost:3000",
+ *           "TARTLY_API_KEY": "…"
  *         }
  *       }
  *     }
@@ -53,11 +53,11 @@ const TOOLS = [
 ];
 
 function config() {
-  const apiKey = (process.env.REVENUELENS_API_KEY || '').trim();
-  const url = (process.env.REVENUELENS_URL || DEFAULT_URL).replace(/\/$/, '');
+  const apiKey = (process.env.TARTLY_API_KEY || '').trim();
+  const url = (process.env.TARTLY_URL || DEFAULT_URL).replace(/\/$/, '');
 
   if (!apiKey) {
-    throw new Error('REVENUELENS_API_KEY is required.');
+    throw new Error('TARTLY_API_KEY is required.');
   }
 
   return { apiKey, url };
@@ -109,7 +109,7 @@ async function handle(message) {
     return reply(id, {
       protocolVersion: PROTOCOL_VERSION,
       capabilities: { tools: {} },
-      serverInfo: { name: 'revenuelens', version: '1.0.0' },
+      serverInfo: { name: 'tartly', version: '1.0.0' },
     });
   }
 

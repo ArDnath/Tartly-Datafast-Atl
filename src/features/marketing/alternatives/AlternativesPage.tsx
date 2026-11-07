@@ -1,15 +1,15 @@
 import Link from 'next/link';
 import { BrandWordmark } from '@/components/brand/BrandMark';
 import { BRAND } from '@/lib/brand';
-import { ALTERNATIVES, PRICE_COMPARISON, getAlternative } from './alternatives-content';
-import styles from '../Landing.module.css';
+import styles from './Alternatives.module.css';
+import { ALTERNATIVES, getAlternative, PRICE_COMPARISON } from './alternatives-content';
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className={styles.page}>
       <header className={styles.nav}>
         <Link href="/" className={styles.brandLink} aria-label={BRAND.name}>
-          <BrandWordmark />
+          <BrandWordmark gradient={false} />
         </Link>
         <nav className={styles.navLinks} aria-label="Main">
           <Link href="/pricing">Pricing</Link>

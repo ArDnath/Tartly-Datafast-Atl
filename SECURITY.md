@@ -13,7 +13,7 @@ reproduction steps, and any suggested mitigation.
 - Serve authentication over HTTPS so the `Secure` session cookie is enforced.
 - Generate a long, random `APP_SECRET`, store it outside source control, and do not rotate it
   without a provider-secret migration plan.
-- Serve RevenueLens behind HTTPS and forward the original `Host` and protocol headers to the app.
+- Serve Tartly behind HTTPS and forward the original `Host` and protocol headers to the app.
 - Restrict PostgreSQL and optional Redis, ClickHouse, and Kafka services to private networks.
 - Keep the container image, database, and reverse proxy patched.
 - Back up the database and test restores regularly.

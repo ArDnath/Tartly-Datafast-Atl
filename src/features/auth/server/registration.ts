@@ -34,8 +34,8 @@ export interface RegisteredAccount {
  * user or workspace behind.
  *
  * Plan status is `incomplete` until platform billing confirms a subscription
- * (Phase 5). This is not a free tier: setup is allowed, paid entitlements are
- * not.
+ * (Phase 5). The workspace starts its 7-day free trial: trial limits apply and
+ * paid entitlements do not.
  */
 export async function registerAccount({
   username,

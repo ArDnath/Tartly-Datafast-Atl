@@ -2,8 +2,8 @@
 
 ## One sentence
 
-**RevenueLens shows indie SaaS founders which traffic sources actually produce
-paying customers, for $7.99/month.**
+**Tartly shows indie SaaS founders which traffic sources actually produce
+paying customers, starting at $7.99/month after a 7-day free trial.**
 
 ## Who it is for
 
@@ -39,8 +39,9 @@ for teams with a marketing budget.
   OS, screen, referrers, landing/exit pages, UTM, goals, funnels, retention,
   cohorts, realtime, and session replay (Pro).
 - Stripe, Dodo Payments, Lemon Squeezy, Polar, Yolfi, and a manual payment API.
-- Two plans: Starter $7.99/month (1 website) and Pro $14.99/month (up to 20).
-- No free tier. No invented invoices. No fake customer counts.
+- Two plans: Starter $7.99/month (1 website, 100k events) and Pro $14.99/month
+  (up to 50 websites, 1M events), both with a 7-day free trial.
+- No invented invoices. No fake customer counts.
 
 ## Message hierarchy
 
@@ -48,9 +49,9 @@ for teams with a marketing budget.
 | --- | --- |
 | Hero | Know which traffic makes money. |
 | Subhead | Connect your site and your payments. See revenue by channel in minutes. |
-| Primary CTA | Start with Starter — $7.99/month |
+| Primary CTA | Start your 7-day free trial |
 | Secondary CTA | See the live demo |
-| Objection handler | No free tier, but no annual lock-in and no per-seat tax. Cancel at the end of the paid period. |
+| Objection handler | 2,000 events and 1 website free for 7 days, no card. Then $7.99/month. No annual lock-in and no per-seat tax. |
 | Trust | MIT-licensed foundation, first-touch and last-touch attribution, your data stays in your workspace. |
 
 ## Words to avoid
@@ -66,14 +67,15 @@ for teams with a marketing budget.
 
 ## Pricing narrative
 
-Two plans, deliberately narrow:
+Two plans, deliberately narrow, plus one trial:
 
-- **Starter $7.99** — one website, the full revenue loop, for a founder proving
-  the first channel.
-- **Pro $14.99** — up to 20 websites, replay, longer retention, for a small team
-  or agency.
+- **Free trial** — 7 days, 2,000 events, 1 website, no card.
+- **Starter $7.99** — one website, 100k events, the full revenue loop, for a
+  founder proving the first channel.
+- **Pro $14.99** — up to 50 websites, 1M events, replay, longer retention, for a
+  small team or agency.
 
-The price is below Plausible Starter ($9), Fathom's entry plan ($15), Simple
-Analytics ($20), and Umami Pro ($20) as displayed on 2026-11-06. Limits differ;
-compare the plan table, not the headline only. DataFast's public price could not
-be verified without JavaScript rendering on 2026-11-06, so do not quote it.
+The entry price is below DataFast Starter ($9), Plausible Starter ($9), Fathom's
+entry plan ($15), Simple Analytics ($20), and Umami Pro ($20) as displayed on
+2026-11-07, while the entry plan includes more events than DataFast's 10k.
+Limits differ; compare the plan table, not the headline only.

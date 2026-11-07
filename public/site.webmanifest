@@ -1,23 +1,25 @@
 {
-  "name": "RevenueLens",
-  "short_name": "RevenueLens",
+  "name": "Tartly",
+  "short_name": "Tartly",
+  "description": "Revenue-first analytics for indie SaaS founders.",
   "icons": [
     {
-      "src": "/favicon.svg?v=20260625",
+      "src": "/favicon.svg?v=20261106",
       "sizes": "any",
       "type": "image/svg+xml"
     },
     {
-      "src": "/android-chrome-192x192.png?v=20260625",
+      "src": "/android-chrome-192x192.png?v=20261106",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/android-chrome-512x512.png?v=20260625",
+      "src": "/android-chrome-512x512.png?v=20261106",
       "sizes": "512x512",
       "type": "image/png"
     }
   ],
-  "background_color": "#0d0d0d",
+  "background_color": "#1b1b1b",
+  "theme_color": "#1b1b1b",
   "display": "standalone"
 }

@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-RevenueLens is a fork of **Talivia** (<https://github.com/talivia-group/talivia>),
+Tartly is a fork of **Talivia** (<https://github.com/talivia-group/talivia>),
 licensed under the MIT License. The original `LICENSE` file is kept intact.
 
 ## Talivia

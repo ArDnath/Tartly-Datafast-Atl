@@ -154,7 +154,8 @@ export function OnboardingFlow() {
     };
   }, [apiGet, authLoading, router, user]);
 
-  // The welcome moment mirrors Tartly: hold the wordmark for a beat, then
+  // The welcome moment mirrors the sibling design reference: hold the
+  // wordmark for a beat, then
   // hand off to the first step. A click or reduced motion skips the hold.
   useEffect(() => {
     if (step !== 'welcome' || !ready) return;
@@ -585,7 +586,7 @@ export function OnboardingFlow() {
                     {verifyState?.installed
                       ? `${verifyState.eventCount.toLocaleString('en-US')} event${
                           verifyState.eventCount === 1 ? '' : 's'
-                        } received${verifyState.lastEventAt ? ` · last at ${new Date(verifyState.lastEventAt).toLocaleTimeString()}` : ''}`
+                        } received${verifyState.lastEventAt ? ` · last at ${new Date(verifyState.lastEventAt).toLocaleTimeString('en-US')}` : ''}`
                       : 'Nothing has arrived yet. This is normal if you just deployed the script.'}
                   </p>
                 </div>

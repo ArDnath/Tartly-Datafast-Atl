@@ -1,9 +1,9 @@
 'use client';
 import { Column, Tab, TabList, TabPanel, Tabs } from '@talivia/react-zen';
-import { type Key, useState } from 'react';
+import type { Key } from 'react';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { Panel } from '@/components/common/Panel';
-import { useDateRange, useMessages } from '@/components/hooks';
+import { useDateRange, useMessages, useStoredState } from '@/components/hooks';
 import { EventsChart } from '@/features/analytics/components/metrics/EventsChart';
 import { MetricCard } from '@/features/analytics/components/metrics/MetricCard';
 import { MetricsBar } from '@/features/analytics/components/metrics/MetricsBar';
@@ -11,14 +11,13 @@ import { MetricsTable } from '@/features/analytics/components/metrics/MetricsTab
 import { useEventStatsQuery } from '@/features/analytics/hooks/useEventStatsQuery';
 import { WebsiteControls } from '@/features/analytics/workbench/WebsiteControls';
 import { formatLongNumber } from '@/lib/format';
-import { getItem, setItem } from '@/lib/storage';
 import { EventProperties } from './EventProperties';
 import { EventsDataTable } from './EventsDataTable';
 
 const KEY_NAME = 'talivia.events.tab';
 
 export function EventsPage({ websiteId }) {
-  const [tab, setTab] = useState(getItem(KEY_NAME) || 'chart');
+  const [tab, setTab] = useStoredState(KEY_NAME, 'chart');
   const { isAllTime } = useDateRange();
   const { t, labels, getErrorMessage } = useMessages();
   const { data, isLoading, isFetching, error } = useEventStatsQuery({
@@ -26,8 +25,7 @@ export function EventsPage({ websiteId }) {
   });
 
   const handleSelect = (value: Key) => {
-    setItem(KEY_NAME, value);
-    setTab(value);
+    setTab(value.toString());
   };
 
   const { events, visitors, visits, uniqueEvents, comparison } = data || {};

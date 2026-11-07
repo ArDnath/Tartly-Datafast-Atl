@@ -116,7 +116,7 @@ function ImportCard({
       await importsQuery.refetch();
       toast(
         result.data.importedMetricCount
-          ? `Imported ${result.data.importedMetricCount.toLocaleString()} historical metrics.`
+          ? `Imported ${result.data.importedMetricCount.toLocaleString('en-US')} historical metrics.`
           : `Imported ${result.data.importedEventCount || 0} events.`,
       );
     } catch (error: any) {
@@ -151,8 +151,8 @@ function ImportCard({
           <strong>{analyticsImport.fileName}</strong>
           <span>
             {analyticsImport.kind === 'aggregate'
-              ? `${Number(analyticsImport.importedMetricCount || 0).toLocaleString()} historical metrics imported.`
-              : `${analyticsImport.importedSessionCount.toLocaleString()} sessions, ${analyticsImport.importedEventCount.toLocaleString()} events, and ${analyticsImport.importedEventDataCount.toLocaleString()} properties imported.`}
+              ? `${Number(analyticsImport.importedMetricCount || 0).toLocaleString('en-US')} historical metrics imported.`
+              : `${analyticsImport.importedSessionCount.toLocaleString('en-US')} sessions, ${analyticsImport.importedEventCount.toLocaleString('en-US')} events, and ${analyticsImport.importedEventDataCount.toLocaleString('en-US')} properties imported.`}
           </span>
           <span>
             {`Completed ${
