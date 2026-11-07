@@ -34,11 +34,13 @@
   **67.6% statements / 55.6% branches / 63.4% functions / 68.0% lines**, plus
   the explicit 48-assertion PostgreSQL analytics smoke and the recorded load
   probe.
-- GitHub CI: the next branch push runs the new three-job pipeline. It starts
-  PostgreSQL 17, runs format, lint, typecheck, coverage tests, a clean
-  production dependency audit, `prisma migrate deploy`, the Phase 7 analytics
-  smoke, and `pnpm build`, then runs gitleaks, CodeQL, dependency review,
-  Trivy filesystem and container scans.
+- GitHub CI: **green on `main`** for the merged launch PR (#20, squash
+  `e20172d`, run 42387625857). The three-job pipeline starts PostgreSQL 17,
+  runs format, lint, typecheck, coverage tests, a clean production dependency
+  audit, `prisma migrate deploy`, the Phase 7 analytics smoke, and `pnpm build`,
+  then runs gitleaks, CodeQL, dependency review, and Trivy filesystem/container
+  scans. The first `Deploy production` run (42388368969) was **skipped**
+  because `DEPLOY_ENABLED` is not set.
 - Delivery history: six phase branches delivered through pull requests #1–#6;
   the next slices follow the same feature-branch → PR → merge loop.
 - Runtime smoke: the public docs routes return 200, and `/app/settings`,
@@ -154,6 +156,10 @@ shutdown or destructive action should be taken based on this tracker.
   4. set `APP_URL=https://tartly.in` and `DEPLOY_ENABLED=true`;
   5. run `gh workflow run deploy.yml -f sha=<merged-main-sha>` and confirm
      `/api/health/ready` returns 200.
+- **Merged:** PR #20 was squashed to `e20172d` on 2026-11-07. Branch CI passed
+  all three jobs, main CI run 42387625857 passed, and the deploy workflow
+  skipped cleanly instead of failing on missing credentials. Dependabot is now
+  active for npm, GitHub Actions, and Docker updates.
 
 ## Commercial contract (fixed by owner)
 
