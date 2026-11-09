@@ -5,7 +5,7 @@
   (public, `origin`; default branch `main`)
 - **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
   forked locally at `/home/ariyaman/Dev/fight/efforts/revenuelens`
-- **Last updated:** 2026-11-07
+- **Last updated:** 2026-11-09
 - **Current phase:** Phases 10, 11, and 12 are implemented. A real local
   ingestion run (10,000 events, 50 concurrent clients, 157 req/s, p95 412 ms,
   0 errors) is recorded in `docs/LOAD_TEST.md`, and the run exposed and fixed a
@@ -80,6 +80,33 @@ code:
 
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
+
+## 2026-11-09 — Google-only sign-in
+
+- `/login` is now a centered authentication canvas with a larger Tartly
+  lockup (72 px mark + wordmark) above one **Continue with Google** action.
+  The username/password fields and signup/password links are removed from the
+  login surface.
+- Added the full Google OAuth redirect flow:
+  `GET /api/auth/google` → Google consent → `GET /api/auth/google/callback`.
+  The state value is signed and encrypted into an HttpOnly, SameSite=Lax,
+  path-scoped cookie and compared in constant time.
+- The callback exchanges the code, requires `email_verified: true` from
+  Google's OpenID userinfo endpoint, links a matching normalized email to the
+  Google subject, or creates the user + personal workspace + OWNER membership
+  in one transaction. Deleted and suspended accounts are rejected.
+- Migration `20261109120000_google_oauth`: nullable `user.password` and unique
+  `user.google_id`. Existing password accounts keep working and can be linked
+  on their first Google sign-in.
+- Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and (optionally)
+  `GOOGLE_REDIRECT_URI`; register
+  `https://tartly.in/api/auth/google/callback` in Google Cloud Console. Setup
+  details are in `docs/GOOGLE_OAUTH.md`.
+- Tests cover the consent URL/state round-trip, tamper rejection, token and
+  profile failures, unverified email rejection, account linking/creation,
+  race handling, callback state rejection, rate limiting, and the Google-only
+  login surface. Live Google credentials are **UNVERIFIED** in this checkout;
+  the human must create the OAuth client and add the redirect URI above.
 
 ## 2026-11-07 — Pricing, trial, and landing update
 

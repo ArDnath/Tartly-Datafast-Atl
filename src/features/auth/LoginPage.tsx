@@ -29,14 +29,17 @@ export function LoginPage() {
 
   return (
     <Column
-      className="talivia-auth-shell"
+      className="talivia-auth-shell talivia-auth-centered"
       alignItems="center"
-      justifyContent="flex-start"
+      justifyContent="center"
       height="100vh"
       backgroundColor="surface-raised"
-      style={{ paddingTop: '15vh' }}
     >
-      <LoginForm returnUrl={returnUrl} initialError={configurationError} />
+      <LoginForm
+        returnUrl={returnUrl}
+        initialError={configurationError}
+        errorCode={searchParams.get('error')}
+      />
     </Column>
   );
 }

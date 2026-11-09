@@ -1,34 +1,40 @@
-import { beforeEach, expect, test, vi } from 'vitest';
-import { APP_SECRET_CONFIGURATION_ERROR_CODE } from '@/lib/app-config';
+import { expect, test } from 'vitest';
 import { render, screen } from '@/test/render';
 import { LoginForm } from './LoginForm';
 
-const queryState = vi.hoisted(() => ({
-  error: undefined as Error | undefined,
-  isPending: false,
-  mutateAsync: vi.fn(),
-}));
+test('shows the larger Tartly lockup above a single Google sign-in action', () => {
+  render(<LoginForm returnUrl="/app/revenue" />);
 
-vi.mock('@/components/hooks', async () => {
-  const actual = await vi.importActual<any>('@/components/hooks');
+  const logo = screen.getByRole('img', { name: 'Tartly' });
+  expect(logo).toHaveAttribute('width', '72');
+  expect(logo).toHaveAttribute('height', '72');
+  expect(screen.getByText('Tartly')).toBeInTheDocument();
 
-  return {
-    ...actual,
-    useUpdateQuery: () => queryState,
-  };
+  const button = screen.getByRole('link', { name: 'Continue with Google' });
+  expect(button).toHaveAttribute('href', '/api/auth/google?returnUrl=%2Fapp%2Frevenue');
+  expect(screen.queryByLabelText('Username')).not.toBeInTheDocument();
+  expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
 });
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  queryState.error = undefined;
-  queryState.mutateAsync.mockResolvedValue({
-    token: 'signed-token',
-  });
+test('sanitizes a return URL that points away from the app', () => {
+  render(<LoginForm returnUrl="https://evil.example/phish" />);
+
+  expect(screen.getByRole('link', { name: 'Continue with Google' })).toHaveAttribute(
+    'href',
+    '/api/auth/google?returnUrl=%2Fapp',
+  );
+});
+
+test('shows a readable message when Google sign-in is cancelled', () => {
+  render(<LoginForm errorCode="access-denied" />);
+
+  expect(screen.getByRole('alert')).toHaveTextContent('Google sign-in was cancelled.');
 });
 
 test('shows the APP_SECRET setup instruction returned by the API', () => {
   const error = Object.assign(new Error('Server error'), {
-    code: APP_SECRET_CONFIGURATION_ERROR_CODE,
+    message:
+      'Tartly setup is incomplete: set APP_SECRET in .env to a random value of at least 32 bytes, then restart Tartly.',
   });
 
   render(<LoginForm initialError={error} />);
@@ -38,29 +44,4 @@ test('shows the APP_SECRET setup instruction returned by the API', () => {
       'Tartly setup is incomplete: set APP_SECRET in .env to a random value of at least 32 bytes, then restart Tartly.',
     ),
   ).toBeInTheDocument();
-});
-
-test('shows a readable invalid credentials error', () => {
-  queryState.error = Object.assign(new Error('Invalid credentials'), {
-    code: 'invalid-credentials',
-  });
-
-  render(<LoginForm />);
-
-  expect(screen.getByText('Invalid username or password.')).toBeInTheDocument();
-});
-
-test('consumes a rejected login mutation without navigating', async () => {
-  queryState.mutateAsync.mockRejectedValue(new Error('Invalid credentials'));
-  const { user } = render(<LoginForm />, { route: '/login' });
-
-  await user.type(screen.getByLabelText('Username'), 'admin');
-  await user.type(screen.getByLabelText('Password'), 'wrong-password');
-  await user.click(screen.getByRole('button', { name: 'Sign in' }));
-
-  expect(queryState.mutateAsync).toHaveBeenCalledWith({
-    username: 'admin',
-    password: 'wrong-password',
-  });
-  expect(window.location.pathname).toBe('/login');
 });

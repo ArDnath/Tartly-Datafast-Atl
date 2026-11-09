@@ -246,7 +246,8 @@ model WorkspaceInvitation {
 model User {
   id              String    @id() @map("user_id") @db.Uuid
   username        String    @unique @db.VarChar(255)
-  password        String    @db.VarChar(60)
+  password        String?   @db.VarChar(60)
+  googleId        String?   @unique @map("google_id") @db.VarChar(255)
   role            String    @map("role") @db.VarChar(50)
   logoUrl         String?   @map("logo_url") @db.VarChar(2183)
   displayName     String?   @map("display_name") @db.VarChar(255)
