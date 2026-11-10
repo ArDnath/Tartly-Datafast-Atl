@@ -35,26 +35,26 @@ covered by the repository license. `packages/` does not exist in this fork
 These are Talivia-branded and must be replaced (not merely recolored) before
 customer launch:
 
-| Asset | Path | Action |
-| --- | --- | --- |
-| Logo (dark) | `src/assets/logo.svg` | Replace with Tartly mark |
-| Logo (light) | `src/assets/logo-white.svg` | Replace |
-| SVG component | `src/components/svg/Logo.tsx`, `LogoWhite.tsx` | Replace source |
-| Favicon | `public/favicon.svg`, `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png` | Regenerate |
-| Touch icons | `public/apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`, `mstile-150x150.png`, `safari-pinned-tab.svg` | Regenerate |
-| Web manifest | `public/site.webmanifest` (`"name": "Talivia"`) | Rebrand |
-| Browser config | `public/browserconfig.xml` (`TileColor #da532c`) | Rebrand or remove |
-| Marketing screenshot | `public/talivia-gh-main.png` | Remove |
-| Social/README images | `README.md`, `README.zh-CN.md` | Replace or rewrite |
-| App name in metadata | `src/app/(main)/layout.tsx`, `src/app/(main)/app/**/layout.tsx` | Rebrand |
-| Wordmark in nav | `src/app/(main)/TopNav.tsx` | Rebrand |
-| Login heading | `src/app/login/LoginForm.tsx` | Rebrand |
-| Customer copy | 112 case-sensitive `Talivia` strings under `src/` (many are customer-facing settings copy in `WebsiteRevenueSettings.tsx`, `WebsiteData.tsx`, `WebsiteApiKeysSettings.tsx`) | Rewrite |
-| i18n messages | `public/intl/messages/*.json` | Rebrand |
-| Package name | `package.json` `"name": "talivia"` | Rename (safe; internal) |
-| Script names | `scripts/talivia-attribution-worker.ts` | Rename (internal) |
-| Import feature naming | `Talivia` backup/import labels (`src/lib/analytics-imports/`, `/api/websites/[id]/imports/talivia`) | Keep compatibility in code, rebrand UI copy only |
-| React UI dependency alias | `@talivia/react-zen` → `npm:@umami/react-zen@0.245.0` | Internal alias; may keep to avoid a mass rename, but do not present it as branding |
+| Asset                     | Path                                                                                                                                                                        | Action                                                                             |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Logo (dark)               | `src/assets/logo.svg`                                                                                                                                                       | Replace with Tartly mark                                                           |
+| Logo (light)              | `src/assets/logo-white.svg`                                                                                                                                                 | Replace                                                                            |
+| SVG component             | `src/components/svg/Logo.tsx`, `LogoWhite.tsx`                                                                                                                              | Replace source                                                                     |
+| Favicon                   | `public/favicon.svg`, `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`                                                                                               | Regenerate                                                                         |
+| Touch icons               | `public/apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`, `mstile-150x150.png`, `safari-pinned-tab.svg`                                    | Regenerate                                                                         |
+| Web manifest              | `public/site.webmanifest` (`"name": "Talivia"`)                                                                                                                             | Rebrand                                                                            |
+| Browser config            | `public/browserconfig.xml` (`TileColor #da532c`)                                                                                                                            | Rebrand or remove                                                                  |
+| Marketing screenshot      | `public/talivia-gh-main.png`                                                                                                                                                | Remove                                                                             |
+| Social/README images      | `README.md`, `README.zh-CN.md`                                                                                                                                              | Replace or rewrite                                                                 |
+| App name in metadata      | `src/app/(main)/layout.tsx`, `src/app/(main)/app/**/layout.tsx`                                                                                                             | Rebrand                                                                            |
+| Wordmark in nav           | `src/app/(main)/TopNav.tsx`                                                                                                                                                 | Rebrand                                                                            |
+| Login heading             | `src/app/login/LoginForm.tsx`                                                                                                                                               | Rebrand                                                                            |
+| Customer copy             | 112 case-sensitive `Talivia` strings under `src/` (many are customer-facing settings copy in `WebsiteRevenueSettings.tsx`, `WebsiteData.tsx`, `WebsiteApiKeysSettings.tsx`) | Rewrite                                                                            |
+| i18n messages             | `public/intl/messages/*.json`                                                                                                                                               | Rebrand                                                                            |
+| Package name              | `package.json` `"name": "talivia"`                                                                                                                                          | Rename (safe; internal)                                                            |
+| Script names              | `scripts/talivia-attribution-worker.ts`                                                                                                                                     | Rename (internal)                                                                  |
+| Import feature naming     | `Talivia` backup/import labels (`src/lib/analytics-imports/`, `/api/websites/[id]/imports/talivia`)                                                                         | Keep compatibility in code, rebrand UI copy only                                   |
+| React UI dependency alias | `@talivia/react-zen` → `npm:@umami/react-zen@0.245.0`                                                                                                                       | Internal alias; may keep to avoid a mass rename, but do not present it as branding |
 
 **Counts (verified 2026-11-04):**
 
@@ -86,34 +86,34 @@ tail of mixed licenses.
 
 ### Restrictive / must address
 
-| Package | Version | License | Use | Risk | Action |
-| --- | --- | --- | --- | --- | --- |
-| `ua-parser-js` | 2.0.9 | **AGPL-3.0-or-later** | User-agent parsing in `src/lib/detect.ts` (`getDevice`) | AGPL's network-use clause may require publishing the corresponding source of the hosted service, or a commercial license. | **Replace before launch.** The only use is `device.type`; either pin the last MIT v1 release (verify compatibility) or replace with a small device regex + `detect-browser` (both already MIT/available). Do not ship while unresolved. |
-| `@img/sharp-libvips-linux-x64` | 1.2.4 | LGPL-3.0-or-later | `sharp` image processing | Dynamic linking is generally acceptable for a SaaS; modifications to libvips would need release. | Keep; add notice; do not modify libvips. |
-| `lightningcss` (+ platform binaries) | — | MPL-2.0 | Build-time CSS transform | File-level copyleft; no distribution obligation for unmodified files. | Keep; add notice. |
-| `rollup-plugin-dts` | — | LGPL-3.0-only | Dev/build only | Not distributed. | Keep; dev-only. |
-| `jszip` | — | MIT OR GPL-3.0-or-later | Client-side zip | Choose MIT. | Keep. |
-| `caniuse-lite` | — | CC-BY-4.0 | Build data | Attribution required. | Add attribution notice. |
-| `@dicebear/*` collections | — | MIT AND CC-BY-4.0 | Generated avatars | CC-BY attribution required for the avatar artwork. | Add attribution; or replace avatars with a simple generated mark. |
-| `argparse` | — | Python-2.0 | Transitive (CLI tooling) | Permissive. | Keep. |
-| `pako` | — | MIT AND Zlib | Transitive | Permissive. | Keep. |
-| `@swc/core-*` | — | Apache-2.0 AND MIT | Next.js build | Permissive. | Keep. |
+| Package                              | Version | License                 | Use                                                     | Risk                                                                                                                      | Action                                                                                                                                                                                                                                  |
+| ------------------------------------ | ------- | ----------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ua-parser-js`                       | 2.0.9   | **AGPL-3.0-or-later**   | User-agent parsing in `src/lib/detect.ts` (`getDevice`) | AGPL's network-use clause may require publishing the corresponding source of the hosted service, or a commercial license. | **Replace before launch.** The only use is `device.type`; either pin the last MIT v1 release (verify compatibility) or replace with a small device regex + `detect-browser` (both already MIT/available). Do not ship while unresolved. |
+| `@img/sharp-libvips-linux-x64`       | 1.2.4   | LGPL-3.0-or-later       | `sharp` image processing                                | Dynamic linking is generally acceptable for a SaaS; modifications to libvips would need release.                          | Keep; add notice; do not modify libvips.                                                                                                                                                                                                |
+| `lightningcss` (+ platform binaries) | —       | MPL-2.0                 | Build-time CSS transform                                | File-level copyleft; no distribution obligation for unmodified files.                                                     | Keep; add notice.                                                                                                                                                                                                                       |
+| `rollup-plugin-dts`                  | —       | LGPL-3.0-only           | Dev/build only                                          | Not distributed.                                                                                                          | Keep; dev-only.                                                                                                                                                                                                                         |
+| `jszip`                              | —       | MIT OR GPL-3.0-or-later | Client-side zip                                         | Choose MIT.                                                                                                               | Keep.                                                                                                                                                                                                                                   |
+| `caniuse-lite`                       | —       | CC-BY-4.0               | Build data                                              | Attribution required.                                                                                                     | Add attribution notice.                                                                                                                                                                                                                 |
+| `@dicebear/*` collections            | —       | MIT AND CC-BY-4.0       | Generated avatars                                       | CC-BY attribution required for the avatar artwork.                                                                        | Add attribution; or replace avatars with a simple generated mark.                                                                                                                                                                       |
+| `argparse`                           | —       | Python-2.0              | Transitive (CLI tooling)                                | Permissive.                                                                                                               | Keep.                                                                                                                                                                                                                                   |
+| `pako`                               | —       | MIT AND Zlib            | Transitive                                              | Permissive.                                                                                                               | Keep.                                                                                                                                                                                                                                   |
+| `@swc/core-*`                        | —       | Apache-2.0 AND MIT      | Next.js build                                           | Permissive.                                                                                                               | Keep.                                                                                                                                                                                                                                   |
 
 ### Verified permissive (selected)
 
-| Package | License |
-| --- | --- |
-| `next`, `react`, `react-dom` | MIT |
-| `prisma`, `@prisma/client`, `@prisma/adapter-pg` | Apache-2.0 |
-| `@umami/react-zen` (aliased as `@talivia/react-zen`) | MIT |
-| `rrweb`, `rrweb-player` | MIT |
-| `maxmind` (client library) | MIT |
-| `detect-browser` | MIT |
-| `isbot` | Unlicense |
-| `dodopayments` | Apache-2.0 |
-| `stripe` | MIT |
-| `bcryptjs` | MIT (check version's license field; upstream is MIT) |
-| `redis`, `kafkajs`, `croner` | MIT |
+| Package                                              | License                                              |
+| ---------------------------------------------------- | ---------------------------------------------------- |
+| `next`, `react`, `react-dom`                         | MIT                                                  |
+| `prisma`, `@prisma/client`, `@prisma/adapter-pg`     | Apache-2.0                                           |
+| `@umami/react-zen` (aliased as `@talivia/react-zen`) | MIT                                                  |
+| `rrweb`, `rrweb-player`                              | MIT                                                  |
+| `maxmind` (client library)                           | MIT                                                  |
+| `detect-browser`                                     | MIT                                                  |
+| `isbot`                                              | Unlicense                                            |
+| `dodopayments`                                       | Apache-2.0                                           |
+| `stripe`                                             | MIT                                                  |
+| `bcryptjs`                                           | MIT (check version's license field; upstream is MIT) |
+| `redis`, `kafkajs`, `croner`                         | MIT                                                  |
 
 **Note:** this inventory covers direct + transitive packages installed at audit
 time. Re-run `pnpm licenses list` after dependency changes and in CI. It is not

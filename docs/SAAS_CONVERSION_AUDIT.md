@@ -13,22 +13,22 @@
 
 ## 1. Runtime and installed versions
 
-| Component | Version | Evidence |
-| --- | --- | --- |
-| Node.js | 24.13.0 | `node -v` |
-| pnpm | 10.10.0 | `pnpm -v`; `packageManager` in `package.json` |
-| Next.js | 16.2.6 | `package.json`; `node_modules/next/package.json` |
-| React / React DOM | 19.2.5 | `package.json` |
-| Prisma Client / CLI | 7.6.0 | `package.json`, `@prisma/client`, `prisma` |
-| TypeScript | 5.9.3 | `node_modules/typescript/package.json` |
-| PostgreSQL | 17 (local Docker baseline) | `docker-compose.yml` uses `postgres:17-alpine` |
-| ClickHouse client | `@clickhouse/client` ^1.18.2, **optional** | `package.json`, `src/lib/clickhouse.ts` |
-| Kafka client | `kafkajs` ^2.1.0, **optional** | `src/lib/kafka.ts` |
-| Redis client | `redis` ^4.5.1, **optional** | `src/lib/redis.ts` |
-| Bcrypt | `bcryptjs` ^3.0.2, cost 10 | `src/lib/password.ts` |
-| Dodo SDK | `dodopayments` ^2.42.2 | `package.json` |
-| Stripe SDK | `stripe` ^22.3.0 | `package.json` |
-| Session replay | `rrweb` + `rrweb-player` alpha | `package.json`, `src/recorder/` |
+| Component           | Version                                    | Evidence                                         |
+| ------------------- | ------------------------------------------ | ------------------------------------------------ |
+| Node.js             | 24.13.0                                    | `node -v`                                        |
+| pnpm                | 10.10.0                                    | `pnpm -v`; `packageManager` in `package.json`    |
+| Next.js             | 16.2.6                                     | `package.json`; `node_modules/next/package.json` |
+| React / React DOM   | 19.2.5                                     | `package.json`                                   |
+| Prisma Client / CLI | 7.6.0                                      | `package.json`, `@prisma/client`, `prisma`       |
+| TypeScript          | 5.9.3                                      | `node_modules/typescript/package.json`           |
+| PostgreSQL          | 17 (local Docker baseline)                 | `docker-compose.yml` uses `postgres:17-alpine`   |
+| ClickHouse client   | `@clickhouse/client` ^1.18.2, **optional** | `package.json`, `src/lib/clickhouse.ts`          |
+| Kafka client        | `kafkajs` ^2.1.0, **optional**             | `src/lib/kafka.ts`                               |
+| Redis client        | `redis` ^4.5.1, **optional**               | `src/lib/redis.ts`                               |
+| Bcrypt              | `bcryptjs` ^3.0.2, cost 10                 | `src/lib/password.ts`                            |
+| Dodo SDK            | `dodopayments` ^2.42.2                     | `package.json`                                   |
+| Stripe SDK          | `stripe` ^22.3.0                           | `package.json`                                   |
+| Session replay      | `rrweb` + `rrweb-player` alpha             | `package.json`, `src/recorder/`                  |
 
 The app is a Next.js App Router application (`src/app/`), built with webpack
 (`next build --webpack` in `package.json`) and emitted as a standalone server
@@ -129,47 +129,47 @@ All tenant data below is reachable through `website_id` (or through
 `workspace_id`**. Phase 2 must add one ownership path and Phase 3 must prove
 every path is scoped.
 
-| Model / table | Current tenancy link | Workspace link |
-| --- | --- | --- |
-| `Website` / `website` | `user_id`, `team_id` | **missing** |
-| `WebsiteImport` | `website_id` | missing |
-| `WebsiteHistoricalMetric` | `website_id` | missing |
-| `WebsiteEvent` | `website_id` (+ `session_id`) | missing |
-| `EventData` | `website_id`, `website_event_id` | missing |
-| `Session` | `website_id` | missing |
-| `SessionData` | `website_id`, `session_id` | missing |
-| `Visitor` | `website_id` | missing |
-| `CustomerIdentity` | `website_id` | missing |
-| `VisitorIdentityLink` | `website_id` | missing |
-| `Revenue` | `website_id`, `session_id` | missing |
-| `Segment` | `website_id` | missing |
-| `Report` | `website_id`, `user_id` | missing |
-| `SessionReplay` | `website_id`, `session_id` | missing |
-| `SessionReplaySaved` | `website_id`, `session_id` | missing |
-| `WebsiteAttributionConfig` | `website_id` | missing |
-| `WebsiteDomain` | `website_id` | missing |
-| `PaymentProviderConnection` | `website_id` | missing |
-| `ProviderWebhookCleanupJob` | optional `website_id` | missing |
-| `ProviderEvent` | `website_id` | missing |
-| `Subscription` | `website_id` | missing |
-| `Payment` | `website_id` | missing |
-| `PaymentDispute` | `website_id` | missing |
-| `PaymentDetectionEvent` | `website_id` | missing |
-| `Refund` | `website_id` | missing |
-| `PaymentMatch` | `website_id` | missing |
-| `PaymentAttribution` | `website_id` | missing |
-| `AttributionJob` | `website_id` | missing |
-| `ApiKey` | `website_id` or `team_id` or `user_id` | missing |
-| `AuditEvent` | `website_id` or `team_id` or `user_id` | missing |
-| `Share` | `entity_id` only; entity type gives the owner | missing |
-| `Board` | `user_id`, `team_id` | missing |
-| `Link` | `user_id`, `team_id` | missing |
-| `Pixel` | `user_id`, `team_id` | missing |
-| `WebsiteMember` | `website_id`, `user_id` | missing |
-| `TeamUser` | `team_id`, `user_id` | missing |
-| `Team` | standalone team | missing |
-| `User` | global identity | n/a (needs memberships) |
-| `OssInstallationIdentity` | installation-level | n/a |
+| Model / table               | Current tenancy link                          | Workspace link          |
+| --------------------------- | --------------------------------------------- | ----------------------- |
+| `Website` / `website`       | `user_id`, `team_id`                          | **missing**             |
+| `WebsiteImport`             | `website_id`                                  | missing                 |
+| `WebsiteHistoricalMetric`   | `website_id`                                  | missing                 |
+| `WebsiteEvent`              | `website_id` (+ `session_id`)                 | missing                 |
+| `EventData`                 | `website_id`, `website_event_id`              | missing                 |
+| `Session`                   | `website_id`                                  | missing                 |
+| `SessionData`               | `website_id`, `session_id`                    | missing                 |
+| `Visitor`                   | `website_id`                                  | missing                 |
+| `CustomerIdentity`          | `website_id`                                  | missing                 |
+| `VisitorIdentityLink`       | `website_id`                                  | missing                 |
+| `Revenue`                   | `website_id`, `session_id`                    | missing                 |
+| `Segment`                   | `website_id`                                  | missing                 |
+| `Report`                    | `website_id`, `user_id`                       | missing                 |
+| `SessionReplay`             | `website_id`, `session_id`                    | missing                 |
+| `SessionReplaySaved`        | `website_id`, `session_id`                    | missing                 |
+| `WebsiteAttributionConfig`  | `website_id`                                  | missing                 |
+| `WebsiteDomain`             | `website_id`                                  | missing                 |
+| `PaymentProviderConnection` | `website_id`                                  | missing                 |
+| `ProviderWebhookCleanupJob` | optional `website_id`                         | missing                 |
+| `ProviderEvent`             | `website_id`                                  | missing                 |
+| `Subscription`              | `website_id`                                  | missing                 |
+| `Payment`                   | `website_id`                                  | missing                 |
+| `PaymentDispute`            | `website_id`                                  | missing                 |
+| `PaymentDetectionEvent`     | `website_id`                                  | missing                 |
+| `Refund`                    | `website_id`                                  | missing                 |
+| `PaymentMatch`              | `website_id`                                  | missing                 |
+| `PaymentAttribution`        | `website_id`                                  | missing                 |
+| `AttributionJob`            | `website_id`                                  | missing                 |
+| `ApiKey`                    | `website_id` or `team_id` or `user_id`        | missing                 |
+| `AuditEvent`                | `website_id` or `team_id` or `user_id`        | missing                 |
+| `Share`                     | `entity_id` only; entity type gives the owner | missing                 |
+| `Board`                     | `user_id`, `team_id`                          | missing                 |
+| `Link`                      | `user_id`, `team_id`                          | missing                 |
+| `Pixel`                     | `user_id`, `team_id`                          | missing                 |
+| `WebsiteMember`             | `website_id`, `user_id`                       | missing                 |
+| `TeamUser`                  | `team_id`, `user_id`                          | missing                 |
+| `Team`                      | standalone team                               | missing                 |
+| `User`                      | global identity                               | n/a (needs memberships) |
+| `OssInstallationIdentity`   | installation-level                            | n/a                     |
 
 ### Schema-level warning
 
@@ -208,7 +208,7 @@ This must be decided in Phase 2/3 and documented.
   (`canViewWebsite` 61, `getWebsiteAccess` 4, etc.). The remaining files are
   heartbeat, provider webhooks, and public share routes. Webhooks authenticate
   by provider signature, not by user, and are scoped by `websiteId` in the URL.
-- **Centralization:** authorization is *not* centralized in one SaaS-style
+- **Centralization:** authorization is _not_ centralized in one SaaS-style
   module. It is split across `src/permissions/{website,user,team?,...}.ts` and
   called ad hoc. Some reads use `getWebsite()` and then query child tables by
   `websiteId`; that is acceptable only after a workspace-scoped check.
@@ -251,14 +251,14 @@ Not present in the OSS fork (Cloud-only per README, not verified beyond README):
 
 Verified provider routes:
 
-| Provider | Route | Signature verification |
-| --- | --- | --- |
-| Stripe | `src/app/api/payments/stripe/[websiteId]/webhook/route.ts` | yes (`src/lib/stripe-webhook.ts`) |
-| Dodo | `src/app/api/payments/dodo/[websiteId]/webhook/route.ts` | yes (`DodoPayments.webhooks.unwrap`, `src/lib/dodo-webhook.ts`) |
-| Lemon Squeezy | `src/app/api/payments/lemonsqueezy/[websiteId]/webhook/route.ts` | yes (`src/lib/lemonsqueezy-webhook.ts`) |
-| Polar | `src/app/api/payments/polar/[websiteId]/webhook/route.ts` | yes (`src/lib/polar-webhook.ts`) |
-| Yolfi | `src/app/api/payments/yolfi/[websiteId]/webhook/route.ts` | yes (`src/lib/yolfi-webhook.ts`) |
-| Manual | `src/app/api/payments/manual/route.ts` | authenticated API |
+| Provider      | Route                                                            | Signature verification                                          |
+| ------------- | ---------------------------------------------------------------- | --------------------------------------------------------------- |
+| Stripe        | `src/app/api/payments/stripe/[websiteId]/webhook/route.ts`       | yes (`src/lib/stripe-webhook.ts`)                               |
+| Dodo          | `src/app/api/payments/dodo/[websiteId]/webhook/route.ts`         | yes (`DodoPayments.webhooks.unwrap`, `src/lib/dodo-webhook.ts`) |
+| Lemon Squeezy | `src/app/api/payments/lemonsqueezy/[websiteId]/webhook/route.ts` | yes (`src/lib/lemonsqueezy-webhook.ts`)                         |
+| Polar         | `src/app/api/payments/polar/[websiteId]/webhook/route.ts`        | yes (`src/lib/polar-webhook.ts`)                                |
+| Yolfi         | `src/app/api/payments/yolfi/[websiteId]/webhook/route.ts`        | yes (`src/lib/yolfi-webhook.ts`)                                |
+| Manual        | `src/app/api/payments/manual/route.ts`                           | authenticated API                                               |
 
 - Credentials and webhook secrets are stored encrypted with
   `APP_SECRET` (`src/lib/provider-secrets.ts`, `enc:` prefix).
@@ -326,22 +326,22 @@ Verified provider routes:
 
 ## 9. Technical risks
 
-| Risk | Where | Severity | Notes |
-| --- | --- | --- | --- |
-| Cross-tenant access via website IDs | `src/permissions/website.ts`, all `/api/websites/[websiteId]/*` | Critical | Authorization is per-route; no workspace invariant. ID swapping must be tested. |
-| `relationMode = "prisma"` | `prisma/schema.prisma` | Critical | No DB foreign keys; orphan/cross-tenant references possible. |
-| Default `admin`/`admin` | `0001_oss_baseline/migration.sql` | Critical | Public bootstrap credentials ship in the schema. |
-| Token in `localStorage` | `src/lib/client.ts`, `src/hooks/useApi.ts` | High | XSS token theft; no HttpOnly/Secure/SameSite cookie. |
-| No session revocation without Redis | `src/lib/auth.ts` | High | Logout does not invalidate stateless JWT. |
-| No rate limiting | `src/app/api/auth/*` | High | Brute force / signup abuse. |
-| Public share tokens never expire | `Share` model | Medium | Anyone with a slug gets a signed token; no expiry/revocation UI. |
-| CSP allows `unsafe-inline`/`unsafe-eval` | `next.config.ts` | Medium | Weak XSS mitigation. |
-| Replay payloads in the same DB as tenant data | `session_replay` | High | Cost + blast radius; no retention job today. |
-| Event tables grow unbounded | `website_event`, `session` | High | No retention cron; only provider webhook cleanup runs. |
-| Cache keys lack workspace | `src/lib/load.ts` (`website:${websiteId}`, `session:${websiteId}`) | Medium | IDs are globally unique, but adding workspace makes contamination checks explicit. |
-| `ua-parser-js` is AGPL-3.0-or-later | `src/lib/detect.ts` | High (licensing) | Hosted SaaS may trigger network-copyleft obligations. See license audit. |
-| AGPL/MPL/LGPL transitive dependencies | dependency tree | Medium | See `docs/LICENSE_AND_BRAND_AUDIT.md`. |
-| `prisma migrate deploy` runs automatically in `check-db` | `scripts/check-db.js` | Medium | Production/preview must point at the right branch. |
+| Risk                                                     | Where                                                              | Severity         | Notes                                                                              |
+| -------------------------------------------------------- | ------------------------------------------------------------------ | ---------------- | ---------------------------------------------------------------------------------- |
+| Cross-tenant access via website IDs                      | `src/permissions/website.ts`, all `/api/websites/[websiteId]/*`    | Critical         | Authorization is per-route; no workspace invariant. ID swapping must be tested.    |
+| `relationMode = "prisma"`                                | `prisma/schema.prisma`                                             | Critical         | No DB foreign keys; orphan/cross-tenant references possible.                       |
+| Default `admin`/`admin`                                  | `0001_oss_baseline/migration.sql`                                  | Critical         | Public bootstrap credentials ship in the schema.                                   |
+| Token in `localStorage`                                  | `src/lib/client.ts`, `src/hooks/useApi.ts`                         | High             | XSS token theft; no HttpOnly/Secure/SameSite cookie.                               |
+| No session revocation without Redis                      | `src/lib/auth.ts`                                                  | High             | Logout does not invalidate stateless JWT.                                          |
+| No rate limiting                                         | `src/app/api/auth/*`                                               | High             | Brute force / signup abuse.                                                        |
+| Public share tokens never expire                         | `Share` model                                                      | Medium           | Anyone with a slug gets a signed token; no expiry/revocation UI.                   |
+| CSP allows `unsafe-inline`/`unsafe-eval`                 | `next.config.ts`                                                   | Medium           | Weak XSS mitigation.                                                               |
+| Replay payloads in the same DB as tenant data            | `session_replay`                                                   | High             | Cost + blast radius; no retention job today.                                       |
+| Event tables grow unbounded                              | `website_event`, `session`                                         | High             | No retention cron; only provider webhook cleanup runs.                             |
+| Cache keys lack workspace                                | `src/lib/load.ts` (`website:${websiteId}`, `session:${websiteId}`) | Medium           | IDs are globally unique, but adding workspace makes contamination checks explicit. |
+| `ua-parser-js` is AGPL-3.0-or-later                      | `src/lib/detect.ts`                                                | High (licensing) | Hosted SaaS may trigger network-copyleft obligations. See license audit.           |
+| AGPL/MPL/LGPL transitive dependencies                    | dependency tree                                                    | Medium           | See `docs/LICENSE_AND_BRAND_AUDIT.md`.                                             |
+| `prisma migrate deploy` runs automatically in `check-db` | `scripts/check-db.js`                                              | Medium           | Production/preview must point at the right branch.                                 |
 
 ---
 
@@ -391,15 +391,15 @@ Verified provider routes:
 Environment: Node 24.13.0, pnpm 10.10.0, PostgreSQL 17 (`postgres:17-alpine`
 container), empty database.
 
-| Check | Command | Result |
-| --- | --- | --- |
-| Install | `pnpm install --frozen-lockfile` | **exit 1** — `sharp@0.34.5` postinstall tried a source build and failed (`node-gyp` missing). All packages were linked; `require('sharp')` works and `pnpm install --ignore-scripts` completes in 6.5 s. |
-| Prisma generate | `pnpm exec prisma generate` | pass |
-| Migrations on empty DB | `pnpm exec prisma migrate deploy` | pass — 3 migrations applied (`0001_oss_baseline`, `20260911173000_backfill_visitor_first_session`, `20260924181000_oss_installation_identity`) |
-| Build | `pnpm build` | **pass** (exit 0) — tracker + recorder + Next production build + postbuild |
-| Lint | `pnpm lint` (Biome) | **pass** — 918 files checked |
-| Typecheck | `pnpm exec tsc --noEmit` | **pass** |
-| Tests | `pnpm test` (Vitest) | **3 failed / 479 passed** (120 files; 117 passed). Pre-existing failures: `src/lib/date.test.ts` bucket count (expected 24, got 25); `WebsiteRevenueSettings.test.tsx` and `WebsiteSettings.test.tsx` timed out at 5 s. |
+| Check                  | Command                           | Result                                                                                                                                                                                                                  |
+| ---------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Install                | `pnpm install --frozen-lockfile`  | **exit 1** — `sharp@0.34.5` postinstall tried a source build and failed (`node-gyp` missing). All packages were linked; `require('sharp')` works and `pnpm install --ignore-scripts` completes in 6.5 s.                |
+| Prisma generate        | `pnpm exec prisma generate`       | pass                                                                                                                                                                                                                    |
+| Migrations on empty DB | `pnpm exec prisma migrate deploy` | pass — 3 migrations applied (`0001_oss_baseline`, `20260911173000_backfill_visitor_first_session`, `20260924181000_oss_installation_identity`)                                                                          |
+| Build                  | `pnpm build`                      | **pass** (exit 0) — tracker + recorder + Next production build + postbuild                                                                                                                                              |
+| Lint                   | `pnpm lint` (Biome)               | **pass** — 918 files checked                                                                                                                                                                                            |
+| Typecheck              | `pnpm exec tsc --noEmit`          | **pass**                                                                                                                                                                                                                |
+| Tests                  | `pnpm test` (Vitest)              | **3 failed / 479 passed** (120 files; 117 passed). Pre-existing failures: `src/lib/date.test.ts` bucket count (expected 24, got 25); `WebsiteRevenueSettings.test.tsx` and `WebsiteSettings.test.tsx` timed out at 5 s. |
 
 The three test failures are recorded as pre-existing. Do not "fix" them by
 loosening assertions without understanding the cause; address them in Phase 11
@@ -411,11 +411,11 @@ unless they block a phase.
 
 ### App (Next.js standalone)
 
-| Option | Monthly cost | Notes |
-| --- | --- | --- |
-| **Vercel Pro** | **$20/mo** including $20 of included usage credit; extra usage billed | Best fit for Next.js 16; Fluid Compute; global CDN. Source: <https://vercel.com/pricing> (fetched 2026-11-04). |
+| Option            | Monthly cost                                                                                         | Notes                                                                                                                                              |
+| ----------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Vercel Pro**    | **$20/mo** including $20 of included usage credit; extra usage billed                                | Best fit for Next.js 16; Fluid Compute; global CDN. Source: <https://vercel.com/pricing> (fetched 2026-11-04).                                     |
 | **Railway Hobby** | **$5/mo** including $5 usage credit; Pro **$20/mo** including $20 credit; usage beyond credit billed | Simpler container hosting, persistent worker for cron, no Next-specific optimizations. Source: <https://railway.com/pricing> (fetched 2026-11-04). |
-| Self-hosted VPS | VPS price + ops time (not priced here) | Avoid until volume justifies it; the in-process cron and standalone build make it feasible later. |
+| Self-hosted VPS   | VPS price + ops time (not priced here)                                                               | Avoid until volume justifies it; the in-process cron and standalone build make it feasible later.                                                  |
 
 **Recommendation:** Vercel Pro for the app at launch. Use Railway if we need a
 long-running worker/cron process or want to keep the app next to the database.
@@ -441,10 +441,10 @@ managed Postgres) before considering ClickHouse. The current code supports
 ClickHouse only as an optional path; switching requires Kafka or direct insert
 operations and new migrations.
 
-| Option | Monthly cost | Notes |
-| --- | --- | --- |
-| Separate Neon/Postgres database for events | ~$15–40/mo at small volume (same Neon rates) | Minimal change: point the event queries at a second database. Needs a real event-store abstraction; today one `DATABASE_URL` serves everything. |
-| ClickHouse Cloud Basic | **$0.2181/unit-hour** compute; **$25.30/TB-month** storage; $300/30-day trial credits | Only worth it after event volume makes Postgres queries slow. Source: <https://clickhouse.com/pricing> (fetched 2026-11-04). |
+| Option                                     | Monthly cost                                                                          | Notes                                                                                                                                           |
+| ------------------------------------------ | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Separate Neon/Postgres database for events | ~$15–40/mo at small volume (same Neon rates)                                          | Minimal change: point the event queries at a second database. Needs a real event-store abstraction; today one `DATABASE_URL` serves everything. |
+| ClickHouse Cloud Basic                     | **$0.2181/unit-hour** compute; **$25.30/TB-month** storage; $300/30-day trial credits | Only worth it after event volume makes Postgres queries slow. Source: <https://clickhouse.com/pricing> (fetched 2026-11-04).                    |
 
 **Recommendation:** ship on PostgreSQL; add a dedicated event database before
 the first 1,000 paying customers or when p95 dashboard latency exceeds the
@@ -452,14 +452,14 @@ target. Do not provision ClickHouse at launch.
 
 ### Rough launch budget
 
-| Item | Monthly |
-| --- | --- |
-| Vercel Pro | $20 |
-| Neon (Launch) | $15–40 |
-| Email (Resend or similar) | $0–20 (free tier likely enough at launch) |
-| Domain | ~$1–2 amortized |
-| Dodo Payments | percentage per transaction (verify current fee in Phase 5) |
-| **Total before payment fees** | **~$36–82/mo** |
+| Item                          | Monthly                                                    |
+| ----------------------------- | ---------------------------------------------------------- |
+| Vercel Pro                    | $20                                                        |
+| Neon (Launch)                 | $15–40                                                     |
+| Email (Resend or similar)     | $0–20 (free tier likely enough at launch)                  |
+| Domain                        | ~$1–2 amortized                                            |
+| Dodo Payments                 | percentage per transaction (verify current fee in Phase 5) |
+| **Total before payment fees** | **~$36–82/mo**                                             |
 
 At 100 Starter customers ($799 MRR) this is a healthy gross margin before
 event-store growth; at 500 customers the event store becomes the main variable.

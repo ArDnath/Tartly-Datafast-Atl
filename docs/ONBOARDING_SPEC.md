@@ -17,17 +17,17 @@ welcome moment, then adapts the steps to a revenue analytics SaaS.
 
 The following behaviour is intentionally copied:
 
-| Tartly (email client) behaviour | Reference file | Tartly implementation |
-| --- | --- | --- |
-| Full-height centred canvas, 440px content column | `onboarding-step-layout.tsx`, `ONBOARDING_CONTENT_BLOCK_WIDTH = 440` | `.stepPanel { width: min(440px, 100%) }` |
-| Logo → title → subtitle → form | `onboarding-step-layout.tsx` | `StepHeading` |
-| Directional slide/fade between steps | `onboarding-transition-outlet.tsx` | `stepForward` / `stepBackward` keyframes |
-| 12px offset, 320ms, ease-in-out | `ONBOARDING_MOTION_SLIDE_OFFSET`, `..._DURATION_SECONDS` | same values |
-| 70ms stagger inside a step | `onboarding-step-animated-item.tsx` | `Reveal` with `index * 70ms` |
-| Back button with disabled first step | `onboarding-flow.tsx` | header back button + `previousStep` |
-| Welcome hold before the first step | `welcome-animation-auto-leave-effect.tsx` | 4.2s welcome overlay (0.9s reduced motion) |
-| Reduced-motion support | `useReducedMotion` | `prefers-reduced-motion` media query |
-| Quiet dark palette, one blush signal | `DESIGN.md` | `Onboarding.module.css` tokens |
+| Tartly (email client) behaviour                  | Reference file                                                       | Tartly implementation                      |
+| ------------------------------------------------ | -------------------------------------------------------------------- | ------------------------------------------ |
+| Full-height centred canvas, 440px content column | `onboarding-step-layout.tsx`, `ONBOARDING_CONTENT_BLOCK_WIDTH = 440` | `.stepPanel { width: min(440px, 100%) }`   |
+| Logo → title → subtitle → form                   | `onboarding-step-layout.tsx`                                         | `StepHeading`                              |
+| Directional slide/fade between steps             | `onboarding-transition-outlet.tsx`                                   | `stepForward` / `stepBackward` keyframes   |
+| 12px offset, 320ms, ease-in-out                  | `ONBOARDING_MOTION_SLIDE_OFFSET`, `..._DURATION_SECONDS`             | same values                                |
+| 70ms stagger inside a step                       | `onboarding-step-animated-item.tsx`                                  | `Reveal` with `index * 70ms`               |
+| Back button with disabled first step             | `onboarding-flow.tsx`                                                | header back button + `previousStep`        |
+| Welcome hold before the first step               | `welcome-animation-auto-leave-effect.tsx`                            | 4.2s welcome overlay (0.9s reduced motion) |
+| Reduced-motion support                           | `useReducedMotion`                                                   | `prefers-reduced-motion` media query       |
+| Quiet dark palette, one blush signal             | `DESIGN.md`                                                          | `Onboarding.module.css` tokens             |
 
 The halftone welcome field is recreated with a CSS dot field that scales in and
 settles behind the wordmark, rather than shipping Tartly's canvas worker.
@@ -77,6 +77,7 @@ states remain visible until the tracker and a payment provider produce data.
 ### Step 3 — Install
 
 - Snippet (generated from the real script, not a marketing example):
+
   ```html
   <script defer src="https://app.example.com/script.js"
           data-website-id="…"
@@ -116,12 +117,12 @@ states remain visible until the tracker and a payment provider produce data.
 
 ## 3. API contract
 
-| Method | Path | Purpose | Authorization |
-| --- | --- | --- | --- |
-| `GET` | `/api/workspaces` | List the user's workspaces | session |
-| `POST` | `/api/workspaces` | Create workspace + OWNER membership | session |
-| `POST` | `/api/websites` | Create website, optional `workspaceId` | legacy + `ADMIN` on workspace |
-| `GET` | `/api/websites/:id/onboarding/verify` | Installation state | `VIEWER` on the website's workspace |
+| Method | Path                                  | Purpose                                | Authorization                       |
+| ------ | ------------------------------------- | -------------------------------------- | ----------------------------------- |
+| `GET`  | `/api/workspaces`                     | List the user's workspaces             | session                             |
+| `POST` | `/api/workspaces`                     | Create workspace + OWNER membership    | session                             |
+| `POST` | `/api/websites`                       | Create website, optional `workspaceId` | legacy + `ADMIN` on workspace       |
+| `GET`  | `/api/websites/:id/onboarding/verify` | Installation state                     | `VIEWER` on the website's workspace |
 
 The onboarding flow does **not** use a client-side mock. Every step that can
 fail returns a real error from the API and renders it inline.
@@ -199,4 +200,3 @@ Completed since the first draft:
 - First-report step links to the real revenue report.
 - Analytics activation metrics and the internal, platform-admin-only funnel
   view at `/app/settings/activation`.
-

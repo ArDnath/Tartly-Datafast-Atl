@@ -3,11 +3,11 @@
 The repository has three workflows. Pull requests must pass CI and the security
 jobs before merge; `main` deploys only after the same checks pass.
 
-| Workflow | Trigger | Purpose |
-| --- | --- | --- |
-| `.github/workflows/ci.yml` | pull request, push to `main`, manual | format, lint, typecheck, coverage, PostgreSQL integration smoke, production build, dependency audit, CodeQL, secret scan, dependency review, container build and image scan |
-| `.github/workflows/deploy.yml` | after CI succeeds on `main`, manual dispatch | migration, image build, app restart, readiness check, automatic rollback |
-| `.github/workflows/release.yml` | version tag `v*` | validates that the tag matches `package.json`, is on `main`, and still builds |
+| Workflow                        | Trigger                                      | Purpose                                                                                                                                                                     |
+| ------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.github/workflows/ci.yml`      | pull request, push to `main`, manual         | format, lint, typecheck, coverage, PostgreSQL integration smoke, production build, dependency audit, CodeQL, secret scan, dependency review, container build and image scan |
+| `.github/workflows/deploy.yml`  | after CI succeeds on `main`, manual dispatch | migration, image build, app restart, readiness check, automatic rollback                                                                                                    |
+| `.github/workflows/release.yml` | version tag `v*`                             | validates that the tag matches `package.json`, is on `main`, and still builds                                                                                               |
 
 ## Local gate
 
@@ -19,12 +19,12 @@ pnpm gate
 `tsc --noEmit`, the full Vitest suite with coverage, and the production build.
 Coverage floors live in `vitest.config.ts`:
 
-| Metric | Floor | Baseline on 2026-11-07 |
-| --- | --- | --- |
-| Statements | 65% | 67.6% |
-| Branches | 50% | 55.6% |
-| Functions | 60% | 63.4% |
-| Lines | 65% | 68.0% |
+| Metric     | Floor | Baseline on 2026-11-07 |
+| ---------- | ----- | ---------------------- |
+| Statements | 65%   | 67.6%                  |
+| Branches   | 50%   | 55.6%                  |
+| Functions  | 60%   | 63.4%                  |
+| Lines      | 65%   | 68.0%                  |
 
 The floors stop regressions. They are not a claim that every module is fully
 covered. Change the floor only with a recorded reason.
@@ -114,18 +114,18 @@ forward migration or a Neon branch restore.
 Create the `production` environment in **Settings → Environments** and add
 required reviewers. Then set environment secrets:
 
-| Secret | Value |
-| --- | --- |
-| `DEPLOY_HOST` | VPS hostname or IP |
-| `DEPLOY_USER` | non-root deploy user |
-| `DEPLOY_SSH_KEY` | OpenSSH private key authorized on the VPS |
+| Secret               | Value                                          |
+| -------------------- | ---------------------------------------------- |
+| `DEPLOY_HOST`        | VPS hostname or IP                             |
+| `DEPLOY_USER`        | non-root deploy user                           |
+| `DEPLOY_SSH_KEY`     | OpenSSH private key authorized on the VPS      |
 | `DEPLOY_KNOWN_HOSTS` | pinned `known_hosts` line for the VPS host key |
 
 Set repository variables:
 
-| Variable | Value |
-| --- | --- |
-| `APP_URL` | `https://tartly.in` |
+| Variable         | Value                              |
+| ---------------- | ---------------------------------- |
+| `APP_URL`        | `https://tartly.in`                |
 | `DEPLOY_ENABLED` | `true` to enable automatic deploys |
 
 Do not enable `DEPLOY_ENABLED` until all five values exist. The deploy job

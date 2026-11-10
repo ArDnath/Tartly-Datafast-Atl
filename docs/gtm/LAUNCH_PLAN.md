@@ -74,21 +74,21 @@ r/analytics with a link only when relevant. Do not cross-post the same text.
 
 ## 30-day calendar
 
-| Day | Action |
-| --- | --- |
-| 1 | Launch: PH, HN, IH, X, LinkedIn, Dev.to |
-| 2 | Publish "first touch vs last touch" |
-| 3 | Answer launch comments; ship one onboarding fix from feedback |
-| 4 | Publish Stripe guide |
-| 5 | Email early users asking for the first missing report |
-| 6 | Publish Dodo guide |
-| 7 | Weekly metrics review; kill one low-signal channel |
-| 8–14 | Two comparison pages, one migration guide, one teardown |
-| 15 | First usage-limit and payment-failure email dry run |
-| 16–21 | Publish three worked examples; improve onboarding copy |
-| 22 | Ask five users for a 10-minute call |
-| 23–29 | Ship the top three activation blockers |
-| 30 | Public retrospective with real numbers or "not enough data yet" |
+| Day   | Action                                                          |
+| ----- | --------------------------------------------------------------- |
+| 1     | Launch: PH, HN, IH, X, LinkedIn, Dev.to                         |
+| 2     | Publish "first touch vs last touch"                             |
+| 3     | Answer launch comments; ship one onboarding fix from feedback   |
+| 4     | Publish Stripe guide                                            |
+| 5     | Email early users asking for the first missing report           |
+| 6     | Publish Dodo guide                                              |
+| 7     | Weekly metrics review; kill one low-signal channel              |
+| 8–14  | Two comparison pages, one migration guide, one teardown         |
+| 15    | First usage-limit and payment-failure email dry run             |
+| 16–21 | Publish three worked examples; improve onboarding copy          |
+| 22    | Ask five users for a 10-minute call                             |
+| 23–29 | Ship the top three activation blockers                          |
+| 30    | Public retrospective with real numbers or "not enough data yet" |
 
 ## Early-adopter offer
 

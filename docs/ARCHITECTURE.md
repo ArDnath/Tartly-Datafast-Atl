@@ -61,24 +61,24 @@ app  ->  features  ->  components / lib / queries / permissions / store
 
 ## Product domains
 
-| Domain | Owns |
-| --- | --- |
-| `account` | `/api/me` profile, password, owned websites, account/security/preferences settings, local-user admin and permission checks, and the platform-admin activation funnel |
-| `analytics` | the signed-in website workbench (overview, reports, sessions, events, replay, realtime, cohorts, compare, segments), ingestion (`send`, `record`, `batch`), heartbeat, report/metric handlers and report permission checks, analytics widgets, filters, and query hooks |
-| `app-shell` | signed-in shell, top nav, notices, workspace switcher, user menu |
-| `auth` | login, signup, verification, reset, logout, auth query hooks |
-| `billing` | platform subscription lifecycle, Dodo checkout/portal/cancel/change-plan, signed billing webhooks, invoices, and the plan/usage settings screen |
-| `docs` | public documentation shell, provider revenue guides, and generated tracker install guides (`/docs/install`) |
-| `legacy` | frozen boards/links/pixels APIs and the share-rendered link/pixel pages, with their read permissions; list, edit, and board UI are deleted |
-| `marketing` | landing and pricing |
-| `onboarding` | onboarding canvas and website setup |
-| `payments` | provider connections, manual payments, provider webhooks, provider clients/backfills, credential encryption, payment provider UI, integration settings |
-| `portfolio` | `/app` all-websites home and its overview hook |
-| `settings` | the settings shell, grouped navigation, and settings overview |
-| `share` | public share shell, share widgets, and share APIs |
-| `system` | health, OSS update endpoints, and the cron scheduler/jobs |
-| `websites` | website CRUD, website settings, website list settings, imports/exports, API keys, shares, selectors/context |
-| `workspaces` | workspace CRUD, members, invitations, usage, active-workspace state, workspace settings |
+| Domain       | Owns                                                                                                                                                                                                                                                                    |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `account`    | `/api/me` profile, password, owned websites, account/security/preferences settings, local-user admin and permission checks, and the platform-admin activation funnel                                                                                                    |
+| `analytics`  | the signed-in website workbench (overview, reports, sessions, events, replay, realtime, cohorts, compare, segments), ingestion (`send`, `record`, `batch`), heartbeat, report/metric handlers and report permission checks, analytics widgets, filters, and query hooks |
+| `app-shell`  | signed-in shell, top nav, notices, workspace switcher, user menu                                                                                                                                                                                                        |
+| `auth`       | login, signup, verification, reset, logout, auth query hooks                                                                                                                                                                                                            |
+| `billing`    | platform subscription lifecycle, Dodo checkout/portal/cancel/change-plan, signed billing webhooks, invoices, and the plan/usage settings screen                                                                                                                         |
+| `docs`       | public documentation shell, provider revenue guides, and generated tracker install guides (`/docs/install`)                                                                                                                                                             |
+| `legacy`     | frozen boards/links/pixels APIs and the share-rendered link/pixel pages, with their read permissions; list, edit, and board UI are deleted                                                                                                                              |
+| `marketing`  | landing and pricing                                                                                                                                                                                                                                                     |
+| `onboarding` | onboarding canvas and website setup                                                                                                                                                                                                                                     |
+| `payments`   | provider connections, manual payments, provider webhooks, provider clients/backfills, credential encryption, payment provider UI, integration settings                                                                                                                  |
+| `portfolio`  | `/app` all-websites home and its overview hook                                                                                                                                                                                                                          |
+| `settings`   | the settings shell, grouped navigation, and settings overview                                                                                                                                                                                                           |
+| `share`      | public share shell, share widgets, and share APIs                                                                                                                                                                                                                       |
+| `system`     | health, OSS update endpoints, and the cron scheduler/jobs                                                                                                                                                                                                               |
+| `websites`   | website CRUD, website settings, website list settings, imports/exports, API keys, shares, selectors/context                                                                                                                                                             |
+| `workspaces` | workspace CRUD, members, invitations, usage, active-workspace state, workspace settings                                                                                                                                                                                 |
 
 `src/features/legacy` is quarantined. Do not copy its patterns or add new
 imports from it.
@@ -177,52 +177,52 @@ never points from shared code back into product features.
 
 The restructure moved the remaining domain-specific UI out of `src/components`:
 
-| Old location | New owner |
-| --- | --- |
-| `src/components/metrics` | `src/features/analytics/components/metrics` |
-| `src/components/share` | `src/features/share/components` |
-| `src/components/overlays/AnalyticsOverlayContext` | `src/features/analytics/components` |
-| analytics filters and selectors | `src/features/analytics/components/input` |
-| `WebsiteSelect` | `src/features/websites/components` |
-| `WorkspaceSwitcher`, `UserButton` | `src/features/app-shell/components` |
-| board/link/pixel selectors | deleted with the dead legacy dashboard UI |
-| `PaymentProviderLogo` | `src/features/payments/components` |
-| domain React Query hooks | `src/features/<domain>/hooks` |
-| cron scheduler and jobs | `src/features/system/cron` |
-| route-param-shaped `settings/websites/[websiteId]` | `src/features/websites/settings` |
-| website analytics workbench (shell, overview, reports, sessions, events, replay, realtime, cohorts, compare, segments) | `src/features/analytics/workbench` |
-| website analytics request handlers | `src/features/analytics/server/[websiteId]` |
-| account settings UI (`/app/settings/account`, security, preferences) | `src/features/account/settings` |
-| local-user admin (`/api/users`) | `src/features/account/server` |
-| workspace settings UI (`/app/settings/workspace`) | `src/features/workspaces/settings` |
-| website list settings UI (`/app/settings/websites`) | `src/features/websites/settings` |
-| integration settings UI (`/app/settings/integrations`) | `src/features/payments/settings` |
-| plan and usage settings UI (`/app/settings/billing`) | `src/features/billing` |
-| collector cache, cross-domain linker, attribution query, dashboard overview, bot/client detection, analytics filters and chart helpers | `src/features/analytics/lib` |
-| payment return detection | `src/features/payments/lib` |
-| payment status classification (`REVENUE_PAYMENT_STATUSES`) | `src/features/payments/lib/payment-status.ts` |
-| tracking identity derivation | `src/features/analytics/lib/tracking-identity.ts` |
-| route contract tests | beside their handler under `src/features/<domain>/server/**` |
-| analytics report handlers (`/api/reports/*`) | `src/features/analytics/server/reports` |
-| realtime handler (`/api/realtime/[websiteId]`) | `src/features/analytics/server/realtime/[websiteId]` |
-| auth return URL and transactional registration | `src/features/auth/lib` and `src/features/auth/server` |
-| workspace invitations and member management | `src/features/workspaces/lib` |
-| website API keys and domain normalization | `src/features/websites/lib` |
-| legacy feature gate | `src/features/legacy/lib` |
-| OSS version/update helpers | `src/features/system/lib` |
-| analytics Prisma reports and the whole SQL engine | `src/features/analytics/server/queries` (`sql/` plus report, revenue, dashboard, historical, replay) |
-| payment and payment-attribution repositories | `src/features/payments/server/queries` |
-| portfolio MRR and website overview repositories | `src/features/account/server/queries` |
-| website import repository | `src/features/websites/server/queries` |
-| Stripe minor-unit formatting | `src/features/payments/lib/stripe-amount.ts` |
-| revenue channel classification and overview metrics | `src/features/analytics/lib/dashboard-breakdown.ts` and `src/features/account/lib/website-overview.ts` |
-| event-data flattening, payment-customer labels, and redaction | `src/features/analytics/lib/{data,paymentCustomer,redact}.ts` |
-| random public-share slugs | `src/features/websites/lib/generate.ts` |
-| public pixel/link collection handlers | `src/features/legacy/server/collect` |
-| website shell resolution | `src/features/analytics/workbench/WebsiteLayoutRoute.tsx` |
-| platform billing provider, webhook reducer, invoices, and billing UI | `src/features/billing` (`server/`, `components/`, `lib/`) |
-| shared subscription lifecycle and ordering rules | `src/lib/billing-lifecycle.ts` |
-| dead dashboard/website/cache stores and the unused refresh button | deleted |
+| Old location                                                                                                                           | New owner                                                                                              |
+| -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `src/components/metrics`                                                                                                               | `src/features/analytics/components/metrics`                                                            |
+| `src/components/share`                                                                                                                 | `src/features/share/components`                                                                        |
+| `src/components/overlays/AnalyticsOverlayContext`                                                                                      | `src/features/analytics/components`                                                                    |
+| analytics filters and selectors                                                                                                        | `src/features/analytics/components/input`                                                              |
+| `WebsiteSelect`                                                                                                                        | `src/features/websites/components`                                                                     |
+| `WorkspaceSwitcher`, `UserButton`                                                                                                      | `src/features/app-shell/components`                                                                    |
+| board/link/pixel selectors                                                                                                             | deleted with the dead legacy dashboard UI                                                              |
+| `PaymentProviderLogo`                                                                                                                  | `src/features/payments/components`                                                                     |
+| domain React Query hooks                                                                                                               | `src/features/<domain>/hooks`                                                                          |
+| cron scheduler and jobs                                                                                                                | `src/features/system/cron`                                                                             |
+| route-param-shaped `settings/websites/[websiteId]`                                                                                     | `src/features/websites/settings`                                                                       |
+| website analytics workbench (shell, overview, reports, sessions, events, replay, realtime, cohorts, compare, segments)                 | `src/features/analytics/workbench`                                                                     |
+| website analytics request handlers                                                                                                     | `src/features/analytics/server/[websiteId]`                                                            |
+| account settings UI (`/app/settings/account`, security, preferences)                                                                   | `src/features/account/settings`                                                                        |
+| local-user admin (`/api/users`)                                                                                                        | `src/features/account/server`                                                                          |
+| workspace settings UI (`/app/settings/workspace`)                                                                                      | `src/features/workspaces/settings`                                                                     |
+| website list settings UI (`/app/settings/websites`)                                                                                    | `src/features/websites/settings`                                                                       |
+| integration settings UI (`/app/settings/integrations`)                                                                                 | `src/features/payments/settings`                                                                       |
+| plan and usage settings UI (`/app/settings/billing`)                                                                                   | `src/features/billing`                                                                                 |
+| collector cache, cross-domain linker, attribution query, dashboard overview, bot/client detection, analytics filters and chart helpers | `src/features/analytics/lib`                                                                           |
+| payment return detection                                                                                                               | `src/features/payments/lib`                                                                            |
+| payment status classification (`REVENUE_PAYMENT_STATUSES`)                                                                             | `src/features/payments/lib/payment-status.ts`                                                          |
+| tracking identity derivation                                                                                                           | `src/features/analytics/lib/tracking-identity.ts`                                                      |
+| route contract tests                                                                                                                   | beside their handler under `src/features/<domain>/server/**`                                           |
+| analytics report handlers (`/api/reports/*`)                                                                                           | `src/features/analytics/server/reports`                                                                |
+| realtime handler (`/api/realtime/[websiteId]`)                                                                                         | `src/features/analytics/server/realtime/[websiteId]`                                                   |
+| auth return URL and transactional registration                                                                                         | `src/features/auth/lib` and `src/features/auth/server`                                                 |
+| workspace invitations and member management                                                                                            | `src/features/workspaces/lib`                                                                          |
+| website API keys and domain normalization                                                                                              | `src/features/websites/lib`                                                                            |
+| legacy feature gate                                                                                                                    | `src/features/legacy/lib`                                                                              |
+| OSS version/update helpers                                                                                                             | `src/features/system/lib`                                                                              |
+| analytics Prisma reports and the whole SQL engine                                                                                      | `src/features/analytics/server/queries` (`sql/` plus report, revenue, dashboard, historical, replay)   |
+| payment and payment-attribution repositories                                                                                           | `src/features/payments/server/queries`                                                                 |
+| portfolio MRR and website overview repositories                                                                                        | `src/features/account/server/queries`                                                                  |
+| website import repository                                                                                                              | `src/features/websites/server/queries`                                                                 |
+| Stripe minor-unit formatting                                                                                                           | `src/features/payments/lib/stripe-amount.ts`                                                           |
+| revenue channel classification and overview metrics                                                                                    | `src/features/analytics/lib/dashboard-breakdown.ts` and `src/features/account/lib/website-overview.ts` |
+| event-data flattening, payment-customer labels, and redaction                                                                          | `src/features/analytics/lib/{data,paymentCustomer,redact}.ts`                                          |
+| random public-share slugs                                                                                                              | `src/features/websites/lib/generate.ts`                                                                |
+| public pixel/link collection handlers                                                                                                  | `src/features/legacy/server/collect`                                                                   |
+| website shell resolution                                                                                                               | `src/features/analytics/workbench/WebsiteLayoutRoute.tsx`                                              |
+| platform billing provider, webhook reducer, invoices, and billing UI                                                                   | `src/features/billing` (`server/`, `components/`, `lib/`)                                              |
+| shared subscription lifecycle and ordering rules                                                                                       | `src/lib/billing-lifecycle.ts`                                                                         |
+| dead dashboard/website/cache stores and the unused refresh button                                                                      | deleted                                                                                                |
 
 Only primitives remain in `src/components`: `common` (links, panels, tables,
 empty/error states), `charts`, `input` (date picker and menu primitives),

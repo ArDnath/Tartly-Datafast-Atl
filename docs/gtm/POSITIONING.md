@@ -20,7 +20,7 @@ dedicated success manager. Those requirements belong to a different product.
 
 Founders can see traffic in one tool and revenue in Stripe/Dodo/Lemon Squeezy/
 Polar/Yolfi in another. They cannot answer the only question that matters:
-*which channel, campaign, page, or journey produced the money?* Existing
+_which channel, campaign, page, or journey produced the money?_ Existing
 revenue-attribution tools are either broad product-analytics suites or priced
 for teams with a marketing budget.
 
@@ -45,14 +45,14 @@ for teams with a marketing budget.
 
 ## Message hierarchy
 
-| Level | Message |
-| --- | --- |
-| Hero | Know which traffic makes money. |
-| Subhead | Connect your site and your payments. See revenue by channel in minutes. |
-| Primary CTA | Start your 7-day free trial |
-| Secondary CTA | See the live demo |
+| Level             | Message                                                                                                       |
+| ----------------- | ------------------------------------------------------------------------------------------------------------- |
+| Hero              | Know which traffic makes money.                                                                               |
+| Subhead           | Connect your site and your payments. See revenue by channel in minutes.                                       |
+| Primary CTA       | Start your 7-day free trial                                                                                   |
+| Secondary CTA     | See the live demo                                                                                             |
 | Objection handler | 2,000 events and 1 website free for 7 days, no card. Then $7.99/month. No annual lock-in and no per-seat tax. |
-| Trust | MIT-licensed foundation, first-touch and last-touch attribution, your data stays in your workspace. |
+| Trust             | MIT-licensed foundation, first-touch and last-touch attribution, your data stays in your workspace.           |
 
 ## Words to avoid
 

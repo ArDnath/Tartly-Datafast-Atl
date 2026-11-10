@@ -14,18 +14,18 @@ entitlements or limits themselves.
 
 ## What counts
 
-| Collection | Billable? | Notes |
-| --- | --- | --- |
-| Pageview | Yes | Event type 1 |
-| Custom event | Yes | Event type 2 |
-| Link click | Yes | Event type 3, legacy surface |
-| Pixel event | Yes | Event type 4, legacy surface |
-| Performance beacon | No | Event type 5 |
-| Identify call | No | Identity enrichment only |
-| Rejected request | No | Invalid payload, unknown website, blocked IP |
-| Bot request | No | `isbot` check runs before reservation |
-| Replay chunk | No | Replay sessions are metered separately |
-| Duplicate replay chunk | No | Unique `(usage_period_id, session_id)` |
+| Collection             | Billable? | Notes                                        |
+| ---------------------- | --------- | -------------------------------------------- |
+| Pageview               | Yes       | Event type 1                                 |
+| Custom event           | Yes       | Event type 2                                 |
+| Link click             | Yes       | Event type 3, legacy surface                 |
+| Pixel event            | Yes       | Event type 4, legacy surface                 |
+| Performance beacon     | No        | Event type 5                                 |
+| Identify call          | No        | Identity enrichment only                     |
+| Rejected request       | No        | Invalid payload, unknown website, blocked IP |
+| Bot request            | No        | `isbot` check runs before reservation        |
+| Replay chunk           | No        | Replay sessions are metered separately       |
+| Duplicate replay chunk | No        | Unique `(usage_period_id, session_id)`       |
 
 The collector reserves one event slot with a single `INSERT ... ON CONFLICT ...
 WHERE events_count < hard_limit` statement. Parallel requests therefore cannot
@@ -33,12 +33,12 @@ push the counter past the hard limit. A failed event write releases the slot.
 
 ## Thresholds and enforcement
 
-| State | Condition | Behaviour |
-| --- | --- | --- |
-| `ok` | `< 80%` | Normal ingestion |
-| `warning` | `>= 80%` | In-app notice, ingestion continues |
-| `grace` | `>= 100%` | In-app notice, ingestion continues through the grace allowance |
-| `limit` | `>= 100% + grace` | Billable event and new replay ingestion pause |
+| State     | Condition         | Behaviour                                                      |
+| --------- | ----------------- | -------------------------------------------------------------- |
+| `ok`      | `< 80%`           | Normal ingestion                                               |
+| `warning` | `>= 80%`          | In-app notice, ingestion continues                             |
+| `grace`   | `>= 100%`         | In-app notice, ingestion continues through the grace allowance |
+| `limit`   | `>= 100% + grace` | Billable event and new replay ingestion pause                  |
 
 Grace is **1,000 events** and **100 replay sessions** after the plan
 allowance. These are code constants in `src/lib/usage.ts`, not hidden plan

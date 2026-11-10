@@ -8,20 +8,20 @@ distributed load generator).
 
 ## Result
 
-| Metric | Value |
-| --- | --- |
-| Events requested | 10,000 |
-| Concurrency | 50 |
-| Wall time | 63.6 s |
-| Throughput | **157.1 req/s** |
-| HTTP 200 | 10,000 |
-| Errors | **0** |
-| p50 | **302 ms** |
-| p95 | **412 ms** |
-| p99 | **480 ms** |
-| Max | 959 ms |
-| Rows stored | 10,001 (1 warm-up event + 10,000 probe) |
-| Usage counter | **10,001** (exact match; no under/overcount) |
+| Metric           | Value                                        |
+| ---------------- | -------------------------------------------- |
+| Events requested | 10,000                                       |
+| Concurrency      | 50                                           |
+| Wall time        | 63.6 s                                       |
+| Throughput       | **157.1 req/s**                              |
+| HTTP 200         | 10,000                                       |
+| Errors           | **0**                                        |
+| p50              | **302 ms**                                   |
+| p95              | **412 ms**                                   |
+| p99              | **480 ms**                                   |
+| Max              | 959 ms                                       |
+| Rows stored      | 10,001 (1 warm-up event + 10,000 probe)      |
+| Usage counter    | **10,001** (exact match; no under/overcount) |
 
 A second, smaller warm-up run (2,000 events / 25 concurrency) produced 236 req/s
 with p50 96 ms / p95 140 ms / p99 558 ms. The larger run is the recorded result.

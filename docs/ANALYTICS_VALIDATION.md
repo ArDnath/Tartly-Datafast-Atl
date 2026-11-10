@@ -27,30 +27,30 @@ RUN_PHASE7_DB_SMOKE=1 pnpm exec vitest run --config vitest.phase7.config.ts \
 
 ## Metric matrix
 
-| Metric | Query under test | Seeded expectation | Result |
-| --- | --- | --- | --- |
-| Pageviews | `getWebsiteStats` | 7 (custom and performance events excluded) | pass |
-| Unique visitors | `getWebsiteStats` | 3 | pass |
-| Visits / sessions | `getWebsiteStats` | 4 | pass |
-| Bounce rate input (bounced sessions) | `getWebsiteStats` | 2 single-page sessions | pass |
-| Total visit duration | `getWebsiteStats` | 180 s | pass |
-| Pageview time series | `getPageviewStats` | 7 | pass |
-| Visitor time series | `getSessionStats` | 3 | pass |
-| Top pages | `getPageviewMetrics('path')` | `/` 2, `/pricing` 2, `/signup` 1 | pass |
-| Landing pages | `getPageviewMetrics('entry')` | `/` 2, `/pricing` 1 | pass |
-| Exit pages | `getPageviewMetrics('exit')` | `/pricing` 2, `/signup` 1 | pass |
-| Referrers | `getPageviewMetrics('referrer')` | `google.com` 1, `blog.example.org` 1 | pass |
-| UTM source / campaign | `getPageviewMetrics('utmSource' / 'utmCampaign')` | `google` 1, `brand` 1 | pass |
-| Browser | `getSessionMetrics('browser')` | Chrome 1, Firefox 1, Safari 1 | pass |
-| Operating system | `getSessionMetrics('os')` | macOS 1, Windows 1, iOS 1 | pass |
-| Device | `getSessionMetrics('device')` | desktop 2, mobile 1 | pass |
-| Screen | `getSessionMetrics('screen')` | `1440x900` 1 | pass |
-| Country | `getSessionMetrics('country')` | US 2, DE 1 | pass |
-| Language | `getSessionMetrics('language')` | en 2, de 1 | pass |
-| Channels | `getChannelMetrics` | direct 2, organicSearch 1, referral 1 | pass |
-| Date range | `getWebsiteDateRange` | starts at the oldest event, includes the latest | pass |
-| Real-time totals and log | `getRealtimeData` | at least 1 view/visitor, `/live` event, 1 country | pass |
-| Active visitors | `getActiveVisitors` | 1 within five minutes | pass |
+| Metric                               | Query under test                                  | Seeded expectation                                | Result |
+| ------------------------------------ | ------------------------------------------------- | ------------------------------------------------- | ------ |
+| Pageviews                            | `getWebsiteStats`                                 | 7 (custom and performance events excluded)        | pass   |
+| Unique visitors                      | `getWebsiteStats`                                 | 3                                                 | pass   |
+| Visits / sessions                    | `getWebsiteStats`                                 | 4                                                 | pass   |
+| Bounce rate input (bounced sessions) | `getWebsiteStats`                                 | 2 single-page sessions                            | pass   |
+| Total visit duration                 | `getWebsiteStats`                                 | 180 s                                             | pass   |
+| Pageview time series                 | `getPageviewStats`                                | 7                                                 | pass   |
+| Visitor time series                  | `getSessionStats`                                 | 3                                                 | pass   |
+| Top pages                            | `getPageviewMetrics('path')`                      | `/` 2, `/pricing` 2, `/signup` 1                  | pass   |
+| Landing pages                        | `getPageviewMetrics('entry')`                     | `/` 2, `/pricing` 1                               | pass   |
+| Exit pages                           | `getPageviewMetrics('exit')`                      | `/pricing` 2, `/signup` 1                         | pass   |
+| Referrers                            | `getPageviewMetrics('referrer')`                  | `google.com` 1, `blog.example.org` 1              | pass   |
+| UTM source / campaign                | `getPageviewMetrics('utmSource' / 'utmCampaign')` | `google` 1, `brand` 1                             | pass   |
+| Browser                              | `getSessionMetrics('browser')`                    | Chrome 1, Firefox 1, Safari 1                     | pass   |
+| Operating system                     | `getSessionMetrics('os')`                         | macOS 1, Windows 1, iOS 1                         | pass   |
+| Device                               | `getSessionMetrics('device')`                     | desktop 2, mobile 1                               | pass   |
+| Screen                               | `getSessionMetrics('screen')`                     | `1440x900` 1                                      | pass   |
+| Country                              | `getSessionMetrics('country')`                    | US 2, DE 1                                        | pass   |
+| Language                             | `getSessionMetrics('language')`                   | en 2, de 1                                        | pass   |
+| Channels                             | `getChannelMetrics`                               | direct 2, organicSearch 1, referral 1             | pass   |
+| Date range                           | `getWebsiteDateRange`                             | starts at the oldest event, includes the latest   | pass   |
+| Real-time totals and log             | `getRealtimeData`                                 | at least 1 view/visitor, `/live` event, 1 country | pass   |
+| Active visitors                      | `getActiveVisitors`                               | 1 within five minutes                             | pass   |
 
 The unit boundary suite
 `src/features/analytics/server/queries/sql/tracking-query-semantics.test.ts`

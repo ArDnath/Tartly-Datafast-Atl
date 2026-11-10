@@ -26,11 +26,11 @@ built for the hosted SaaS.
 
 Two paid plans plus a 7-day free trial:
 
-| Plan | Monthly | Events / month | Websites |
-| --- | --- | --- | --- |
-| Free trial | $0 for 7 days | 2,000 | 1 |
-| Starter | $7.99 | 100,000 | 1 |
-| Pro | $14.99 | 1,000,000 | up to 50 |
+| Plan       | Monthly       | Events / month | Websites |
+| ---------- | ------------- | -------------- | -------- |
+| Free trial | $0 for 7 days | 2,000          | 1        |
+| Starter    | $7.99         | 100,000        | 1        |
+| Pro        | $14.99        | 1,000,000      | up to 50 |
 
 Plan data lives in `src/lib/plans.ts`. The traffic slider raises events and
 price together, from 10k to 2M Starter events (Pro scales to 10M). Event,
@@ -89,13 +89,13 @@ docker compose up -d postgres
 
 ## Configuration
 
-| Variable | Required | Purpose |
-| --- | --- | --- |
-| `DATABASE_URL` | Yes | Pooled PostgreSQL connection used by the app. |
-| `DATABASE_URL_UNPOOLED` | For Neon | Direct connection used by migrations. |
-| `APP_SECRET` | Yes | 32+ random bytes; signs sessions and encrypts provider credentials. |
-| `RESEND_API_KEY` | No | Live verification, reset, and invitation email. Without it, development writes to `.dev-emails/outbox.log`. |
-| `PLATFORM_ADMIN_EMAILS` | No | Comma-separated allowlist for platform administration. |
+| Variable                | Required | Purpose                                                                                                     |
+| ----------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`          | Yes      | Pooled PostgreSQL connection used by the app.                                                               |
+| `DATABASE_URL_UNPOOLED` | For Neon | Direct connection used by migrations.                                                                       |
+| `APP_SECRET`            | Yes      | 32+ random bytes; signs sessions and encrypts provider credentials.                                         |
+| `RESEND_API_KEY`        | No       | Live verification, reset, and invitation email. Without it, development writes to `.dev-emails/outbox.log`. |
+| `PLATFORM_ADMIN_EMAILS` | No       | Comma-separated allowlist for platform administration.                                                      |
 
 See `docs/ENVIRONMENT.md` for Neon setup, pooled/direct strings, and
 preview/production branching.

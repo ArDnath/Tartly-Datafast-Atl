@@ -15,7 +15,7 @@ export const pick = (num: number, arr: any[]) => {
 };
 
 export function clamp(num: number, min: number, max: number) {
-  return num < min ? min : num > max ? max : num;
+  return num < min ? min : Math.min(num, max);
 }
 
 export function hex2RGB(color: string, min: number = 0, max: number = 255) {

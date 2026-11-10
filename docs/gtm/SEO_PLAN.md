@@ -2,28 +2,28 @@
 
 ## 20 keywords with intent
 
-| # | Keyword | Intent | Page |
-| --- | --- | --- | --- |
-| 1 | revenue attribution analytics | commercial | `/revenue-attribution` |
-| 2 | Stripe revenue attribution | commercial | `/docs/revenue-guides/stripe` |
-| 3 | Dodo Payments analytics | commercial | `/docs/revenue-guides/dodo-payments` |
-| 4 | Lemon Squeezy analytics | commercial | `/docs/revenue-guides/lemon-squeezy` |
-| 5 | Polar analytics integration | commercial | `/docs/revenue-guides/polar` |
-| 6 | which marketing channel makes money | informational | `/docs/revenue-guides` |
-| 7 | web analytics for indie hackers | commercial | `/` |
-| 8 | affordable Plausible alternative | comparison | `/alternatives/plausible` |
-| 9 | Fathom analytics alternative | comparison | `/alternatives/fathom` |
-| 10 | Umami cloud alternative | comparison | `/alternatives/umami` |
-| 11 | Simple Analytics alternative | comparison | `/alternatives/simple-analytics` |
-| 12 | DataFast alternative | comparison | `/alternatives/datafast` |
-| 13 | revenue per visitor | informational | `/docs/revenue-guides/revenue-per-visitor` |
-| 14 | first touch vs last touch attribution | informational | `/docs/revenue-guides/attribution-models` |
-| 15 | SaaS conversion rate by channel | informational | `/docs/revenue-guides/conversion-by-channel` |
-| 16 | track Stripe payments without GA4 | informational | `/docs/revenue-guides/stripe` |
-| 17 | cookieless analytics with revenue | commercial | `/` |
-| 18 | analytics for micro SaaS | commercial | `/` |
-| 19 | session replay with privacy masking | commercial | `/pricing` |
-| 20 | how to install analytics on Next.js | informational | `/docs/install` |
+| #   | Keyword                               | Intent        | Page                                         |
+| --- | ------------------------------------- | ------------- | -------------------------------------------- |
+| 1   | revenue attribution analytics         | commercial    | `/revenue-attribution`                       |
+| 2   | Stripe revenue attribution            | commercial    | `/docs/revenue-guides/stripe`                |
+| 3   | Dodo Payments analytics               | commercial    | `/docs/revenue-guides/dodo-payments`         |
+| 4   | Lemon Squeezy analytics               | commercial    | `/docs/revenue-guides/lemon-squeezy`         |
+| 5   | Polar analytics integration           | commercial    | `/docs/revenue-guides/polar`                 |
+| 6   | which marketing channel makes money   | informational | `/docs/revenue-guides`                       |
+| 7   | web analytics for indie hackers       | commercial    | `/`                                          |
+| 8   | affordable Plausible alternative      | comparison    | `/alternatives/plausible`                    |
+| 9   | Fathom analytics alternative          | comparison    | `/alternatives/fathom`                       |
+| 10  | Umami cloud alternative               | comparison    | `/alternatives/umami`                        |
+| 11  | Simple Analytics alternative          | comparison    | `/alternatives/simple-analytics`             |
+| 12  | DataFast alternative                  | comparison    | `/alternatives/datafast`                     |
+| 13  | revenue per visitor                   | informational | `/docs/revenue-guides/revenue-per-visitor`   |
+| 14  | first touch vs last touch attribution | informational | `/docs/revenue-guides/attribution-models`    |
+| 15  | SaaS conversion rate by channel       | informational | `/docs/revenue-guides/conversion-by-channel` |
+| 16  | track Stripe payments without GA4     | informational | `/docs/revenue-guides/stripe`                |
+| 17  | cookieless analytics with revenue     | commercial    | `/`                                          |
+| 18  | analytics for micro SaaS              | commercial    | `/`                                          |
+| 19  | session replay with privacy masking   | commercial    | `/pricing`                                   |
+| 20  | how to install analytics on Next.js   | informational | `/docs/install`                              |
 
 ## 10 content outlines
 

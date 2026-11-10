@@ -24,14 +24,14 @@ website, report, replay, revenue, export, and settings route ignores it.
 
 ## Roles
 
-| Action | OWNER | ADMIN | MEMBER | VIEWER |
-| --- | --- | --- | --- | --- |
-| Read workspace / analytics | yes | yes | yes | yes |
-| Update website settings | yes | yes | yes | no |
-| Create / delete websites | yes | yes | no | no |
-| Manage members and invitations | yes | yes | no | no |
-| Manage integrations | yes | yes | no | no |
-| Billing / plan / transfer / delete workspace | yes | no | no | no |
+| Action                                       | OWNER | ADMIN | MEMBER | VIEWER |
+| -------------------------------------------- | ----- | ----- | ------ | ------ |
+| Read workspace / analytics                   | yes   | yes   | yes    | yes    |
+| Update website settings                      | yes   | yes   | yes    | no     |
+| Create / delete websites                     | yes   | yes   | no     | no     |
+| Manage members and invitations               | yes   | yes   | no     | no     |
+| Manage integrations                          | yes   | yes   | no     | no     |
+| Billing / plan / transfer / delete workspace | yes   | no    | no     | no     |
 
 Enforced in `src/lib/workspace-auth.ts`; the role/action map is unit-tested.
 Website helpers live in `src/permissions/website.ts`. The inherited API routes

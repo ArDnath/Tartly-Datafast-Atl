@@ -3,9 +3,9 @@
 This document is binding. It turns the two skills below into a repeatable,
 auditable rule set for every change in this repository.
 
-| Skill | Binding file | Use for |
-| --- | --- | --- |
-| Production backend readiness | `.opencode/skills/production-backend-readiness/SKILL.md` | every API, service, migration, webhook, job, auth/permission change, release |
+| Skill                           | Binding file                                               | Use for                                                                          |
+| ------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Production backend readiness    | `.opencode/skills/production-backend-readiness/SKILL.md`   | every API, service, migration, webhook, job, auth/permission change, release     |
 | High-scale, low-cost deployment | `.opencode/skills/high-scale-low-cost-deployment/SKILL.md` | architecture, ingestion/query hot paths, caching, deployment, cost, load testing |
 
 `AGENTS.md` declares these skills mandatory. A pull request is not ready to
@@ -117,12 +117,12 @@ Copy this block into every PR description and tick each line.
 Tartly is a small multi-tenant SaaS, not a 1M-RPS edge fleet. The high-scale
 skill is applied in stages so we do not buy complexity we cannot operate:
 
-| Stage | Trigger | Required now |
-| --- | --- | --- |
-| Launch | current | indexes, bounded payloads, plan limits, retention, connection pooling, structured logs, health checks, idempotent webhooks |
-| Growth | > 1k events/s sustained or p95 API > 500 ms | read replica routing, cache stampede guard, ingestion batching, PgBouncer, load-test baseline |
-| Scale | > 50k events/s or multi-region | queue/buffer tier, partitioned event tables, edge rate limiting, horizontal workers |
-| Extreme | > 250k events/s | sharded cache, compiled hot path, dedicated ingestion cluster |
+| Stage   | Trigger                                     | Required now                                                                                                               |
+| ------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Launch  | current                                     | indexes, bounded payloads, plan limits, retention, connection pooling, structured logs, health checks, idempotent webhooks |
+| Growth  | > 1k events/s sustained or p95 API > 500 ms | read replica routing, cache stampede guard, ingestion batching, PgBouncer, load-test baseline                              |
+| Scale   | > 50k events/s or multi-region              | queue/buffer tier, partitioned event tables, edge rate limiting, horizontal workers                                        |
+| Extreme | > 250k events/s                             | sharded cache, compiled hot path, dedicated ingestion cluster                                                              |
 
 Every stage entry must record the measured trigger. "We might need it" is not a
 trigger.

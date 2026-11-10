@@ -11,14 +11,14 @@ returning a revenue signal, not just pageviews.
 
 ## Activation funnel
 
-| Stage | Definition | Launch target (assumption) |
-| --- | --- | --- |
-| Signup | verified account created | — |
-| Workspace | workspace exists | 95% of signups |
-| Website | website exists | 80% |
-| First event | one stored `website_event` | 60% |
-| Payment connected | one active provider connection | 35% |
-| First attributed payment | one matched payment | 25% |
+| Stage                    | Definition                     | Launch target (assumption) |
+| ------------------------ | ------------------------------ | -------------------------- |
+| Signup                   | verified account created       | —                          |
+| Workspace                | workspace exists               | 95% of signups             |
+| Website                  | website exists                 | 80%                        |
+| First event              | one stored `website_event`     | 60%                        |
+| Payment connected        | one active provider connection | 35%                        |
+| First attributed payment | one matched payment            | 25%                        |
 
 The platform-admin activation page already reports these stages from durable
 rows. Targets are hypotheses to test, not promises.
@@ -52,11 +52,11 @@ last click is not necessarily the channel that created demand.
 
 ## 30/60/90-day checkpoints
 
-| Window | Question | Decision |
-| --- | --- | --- |
-| 30 days | Is activation above 20% and are there 10 paying customers? | If no, fix onboarding before paid spend |
-| 60 days | Is gross margin above the model and churn below 5%? | If no, adjust limits or price, not the promise |
-| 90 days | Is one channel producing repeatable paid customers? | Double down; stop the rest |
+| Window  | Question                                                   | Decision                                       |
+| ------- | ---------------------------------------------------------- | ---------------------------------------------- |
+| 30 days | Is activation above 20% and are there 10 paying customers? | If no, fix onboarding before paid spend        |
+| 60 days | Is gross margin above the model and churn below 5%?        | If no, adjust limits or price, not the promise |
+| 90 days | Is one channel producing repeatable paid customers?        | Double down; stop the rest                     |
 
 ## Assumptions to verify
 

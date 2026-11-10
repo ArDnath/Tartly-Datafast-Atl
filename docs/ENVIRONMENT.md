@@ -26,11 +26,11 @@ checkout to a running app. It covers local, preview, and production.
 Copy `.env.example` to `.env`. The canonical list lives there with comments.
 The minimum to boot:
 
-| Variable | Required | Purpose |
-| --- | --- | --- |
-| `DATABASE_URL` | yes | Runtime connection. On Neon: **pooled** host. |
+| Variable                | Required           | Purpose                                                                                 |
+| ----------------------- | ------------------ | --------------------------------------------------------------------------------------- |
+| `DATABASE_URL`          | yes                | Runtime connection. On Neon: **pooled** host.                                           |
 | `DATABASE_URL_UNPOOLED` | production/preview | **Direct** host for `prisma migrate` and the CLI. Falls back to `DATABASE_URL` locally. |
-| `APP_SECRET` | yes | Signs auth tokens, encrypts provider credentials. At least 32 bytes. |
+| `APP_SECRET`            | yes                | Signs auth tokens, encrypts provider credentials. At least 32 bytes.                    |
 
 Generate the secret:
 
@@ -178,8 +178,9 @@ pnpm build
 ```
 
 `build` runs `check-env`, `prisma generate`, `check-db` (connectivity + version
-+ pending migrations), the tracker/recorder bundles, `next build`, and
-`postbuild`. `check-db` applies migrations unless `SKIP_DB_MIGRATION` is set.
+
+- pending migrations), the tracker/recorder bundles, `next build`, and
+  `postbuild`. `check-db` applies migrations unless `SKIP_DB_MIGRATION` is set.
 
 ### Production variables
 
@@ -204,14 +205,14 @@ Set these in the host's secret manager, not in the repository:
 
 ## 7. Troubleshooting
 
-| Symptom | Cause | Fix |
-| --- | --- | --- |
-| `APP_SECRET must be ...` | missing/short/placeholder | `openssl rand -hex 32`, restart |
-| `Can't reach database server` | wrong host/port, Neon compute suspended | check `DATABASE_URL`; the app retries reads on cold start |
-| `prepared statement already exists` | transaction pooling without `pgbouncer=true` | use the Neon **pooled** string for runtime and direct for migrations |
-| Migrations hang in production | migration job used the pooled host | set `DATABASE_URL_UNPOOLED` |
-| `sharp` install error | source build attempted | ignored via `pnpm.ignoredBuiltDependencies`; `pnpm rebuild sharp` if needed |
-| Events not arriving | ad blocker/CSP/wrong domain | see onboarding troubleshooting (Phase 8) |
+| Symptom                             | Cause                                        | Fix                                                                         |
+| ----------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------- |
+| `APP_SECRET must be ...`            | missing/short/placeholder                    | `openssl rand -hex 32`, restart                                             |
+| `Can't reach database server`       | wrong host/port, Neon compute suspended      | check `DATABASE_URL`; the app retries reads on cold start                   |
+| `prepared statement already exists` | transaction pooling without `pgbouncer=true` | use the Neon **pooled** string for runtime and direct for migrations        |
+| Migrations hang in production       | migration job used the pooled host           | set `DATABASE_URL_UNPOOLED`                                                 |
+| `sharp` install error               | source build attempted                       | ignored via `pnpm.ignoredBuiltDependencies`; `pnpm rebuild sharp` if needed |
+| Events not arriving                 | ad blocker/CSP/wrong domain                  | see onboarding troubleshooting (Phase 8)                                    |
 
 ---
 

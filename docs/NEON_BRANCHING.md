@@ -12,13 +12,13 @@ run remains for the human (see §6).
 
 ## 1. Branch model
 
-| Branch | Purpose | Data | Who deploys |
-| --- | --- | --- | --- |
-| `production` | Live customer data | Real | Release workflow only |
-| `staging` | Pre-release rehearsal | Copy of production, refreshed before a release | Release workflow |
-| `development` | Shared integration branch | Synthetic/test | Developers |
-| `preview/<pr>` | One per pull request (optional) | Schema + anonymized subset or empty | CI |
-| local | Developer machine | Synthetic | Developer |
+| Branch         | Purpose                         | Data                                           | Who deploys           |
+| -------------- | ------------------------------- | ---------------------------------------------- | --------------------- |
+| `production`   | Live customer data              | Real                                           | Release workflow only |
+| `staging`      | Pre-release rehearsal           | Copy of production, refreshed before a release | Release workflow      |
+| `development`  | Shared integration branch       | Synthetic/test                                 | Developers            |
+| `preview/<pr>` | One per pull request (optional) | Schema + anonymized subset or empty            | CI                    |
+| local          | Developer machine               | Synthetic                                      | Developer             |
 
 Rules:
 
@@ -36,10 +36,10 @@ Rules:
 
 For each branch, Neon exposes two hosts:
 
-| Variable | Host | Used by |
-| --- | --- | --- |
-| `DATABASE_URL` | **pooled** (`...-pooler...`) | Next.js runtime, Prisma client |
-| `DATABASE_URL_UNPOOLED` | **direct** | `prisma migrate deploy`, `prisma migrate dev`, seed/backfill jobs |
+| Variable                | Host                         | Used by                                                           |
+| ----------------------- | ---------------------------- | ----------------------------------------------------------------- |
+| `DATABASE_URL`          | **pooled** (`...-pooler...`) | Next.js runtime, Prisma client                                    |
+| `DATABASE_URL_UNPOOLED` | **direct**                   | `prisma migrate deploy`, `prisma migrate dev`, seed/backfill jobs |
 
 Why:
 

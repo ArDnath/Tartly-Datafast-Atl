@@ -6,12 +6,12 @@ payloads, billing, usage, audit, and tenant rows all live in the same database.
 
 ## Targets
 
-| Item | Launch target |
-| --- | --- |
-| Recovery point objective (RPO) | ≤ 5 minutes (Neon point-in-time restore) |
-| Recovery time objective (RTO) | ≤ 2 hours for a full restore; ≤ 30 minutes for a bad deploy |
-| Backup retention | 7 days minimum, 30 days recommended |
-| Restore rehearsal | once before launch, then quarterly |
+| Item                           | Launch target                                               |
+| ------------------------------ | ----------------------------------------------------------- |
+| Recovery point objective (RPO) | ≤ 5 minutes (Neon point-in-time restore)                    |
+| Recovery time objective (RTO)  | ≤ 2 hours for a full restore; ≤ 30 minutes for a bad deploy |
+| Backup retention               | 7 days minimum, 30 days recommended                         |
+| Restore rehearsal              | once before launch, then quarterly                          |
 
 These are targets, not measured guarantees. Record the actual Neon plan and
 restore timing in the launch checklist.

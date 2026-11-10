@@ -30,10 +30,10 @@ healthy gross margin.
 
 There are exactly **two plans. No free tier. Do not invent a third plan.**
 
-| Plan | Monthly | Websites | Positioning |
-| --- | --- | --- | --- |
-| **Starter** | **$7.99/mo** | **1** | Solo founder getting their first revenue signal |
-| **Pro** | **$14.99/mo** | **up to 20** | Indie SaaS, small team, small agency |
+| Plan        | Monthly       | Websites     | Positioning                                     |
+| ----------- | ------------- | ------------ | ----------------------------------------------- |
+| **Starter** | **$7.99/mo**  | **1**        | Solo founder getting their first revenue signal |
+| **Pro**     | **$14.99/mo** | **up to 20** | Indie SaaS, small team, small agency            |
 
 Annual pricing may be offered at two months free only if
 `docs/PRICING_ECONOMICS.md` proves the margin works. All plan data lives in one
@@ -64,7 +64,7 @@ component.
 7. **Two separate payment contexts, never mixed:**
    (A) platform billing: we charge our customers (Dodo Payments);
    (B) analytics integrations: customers connect Stripe, Dodo, Lemon Squeezy,
-       Polar, Yolfi, etc. so we can measure *their* revenue.
+   Polar, Yolfi, etc. so we can measure _their_ revenue.
    The existing Dodo code in this fork is an **analytics integration**, not
    platform billing. Do not reuse it for plan charges.
 8. **SECRETS:** never hardcode, never commit, never expose to browser code.

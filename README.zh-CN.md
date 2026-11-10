@@ -10,10 +10,10 @@ Tartly 是基于 MIT 许可的 [Talivia](https://github.com/talivia-group/talivi
 
 仅有两个套餐，无免费版：
 
-| 套餐 | 月付 | 网站数 |
-| --- | --- | --- |
-| Starter | $7.99 | 1 |
-| Pro | $14.99 | 最多 20 |
+| 套餐    | 月付   | 网站数  |
+| ------- | ------ | ------- |
+| Starter | $7.99  | 1       |
+| Pro     | $14.99 | 最多 20 |
 
 套餐定义位于 `src/lib/plans.ts`。
 

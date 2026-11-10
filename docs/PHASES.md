@@ -170,11 +170,11 @@ shutdown or destructive action should be taken based on this tracker.
 
 Two plans and a **7-day free trial** (owner update, 2026-11-07):
 
-| Plan | Monthly | Annual (2 months free) | Events / month | Websites | Members |
-| --- | --- | --- | --- | --- | --- |
-| Free trial | **$0 for 7 days** | n/a | **2,000** | **1** | 1 |
-| Starter | **$7.99** | **$79.90** | **100,000** | **1** | 1 |
-| Pro | **$14.99** | **$149.90** | **1,000,000** | **up to 50** | 10 |
+| Plan       | Monthly           | Annual (2 months free) | Events / month | Websites     | Members |
+| ---------- | ----------------- | ---------------------- | -------------- | ------------ | ------- |
+| Free trial | **$0 for 7 days** | n/a                    | **2,000**      | **1**        | 1       |
+| Starter    | **$7.99**         | **$79.90**             | **100,000**    | **1**        | 1       |
+| Pro        | **$14.99**        | **$149.90**            | **1,000,000**  | **up to 50** | 10      |
 
 The pricing slider moves through eight traffic tiers from 10k to 2M Starter
 events (Pro 100k to 10M) and raises the price with the allowance. The default
@@ -187,21 +187,21 @@ tier" are superseded by this section.
 
 ## Phase status
 
-| # | Phase | Status | % Done | Started | Finished | Blockers |
-| --- | --- | --- | --- | --- | --- | --- |
-| 0 | Audit and baseline | DONE | 100% | 2026-11-04 | 2026-11-04 | none |
-| 1 | Neon PostgreSQL, Prisma, environment | DONE_WITH_CAVEATS | 100% | 2026-11-04 | 2026-11-04 | Neon credentials |
-| 2 | Workspaces, memberships, RBAC | DONE_WITH_CAVEATS | 95% | 2026-11-04 | 2026-11-05 | copy-with-data rehearsal; legacy table drop |
-| 3 | Tenant isolation hardening + tests | DONE | 100% | 2026-11-05 | 2026-11-05 | none (RLS deferred by decision) |
-| 4 | Authentication and account management | DONE_WITH_CAVEATS | 100% | 2026-11-05 | 2026-11-05 | live Resend send |
-| 5 | Platform billing (Dodo) | DONE_WITH_CAVEATS | 90% | 2026-11-05 | 2026-11-05 | live Dodo test mode |
-| 6 | Plans, pricing economics, usage | IN_PROGRESS | 90% | 2026-11-04 | — | live concurrency proof; owner approval of limits |
-| 7 | Analytics validation, integrations, replay | DONE_WITH_CAVEATS | 100% | 2026-11-05 | 2026-11-06 | live provider webhooks; ClickHouse; real browser recorder runtime |
-| 8 | Onboarding and developer experience | DONE_WITH_CAVEATS | 100% | 2026-11-04 | 2026-11-06 | browser walkthrough |
-| 9 | Rebrand and product UI | DONE | 100% | 2026-11-04 | 2026-11-05 | none |
-| 10 | Compliance, abuse, email, operations | DONE_WITH_CAVEATS | 100% | 2026-11-06 | 2026-11-06 | lawyer review; live Resend delivery |
-| 11 | Hardening, QA, deployment, launch | DONE_WITH_CAVEATS | 95% | 2026-11-06 | 2026-11-06 | hosting/DNS; Neon restore; browser walkthrough |
-| 12 | Go-to-market | DONE_WITH_CAVEATS | 100% | 2026-11-06 | 2026-11-06 | launch execution and day-of price re-verification |
+| #   | Phase                                      | Status            | % Done | Started    | Finished   | Blockers                                                          |
+| --- | ------------------------------------------ | ----------------- | ------ | ---------- | ---------- | ----------------------------------------------------------------- |
+| 0   | Audit and baseline                         | DONE              | 100%   | 2026-11-04 | 2026-11-04 | none                                                              |
+| 1   | Neon PostgreSQL, Prisma, environment       | DONE_WITH_CAVEATS | 100%   | 2026-11-04 | 2026-11-04 | Neon credentials                                                  |
+| 2   | Workspaces, memberships, RBAC              | DONE_WITH_CAVEATS | 95%    | 2026-11-04 | 2026-11-05 | copy-with-data rehearsal; legacy table drop                       |
+| 3   | Tenant isolation hardening + tests         | DONE              | 100%   | 2026-11-05 | 2026-11-05 | none (RLS deferred by decision)                                   |
+| 4   | Authentication and account management      | DONE_WITH_CAVEATS | 100%   | 2026-11-05 | 2026-11-05 | live Resend send                                                  |
+| 5   | Platform billing (Dodo)                    | DONE_WITH_CAVEATS | 90%    | 2026-11-05 | 2026-11-05 | live Dodo test mode                                               |
+| 6   | Plans, pricing economics, usage            | IN_PROGRESS       | 90%    | 2026-11-04 | —          | live concurrency proof; owner approval of limits                  |
+| 7   | Analytics validation, integrations, replay | DONE_WITH_CAVEATS | 100%   | 2026-11-05 | 2026-11-06 | live provider webhooks; ClickHouse; real browser recorder runtime |
+| 8   | Onboarding and developer experience        | DONE_WITH_CAVEATS | 100%   | 2026-11-04 | 2026-11-06 | browser walkthrough                                               |
+| 9   | Rebrand and product UI                     | DONE              | 100%   | 2026-11-04 | 2026-11-05 | none                                                              |
+| 10  | Compliance, abuse, email, operations       | DONE_WITH_CAVEATS | 100%   | 2026-11-06 | 2026-11-06 | lawyer review; live Resend delivery                               |
+| 11  | Hardening, QA, deployment, launch          | DONE_WITH_CAVEATS | 95%    | 2026-11-06 | 2026-11-06 | hosting/DNS; Neon restore; browser walkthrough                    |
+| 12  | Go-to-market                               | DONE_WITH_CAVEATS | 100%   | 2026-11-06 | 2026-11-06 | launch execution and day-of price re-verification                 |
 
 ---
 
@@ -212,46 +212,46 @@ tier" are superseded by this section.
 ### Tasks
 
 - [x] Inspect `package.json`, `pnpm-lock.yaml`, Prisma schema and migrations,
-      `prisma.config.ts`, auth/session code, user/team/website/collaborator
-      models, API routes, ingestion, tracker, replay, attribution, payment
-      integrations, webhooks, dashboard queries, jobs, Redis, ClickHouse,
-      Docker, environment config, tests, security-sensitive code. — proof:
-      `docs/SAAS_CONVERSION_AUDIT.md` §1–§11.
+  `prisma.config.ts`, auth/session code, user/team/website/collaborator
+  models, API routes, ingestion, tracker, replay, attribution, payment
+  integrations, webhooks, dashboard queries, jobs, Redis, ClickHouse,
+  Docker, environment config, tests, security-sensitive code. — proof:
+  `docs/SAAS_CONVERSION_AUDIT.md` §1–§11.
 - [x] Record actual installed versions (Next.js, React, Prisma, Node, pnpm). —
-      proof: audit §1 (Next 16.2.6, React 19.2.5, Prisma 7.6.0, Node 24.13.0,
-      pnpm 10.10.0).
+  proof: audit §1 (Next 16.2.6, React 19.2.5, Prisma 7.6.0, Node 24.13.0,
+  pnpm 10.10.0).
 - [x] Map every major data flow (visitor → tracker → ingestion → storage →
-      queries → dashboard; payment provider → webhook → normalization →
-      customer matching → attribution → revenue reports). — proof: audit §2,
-      §7.
+  queries → dashboard; payment provider → webhook → normalization →
+  customer matching → attribution → revenue reports). — proof: audit §2,
+  §7.
 - [x] State explicitly where events and replays are stored. — proof: audit §3
-      (PostgreSQL by default; optional ClickHouse/Kafka; mirror for attribution).
+  (PostgreSQL by default; optional ClickHouse/Kafka; mirror for attribution).
 - [x] LICENSE audit: `LICENSE`, non-MIT directories, trademarked assets and
-      fonts, restrictive dependency licenses. — proof:
-      `docs/LICENSE_AND_BRAND_AUDIT.md`.
+  fonts, restrictive dependency licenses. — proof:
+  `docs/LICENSE_AND_BRAND_AUDIT.md`.
 - [x] Check <https://github.com/talivia-group/agent>: exists? license? reusable? —
-      proof: audit §4; API returned MIT, not archived, reusable with attribution.
+  proof: audit §4; API returned MIT, not archived, reusable with attribution.
 - [x] Run install, build, lint, typecheck, and tests; record baseline including
-      pre-existing failures. — proof: audit §12; `pnpm build` exit 0,
-      `pnpm lint` pass, `tsc --noEmit` pass, tests 479 pass / 3 fail.
+  pre-existing failures. — proof: audit §12; `pnpm build` exit 0,
+  `pnpm lint` pass, `tsc --noEmit` pass, tests 479 pass / 3 fail.
 - [x] Create `docs/SAAS_CONVERSION_AUDIT.md`. — proof: file exists.
 - [x] Create `docs/LICENSE_AND_BRAND_AUDIT.md`. — proof: file exists.
 - [x] Recommend hosting for the Next.js app and event store with rough monthly
-      costs and cited sources. — proof: audit §13 (Vercel/Railway, Neon,
-      ClickHouse; sources fetched 2026-11-04).
+  costs and cited sources. — proof: audit §13 (Vercel/Railway, Neon,
+  ClickHouse; sources fetched 2026-11-04).
 
 ### Acceptance criteria
 
 - [x] Both audit docs exist and reference real repo file paths. — proof:
-      `docs/SAAS_CONVERSION_AUDIT.md`, `docs/LICENSE_AND_BRAND_AUDIT.md`.
+  `docs/SAAS_CONVERSION_AUDIT.md`, `docs/LICENSE_AND_BRAND_AUDIT.md`.
 - [x] Baseline build and test results are recorded, including failures. —
-      proof: audit §12.
+  proof: audit §12.
 - [x] Event and replay storage architecture is stated explicitly. — proof:
-      audit §3.
+  audit §3.
 - [x] The audit lists every tenant-owned table/entity lacking a workspace link. —
-      proof: audit §4 table (39 models).
+  proof: audit §4 table (39 models).
 - [x] No application code has been changed. — verified at the time of the
-      audit; later phases then began modifying code.
+  audit; later phases then began modifying code.
 
 ### Decisions made
 
@@ -275,47 +275,47 @@ migration connections.
 ### Tasks
 
 - [x] Confirm installed Prisma version (7.6.0) and evaluate
-      `@prisma/adapter-pg` (already used) versus the Neon serverless adapter.
-      Choose one and document why. — proof: `@prisma/adapter-pg` retained; the
-      existing `src/lib/prisma.ts` already uses it and it works with Neon's
-      pooled host. The Neon adapter is unnecessary until edge/serverless
-      deployment requires HTTP. Recorded in `docs/ENVIRONMENT.md`.
+  `@prisma/adapter-pg` (already used) versus the Neon serverless adapter.
+  Choose one and document why. — proof: `@prisma/adapter-pg` retained; the
+  existing `src/lib/prisma.ts` already uses it and it works with Neon's
+  pooled host. The Neon adapter is unnecessary until edge/serverless
+  deployment requires HTTP. Recorded in `docs/ENVIRONMENT.md`.
 - [x] `DATABASE_URL` (pooled host) for runtime; `DATABASE_URL_UNPOOLED` (direct
-      host) for migrations; update `prisma.config.ts` for Prisma 7. — proof:
-      `prisma.config.ts` (CLI uses unpooled, falls back locally).
+  host) for migrations; update `prisma.config.ts` for Prisma 7. — proof:
+  `prisma.config.ts` (CLI uses unpooled, falls back locally).
 - [x] Singleton Prisma client, safe under hot reload (already present in
-      `src/lib/prisma.ts`) — verify and harden. — proof: existing
-      `globalThis[PRISMA]` cache retained; pool timeouts added.
+  `src/lib/prisma.ts`) — verify and harden. — proof: existing
+  `globalThis[PRISMA]` cache retained; pool timeouts added.
 - [x] Connection timeouts + retry on transient errors/cold starts. — proof:
-      `src/lib/prisma.ts` (15s connect / 30s idle, max 10) and
-      `src/lib/db-retry.ts` with `P1001/P1002/P1017/P2024` handling; raw reads
-      use `withDbRetry`.
+  `src/lib/prisma.ts` (15s connect / 30s idle, max 10) and
+  `src/lib/db-retry.ts` with `P1001/P1002/P1017/P2024` handling; raw reads
+  use `withDbRetry`.
 - [x] `.env.example` with every variable, a comment each, no real secrets;
-      confirm `.env*` is gitignored. — proof: `.env.example`, `.gitignore:50`.
+  confirm `.env*` is gitignored. — proof: `.env.example`, `.gitignore:50`.
 - [x] `docs/ENVIRONMENT.md` (variables, Neon strings, pooled vs direct, local /
-      preview / production). — proof: file exists.
+  preview / production). — proof: file exists.
 - [x] `docs/NEON_BRANCHING.md` (production, development, preview branches;
-      migration promotion; local never points at production). — proof: file
-      exists.
+  migration promotion; local never points at production). — proof: file
+  exists.
 - [x] Verify migrations apply cleanly to an empty database (local PostgreSQL if
-      no Neon credentials; list the Neon run still required). — proof:
-      `pnpm exec prisma migrate deploy` applied 4 migrations (including the new
-      workspace migration) to a fresh PostgreSQL 17 database on 2026-11-04.
+  no Neon credentials; list the Neon run still required). — proof:
+  `pnpm exec prisma migrate deploy` applied 4 migrations (including the new
+  workspace migration) to a fresh PostgreSQL 17 database on 2026-11-04.
 - [x] Health endpoint that checks database connectivity without leaking
-      details. — proof: `GET /api/health` returned
-      `{ok:true,database:"up"}`; after stopping PostgreSQL it returned
-      `{ok:false,database:"down"}` with HTTP 503 and no error detail.
+  details. — proof: `GET /api/health` returned
+  `{ok:true,database:"up"}`; after stopping PostgreSQL it returned
+  `{ok:false,database:"down"}` with HTTP 503 and no error detail.
 
 ### Acceptance criteria
 
 - [x] `prisma migrate deploy` succeeds on an empty database (proof recorded). —
-      **local proof only**; Neon run still needs the human.
+  **local proof only**; Neon run still needs the human.
 - [x] App starts and health check passes. — proof: `pnpm dev` + curl as above.
 - [x] No credentials in git history or source. — `.env` is ignored; no real
-      credentials were added. `git log` on `.env` is empty.
+  credentials were added. `git log` on `.env` is empty.
 - [x] Docs let a new developer set up from them alone. — proof:
-      `docs/ENVIRONMENT.md` includes prerequisites, variables, local/Neon,
-      commands, troubleshooting.
+  `docs/ENVIRONMENT.md` includes prerequisites, variables, local/Neon,
+  commands, troubleshooting.
 
 ### Decisions made
 
@@ -346,85 +346,85 @@ migration connections.
 ### Tasks
 
 - [x] Add `Workspace` (`id`, `name`, `slug`, `ownerId`, `planId`,
-      `subscriptionStatus`, timestamps, `deletedAt`). — proof:
-      `prisma/schema.prisma` (`model Workspace`).
+  `subscriptionStatus`, timestamps, `deletedAt`). — proof:
+  `prisma/schema.prisma` (`model Workspace`).
 - [x] Add `WorkspaceMembership` (`workspaceId`, `userId`, `role`, unique pair). —
-      proof: schema + `workspace_membership` migration.
+  proof: schema + `workspace_membership` migration.
 - [x] Add `WorkspaceInvitation` (`email`, `role`, `invitationTokenHash`,
-      `invitedBy`, `expiresAt`, `acceptedAt`). Never store plaintext tokens. —
-      proof: `src/lib/workspace-invitations.ts`, API routes, `/invite/[token]`
-      UI, 8 unit tests (hash-only storage, expiry, email match, revoke).
+  `invitedBy`, `expiresAt`, `acceptedAt`). Never store plaintext tokens. —
+  proof: `src/lib/workspace-invitations.ts`, API routes, `/invite/[token]`
+  UI, 8 unit tests (hash-only storage, expiry, email match, revoke).
 - [x] Roles: `OWNER`, `ADMIN`, `MEMBER`, `VIEWER`. — proof:
-      `src/lib/workspace-auth.ts`.
+  `src/lib/workspace-auth.ts`.
 - [x] Every `Website` belongs to exactly one workspace; preserve existing IDs
-      and tracking IDs. — proof: `website.workspace_id` nullable for legacy,
-      backfilled; new websites set it. Exactly-one is enforced in the new path,
-      not yet at the DB level (see Phase 3).
+  and tracking IDs. — proof: `website.workspace_id` nullable for legacy,
+  backfilled; new websites set it. Exactly-one is enforced in the new path,
+  not yet at the DB level (see Phase 3).
 - [x] Reversible data migration moving existing data into workspaces. — proof:
-      `prisma/migrations/20261104180000_workspaces/migration.sql` creates a
-      personal workspace per user, OWNER membership, and attaches user/team
-      websites. Reversal is documented as dropping the table/column (data
-      assignment is lost on reverse; export first).
+  `prisma/migrations/20261104180000_workspaces/migration.sql` creates a
+  personal workspace per user, OWNER membership, and attaches user/team
+  websites. Reversal is documented as dropping the table/column (data
+  assignment is lost on reverse; export first).
 - [x] Registration creates user + personal workspace + OWNER membership + plan
-      in **one transaction**. — proof: `src/lib/registration.ts`,
-      `POST /api/auth/register`, `/signup`, 3 transaction tests. Usage period
-      still arrives with metering in Phase 6.
+  in **one transaction**. — proof: `src/lib/registration.ts`,
+  `POST /api/auth/register`, `/signup`, 3 transaction tests. Usage period
+  still arrives with metering in Phase 6.
 - [x] One member surface: workspace membership now owns every member list,
-      invite, role, and removal. Website Settings → Team lists the owning
-      workspace's members and links to workspace settings; the duplicate
-      per-website member UI, hook, API routes, and handlers were deleted. —
-      proof: `src/features/websites/settings/WebsiteTeamSettings.tsx` reads
-      `/api/workspaces/[workspaceId]/members`; `WebsiteTeamSettings.test.tsx`
-      (3 tests) covers manage/read-only/no-workspace states;
-      `src/lib/app-structure.test.ts` fails if the per-website member surface
-      returns. This fixes a real bug where a website Team invite appeared to
-      grant access but the workspace authorization layer ignored it.
+  invite, role, and removal. Website Settings → Team lists the owning
+  workspace's members and links to workspace settings; the duplicate
+  per-website member UI, hook, API routes, and handlers were deleted. —
+  proof: `src/features/websites/settings/WebsiteTeamSettings.tsx` reads
+  `/api/workspaces/[workspaceId]/members`; `WebsiteTeamSettings.test.tsx`
+  (3 tests) covers manage/read-only/no-workspace states;
+  `src/lib/app-structure.test.ts` fails if the per-website member surface
+  returns. This fixes a real bug where a website Team invite appeared to
+  grant access but the workspace authorization layer ignored it.
 - [ ] Drop the legacy `Team` / `TeamUser` rows and the `WebsiteMember` fallback
-      once all pre-workspace websites are migrated. — **UNVERIFIED**: requires
-      a data rehearsal on a copy of real installation data. `website_member`
-      remains a read-only fallback for legacy websites only; it is no longer
-      writable from the application.
+  once all pre-workspace websites are migrated. — **UNVERIFIED**: requires
+  a data rehearsal on a copy of real installation data. `website_member`
+  remains a read-only fallback for legacy websites only; it is no longer
+  writable from the application.
 - [x] One central authorization module
-      (`requireWorkspaceAccess(user, workspaceId, minRole)`) used by every API
-      route and server action. — proof: `src/permissions/website.ts` now
-      resolves every website through workspace membership; all 72 inherited
-      website routes pass through it. `src/lib/tenant-boundaries.test.ts`
-      fails if a tenant route loses its guard.
+  (`requireWorkspaceAccess(user, workspaceId, minRole)`) used by every API
+  route and server action. — proof: `src/permissions/website.ts` now
+  resolves every website through workspace membership; all 72 inherited
+  website routes pass through it. `src/lib/tenant-boundaries.test.ts`
+  fails if a tenant route loses its guard.
 - [x] Document permission matrix: OWNER (everything, billing, delete
-      workspace), ADMIN (websites, analytics, integrations, invites; not
-      ownership transfer or workspace delete), MEMBER (view + manage allowed
-      websites), VIEWER (read-only). — proof: `docs/UI_DESIGN_SYSTEM.md` §? and
-      `src/lib/workspace-auth.ts`; unit tests cover all four roles.
+  workspace), ADMIN (websites, analytics, integrations, invites; not
+  ownership transfer or workspace delete), MEMBER (view + manage allowed
+  websites), VIEWER (read-only). — proof: `docs/UI_DESIGN_SYSTEM.md` §? and
+  `src/lib/workspace-auth.ts`; unit tests cover all four roles.
 - [x] Workspace switching, creation, invitations (send/accept/revoke/expire). —
-      proof: `WorkspaceSwitcher` in the app nav, `/app/settings/workspace`
-      members/invitations UI, `/api/workspaces/[workspaceId]/members`, and
-      `/api/workspaces/[workspaceId]/invitations`.
+  proof: `WorkspaceSwitcher` in the app nav, `/app/settings/workspace`
+  members/invitations UI, `/api/workspaces/[workspaceId]/members`, and
+  `/api/workspaces/[workspaceId]/invitations`.
 - [x] Separate internal platform-admin role, independently protected; no public
-      bootstrap admin and no default credentials. — proof:
-      `src/lib/platform-admin.ts` requires `PLATFORM_ADMIN_EMAILS` in
-      production; the bootstrap row is disabled by
-      `20261104190000_remove_default_admin`.
+  bootstrap admin and no default credentials. — proof:
+  `src/lib/platform-admin.ts` requires `PLATFORM_ADMIN_EMAILS` in
+  production; the bootstrap row is disabled by
+  `20261104190000_remove_default_admin`.
 
 ### Acceptance criteria
 
 - [ ] Migration applies on a copy of existing data without loss. — local empty
-      DB proof only; a copy-with-data rehearsal is pending.
+  DB proof only; a copy-with-data rehearsal is pending.
 - [x] Registration transaction test: forced mid-way failure leaves no orphans. —
-      proof: `src/lib/registration.test.ts` (all writes in one transaction;
-      duplicate account rejected before opening it).
+  proof: `src/lib/registration.test.ts` (all writes in one transaction;
+  duplicate account rejected before opening it).
 - [x] Permission matrix implemented in one module and unit tested for all four
-      roles. — proof: `src/lib/workspace-auth.test.ts` (7 tests, all passing).
+  roles. — proof: `src/lib/workspace-auth.test.ts` (7 tests, all passing).
 - [x] Grep shows no route/server action reading tenant data without the
-      authorization module (exceptions listed explicitly). — proof:
-      `src/lib/tenant-boundaries.test.ts` allowlists only `workspaces/route.ts`
-      (self-scoped by `auth.user.id`) and invitation/member routes that
-      delegate to guarded functions.
+  authorization module (exceptions listed explicitly). — proof:
+  `src/lib/tenant-boundaries.test.ts` allowlists only `workspaces/route.ts`
+  (self-scoped by `auth.user.id`) and invitation/member routes that
+  delegate to guarded functions.
 - [x] Live API smoke on the production build (2026-11-05): two accounts
-      registered, website created in A, A read it, B rejected on the website
-      and on `/stats` by ID swap, unauthenticated read rejected, Starter
-      website and member limits enforced, Pro invitation accepted by the
-      invited email, MEMBER could not delete, and the invitation was single-use.
-      All 17 assertions passed; smoke rows were deleted afterwards.
+  registered, website created in A, A read it, B rejected on the website
+  and on `/stats` by ID swap, unauthenticated read rejected, Starter
+  website and member limits enforced, Pro invitation accepted by the
+  invited email, MEMBER could not delete, and the invitation was single-use.
+  All 17 assertions passed; smoke rows were deleted afterwards.
 
 ### Decisions made
 
@@ -459,52 +459,52 @@ migration connections.
 ### Tasks
 
 - [x] Inventory every tenant-owned resource and confirm each links to a
-      workspace: websites, reports, segments, payment connections, revenue
-      records, subscriptions, API keys, imports, historical metrics,
-      attribution configs, audit records, replays, sessions, events, shares,
-      boards, links, pixels. — proof: `docs/TENANCY.md`; boards/links/pixels
-      are explicitly legacy and their create endpoints are disabled.
+  workspace: websites, reports, segments, payment connections, revenue
+  records, subscriptions, API keys, imports, historical metrics,
+  attribution configs, audit records, replays, sessions, events, shares,
+  boards, links, pixels. — proof: `docs/TENANCY.md`; boards/links/pixels
+  are explicitly legacy and their create endpoints are disabled.
 - [x] Explicit tenant scoping on every website read/update/delete/create. —
-      proof: central `canViewWebsite`/`canUpdateWebsite`/`canDeleteWebsite`
-      plus `requireWebsiteAccess`. Composite DB constraints remain open below.
+  proof: central `canViewWebsite`/`canUpdateWebsite`/`canDeleteWebsite`
+  plus `requireWebsiteAccess`. Composite DB constraints remain open below.
 - [x] Event store: every query/write includes the website ID resolved from an
-      authorized workspace. — proof: inherited SQL joins key on
-      `website_id`; analytics routes reject unauthorized website IDs before
-      querying.
+  authorized workspace. — proof: inherited SQL joins key on
+  `website_id`; analytics routes reject unauthorized website IDs before
+  querying.
 - [x] Cache keys include tenant and website identifiers; document
-      contamination checks. — proof: `src/lib/load.ts` now uses
-      `session:${websiteId}:${sessionId}` and rejects a cached session whose
-      `websiteId` differs. `docs/TENANCY.md` §Cache keys.
+  contamination checks. — proof: `src/lib/load.ts` now uses
+  `session:${websiteId}:${sessionId}` and rejects a cached session whose
+  `websiteId` differs. `docs/TENANCY.md` §Cache keys.
 - [x] Evaluate PostgreSQL RLS as defence in depth. With Neon pooling use
-      transaction-scoped context only (`SET LOCAL`); otherwise document why. —
-      proof: decision recorded in `docs/TENANCY.md`: every pooled query would
-      need transaction-scoped `SET LOCAL` plus policies on ~39 tables;
-      application checks + the static boundary test are the launch control.
+  transaction-scoped context only (`SET LOCAL`); otherwise document why. —
+  proof: decision recorded in `docs/TENANCY.md`: every pooled query would
+  need transaction-scoped `SET LOCAL` plus policies on ~39 tables;
+  application checks + the static boundary test are the launch control.
 - [x] Isolation tests: Workspace A/User A/Website A vs Workspace B/User
-      B/Website B. A can access A; A cannot access B analytics, replays,
-      revenue, settings, API keys, exports; ID swapping does not expose B;
-      direct API calls cannot bypass. — proof:
-      `src/permissions/website.workspace.test.ts` (10 scenarios) plus the
-      static route-boundary test.
+  B/Website B. A can access A; A cannot access B analytics, replays,
+  revenue, settings, API keys, exports; ID swapping does not expose B;
+  direct API calls cannot bypass. — proof:
+  `src/permissions/website.workspace.test.ts` (10 scenarios) plus the
+  static route-boundary test.
 - [x] Webhook and background-job isolation tests. — proof:
-      `src/features/payments/server/stripe/[websiteId]/webhook/handler.test.ts`
-      asserts connection lookup, payment write, and provider event write all use
-      the URL website;
-      `src/features/system/cron/jobs/provider-webhook-cleanup.test.ts` asserts
-      each queued job uses only its own credentials and endpoint.
+  `src/features/payments/server/stripe/[websiteId]/webhook/handler.test.ts`
+  asserts connection lookup, payment write, and provider event write all use
+  the URL website;
+  `src/features/system/cron/jobs/provider-webhook-cleanup.test.ts` asserts
+  each queued job uses only its own credentials and endpoint.
 - [x] CI step runs isolation suite on every push. — proof: the existing
-      `pnpm test` step in `.github/workflows/ci.yml` includes every
-      `*.test.ts` suite.
+  `pnpm test` step in `.github/workflows/ci.yml` includes every
+  `*.test.ts` suite.
 
 ### Acceptance criteria
 
 - [x] All ten isolation scenarios pass, each with a named test. — proof:
-      `src/permissions/website.workspace.test.ts`.
+  `src/permissions/website.workspace.test.ts`.
 - [x] Webhook and background-job isolation tests pass. — proof: the two
-      suites above (13 + 7 tests) pass.
+  suites above (13 + 7 tests) pass.
 - [x] Failing scenarios fixed, not skipped; otherwise phase BLOCKED. — proof:
-      the three new-suite failures during the restructuring run were fixed; the
-      remaining full-suite failures are the five documented baseline flakes.
+  the three new-suite failures during the restructuring run were fixed; the
+  remaining full-suite failures are the five documented baseline flakes.
 
 ### Decisions made
 
@@ -539,62 +539,62 @@ migration connections.
 ### Tasks
 
 - [x] Inspect existing session/auth implementation first; reuse if sound. Do
-      not introduce Clerk/Auth.js/Better Auth unless justified in writing. —
-      proof: no auth framework added; the existing username/password base is
-      retained and made production-safe.
+  not introduce Clerk/Auth.js/Better Auth unless justified in writing. —
+  proof: no auth framework added; the existing username/password base is
+  retained and made production-safe.
 - [x] Registration, login, logout, session management, email verification,
-      password reset, secure hashing, profile updates, account settings,
-      workspace deletion, account deletion. — proof: `/api/auth/*`,
-      `/api/me/account`, `/api/workspaces/[workspaceId]` DELETE/PATCH;
-      bcryptjs cost 10; `/verify-email`, `/forgot-password`, `/reset-password`.
+  password reset, secure hashing, profile updates, account settings,
+  workspace deletion, account deletion. — proof: `/api/auth/*`,
+  `/api/me/account`, `/api/workspaces/[workspaceId]` DELETE/PATCH;
+  bcryptjs cost 10; `/verify-email`, `/forgot-password`, `/reset-password`.
 - [x] Cookies: Secure, HttpOnly, SameSite=Lax; 30-day server-side expiry;
-      password change/reset revokes every session. — proof:
-      `src/lib/auth-cookie.ts`, `src/lib/auth-session.ts`, migration
-      `20261104185008_auth_sessions`, `src/lib/auth-session.test.ts`.
+  password change/reset revokes every session. — proof:
+  `src/lib/auth-cookie.ts`, `src/lib/auth-session.ts`, migration
+  `20261104185008_auth_sessions`, `src/lib/auth-session.test.ts`.
 - [x] CSRF protection where applicable. — proof: `src/lib/csrf.ts`; cookie-auth
-      unsafe requests with a foreign Origin/Referer return 403
-      `csrf-rejected`; SameSite=Lax is the second layer.
+  unsafe requests with a foreign Origin/Referer return 403
+  `csrf-rejected`; SameSite=Lax is the second layer.
 - [x] Rate limiting + brute-force protection on login, registration, password
-      reset, verification resend. — proof: atomic Postgres fixed windows in
-      `src/lib/rate-limit.ts`; per-IP and per-account/email keys; no Redis
-      dependency.
+  reset, verification resend. — proof: atomic Postgres fixed windows in
+  `src/lib/rate-limit.ts`; per-IP and per-account/email keys; no Redis
+  dependency.
 - [x] Hashed, single-use, expiring reset and verification tokens. — proof:
-      `src/lib/auth-tokens.ts` (24h verification, 1h reset, SHA-512 at rest,
-      consumption and state change in one transaction).
+  `src/lib/auth-tokens.ts` (24h verification, 1h reset, SHA-512 at rest,
+  consumption and state change in one transaction).
 - [x] Remove default admin credentials and customer-facing self-hosted admin
-      path. — proof: migration `20261104190000_remove_default_admin` disables
-      the bootstrap `admin` row only while it still has the known password
-      hash; `src/lib/platform-admin.ts` requires `PLATFORM_ADMIN_EMAILS` in
-      production, so `role === 'admin'` alone is not a platform grant.
+  path. — proof: migration `20261104190000_remove_default_admin` disables
+  the bootstrap `admin` row only while it still has the known password
+  hash; `src/lib/platform-admin.ts` requires `PLATFORM_ADMIN_EMAILS` in
+  production, so `role === 'admin'` alone is not a platform grant.
 - [x] Email provider abstraction (Resend or similar) with dev-mode outbox. —
-      proof: `src/lib/email.ts`; without `RESEND_API_KEY` development writes to
-      `.dev-emails/outbox.log` (gitignored), never to application logs.
+  proof: `src/lib/email.ts`; without `RESEND_API_KEY` development writes to
+  `.dev-emails/outbox.log` (gitignored), never to application logs.
 - [x] Account deletion with a typed confirmation and password re-check. —
-      proof: `DELETE /api/me/account`; soft-deletes owned workspaces, revokes
-      sessions, anonymises the user row, and leaves event purge to the
-      tenant-scoped retention job.
+  proof: `DELETE /api/me/account`; soft-deletes owned workspaces, revokes
+  sessions, anonymises the user row, and leaves event purge to the
+  tenant-scoped retention job.
 - [x] Separate platform-admin role (environment allowlist), no public
-      bootstrap admin. — proof: `src/lib/platform-admin.ts` + tests.
+  bootstrap admin. — proof: `src/lib/platform-admin.ts` + tests.
 
 ### Acceptance criteria
 
 - [x] Tests for login, logout, expired/revoked session, password reset
-      (single use, expiry), email verification, rate limiting. — proof:
-      `auth-session.test.ts`, `auth-tokens.test.ts`, `rate-limit.test.ts`,
-      `login/route.test.ts`, `logout/route.test.ts`,
-      `password/forgot|reset` route tests, `email/verify` route test.
+  (single use, expiry), email verification, rate limiting. — proof:
+  `auth-session.test.ts`, `auth-tokens.test.ts`, `rate-limit.test.ts`,
+  `login/route.test.ts`, `logout/route.test.ts`,
+  `password/forgot|reset` route tests, `email/verify` route test.
 - [x] No plaintext passwords/tokens in DB or logs. — proof: bcrypt hashes;
-      only SHA-512 token hashes stored; the login response no longer contains
-      the session token; local email bodies go to `.dev-emails/outbox.log`,
-      not logs.
+  only SHA-512 token hashes stored; the login response no longer contains
+  the session token; local email bodies go to `.dev-emails/outbox.log`,
+  not logs.
 - [x] Repo search finds no default admin credentials. — proof: bootstrap row
-      disabled by migration; `grep` finds only documentation of its removal.
+  disabled by migration; `grep` finds only documentation of its removal.
 - [x] Live smoke on the production build (2026-11-05): 17/17 assertions
-      passed — register sets an HttpOnly/SameSite cookie with no token in the
-      body, cookie auth, workspace/website creation, real stats read, reset
-      writes to the development outbox, reset revokes the old session and old
-      password, new password signs in, logout revokes, and a second account is
-      denied the first tenant's website by ID.
+  passed — register sets an HttpOnly/SameSite cookie with no token in the
+  body, cookie auth, workspace/website creation, real stats read, reset
+  writes to the development outbox, reset revokes the old session and old
+  password, new password signs in, logout revokes, and a second account is
+  denied the first tenant's website by ID.
 
 ### Decisions made
 
@@ -631,71 +631,71 @@ migration connections.
 ### Tasks
 
 - [x] Inspect existing Dodo analytics integration; keep it separate. — proof:
-      `features/payments` still owns per-website analytics connections;
-      `features/billing` has its own provider, credentials, webhook route, and
-      tables. `docs/PLATFORM_BILLING.md` records the boundary.
+  `features/payments` still owns per-website analytics connections;
+  `features/billing` has its own provider, credentials, webhook route, and
+  tables. `docs/PLATFORM_BILLING.md` records the boundary.
 - [x] Check current Dodo SDK/docs for subscriptions, checkout, portal,
-      webhooks. Record URLs and dates. — proof: `docs/PLATFORM_BILLING.md`
-      lists checkout, patch subscription, change plan, customer portal, and
-      webhook docs fetched 2026-11-05. Uses installed `dodopayments@2.42.2`.
+  webhooks. Record URLs and dates. — proof: `docs/PLATFORM_BILLING.md`
+  lists checkout, patch subscription, change plan, customer portal, and
+  webhook docs fetched 2026-11-05. Uses installed `dodopayments@2.42.2`.
 - [x] `BillingProvider` interface (create customer, create subscription, start
-      checkout, update, cancel, status, webhooks, invoices, portal) with Dodo
-      implementation; extensible to Stripe later. — proof:
-      `features/billing/server/provider.ts` +
-      `features/billing/server/providers/dodo.ts` (checkout, portal,
-      cancel-at-period-end, change plan).
+  checkout, update, cancel, status, webhooks, invoices, portal) with Dodo
+  implementation; extensible to Stripe later. — proof:
+  `features/billing/server/provider.ts` +
+  `features/billing/server/providers/dodo.ts` (checkout, portal,
+  cancel-at-period-end, change plan).
 - [x] Models: `BillingCustomer`, `SubscriptionPlan`, `Subscription`,
-      `BillingEvent`, `InvoiceRecord`, `SubscriptionChange`; store provider IDs;
-      one independent subscription per workspace. — proof: migration
-      `20261105150000_platform_billing` adds `billing_customer`,
-      `platform_subscription` (one per workspace), `billing_event`,
-      `billing_invoice`, `billing_subscription_change`. Plan prices stay in
-      `src/lib/plans.ts`, so no duplicate `SubscriptionPlan` table was needed.
-      `prisma migrate deploy` applied it cleanly and all five tables exist.
+  `BillingEvent`, `InvoiceRecord`, `SubscriptionChange`; store provider IDs;
+  one independent subscription per workspace. — proof: migration
+  `20261105150000_platform_billing` adds `billing_customer`,
+  `platform_subscription` (one per workspace), `billing_event`,
+  `billing_invoice`, `billing_subscription_change`. Plan prices stay in
+  `src/lib/plans.ts`, so no duplicate `SubscriptionPlan` table was needed.
+  `prisma migrate deploy` applied it cleanly and all five tables exist.
 - [x] Webhooks: raw-body signature verification, idempotency via stored event
-      IDs, duplicate protection, out-of-order handling, retry-safe processing,
-      failure/cancel/expiry/refund events. — proof:
-      `features/billing/lib/standard-webhook.ts` (HMAC over
-      `id.timestamp.body`, timestamp tolerance, constant-time compare);
-      `features/billing/server/service.ts` (unique `webhook-id`, failed retries
-      re-claimable, timestamp+priority ordering, unmatched/unsupported events
-      recorded); `handler.test.ts` and `service.test.ts`.
+  IDs, duplicate protection, out-of-order handling, retry-safe processing,
+  failure/cancel/expiry/refund events. — proof:
+  `features/billing/lib/standard-webhook.ts` (HMAC over
+  `id.timestamp.body`, timestamp tolerance, constant-time compare);
+  `features/billing/server/service.ts` (unique `webhook-id`, failed retries
+  re-claimable, timestamp+priority ordering, unmatched/unsupported events
+  recorded); `handler.test.ts` and `service.test.ts`.
 - [x] Lifecycle states: `TRIALING`, `ACTIVE`, `PAST_DUE`, `CANCELLED`,
-      `EXPIRED`, `SUSPENDED` (no FREE plan; no free tier). — proof:
-      `src/lib/billing-lifecycle.ts` + `billing-lifecycle.test.ts`.
+  `EXPIRED`, `SUSPENDED` (no FREE plan; no free tier). — proof:
+  `src/lib/billing-lifecycle.ts` + `billing-lifecycle.test.ts`.
 - [x] Cancel-at-period-end keeps access until paid period ends. — proof:
-      `billingSubscriptionHasAccess` grants access for `CANCELLED` only while
-      `currentPeriodEnd` is in the future; cancel handler schedules it with the
-      provider; acceptance test in `billing-lifecycle.test.ts`.
+  `billingSubscriptionHasAccess` grants access for `CANCELLED` only while
+  `currentPeriodEnd` is in the future; cancel handler schedules it with the
+  provider; acceptance test in `billing-lifecycle.test.ts`.
 - [x] Never activate from a checkout redirect; confirm via provider status or
-      webhook. — proof: checkout returns only `{url}`; no code writes a
-      subscription outside `processDodoWebhook`.
+  webhook. — proof: checkout returns only `{url}`; no code writes a
+  subscription outside `processDodoWebhook`.
 - [x] Entitlements come from backend subscription records only. — proof:
-      `src/lib/entitlements.ts` reads `platform_subscription` first and only
-      falls back to the legacy workspace status for pre-billing rows. Paid
-      features also require `active`.
+  `src/lib/entitlements.ts` reads `platform_subscription` first and only
+  falls back to the legacy workspace status for pre-billing rows. Paid
+  features also require `active`.
 - [x] Billing settings page: plan, period, usage, next renewal, status,
-      upgrade/downgrade, cancel, portal/invoice links. No fake invoices. —
-      proof: `features/billing/components/BillingSubscriptionPanel.tsx` inside
-      `/app/settings/billing`; invoice rows come only from
-      `billing_invoice`.
+  upgrade/downgrade, cancel, portal/invoice links. No fake invoices. —
+  proof: `features/billing/components/BillingSubscriptionPanel.tsx` inside
+  `/app/settings/billing`; invoice rows come only from
+  `billing_invoice`.
 
 ### Acceptance criteria
 
 - [x] Replayed webhook creates no duplicates. — proof:
-      `service.test.ts` ("ignores a replay…") and
-      `webhook/dodo/handler.test.ts` ("acknowledges a replayed event…").
+  `service.test.ts` ("ignores a replay…") and
+  `webhook/dodo/handler.test.ts` ("acknowledges a replayed event…").
 - [x] Out-of-order events converge to the correct state. — proof:
-      `service.test.ts` ("does not let an older snapshot overwrite newer
-      state") and `billing-lifecycle.test.ts`.
+  `service.test.ts` ("does not let an older snapshot overwrite newer
+  state") and `billing-lifecycle.test.ts`.
 - [x] Invalid signature rejected. — proof:
-      `standard-webhook.test.ts` and `webhook/dodo/handler.test.ts`
-      (400 `webhook-invalid-signature`, provider mock not called).
+  `standard-webhook.test.ts` and `webhook/dodo/handler.test.ts`
+  (400 `webhook-invalid-signature`, provider mock not called).
 - [x] Cancel-at-period-end retains access. — proof:
-      `billing-lifecycle.test.ts` (future/past period cases).
+  `billing-lifecycle.test.ts` (future/past period cases).
 - [ ] Documented manual test against Dodo test mode, or exact steps for human.
-      — exact steps are in `docs/PLATFORM_BILLING.md`; **not executed** because
-      no Dodo keys exist in this environment.
+  — exact steps are in `docs/PLATFORM_BILLING.md`; **not executed** because
+  no Dodo keys exist in this environment.
 
 ### Decisions made
 
@@ -742,58 +742,58 @@ migration connections.
 ### Tasks
 
 - [x] One plan config (`src/lib/plans.ts`): monthly/annual price, website
-      allowance, event allowance, member allowance, retention, replay
-      allowance, feature flags, export/integration permissions. Adding a plan
-      must not require touching unrelated components. — proof:
-      `src/lib/plans.ts`, 6 unit tests.
+  allowance, event allowance, member allowance, retention, replay
+  allowance, feature flags, export/integration permissions. Adding a plan
+  must not require touching unrelated components. — proof:
+  `src/lib/plans.ts`, 6 unit tests.
 - [x] **Exactly two plans: Starter $7.99/mo (1 website) and Pro $14.99/mo
       (up to 20 websites). No free tier.** — proof: `PLANS` + tests.
 - [x] `docs/PRICING_ECONOMICS.md`:
   - [x] Fetch official pricing for DataFast, Talivia Cloud, Plausible, Fathom,
-        Umami Cloud, Simple Analytics; cite URL + date; mark unverified items.
+    Umami Cloud, Simple Analytics; cite URL + date; mark unverified items.
   - [x] Estimate hosting, event store, Neon compute/storage, replay storage,
-        email, billing fees.
+    email, billing fees.
   - [x] Model 100 / 500 / 1,000 / 5,000 customers with stated assumptions.
   - [x] Gross margin per plan. — 89.4% at 100 customers, 93.6% at 5,000.
   - [x] Final prices and event limits. Owner-fixed prices $7.99 / $14.99;
-        limits proposed: 50k/500k events, 90/180-day retention, replay Pro-only.
+    limits proposed: 50k/500k events, 90/180-day retention, replay Pro-only.
 - [x] Usage metering: only accepted, valid, deduplicated, non-bot events.
-      Replays metered separately. Atomic under concurrent ingestion. Durable
-      DB source of truth; caches display-only. Monthly `UsagePeriod` reset. —
-      proof: `prisma/migrations/20261105120000_usage_metering`, `src/lib/usage.ts`
-      (atomic `INSERT ... ON CONFLICT ... WHERE` reservation, release on failed
-      write, replay session dedupe), collector reservation in
-      `src/app/api/send/route.ts`, replay entitlement + metering in
-      `src/app/api/record/route.ts`, 11 unit tests. Documented in
-      `docs/USAGE_METERING.md`.
+  Replays metered separately. Atomic under concurrent ingestion. Durable
+  DB source of truth; caches display-only. Monthly `UsagePeriod` reset. —
+  proof: `prisma/migrations/20261105120000_usage_metering`, `src/lib/usage.ts`
+  (atomic `INSERT ... ON CONFLICT ... WHERE` reservation, release on failed
+  write, replay session dedupe), collector reservation in
+  `src/app/api/send/route.ts`, replay entitlement + metering in
+  `src/app/api/record/route.ts`, 11 unit tests. Documented in
+  `docs/USAGE_METERING.md`.
 - [x] Limit policy: 80% and 100% notices, small grace, then pause billable
-      ingestion; dashboard stays accessible; no silent deletion; no automatic
-      overage unless opted in. — proof: `USAGE_WARNING_RATIO`, `EVENT_GRACE`
-      (1,000 events), `REPLAY_GRACE` (100 sessions) in `src/lib/usage.ts`; the
-      collector pauses at the hard limit while reads stay open; in-app banner
-      in `src/app/(main)/UsageBanner.tsx`. Email notices wait for Phase 10.
+  ingestion; dashboard stays accessible; no silent deletion; no automatic
+  overage unless opted in. — proof: `USAGE_WARNING_RATIO`, `EVENT_GRACE`
+  (1,000 events), `REPLAY_GRACE` (100 sessions) in `src/lib/usage.ts`; the
+  collector pauses at the hard limit while reads stay open; in-app banner
+  in `src/app/(main)/UsageBanner.tsx`. Email notices wait for Phase 10.
 - [x] Usage UI: current usage, allowance, remaining, percentage, reset date,
-      upgrade prompt. — proof: `/app/settings/billing`
-      (`UsageSettingsPage.tsx`) with plan, reset date, website/member limits,
-      event and replay bars, grace/limit copy, and upgrade path; settings nav
-      updated.
+  upgrade prompt. — proof: `/app/settings/billing`
+  (`UsageSettingsPage.tsx`) with plan, reset date, website/member limits,
+  event and replay bars, grace/limit copy, and upgrade path; settings nav
+  updated.
 
 ### Acceptance criteria
 
 - [x] `PRICING_ECONOMICS.md` has cited sources, assumptions, margin table.
 - [x] At least one tier adjusted if the numbers required it, or the doc
-      explains why none was needed. — prices were fixed by the owner; the doc
-      adjusts **limits** (replay Pro-only, 90/180-day retention) to keep margin
-      above 85%.
+  explains why none was needed. — prices were fixed by the owner; the doc
+  adjusts **limits** (replay Pro-only, 90/180-day retention) to keep margin
+  above 85%.
 - [x] Concurrency test: parallel ingestion never under/overcounts. — proof:
-      `docs/LOAD_TEST.md` recorded 10,000 accepted events at 50 concurrent
-      clients, 0 errors, 10,001 stored rows and a matching 10,001 usage count.
-      The probe also found and fixed the pre-reservation session leak. This is
-      a single-node proof, not a distributed 1M-RPS proof; CI still does not run
-      a load test.
+  `docs/LOAD_TEST.md` recorded 10,000 accepted events at 50 concurrent
+  clients, 0 errors, 10,001 stored rows and a matching 10,001 usage count.
+  The probe also found and fixed the pre-reservation session leak. This is
+  a single-node proof, not a distributed 1M-RPS proof; CI still does not run
+  a load test.
 - [x] Tests for 80%/100% thresholds, grace, month rollover. — proof:
-      `src/lib/usage.test.ts` (thresholds, grace boundary, UTC month range,
-      zero allowance, event/replay reservation, replay dedupe).
+  `src/lib/usage.test.ts` (thresholds, grace boundary, UTC month range,
+  zero allowance, event/replay reservation, replay dedupe).
 
 ### Decisions made
 
@@ -843,70 +843,70 @@ migration connections.
 ### Tasks
 
 - [x] Validate visitors, unique visitors, pageviews, sessions, bounce rate,
-      duration, geography, browsers, OS, devices, screens, referrers, landing
-      and exit pages, UTM, real-time dashboard. — proof:
-      `docs/ANALYTICS_VALIDATION.md`; `phase7-smoke.ts` seeded an isolated
-      website and passed **48 assertions** against PostgreSQL 17 on 2026-11-06
-      (pageviews 7, visitors 3, visits 4, bounces 2, 180 s duration, top/
-      landing/exit pages, referrers, UTM source/campaign, browser, OS, device,
-      screen, country, language, channels, date range, real-time totals, and
-      active visitors). The seeded rows were removed in a `finally` block.
+  duration, geography, browsers, OS, devices, screens, referrers, landing
+  and exit pages, UTM, real-time dashboard. — proof:
+  `docs/ANALYTICS_VALIDATION.md`; `phase7-smoke.ts` seeded an isolated
+  website and passed **48 assertions** against PostgreSQL 17 on 2026-11-06
+  (pageviews 7, visitors 3, visits 4, bounces 2, 180 s duration, top/
+  landing/exit pages, referrers, UTM source/campaign, browser, OS, device,
+  screen, country, language, channels, date range, real-time totals, and
+  active visitors). The seeded rows were removed in a `finally` block.
 - [x] Keep first-touch and last-touch attribution. Tests from realistic
-      journeys (organic, paid, referral, multi-touch, recurring revenue). Fix
-      only verified bugs and log each. — proof:
-      `src/features/payments/server/queries/attribution-journeys.test.ts`
-      (organic → paid retarget, referral last touch, direct purchase, recurring
-      subscription history, unattributed payment) and
-      `revenueAttribution.test.ts` (first-touch default, last-touch switch).
-      One verified bug was fixed: `getChannelMetrics` now treats `NULL`
-      referrer/query columns (legacy/import rows) as direct/referral instead of
-      only empty strings; a unit test pins the null-safe SQL and the smoke suite
-      seeds a `NULL` direct event.
+  journeys (organic, paid, referral, multi-touch, recurring revenue). Fix
+  only verified bugs and log each. — proof:
+  `src/features/payments/server/queries/attribution-journeys.test.ts`
+  (organic → paid retarget, referral last touch, direct purchase, recurring
+  subscription history, unattributed payment) and
+  `revenueAttribution.test.ts` (first-touch default, last-touch switch).
+  One verified bug was fixed: `getChannelMetrics` now treats `NULL`
+  referrer/query columns (legacy/import rows) as direct/referral instead of
+  only empty strings; a unit test pins the null-safe SQL and the smoke suite
+  seeds a `NULL` direct event.
 - [x] Payment integrations (Stripe, Dodo, Lemon Squeezy, Polar, Yolfi, Manual
-      Payment API): verify capabilities in code. Per-website/per-workspace
-      connections. Encrypt credentials. Validate webhooks. Handle subscriptions,
-      renewals, cancellations, refunds, disputes, duplicates. Never return
-      secrets. — proof: `docs/PAYMENT_PROVIDER_CAPABILITIES.md` records the
-      code-verified matrix and explicit gaps (Dodo subscription lifecycle,
-      non-Stripe disputes, historical import limits). Connections remain
-      per-website; new secrets are `enc:`-encrypted; webhook handlers dedupe by
-      provider event and never return credential refs. Live delivery is
-      **UNVERIFIED**.
+  Payment API): verify capabilities in code. Per-website/per-workspace
+  connections. Encrypt credentials. Validate webhooks. Handle subscriptions,
+  renewals, cancellations, refunds, disputes, duplicates. Never return
+  secrets. — proof: `docs/PAYMENT_PROVIDER_CAPABILITIES.md` records the
+  code-verified matrix and explicit gaps (Dodo subscription lifecycle,
+  non-Stripe disputes, historical import limits). Connections remain
+  per-website; new secrets are `enc:`-encrypted; webhook handlers dedupe by
+  provider event and never return credential refs. Live delivery is
+  **UNVERIFIED**.
 - [x] Session replay: gate by plan entitlement, meter separately, enforce
-      retention, mask sensitive inputs by default, respect consent, isolate per
-      tenant, payloads outside tenant tables. — proof:
-      `src/features/analytics/server/record/handler.test.ts` (9 tests: Starter
-      and no-plan rejection before reservation, Pro metering, over-limit
-      rejection, failed-write release, website switch, legacy workspace,
-      missing/invalid session token). `src/recorder/privacy.js` +
-      `privacy.test.ts` prove `maskAllInputs: true` by default, strict text
-      masking, and `data-consent="required"` gating via
-      `window.__taliviaSetConsent` or `talivia:consent`. Replay bytes stay in
-      website-scoped `session_replay`, outside tenant relational tables.
+  retention, mask sensitive inputs by default, respect consent, isolate per
+  tenant, payloads outside tenant tables. — proof:
+  `src/features/analytics/server/record/handler.test.ts` (9 tests: Starter
+  and no-plan rejection before reservation, Pro metering, over-limit
+  rejection, failed-write release, website switch, legacy workspace,
+  missing/invalid session token). `src/recorder/privacy.js` +
+  `privacy.test.ts` prove `maskAllInputs: true` by default, strict text
+  masking, and `data-consent="required"` gating via
+  `window.__taliviaSetConsent` or `talivia:consent`. Replay bytes stay in
+  website-scoped `session_replay`, outside tenant relational tables.
 - [x] Retention jobs: delete data older than plan allows; tenant-safe and
-      idempotent. — proof:
-      `src/features/system/cron/jobs/analytics-retention.ts` runs daily at
-      03:30 UTC, resolves each website's plan, deletes replays, event data,
-      session data, events, sessions, and analytics revenue past the cutoff,
-      and detaches durable payment/subscription links first. Every mutation
-      carries `websiteId`; `ANALYTICS_RETENTION_DRY_RUN=true` counts only. Five
-      unit tests cover Starter/Pro windows, no-replay purge, dry-run, targeted
-      ids/idempotency, and the website boundary. The live smoke proved a
-      200-day-old event/session and the replay payload were removed while
-      recent data survived.
+  idempotent. — proof:
+  `src/features/system/cron/jobs/analytics-retention.ts` runs daily at
+  03:30 UTC, resolves each website's plan, deletes replays, event data,
+  session data, events, sessions, and analytics revenue past the cutoff,
+  and detaches durable payment/subscription links first. Every mutation
+  carries `websiteId`; `ANALYTICS_RETENTION_DRY_RUN=true` counts only. Five
+  unit tests cover Starter/Pro windows, no-replay purge, dry-run, targeted
+  ids/idempotency, and the website boundary. The live smoke proved a
+  200-day-old event/session and the replay payload were removed while
+  recent data survived.
 
 ### Acceptance criteria
 
 - [x] Attribution journey suite passes. — proof:
-      `attribution-journeys.test.ts` (5 tests) and the first/last model tests in
-      `revenueAttribution.test.ts`; full suite green.
+  `attribution-journeys.test.ts` (5 tests) and the first/last model tests in
+  `revenueAttribution.test.ts`; full suite green.
 - [x] Provider capability table in docs with verified capabilities + limits. —
-      proof: `docs/PAYMENT_PROVIDER_CAPABILITIES.md` (status code-verified
-      2026-11-06; live columns marked UNVERIFIED).
+  proof: `docs/PAYMENT_PROVIDER_CAPABILITIES.md` (status code-verified
+  2026-11-06; live columns marked UNVERIFIED).
 - [x] Replay unavailable on plans without it; masking demonstrated. — proof:
-      `record/handler.test.ts` rejects Starter/no-plan before reservation;
-      `privacy.test.ts` proves default input masking, strict text masking, and
-      the consent gate.
+  `record/handler.test.ts` rejects Starter/no-plan before reservation;
+  `privacy.test.ts` proves default input masking, strict text masking, and
+  the consent gate.
 
 ### Decisions made
 
@@ -958,49 +958,49 @@ migration connections.
 ### Tasks
 
 - [x] Keep the existing tracker and its API; generate the install snippet from
-      the real script structure. — proof: onboarding snippet uses
-      `/script.js` + `data-website-id`; `/api/send` accepted a real event.
+  the real script structure. — proof: onboarding snippet uses
+  `/script.js` + `data-website-id`; `/api/send` accepted a real event.
 - [x] Onboarding flow with progress: create workspace → add website → copy
-      snippet → install → verify first event (live check) → connect payments →
-      first revenue report. Dashboard reachable without forcing every step. —
-      proof: `src/features/onboarding/OnboardingFlow.tsx`,
-      `docs/ONBOARDING_SPEC.md`. Payment step links to the real settings page;
-      no hard gates.
+  snippet → install → verify first event (live check) → connect payments →
+  first revenue report. Dashboard reachable without forcing every step. —
+  proof: `src/features/onboarding/OnboardingFlow.tsx`,
+  `docs/ONBOARDING_SPEC.md`. Payment step links to the real settings page;
+  no hard gates.
 - [x] Install guides: Next.js, React, Vite, plain HTML, Astro, Remix (where
-      supported) + troubleshooting (ad blockers, CSP, wrong domain, SPA
-      routing). — proof: `src/features/docs/install-guides.ts` generates every
-      snippet from the real tracker contract (`/script.js`, `data-website-id`,
-      `data-domain`); `/docs/install` renders all six guides plus troubleshooting;
-      the onboarding install step has framework tabs. Snippets are unit-tested
-      and each guide is explicitly labelled **untested at runtime** until a real
-      app is exercised.
+  supported) + troubleshooting (ad blockers, CSP, wrong domain, SPA
+  routing). — proof: `src/features/docs/install-guides.ts` generates every
+  snippet from the real tracker contract (`/script.js`, `data-website-id`,
+  `data-domain`); `/docs/install` renders all six guides plus troubleshooting;
+  the onboarding install step has framework tabs. Snippets are unit-tested
+  and each guide is explicitly labelled **untested at runtime** until a real
+  app is exercised.
 - [x] AI agent experience: review Talivia agent repo licence (MIT verified);
-      write `llms.txt` and agent docs; verification endpoint/CLI; design and if
-      feasible implement MCP server (verify installation, list events, diagnose).
-      — proof: `docs/AGENT_INTEGRATION.md`, `src/app/llms.txt/route.ts`,
-      `src/features/developer/**`, `scripts/revenuelens-cli.mjs`,
-      `scripts/revenuelens-mcp.mjs`, and handler/diagnostic tests.
+  write `llms.txt` and agent docs; verification endpoint/CLI; design and if
+  feasible implement MCP server (verify installation, list events, diagnose).
+  — proof: `docs/AGENT_INTEGRATION.md`, `src/app/llms.txt/route.ts`,
+  `src/features/developer/**`, `scripts/revenuelens-cli.mjs`,
+  `scripts/revenuelens-mcp.mjs`, and handler/diagnostic tests.
 - [x] Activation metrics: signup, workspace created, website created, tracker
-      installed, first event, payment connected, first attributed payment. —
-      proof: `features/account/server/queries/activation.ts` derives the funnel
-      from durable records (no synthetic events); `GET /api/admin/activation` is
-      platform-admin only; `/app/settings/activation` renders it. "Tracker
-      installed" and "first event" are one honest stage because the first
-      `website_event` row is the same signal.
+  installed, first event, payment connected, first attributed payment. —
+  proof: `features/account/server/queries/activation.ts` derives the funnel
+  from durable records (no synthetic events); `GET /api/admin/activation` is
+  platform-admin only; `/app/settings/activation` renders it. "Tracker
+  installed" and "first event" are one honest stage because the first
+  `website_event` row is the same signal.
 
 ### Acceptance criteria
 
 - [ ] New test account reaches a first verified event using only the UI. —
-      **API flow proven end-to-end** (login → workspace → website → event →
-      verify) and every public/authenticated route rendered 200
-      (`docs/RENDER_SMOKE.md`). A real browser interaction walk-through is still
-      required because the desktop browser was not connected.
+  **API flow proven end-to-end** (login → workspace → website → event →
+  verify) and every public/authenticated route rendered 200
+  (`docs/RENDER_SMOKE.md`). A real browser interaction walk-through is still
+  required because the desktop browser was not connected.
 - [x] Each framework guide has a tested or clearly labelled untested snippet. —
-      proof: six guides in `install-guides.test.ts`; all are labelled **untested
+  proof: six guides in `install-guides.test.ts`; all are labelled **untested
       at runtime** with the reason shown on `/docs/install`.
 - [x] Activation funnel recorded and viewable by internal admins. — proof:
-      `/api/admin/activation` rejects non-platform-admins (handler test) and
-      `/app/settings/activation` shows aggregate stage counts and conversion.
+  `/api/admin/activation` rejects non-platform-admins (handler test) and
+  `/app/settings/activation` shows aggregate stage counts and conversion.
 
 ### Decisions made
 
@@ -1028,284 +1028,284 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 ### Core tasks
 
 - [x] One branding config (`src/lib/brand.ts`): name, tagline, logo, colors,
-      domain, support/no-reply emails, legal entity. Placeholder: RevenueLens. —
-      proof: file exists; used by pricing, onboarding, login, top nav, metadata.
+  domain, support/no-reply emails, legal entity. Placeholder: RevenueLens. —
+  proof: file exists; used by pricing, onboarding, login, top nav, metadata.
 - [x] Remove/replace customer-facing Talivia names, logos, copy, favicons,
-      metadata, emails, docs links. Keep MIT notice in `LICENSE`; add
-      `THIRD_PARTY_NOTICES`. — proof: brand mark/favicons/manifest/login/nav/
-      metadata/intl/settings/imports are rebranded; the old `talivia.com`
-      documentation links are replaced with the local `/docs` guides; admin
-      update checks no longer phone the upstream service unless
-      `OSS_UPDATE_URL` is configured. Remaining `Talivia` strings are internal
-      identifiers (cron/redis/tracker types) and the compatibility import
-      format; `THIRD_PARTY_NOTICES` keeps the upstream attribution required by
-      the MIT license.
+  metadata, emails, docs links. Keep MIT notice in `LICENSE`; add
+  `THIRD_PARTY_NOTICES`. — proof: brand mark/favicons/manifest/login/nav/
+  metadata/intl/settings/imports are rebranded; the old `talivia.com`
+  documentation links are replaced with the local `/docs` guides; admin
+  update checks no longer phone the upstream service unless
+  `OSS_UPDATE_URL` is configured. Remaining `Talivia` strings are internal
+  identifiers (cron/redis/tracker types) and the compatibility import
+  format; `THIRD_PARTY_NOTICES` keeps the upstream attribution required by
+  the MIT license.
 - [x] Revenue-first screens: revenue by source, revenue per visitor,
-      conversion rate, MRR by channel; onboarding; billing; usage; workspace
-      settings; empty states; mobile. — **done:** onboarding, pricing, the
-      portfolio revenue strip, and MRR by first-touch channel on `/app`
-      (`getPortfolioMrrByChannel` + `MrrByChannelPanel`). Billing history still
-      waits for Phase 5.
+  conversion rate, MRR by channel; onboarding; billing; usage; workspace
+  settings; empty states; mobile. — **done:** onboarding, pricing, the
+  portfolio revenue strip, and MRR by first-touch channel on `/app`
+  (`getPortfolioMrrByChannel` + `MrrByChannelPanel`). Billing history still
+  waits for Phase 5.
 - [x] Landing page, pricing page (driven by plan config), docs shell, login
-      and signup. — proof: landing (`/`), pricing (`/pricing`), a public docs
-      shell at `/docs` with provider guides, and the shared auth screens are
-      live and driven by `BRAND`/`PLANS`.
+  and signup. — proof: landing (`/`), pricing (`/pricing`), a public docs
+  shell at `/docs` with provider guides, and the shared auth screens are
+  live and driven by `BRAND`/`PLANS`.
 - [x] Accessibility basics; dark mode (the product is dark by default). —
-      **done:** global keyboard focus rings, a reduced-motion override,
-      labels/focus on the settings/docs/onboarding/pricing screens, and a WCAG
-      AA contrast test over the brand color tokens
-      (`src/lib/brand-contrast.test.ts`).
+  **done:** global keyboard focus rings, a reduced-motion override,
+  labels/focus on the settings/docs/onboarding/pricing screens, and a WCAG
+  AA contrast test over the brand color tokens
+  (`src/lib/brand-contrast.test.ts`).
 
 ### Additional UI steps (owner-requested)
 
 - [x] **UI-1 — Design audit:** extract Tartly tokens and map onto Talivia. —
-      proof: `docs/UI_DESIGN_SYSTEM.md`.
+  proof: `docs/UI_DESIGN_SYSTEM.md`.
 - [x] **UI-2 — Brand config adoption:** name, wordmark, favicon, metadata,
-      emails, footer, auth, docs read from one config. — **complete**: auth/nav/
-      metadata/pricing/onboarding/docs use it, and settings copy now names the
-      product from `BRAND.name` instead of hardcoding it.
+  emails, footer, auth, docs read from one config. — **complete**: auth/nav/
+  metadata/pricing/onboarding/docs use it, and settings copy now names the
+  product from `BRAND.name` instead of hardcoding it.
 - [x] **UI-3 — App shell:** quiet dark workstation; tonal layering; hairline
-      borders; blush reserved for signal; tabular numerals. — proof:
-      `TopNav.tsx` uses the brand wordmark and a hairline border;
-      `WebsiteLayout.tsx` adds a grouped workbench rail (`WebsiteSectionNav`)
-      that becomes horizontal section tabs below 1024 px. Chrome accents were
-      moved from blue to blush (`global.css`, settings and onboarding).
+  borders; blush reserved for signal; tabular numerals. — proof:
+  `TopNav.tsx` uses the brand wordmark and a hairline border;
+  `WebsiteLayout.tsx` adds a grouped workbench rail (`WebsiteSectionNav`)
+  that becomes horizontal section tabs below 1024 px. Chrome accents were
+  moved from blue to blush (`global.css`, settings and onboarding).
 - [x] **UI-4 — Revenue-first overview:** replace generic analytics hero with
-      revenue, revenue/visitor, conversion, MRR-by-channel cards + charts. —
-      proof: `/app` opens with a portfolio strip (revenue, revenue per visitor,
-      purchase rate, visitors), each website card leads with revenue, and the
-      MRR panel groups active subscriptions by the first-touch channel stored on
-      the visitor (falling back to the earliest attributed payment).
+  revenue, revenue/visitor, conversion, MRR-by-channel cards + charts. —
+  proof: `/app` opens with a portfolio strip (revenue, revenue per visitor,
+  purchase rate, visitors), each website card leads with revenue, and the
+  MRR panel groups active subscriptions by the first-touch channel stored on
+  the visitor (falling back to the earliest attributed payment).
 - [x] **UI-5 — Onboarding shell:** full-height centred 440 px column, logo,
-      title, subtitle, directional slide/fade (12 px, 320 ms, 70 ms stagger),
-      reduced-motion support, welcome moment. — proof: `OnboardingFlow.tsx` /
-      `Onboarding.module.css`.
+  title, subtitle, directional slide/fade (12 px, 320 ms, 70 ms stagger),
+  reduced-motion support, welcome moment. — proof: `OnboardingFlow.tsx` /
+  `Onboarding.module.css`.
 - [x] **UI-6 — Onboarding steps:** welcome → workspace → website → tracker
-      install → live verification → payments → first report → done. — proof:
-      `OnboardingFlow.tsx`; the report step links to the real revenue report and
-      keeps empty states instead of inventing numbers.
+  install → live verification → payments → first report → done. — proof:
+  `OnboardingFlow.tsx`; the report step links to the real revenue report and
+  keeps empty states instead of inventing numbers.
 - [x] **UI-7 — Install experience:** snippet card with copy button, framework
-      tabs, verify-live status with real polling. — proof: framework tabs in
-      `OnboardingFlow.tsx` use the generated guides from
-      `features/docs/install-guides.ts`; copy + real polling remain.
+  tabs, verify-live status with real polling. — proof: framework tabs in
+  `OnboardingFlow.tsx` use the generated guides from
+  `features/docs/install-guides.ts`; copy + real polling remain.
 - [x] **UI-8 — Pricing page:** two cards only, Starter $7.99 / Pro $14.99,
-      monthly/annual toggle, no free tier, no fake claims. — proof: `/pricing`
-      returns 200 and renders both prices.
+  monthly/annual toggle, no free tier, no fake claims. — proof: `/pricing`
+  returns 200 and renders both prices.
 - [x] **UI-9 — Billing + usage pages:** plan, renewal, usage bar, 80%/100%
-      states, upgrade path, invoices. — proof: usage at
-      `/app/settings/billing` (plan, reset date, event/replay bars, grace/limit
-      states, website/member limits, upgrade link); invoice and renewal history
-      are provider-issued rows from `billing_invoice` in
-      `BillingSubscriptionPanel`.
+  states, upgrade path, invoices. — proof: usage at
+  `/app/settings/billing` (plan, reset date, event/replay bars, grace/limit
+  states, website/member limits, upgrade link); invoice and renewal history
+  are provider-issued rows from `billing_invoice` in
+  `BillingSubscriptionPanel`.
 - [x] **UI-10 — Settings:** workspace, members, websites, integrations,
-      security; consistent empty/error/loading states. — proof: `/app/settings`
-      is now a real overview instead of a redirect; grouped nav covers
-      Overview, Workspace, Websites, Integrations, Plan and usage, Security,
-      Account, and Preferences. Integrations shows per-website provider
-      connection state from the real API; Security carries verification,
-      password, session, and account-deletion states. Workspace/members/
-      invitations and Plan & usage remain in place.
+  security; consistent empty/error/loading states. — proof: `/app/settings`
+  is now a real overview instead of a redirect; grouped nav covers
+  Overview, Workspace, Websites, Integrations, Plan and usage, Security,
+  Account, and Preferences. Integrations shows per-website provider
+  connection state from the real API; Security carries verification,
+  password, session, and account-deletion states. Workspace/members/
+  invitations and Plan & usage remain in place.
 - [x] **UI-11 — Auth screens:** login, signup, verify, reset in the same shell.
-      — login, signup, invite acceptance, `/verify-email`, `/forgot-password`,
-      and `/reset-password` use the same auth shell.
+  — login, signup, invite acceptance, `/verify-email`, `/forgot-password`,
+  and `/reset-password` use the same auth shell.
 - [x] **UI-12 — Marketing landing:** one promise, three proof points, product
-      visual, pricing teaser, FAQ. — proof: `src/app/page.tsx` +
-      `Landing.module.css`; `/` returns 200 and renders both config-driven
-      plans. The previous `/` → `/login` redirect was removed from
-      `next.config.ts`.
+  visual, pricing teaser, FAQ. — proof: `src/app/page.tsx` +
+  `Landing.module.css`; `/` returns 200 and renders both config-driven
+  plans. The previous `/` → `/login` redirect was removed from
+  `next.config.ts`.
 - [x] **UI-15 — Full analytics route restructure (new):** every inherited
-      analytics surface is reachable inside `/app/[websiteId]` instead of only
-      the three revenue debug pages. — proof: new routes for `revenue`,
-      `attribution`, `journeys`, `diagnostics`, `sessions`, `events`,
-      `realtime`, `breakdown`, `goals`, `funnels`, `retention`, `cohorts`,
-      `utm`, `performance`, `compare`, and `replays`; legacy
-      `revenue-attribution`/`revenue-journey`/`revenue-diagnostics` redirect to
-      the canonical route; `app-route.test.ts` and
-      `WebsiteSectionNav.test.tsx` lock the route/nav contract.
+  analytics surface is reachable inside `/app/[websiteId]` instead of only
+  the three revenue debug pages. — proof: new routes for `revenue`,
+  `attribution`, `journeys`, `diagnostics`, `sessions`, `events`,
+  `realtime`, `breakdown`, `goals`, `funnels`, `retention`, `cohorts`,
+  `utm`, `performance`, `compare`, and `replays`; legacy
+  `revenue-attribution`/`revenue-journey`/`revenue-diagnostics` redirect to
+  the canonical route; `app-route.test.ts` and
+  `WebsiteSectionNav.test.tsx` lock the route/nav contract.
 - [x] **UI-16 — Complete source restructure (new):** the app router is now a
-      thin routing layer; all product UI moved to domain modules under
-      `src/features` (`app-shell`, `portfolio`, `websites/workbench`,
-      `settings`, `onboarding`, `auth`, `marketing`, `share`, `legacy`).
-      `src/app` now contains route files plus the root `Providers.tsx` only.
-      Removed dead portfolio table
-      components and the obsolete revenue-attribution/revenue-journey report
-      screens and hooks. Legacy `/websites/*` and `/settings/*` URLs redirect
-      to the canonical `/app/*` routes. — proof: `src/app/(main)` contains only
-      route files; `docs/UI_DESIGN_SYSTEM.md` §6 records the layout;
-      `src/lib/app-structure.test.ts` enforces it; build, typecheck, lint, and
-      613 tests are green.
+  thin routing layer; all product UI moved to domain modules under
+  `src/features` (`app-shell`, `portfolio`, `websites/workbench`,
+  `settings`, `onboarding`, `auth`, `marketing`, `share`, `legacy`).
+  `src/app` now contains route files plus the root `Providers.tsx` only.
+  Removed dead portfolio table
+  components and the obsolete revenue-attribution/revenue-journey report
+  screens and hooks. Legacy `/websites/*` and `/settings/*` URLs redirect
+  to the canonical `/app/*` routes. — proof: `src/app/(main)` contains only
+  route files; `docs/UI_DESIGN_SYSTEM.md` §6 records the layout;
+  `src/lib/app-structure.test.ts` enforces it; build, typecheck, lint, and
+  613 tests are green.
 - [x] **UI-17 — Complete server restructure (new):** every one of the 119 API
-      route files is now a thin adapter that re-exports HTTP handlers from a
-      feature `server` module. Handlers moved into `account`, `analytics`,
-      `auth`, `legacy`, `payments`, `share`, `system`, `websites`, and
-      `workspaces`. Payment provider clients, webhook verifiers, provider
-      credential handling, provider backfills, analytics import parsers, and
-      board definitions moved into their feature modules as well; the
-      Prisma/analytics query layer, permissions, and shared UI remain
-      cross-cutting. `docs/ARCHITECTURE.md` defines the module boundaries and
-      dependency direction, and `src/lib/app-structure.test.ts` enforces thin
-      route files plus server-module presence. — proof: build, typecheck,
-      lint, 22 API route suites (126 tests), and the full suite are green.
+  route files is now a thin adapter that re-exports HTTP handlers from a
+  feature `server` module. Handlers moved into `account`, `analytics`,
+  `auth`, `legacy`, `payments`, `share`, `system`, `websites`, and
+  `workspaces`. Payment provider clients, webhook verifiers, provider
+  credential handling, provider backfills, analytics import parsers, and
+  board definitions moved into their feature modules as well; the
+  Prisma/analytics query layer, permissions, and shared UI remain
+  cross-cutting. `docs/ARCHITECTURE.md` defines the module boundaries and
+  dependency direction, and `src/lib/app-structure.test.ts` enforces thin
+  route files plus server-module presence. — proof: build, typecheck,
+  lint, 22 API route suites (126 tests), and the full suite are green.
 - [x] **UI-13 — Motion + polish pass:** page transitions, hover lift, focus
-      rings, skeletons, reduced motion, mobile. — proof: global keyboard
-      `:focus-visible` rings, a global reduced-motion override, blush-only
-      signal states (auth hover, external links, activity heatmap, API-key
-      reveal), working loading/empty states on the new settings pages, and the
-      responsive docs/settings layouts at 860 px and below.
+  rings, skeletons, reduced motion, mobile. — proof: global keyboard
+  `:focus-visible` rings, a global reduced-motion override, blush-only
+  signal states (auth hover, external links, activity heatmap, API-key
+  reveal), working loading/empty states on the new settings pages, and the
+  responsive docs/settings layouts at 860 px and below.
 - [x] **UI-18 — Brand-safe documentation shell:** public `/docs` and
-      `/docs/revenue-guides/[slug]` pages replace the upstream help-centre
-      links. Guides for Stripe, Dodo Payments, Lemon Squeezy, Polar, Yolfi, and
-      the manual payment API are generated from one content module, link only
-      to official provider pages, and are covered by `content.test.ts`.
+  `/docs/revenue-guides/[slug]` pages replace the upstream help-centre
+  links. Guides for Stripe, Dodo Payments, Lemon Squeezy, Polar, Yolfi, and
+  the manual payment API are generated from one content module, link only
+  to official provider pages, and are covered by `content.test.ts`.
 - [x] **UI-19 — Complete domain restructure (new):** the remaining domain
-      widgets, selectors, React Query hooks, and cron jobs moved out of
-      `src/components` and `src/lib` into their owning feature modules.
-      Analytics widgets and filters now live in
-      `src/features/analytics/components`; share widgets in
-      `src/features/share/components`; `WebsiteSelect` in
-      `src/features/websites`; shell controls in
-      `src/features/app-shell/components`; legacy selectors in
-      `src/features/legacy`; payment provider UI in `src/features/payments`;
-      and all domain query hooks in `src/features/<domain>/hooks` with barrels.
-      Cron moved to `src/features/system/cron`. Only shared primitives remain
-      in `src/components` (`brand`, `charts`, `common`, `hooks`, `input`,
-      `svg`). Three dead components and three dead hooks were deleted. The
-      structure test now fails if `src/components` gains a non-primitive
-      directory or if any shared layer imports a feature. Server handlers stay
-      in feature `server/` modules; the preserved analytics SQL engine and
-      cross-domain Prisma repositories stay in `src/queries` because tenant
-      authorization and analytics depend on them. Proof: 119 files moved,
-      build/typecheck/lint green, **622/622 tests** pass.
+  widgets, selectors, React Query hooks, and cron jobs moved out of
+  `src/components` and `src/lib` into their owning feature modules.
+  Analytics widgets and filters now live in
+  `src/features/analytics/components`; share widgets in
+  `src/features/share/components`; `WebsiteSelect` in
+  `src/features/websites`; shell controls in
+  `src/features/app-shell/components`; legacy selectors in
+  `src/features/legacy`; payment provider UI in `src/features/payments`;
+  and all domain query hooks in `src/features/<domain>/hooks` with barrels.
+  Cron moved to `src/features/system/cron`. Only shared primitives remain
+  in `src/components` (`brand`, `charts`, `common`, `hooks`, `input`,
+  `svg`). Three dead components and three dead hooks were deleted. The
+  structure test now fails if `src/components` gains a non-primitive
+  directory or if any shared layer imports a feature. Server handlers stay
+  in feature `server/` modules; the preserved analytics SQL engine and
+  cross-domain Prisma repositories stay in `src/queries` because tenant
+  authorization and analytics depend on them. Proof: 119 files moved,
+  build/typecheck/lint green, **622/622 tests** pass.
 - [x] **UI-14 — Temporary rename demonstration:** change brand config and show
-      name/logo/colors/emails update everywhere. — proof:
-      `src/lib/brand.ts` now derives name, domain, URL, support/no-reply
-      addresses, legal entity, and logo alt text from two constants, and
-      `src/lib/brand-propagation.test.ts` fails if customer-facing feature or
-      shared code hardcodes the literal brand name again.
+  name/logo/colors/emails update everywhere. — proof:
+  `src/lib/brand.ts` now derives name, domain, URL, support/no-reply
+  addresses, legal entity, and logo alt text from two constants, and
+  `src/lib/brand-propagation.test.ts` fails if customer-facing feature or
+  shared code hardcodes the literal brand name again.
 - [x] **UI-20 — Shared-layer restructure completion (new):** the last domain
-      helpers moved out of `src/lib` into their feature modules:
-      `analytics/lib` (collector cache, cross-domain linker, attribution query,
-      dashboard overview, client detection, filters, metric colors, chart
-      axis), `payments/lib` (payment return detection), `auth/lib` +
-      `auth/server` (return URL, registration), `workspaces/lib` (invitations,
-      members), `websites/lib` (API keys, domain normalization), `legacy/lib`
-      (feature gate), and `system/lib` (OSS version). Deleted the unused
-      dashboard/websites/cache stores and the unused refresh button, leaving
-      `src/store` with only shared app state. `app-structure.test.ts` now
-      enforces a shared `src/lib` allowlist, a `src/store` allowlist, and the
-      presence of the moved domain helpers. — proof: typecheck and lint clean,
-      **625/625 tests** pass.
+  helpers moved out of `src/lib` into their feature modules:
+  `analytics/lib` (collector cache, cross-domain linker, attribution query,
+  dashboard overview, client detection, filters, metric colors, chart
+  axis), `payments/lib` (payment return detection), `auth/lib` +
+  `auth/server` (return URL, registration), `workspaces/lib` (invitations,
+  members), `websites/lib` (API keys, domain normalization), `legacy/lib`
+  (feature gate), and `system/lib` (OSS version). Deleted the unused
+  dashboard/websites/cache stores and the unused refresh button, leaving
+  `src/store` with only shared app state. `app-structure.test.ts` now
+  enforces a shared `src/lib` allowlist, a `src/store` allowlist, and the
+  presence of the moved domain helpers. — proof: typecheck and lint clean,
+  **625/625 tests** pass.
 - [x] **UI-21 — Structural cleanup completion (new):** removed the dead
-      inherited legacy dashboard UI (boards, link/pixel lists, edit forms,
-      board component registry, and their unused hooks/selectors) while keeping
-      only the link and pixel pages rendered by public shares and the legacy
-      API handlers. Deleted the unused segment list/edit chain (keeping the
-      filter-bar edit dialog), the orphaned metrics bars, profile/share headers,
-      two input primitives, and the empty/stale shared helpers. Moved
-      `WebsiteSettingsPage` out of a route-param-shaped
-      `settings/websites/[websiteId]` directory into the website workbench.
-      `app-structure.test.ts` now pins the pruned legacy surface so it cannot
-      regrow. — proof: typecheck, lint, and the structure test pass.
+  inherited legacy dashboard UI (boards, link/pixel lists, edit forms,
+  board component registry, and their unused hooks/selectors) while keeping
+  only the link and pixel pages rendered by public shares and the legacy
+  API handlers. Deleted the unused segment list/edit chain (keeping the
+  filter-bar edit dialog), the orphaned metrics bars, profile/share headers,
+  two input primitives, and the empty/stale shared helpers. Moved
+  `WebsiteSettingsPage` out of a route-param-shaped
+  `settings/websites/[websiteId]` directory into the website workbench.
+  `app-structure.test.ts` now pins the pruned legacy surface so it cannot
+  regrow. — proof: typecheck, lint, and the structure test pass.
 - [x] **UI-22 — Complete analytics/websites domain split (new):** the whole
-      website analytics workbench moved from `features/websites/workbench` to
-      `features/analytics/workbench` (shell, header, nav, overview, reports,
-      sessions, events, replay, realtime, cohorts, compare, segments). The
-      matching analytics request handlers moved to
-      `features/analytics/server/[websiteId]`, so the thin API routes point at
-      the domain that owns them. `features/websites` now owns site management
-      only (CRUD, `settings/`, imports/exports, API keys, members, shares).
-      The account settings UI moved from `settings/profile` to
-      `settings/account`. `app-structure.test.ts` pins both sides of the split
-      so the workbench cannot drift back into `websites`. — proof: typecheck,
-      lint, structure/route tests, and the full suite are green.
+  website analytics workbench moved from `features/websites/workbench` to
+  `features/analytics/workbench` (shell, header, nav, overview, reports,
+  sessions, events, replay, realtime, cohorts, compare, segments). The
+  matching analytics request handlers moved to
+  `features/analytics/server/[websiteId]`, so the thin API routes point at
+  the domain that owns them. `features/websites` now owns site management
+  only (CRUD, `settings/`, imports/exports, API keys, members, shares).
+  The account settings UI moved from `settings/profile` to
+  `settings/account`. `app-structure.test.ts` pins both sides of the split
+  so the workbench cannot drift back into `websites`. — proof: typecheck,
+  lint, structure/route tests, and the full suite are green.
 - [x] **UI-23 — Settings ownership completion (new):** `features/settings` is
-      now the settings shell only (`SettingsLayout`, `SettingsPageLayout`,
-      `SettingsHomePage`). Account, security, and preference screens moved to
-      `features/account/settings` with the local-user admin handlers under
-      `features/account/server`; workspace settings moved to
-      `features/workspaces/settings`, website list settings to
-      `features/websites/settings`, integration settings to
-      `features/payments/settings`, and plan/usage to the new
-      `features/billing` domain. Route files point at the owning domain, and
-      `app-structure.test.ts` pins the shell and forbids the old catch-all
-      directories. — proof: typecheck, lint, and **641/641 tests** pass.
+  now the settings shell only (`SettingsLayout`, `SettingsPageLayout`,
+  `SettingsHomePage`). Account, security, and preference screens moved to
+  `features/account/settings` with the local-user admin handlers under
+  `features/account/server`; workspace settings moved to
+  `features/workspaces/settings`, website list settings to
+  `features/websites/settings`, integration settings to
+  `features/payments/settings`, and plan/usage to the new
+  `features/billing` domain. Route files point at the owning domain, and
+  `app-structure.test.ts` pins the shell and forbids the old catch-all
+  directories. — proof: typecheck, lint, and **641/641 tests** pass.
 - [x] **UI-24 — Permission ownership completion (new):** `src/permissions` is
-      now only the shared website/entity authorization boundary
-      (`website.ts`, `entity.ts`, the barrel). Report checks moved to
-      `features/analytics/lib/report-permissions.ts`, local-user/platform-admin
-      checks to `features/account/lib/permissions.ts`, and frozen board/link/
-      pixel read checks to `features/legacy/lib/permissions.ts`; the unused
-      legacy update/delete checks were deleted. Route tests mock the owning
-      feature module, and `app-structure.test.ts` enforces the permissions
-      allowlist. — proof: typecheck, lint, and **642/642 tests** pass.
+  now only the shared website/entity authorization boundary
+  (`website.ts`, `entity.ts`, the barrel). Report checks moved to
+  `features/analytics/lib/report-permissions.ts`, local-user/platform-admin
+  checks to `features/account/lib/permissions.ts`, and frozen board/link/
+  pixel read checks to `features/legacy/lib/permissions.ts`; the unused
+  legacy update/delete checks were deleted. Route tests mock the owning
+  feature module, and `app-structure.test.ts` enforces the permissions
+  allowlist. — proof: typecheck, lint, and **642/642 tests** pass.
 - [x] **UI-25 — Data-layer and router completion (new):** every domain Prisma
-      repository moved from `src/queries/prisma` into
-      `features/<domain>/server/queries` (`analytics`, `payments`, `websites`,
-      `account`); the whole inherited analytics SQL engine moved to
-      `features/analytics/server/queries/sql`; the tenant-scoped session cache
-      moved beside it; `dashboard-breakdown`, `data`, `paymentCustomer`,
-      `redact`, `website-overview`, `stripe-amount`, and `generate` moved into
-      their owning feature libs. The frozen board type constants stay shared
-      with the central entity lookup. The public pixel
-      and link collectors moved to `features/legacy/server/collect`, the
-      website shell resolver moved into the analytics workbench, and the route
-      layer no longer imports `@/queries`, `@/lib/prisma`, or `@/lib/redis`.
-      `src/queries` is now a small allowlisted shared kernel (authorization,
-      request parsing, auth, billing contracts, legacy entity lookups).
-      `app-structure.test.ts` pins the shared query allowlist, the domain query
-      directories, and the route-layer data-access ban. — proof: typecheck and
-      lint clean, `next build` success, **645/645 tests** pass.
+  repository moved from `src/queries/prisma` into
+  `features/<domain>/server/queries` (`analytics`, `payments`, `websites`,
+  `account`); the whole inherited analytics SQL engine moved to
+  `features/analytics/server/queries/sql`; the tenant-scoped session cache
+  moved beside it; `dashboard-breakdown`, `data`, `paymentCustomer`,
+  `redact`, `website-overview`, `stripe-amount`, and `generate` moved into
+  their owning feature libs. The frozen board type constants stay shared
+  with the central entity lookup. The public pixel
+  and link collectors moved to `features/legacy/server/collect`, the
+  website shell resolver moved into the analytics workbench, and the route
+  layer no longer imports `@/queries`, `@/lib/prisma`, or `@/lib/redis`.
+  `src/queries` is now a small allowlisted shared kernel (authorization,
+  request parsing, auth, billing contracts, legacy entity lookups).
+  `app-structure.test.ts` pins the shared query allowlist, the domain query
+  directories, and the route-layer data-access ban. — proof: typecheck and
+  lint clean, `next build` success, **645/645 tests** pass.
 - [x] **UI-26 — Route and shared-lib ownership completion (new):** the router is
-      now test-free. Every API route contract test moved from
-      `src/app/api/**/route.test.ts` to the owning
-      `src/features/<domain>/server/**/handler.test.ts`, so `src/app` contains
-      route conventions, CSS, and `Providers.tsx` only. Analytics report
-      handlers were normalized to mirror `/api/reports/*` under
-      `features/analytics/server/reports/**`, and the realtime handler moved to
-      `features/analytics/server/realtime/[websiteId]/handler.ts`.
-      `REVENUE_PAYMENT_STATUSES` moved to `features/payments/lib` and tracking
-      identity derivation (with its test) moved to
-      `features/analytics/lib`, leaving both out of the shared `src/lib`
-      allowlist. The structure test now rejects any test file in the router,
-      checks that each shared allowlist entry exists (so stale entries cannot
-      hide), and pins the moved handler layout. — proof: typecheck and lint
-      clean; `next build` succeeds; full suite **646/646** passes.
+  now test-free. Every API route contract test moved from
+  `src/app/api/**/route.test.ts` to the owning
+  `src/features/<domain>/server/**/handler.test.ts`, so `src/app` contains
+  route conventions, CSS, and `Providers.tsx` only. Analytics report
+  handlers were normalized to mirror `/api/reports/*` under
+  `features/analytics/server/reports/**`, and the realtime handler moved to
+  `features/analytics/server/realtime/[websiteId]/handler.ts`.
+  `REVENUE_PAYMENT_STATUSES` moved to `features/payments/lib` and tracking
+  identity derivation (with its test) moved to
+  `features/analytics/lib`, leaving both out of the shared `src/lib`
+  allowlist. The structure test now rejects any test file in the router,
+  checks that each shared allowlist entry exists (so stale entries cannot
+  hide), and pins the moved handler layout. — proof: typecheck and lint
+  clean; `next build` succeeds; full suite **646/646** passes.
 
 - [x] **UI-27 — Remaining restructure gaps (new):** closed the partial Phase
-      8/9 items. Added generated framework install guides (Next.js, React,
-      Vite, plain HTML, Astro, Remix) in `features/docs/install-guides.ts`,
-      a public `/docs/install` page with troubleshooting, and framework tabs in
-      the onboarding install step. Added the first-report onboarding step that
-      links to the real revenue report. Adopted `BRAND.name` in settings copy.
-      Added the platform-admin activation funnel: aggregate query in
-      `features/account/server/queries/activation.ts`, guarded
-      `GET /api/admin/activation`, and `/app/settings/activation` (nav item is
-      visible only to platform admins). Confirmed invoice/renewal history is
-      already provider-backed by Phase 5. — proof: new tests for guide
-      generation, funnel math, and handler authorization; the funnel query was
-      run against local PostgreSQL and returned 3 accounts → 2 workspaces → 2
-      websites → 1 website with events → 0 payment connections → 0 attributed
-      payments; `app-structure.test.ts` pins the new files and route tests;
-      typecheck and lint are clean; full suite **704 passed / 1 gated skip**.
+  8/9 items. Added generated framework install guides (Next.js, React,
+  Vite, plain HTML, Astro, Remix) in `features/docs/install-guides.ts`,
+  a public `/docs/install` page with troubleshooting, and framework tabs in
+  the onboarding install step. Added the first-report onboarding step that
+  links to the real revenue report. Adopted `BRAND.name` in settings copy.
+  Added the platform-admin activation funnel: aggregate query in
+  `features/account/server/queries/activation.ts`, guarded
+  `GET /api/admin/activation`, and `/app/settings/activation` (nav item is
+  visible only to platform admins). Confirmed invoice/renewal history is
+  already provider-backed by Phase 5. — proof: new tests for guide
+  generation, funnel math, and handler authorization; the funnel query was
+  run against local PostgreSQL and returned 3 accounts → 2 workspaces → 2
+  websites → 1 website with events → 0 payment connections → 0 attributed
+  payments; `app-structure.test.ts` pins the new files and route tests;
+  typecheck and lint are clean; full suite **704 passed / 1 gated skip**.
 
 ### Acceptance criteria
 
 - [x] Repo-wide search for the original brand finds nothing customer-facing
-      (allowed exceptions listed). — proof: no `talivia.com` links remain in
-      application code; provider guides, imports, backup filenames, and update
-      notices are brand-safe. Internal compatibility identifiers and the
-      upstream MIT attribution in `THIRD_PARTY_NOTICES` are intentionally kept.
+  (allowed exceptions listed). — proof: no `talivia.com` links remain in
+  application code; provider guides, imports, backup filenames, and update
+  notices are brand-safe. Internal compatibility identifiers and the
+  upstream MIT attribution in `THIRD_PARTY_NOTICES` are intentionally kept.
 - [x] Changing the brand config changes name, logo, colors, emails everywhere
-      (demonstrated with a temporary rename). — proof:
-      `src/lib/brand-propagation.test.ts` plus the config-derived brand module.
+  (demonstrated with a temporary rename). — proof:
+  `src/lib/brand-propagation.test.ts` plus the config-derived brand module.
 - [x] Onboarding motion matches the Tartly constants and respects reduced
-      motion. — proof: 12px/320ms/70ms in `Onboarding.module.css`, reduced-motion
-      block.
+  motion. — proof: 12px/320ms/70ms in `Onboarding.module.css`, reduced-motion
+  block.
 - [x] Pricing page renders exactly two plans from the config. — proof:
-      `/pricing` 200; `plans.test.ts`.
+  `/pricing` 200; `plans.test.ts`.
 - [x] Portfolio MRR panel uses real subscription data and refuses to invent a
-      cross-currency total. — proof: `portfolioMrr.ts`,
-      `website-overview.test.ts` (mixed-currency case).
+  cross-currency total. — proof: `portfolioMrr.ts`,
+  `website-overview.test.ts` (mixed-currency case).
 
 ### Decisions made
 
@@ -1329,62 +1329,62 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 ### Tasks
 
 - [x] Draft legal pages (clearly marked for lawyer review): privacy, terms,
-      cookie/consent, data processing, subprocessors, acceptable use. — proof:
-      `src/features/marketing/legal/legal-content.ts`, `/legal` and
-      `/legal/[slug]`, 4 content tests; every page carries the
-      `LEGAL_DRAFT_NOTICE`.
+  cookie/consent, data processing, subprocessors, acceptable use. — proof:
+  `src/features/marketing/legal/legal-content.ts`, `/legal` and
+  `/legal/[slug]`, 4 content tests; every page carries the
+  `LEGAL_DRAFT_NOTICE`.
 - [x] Privacy: IP handling/anonymization, no-cookie option if supported, GDPR
-      export/deletion, replay consent hooks. — proof: rotating hashed visitor
-      IDs (`src/lib/crypto.ts`), raw IP used only for abuse/geo derivation,
-      account export `GET /api/me/export`, deletion `DELETE /api/me/account`,
-      retention job, and `src/recorder/privacy.js` consent gate.
+  export/deletion, replay consent hooks. — proof: rotating hashed visitor
+  IDs (`src/lib/crypto.ts`), raw IP used only for abuse/geo derivation,
+  account export `GET /api/me/export`, deletion `DELETE /api/me/account`,
+  retention job, and `src/recorder/privacy.js` consent gate.
 - [x] Abuse: per-IP/per-email signup limits, disposable email handling,
-      per-website ingestion limits, origin/domain validation, bot filtering,
-      free-tier farming detection, admin suspend tools. — proof:
-      `src/lib/rate-limit.ts`, `src/features/auth/lib/disposable-email.ts`,
-      plan metering + grace, optional `ENFORCE_TRACKER_ORIGIN`
-      (`src/features/analytics/lib/tracker-origin.ts`), `isbot` filtering,
-      one-workspace-before-billing, and platform-admin suspension for users and
-      workspaces (`src/features/account/server/admin/suspension.ts`, UI at
-      `/app/settings/admin`, audit events, session revocation).
+  per-website ingestion limits, origin/domain validation, bot filtering,
+  free-tier farming detection, admin suspend tools. — proof:
+  `src/lib/rate-limit.ts`, `src/features/auth/lib/disposable-email.ts`,
+  plan metering + grace, optional `ENFORCE_TRACKER_ORIGIN`
+  (`src/features/analytics/lib/tracker-origin.ts`), `isbot` filtering,
+  one-workspace-before-billing, and platform-admin suspension for users and
+  workspaces (`src/features/account/server/admin/suspension.ts`, UI at
+  `/app/settings/admin`, audit events, session revocation).
 - [x] Transactional email: verification, reset, invitations, 80%/100% usage,
-      payment failure, templates. — proof: `src/lib/email.ts`,
-      `src/features/system/cron/jobs/usage-notices.ts` (daily 04:00 UTC,
-      once-per-period idempotency), payment-failure hook in
-      `features/billing/server/service.ts`; dev outbox fallback. Live local
-      proof in `docs/LIVE_SMOKE.md`: verification resend, verify, forgot,
-      reset, and login with the new password all passed through the real routes
-      and `.dev-emails/outbox.log`.
+  payment failure, templates. — proof: `src/lib/email.ts`,
+  `src/features/system/cron/jobs/usage-notices.ts` (daily 04:00 UTC,
+  once-per-period idempotency), payment-failure hook in
+  `features/billing/server/service.ts`; dev outbox fallback. Live local
+  proof in `docs/LIVE_SMOKE.md`: verification resend, verify, forgot,
+  reset, and login with the new password all passed through the real routes
+  and `.dev-emails/outbox.log`.
 - [x] Operations: structured logging, error tracking hook, uptime/health,
-      Neon + event-store backup/restore, secrets rotation, audit log for
-      billing/member/key/deletion actions. — proof: `src/lib/logger.ts`
-      (JSON + redaction + `captureException`), `/api/health/live` and
-      `/api/health/ready`, `docs/BACKUP_AND_RECOVERY.md`,
-      `docs/SECRETS_ROTATION.md` + `pnpm rotate:provider-secrets`,
-      `src/queries/prisma/audit.ts` with calls across account, workspace,
-      member, invitation, API key, website, import, billing, and suspension
-      handlers. The platform-admin audit viewer (`GET /api/admin/audit` +
-      `/app/settings/audit`) lists recent events without IP, user agent, or
-      metadata.
+  Neon + event-store backup/restore, secrets rotation, audit log for
+  billing/member/key/deletion actions. — proof: `src/lib/logger.ts`
+  (JSON + redaction + `captureException`), `/api/health/live` and
+  `/api/health/ready`, `docs/BACKUP_AND_RECOVERY.md`,
+  `docs/SECRETS_ROTATION.md` + `pnpm rotate:provider-secrets`,
+  `src/queries/prisma/audit.ts` with calls across account, workspace,
+  member, invitation, API key, website, import, billing, and suspension
+  handlers. The platform-admin audit viewer (`GET /api/admin/audit` +
+  `/app/settings/audit`) lists recent events without IP, user agent, or
+  metadata.
 
 ### Acceptance criteria
 
 - [x] Deletion flow code path removes a workspace's analytics data and detaches
-      durable records; proof via the retention job tests and account-deletion
-      audit. The retention job now also includes deleted websites/workspaces
-      and purges their analytics payload immediately (durable billing/audit
-      rows are kept and detached), pinned by a regression test. A live
-      cross-store deletion check still needs a staging database.
+  durable records; proof via the retention job tests and account-deletion
+  audit. The retention job now also includes deleted websites/workspaces
+  and purges their analytics payload immediately (durable billing/audit
+  rows are kept and detached), pinned by a regression test. A live
+  cross-store deletion check still needs a staging database.
 - [x] Rate-limit tests pass. — proof: `src/lib/rate-limit.test.ts` plus route
-      tests for login/register/reset.
+  tests for login/register/reset.
 - [x] Audit log entries exist for all listed actions. — proof: `grep` finds
-      `recordAuditEvent` in billing, member, invite, API key, website,
-      import/export, account, suspension, and attribution retry handlers. The
-      live smoke read back four real suspension audit rows
-      (`user.suspended`, `user.unsuspended`, `workspace.suspended`,
-      `workspace.unsuspended`) in `docs/LIVE_SMOKE.md`.
+  `recordAuditEvent` in billing, member, invite, API key, website,
+  import/export, account, suspension, and attribution retry handlers. The
+  live smoke read back four real suspension audit rows
+  (`user.suspended`, `user.unsuspended`, `workspace.suspended`,
+  `workspace.unsuspended`) in `docs/LIVE_SMOKE.md`.
 - [ ] Live Resend delivery. **UNVERIFIED**: needs `RESEND_API_KEY` and a verified
-      sending domain.
+  sending domain.
 - [ ] Lawyer review of the drafts. **UNVERIFIED**: needs qualified counsel.
 
 ### Decisions made
@@ -1412,46 +1412,46 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 ### Tasks
 
 - [x] Security review: dependency audit, OWASP pass, security headers,
-      ingestion CORS. — proof: `docs/SECURITY_REVIEW.md`, security headers in
-      `next.config.ts`, collector CORS narrowed to the four ingestion routes,
-      `zod` upgraded, safe transitive overrides, CI critical audit.
+  ingestion CORS. — proof: `docs/SECURITY_REVIEW.md`, security headers in
+  `next.config.ts`, collector CORS narrowed to the four ingestion routes,
+  `zod` upgraded, safe transitive overrides, CI critical audit.
 - [x] Performance: indexes, slow-query check, load test tooling. — proof:
-      schema indexes for tenant/event/session/usage/billing paths, bounded
-      payloads, index guidance in the gate, `scripts/load-ingest.mjs`.
+  schema indexes for tenant/event/session/usage/billing paths, bounded
+  payloads, index guidance in the gate, `scripts/load-ingest.mjs`.
 - [x] Full test run: unit, integration, isolation, billing, metering; CI. —
-      proof: full suite green; CI runs PostgreSQL, migrations, analytics smoke,
-      lint, typecheck, tests, audit, build.
+  proof: full suite green; CI runs PostgreSQL, migrations, analytics smoke,
+  lint, typecheck, tests, audit, build.
 - [x] Deployment guide/scripts; production env checklist; Neon branch
-      promotion rehearsal; custom domain/DNS for tracker. — proof:
-      `docs/ENVIRONMENT.md`, `docs/NEON_BRANCHING.md`, `Dockerfile` (non-root,
-      health check), `docker-compose.yml`, `docs/RUNBOOK.md`. The Neon
-      rehearsal and DNS cutover remain **UNVERIFIED** without the production
-      project/domain.
+  promotion rehearsal; custom domain/DNS for tracker. — proof:
+  `docs/ENVIRONMENT.md`, `docs/NEON_BRANCHING.md`, `Dockerfile` (non-root,
+  health check), `docker-compose.yml`, `docs/RUNBOOK.md`. The Neon
+  rehearsal and DNS cutover remain **UNVERIFIED** without the production
+  project/domain.
 - [x] `docs/LAUNCH_CHECKLIST.md`, `docs/RUNBOOK.md`,
-      `docs/BACKUP_AND_RECOVERY.md`, `docs/PRODUCTION_READINESS_AUDIT.md`.
+  `docs/BACKUP_AND_RECOVERY.md`, `docs/PRODUCTION_READINESS_AUDIT.md`.
 - [x] Published an OpenAPI 3.1 contract for the health, auth, account, developer,
-      operator, and billing surfaces (`openapi.yaml` + `src/lib/openapi.test.ts`).
+  operator, and billing surfaces (`openapi.yaml` + `src/lib/openapi.test.ts`).
 - [x] Added comparison pages, `sitemap.xml`, `robots.txt`, and
-      `.well-known/security.txt`; comparison prices are source-dated.
+  `.well-known/security.txt`; comparison prices are source-dated.
 - [x] Added a graceful-shutdown wrapper for the standalone Docker server
-      (`scripts/start-server.mjs`) and raised new password hashes to bcrypt
-      cost 12 with rehash-on-login.
+  (`scripts/start-server.mjs`) and raised new password hashes to bcrypt
+  cost 12 with rehash-on-login.
 - [x] Rendered-surface smoke over 17 public routes and 12 authenticated routes
-      (`docs/RENDER_SMOKE.md`). Fixed `/app/settings/admin` returning 404 by
-      adding it to the proxy allowlist; normal users still get 403 from the
-      operator API.
+  (`docs/RENDER_SMOKE.md`). Fixed `/app/settings/admin` returning 404 by
+  adding it to the proxy allowlist; normal users still get 403 from the
+  operator API.
 - [x] Final honest tracker update + prioritized post-launch backlog.
 
 ### Acceptance criteria
 
 - [x] CI green locally reproducible; isolation suite green; load-test numbers
-      recorded locally. — `docs/LOAD_TEST.md`: 10,000 events, 50 concurrency,
-      157 req/s, p95 412 ms, p99 480 ms, 0 errors, exact usage count.
+  recorded locally. — `docs/LOAD_TEST.md`: 10,000 events, 50 concurrency,
+  157 req/s, p95 412 ms, p99 480 ms, 0 errors, exact usage count.
 - [ ] Deployed-environment load test. **UNVERIFIED**: run the same probe against
-      staging and record network/Neon latency.
+  staging and record network/Neon latency.
 - [ ] Launch checklist complete or each item has an owner and reason. — every
-      open item is marked **UNVERIFIED** with the human action; see
-      `docs/LAUNCH_CHECKLIST.md`.
+  open item is marked **UNVERIFIED** with the human action; see
+  `docs/LAUNCH_CHECKLIST.md`.
 
 ### Needs from the human
 
@@ -1466,20 +1466,20 @@ Tartly's UI style, schemes, ideology, and onboarding motion, adapted to SaaS.
 
 - [x] Positioning and messaging. — `docs/gtm/POSITIONING.md`.
 - [x] Landing/pricing/FAQ copy. — code pages plus the messaging hierarchy;
-      copy can be refined at launch.
+  copy can be refined at launch.
 - [x] Comparison pages vs DataFast, Plausible, Fathom, Umami, Simple Analytics,
-      Talivia Cloud — fetched facts only, source + date. —
-      `docs/gtm/COMPETITORS.md`; DataFast and Talivia's non-promotional price
-      are explicitly **UNVERIFIED**.
+  Talivia Cloud — fetched facts only, source + date. —
+  `docs/gtm/COMPETITORS.md`; DataFast and Talivia's non-promotional price
+  are explicitly **UNVERIFIED**.
 - [x] Migration guides + quickstart. — `docs/gtm/MIGRATION_GUIDES.md`.
 - [x] SEO: 20 keywords with intent, 10 content outlines. —
-      `docs/gtm/SEO_PLAN.md`.
+  `docs/gtm/SEO_PLAN.md`.
 - [x] Launch plan + drafts (Product Hunt, Indie Hackers, Show HN, Reddit rules
-      check, X, LinkedIn, Dev.to). — `docs/gtm/LAUNCH_PLAN.md`.
+  check, X, LinkedIn, Dev.to). — `docs/gtm/LAUNCH_PLAN.md`.
 - [x] Early-adopter offer modelled against `PRICING_ECONOMICS.md`. — no
-      lifetime deal; annual two-months-free only if margin stays above target.
+  lifetime deal; annual two-months-free only if margin stays above target.
 - [x] Activation/retention plan + 5-email onboarding sequence + usage upsell. —
-      `docs/gtm/EMAIL_SEQUENCE.md`.
+  `docs/gtm/EMAIL_SEQUENCE.md`.
 - [x] 30-day launch calendar. — `docs/gtm/LAUNCH_PLAN.md`.
 - [x] Success metrics with assumptions. — `docs/gtm/METRICS.md`.
 
@@ -1571,7 +1571,7 @@ feature is waiting on code.
   the combined minimatch/brace-expansion fixes as same-major patches, so the
   blocked follow-up in `docs/SECURITY_REVIEW.md` was closed with exact-version
   overrides (`minimatch` 3.1.4/5.1.8/9.0.7/>=10.2.1, `@isaacs/brace-expansion`
-  >=5.0.1, `brace-expansion` >=1.1.17/>=2.1.3, `mysql2` >=3.23.1) and the
+  > =5.0.1, `brace-expansion` >=1.1.17/>=2.1.3, `mysql2` >=3.23.1) and the
   unused `del` dev dependency was removed. `pnpm audit`: 97 → 67 (high
   38 → 14); `pnpm audit --prod --audit-level critical` still exits 0. A full
   `pnpm gate` is green. Remaining advisories are dev/build tooling without a
@@ -1972,15 +1972,15 @@ feature is waiting on code.
 
 ## Risk register
 
-| Risk | Severity | Mitigation |
-| --- | --- | --- |
-| The fork is a single-install product; tenancy is implicit via `user_id`/`team_id` on `website` | Critical | Add `Workspace` ownership and central authorization in Phase 2; isolation suite in Phase 3 |
-| Analytics events and replays are stored in PostgreSQL, so hosting cost scales with customer volume | High | Keep events off Neon; use a separate Postgres/ClickHouse for events before scale; meter usage (Phase 6) |
-| Existing auth is username/password with a bootstrap `admin`/`admin` | Critical | **Mitigated (Phase 4):** bootstrap row disabled by migration; hashed sessions/tokens, rate limits, CSRF, and verification/reset shipped |
-| Upstream Cloud features (Search Console, social mentions) are absent from OSS | Medium | Position only on what OSS actually ships; do not advertise missing features |
-| Dodo is used as an analytics provider; using it for platform billing risks mixing contexts | High | Separate `BillingProvider` module + distinct webhook routes and models |
-| Tartly is a different product (email operator); copying visuals must not import its dependencies or product logic | Medium | Extract tokens/motion into Talivia's existing CSS/React system; no Tailwind migration |
-| No Neon/Dodo/email credentials in this environment | High | Stub behind interfaces, document exact needs, keep local PostgreSQL proof |
-| Plan limits are not yet modelled against real costs | High | Phase 6 economics doc before enabling billing |
-| Competitor price claims can go stale | Medium | Cite URL + fetch date; re-check before launch |
-| Event/replay retention deletion is destructive | High | Idempotent, tenant-scoped jobs + dry-run tests |
+| Risk                                                                                                              | Severity | Mitigation                                                                                                                              |
+| ----------------------------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| The fork is a single-install product; tenancy is implicit via `user_id`/`team_id` on `website`                    | Critical | Add `Workspace` ownership and central authorization in Phase 2; isolation suite in Phase 3                                              |
+| Analytics events and replays are stored in PostgreSQL, so hosting cost scales with customer volume                | High     | Keep events off Neon; use a separate Postgres/ClickHouse for events before scale; meter usage (Phase 6)                                 |
+| Existing auth is username/password with a bootstrap `admin`/`admin`                                               | Critical | **Mitigated (Phase 4):** bootstrap row disabled by migration; hashed sessions/tokens, rate limits, CSRF, and verification/reset shipped |
+| Upstream Cloud features (Search Console, social mentions) are absent from OSS                                     | Medium   | Position only on what OSS actually ships; do not advertise missing features                                                             |
+| Dodo is used as an analytics provider; using it for platform billing risks mixing contexts                        | High     | Separate `BillingProvider` module + distinct webhook routes and models                                                                  |
+| Tartly is a different product (email operator); copying visuals must not import its dependencies or product logic | Medium   | Extract tokens/motion into Talivia's existing CSS/React system; no Tailwind migration                                                   |
+| No Neon/Dodo/email credentials in this environment                                                                | High     | Stub behind interfaces, document exact needs, keep local PostgreSQL proof                                                               |
+| Plan limits are not yet modelled against real costs                                                               | High     | Phase 6 economics doc before enabling billing                                                                                           |
+| Competitor price claims can go stale                                                                              | Medium   | Cite URL + fetch date; re-check before launch                                                                                           |
+| Event/replay retention deletion is destructive                                                                    | High     | Idempotent, tenant-scoped jobs + dry-run tests                                                                                          |

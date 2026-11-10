@@ -3,9 +3,9 @@
 Tartly has **two separate payment contexts**. They must never share code,
 credentials, webhook routes, or models.
 
-| Context | Who pays | Where |
-| --- | --- | --- |
-| **A. Platform billing** | Workspace owners pay Tartly | `src/features/billing`, `/api/billing/*` |
+| Context                       | Who pays                                   | Where                                                                   |
+| ----------------------------- | ------------------------------------------ | ----------------------------------------------------------------------- |
+| **A. Platform billing**       | Workspace owners pay Tartly                | `src/features/billing`, `/api/billing/*`                                |
 | **B. Analytics integrations** | The customer's own buyers pay the customer | `src/features/payments`, `/api/payments/<provider>/[websiteId]/webhook` |
 
 The existing Dodo analytics integration is **context B**. It reads per-website
@@ -33,13 +33,13 @@ accepted from the analytics integration by mistake.
 
 ## Data model
 
-| Table | Purpose |
-| --- | --- |
-| `billing_customer` | One provider customer per workspace. |
-| `platform_subscription` | One provider subscription per workspace, with lifecycle, period, cancellation, and provider status. |
-| `billing_event` | Raw webhook bookkeeping keyed by the unique `webhook-id`. |
-| `billing_invoice` | Only invoices the provider actually issued. |
-| `billing_subscription_change` | Audit trail for requested plan changes. |
+| Table                         | Purpose                                                                                             |
+| ----------------------------- | --------------------------------------------------------------------------------------------------- |
+| `billing_customer`            | One provider customer per workspace.                                                                |
+| `platform_subscription`       | One provider subscription per workspace, with lifecycle, period, cancellation, and provider status. |
+| `billing_event`               | Raw webhook bookkeeping keyed by the unique `webhook-id`.                                           |
+| `billing_invoice`             | Only invoices the provider actually issued.                                                         |
+| `billing_subscription_change` | Audit trail for requested plan changes.                                                             |
 
 Migration: `prisma/migrations/20261105150000_platform_billing`.
 
@@ -61,15 +61,15 @@ Migration: `prisma/migrations/20261105150000_platform_billing`.
 
 ## Lifecycle mapping
 
-| Dodo status / event | Local lifecycle | Paid access |
-| --- | --- | --- |
-| `active` | `ACTIVE` | yes |
-| `active` with a trial | `TRIALING` | yes |
-| `past_due` | `PAST_DUE` | yes (provider grace) |
-| `on_hold`, `paused`, `failed` | `SUSPENDED` | no |
-| `cancelled` | `CANCELLED` | only until `current_period_end` when cancellation was scheduled |
-| `expired` | `EXPIRED` | no |
-| `pending` | `INCOMPLETE` | no |
+| Dodo status / event           | Local lifecycle | Paid access                                                     |
+| ----------------------------- | --------------- | --------------------------------------------------------------- |
+| `active`                      | `ACTIVE`        | yes                                                             |
+| `active` with a trial         | `TRIALING`      | yes                                                             |
+| `past_due`                    | `PAST_DUE`      | yes (provider grace)                                            |
+| `on_hold`, `paused`, `failed` | `SUSPENDED`     | no                                                              |
+| `cancelled`                   | `CANCELLED`     | only until `current_period_end` when cancellation was scheduled |
+| `expired`                     | `EXPIRED`       | no                                                              |
+| `pending`                     | `INCOMPLETE`    | no                                                              |
 
 Cancel-at-period-end is a provider call plus a local flag. The subscription
 stays `ACTIVE`/`TRIALING` until the period ends, then the provider event moves
@@ -115,14 +115,14 @@ charge is attempted.
 
 ## API
 
-| Route | Role | Behaviour |
-| --- | --- | --- |
-| `GET /api/billing?workspaceId=` | VIEWER | Plan, lifecycle, period, cancellation flag, invoices, available products. No secrets or raw payloads. |
-| `POST /api/billing/checkout` | OWNER | Creates a hosted checkout; returns `{url}`. |
-| `POST /api/billing/portal` | OWNER | Creates a provider customer-portal link. |
-| `POST /api/billing/cancel` | OWNER | Schedules cancellation at period end. |
-| `POST /api/billing/change-plan` | OWNER | Requests an immediate prorated plan change; local state waits for the webhook. |
-| `POST /api/billing/webhook/dodo` | signed only | Verifies and processes Dodo platform events. |
+| Route                            | Role        | Behaviour                                                                                             |
+| -------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------- |
+| `GET /api/billing?workspaceId=`  | VIEWER      | Plan, lifecycle, period, cancellation flag, invoices, available products. No secrets or raw payloads. |
+| `POST /api/billing/checkout`     | OWNER       | Creates a hosted checkout; returns `{url}`.                                                           |
+| `POST /api/billing/portal`       | OWNER       | Creates a provider customer-portal link.                                                              |
+| `POST /api/billing/cancel`       | OWNER       | Schedules cancellation at period end.                                                                 |
+| `POST /api/billing/change-plan`  | OWNER       | Requests an immediate prorated plan change; local state waits for the webhook.                        |
+| `POST /api/billing/webhook/dodo` | signed only | Verifies and processes Dodo platform events.                                                          |
 
 ## Manual test against Dodo test mode (not yet run)
 

@@ -16,9 +16,9 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  NODE_VERSION: '22'
-  PNPM_VERSION: '10.10.0'
-  NEXT_TELEMETRY_DISABLED: '1'
+  NODE_VERSION: "22"
+  PNPM_VERSION: "10.10.0"
+  NEXT_TELEMETRY_DISABLED: "1"
   APP_SECRET: ci-only-secret-not-for-production-0123456789
   DATABASE_URL: postgresql://talivia:talivia@localhost:5432/talivia_ci
 
@@ -96,13 +96,13 @@ jobs:
       - name: PostgreSQL analytics smoke
         run: pnpm exec vitest run --config vitest.phase7.config.ts src/features/analytics/server/queries/phase7-analytics-smoke.test.ts
         env:
-          RUN_PHASE7_DB_SMOKE: '1'
+          RUN_PHASE7_DB_SMOKE: "1"
           PHASE7_DATABASE_URL: postgresql://talivia:talivia@localhost:5432/talivia_ci
 
       - name: Production build
         run: pnpm build
         env:
-          SKIP_DB_CHECK: '1'
+          SKIP_DB_CHECK: "1"
 
   security:
     name: Security (secrets, CodeQL, dependencies)
@@ -124,8 +124,8 @@ jobs:
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_ENABLE_COMMENTS: 'false'
-          GITLEAKS_ENABLE_SUMMARY: 'true'
+          GITLEAKS_ENABLE_COMMENTS: "false"
+          GITLEAKS_ENABLE_SUMMARY: "true"
 
       # CodeQL, dependency review, and SARIF upload need GitHub Advanced
       # Security on a private repository. This repository is private and GHAS
@@ -159,7 +159,7 @@ jobs:
           skip-dirs: node_modules,.next,coverage,generated,public/script.js,public/recorder.js
           format: sarif
           output: trivy-results.sarif
-          exit-code: '0'
+          exit-code: "0"
 
       - name: Upload Trivy SARIF
         if: always() && hashFiles('trivy-results.sarif') != '' && (vars.GHAS_ENABLED == 'true' || github.event.repository.private != true)
@@ -217,10 +217,10 @@ jobs:
           scanners: vuln
           severity: CRITICAL,HIGH
           ignore-unfixed: true
-          limit-severities-for-sarif: 'true'
+          limit-severities-for-sarif: "true"
           format: sarif
           output: trivy-image-blocking.sarif
-          exit-code: '1'
+          exit-code: "1"
 
       - name: Upload blocking image scan SARIF
         if: always() && hashFiles('trivy-image-blocking.sarif') != '' && (vars.GHAS_ENABLED == 'true' || github.event.repository.private != true)
@@ -238,7 +238,7 @@ jobs:
           ignore-unfixed: true
           format: sarif
           output: trivy-image.sarif
-          exit-code: '0'
+          exit-code: "0"
 
       - name: Upload full image inventory SARIF
         if: always() && hashFiles('trivy-image.sarif') != '' && (vars.GHAS_ENABLED == 'true' || github.event.repository.private != true)

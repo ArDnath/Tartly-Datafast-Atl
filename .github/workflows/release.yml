@@ -3,7 +3,7 @@ name: Validate open-source release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 permissions:
   contents: read

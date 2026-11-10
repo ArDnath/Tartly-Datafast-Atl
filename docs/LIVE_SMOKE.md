@@ -8,30 +8,30 @@ deleted afterwards.
 
 ## Transactional email
 
-| Flow | Result |
-| --- | --- |
-| Verification resend | `{ "sent": true }`; link written to `.dev-emails/outbox.log` |
-| Verify token | `{ "verified": true }` |
-| Password forgot | `{ "sent": true }`; single-use reset link written to outbox |
-| Password reset | `{ "ok": true }`; old session revoked by the reset path |
-| Login with new password | 200 with `isPlatformAdmin: true` for the allowlisted admin |
+| Flow                    | Result                                                       |
+| ----------------------- | ------------------------------------------------------------ |
+| Verification resend     | `{ "sent": true }`; link written to `.dev-emails/outbox.log` |
+| Verify token            | `{ "verified": true }`                                       |
+| Password forgot         | `{ "sent": true }`; single-use reset link written to outbox  |
+| Password reset          | `{ "ok": true }`; old session revoked by the reset path      |
+| Login with new password | 200 with `isPlatformAdmin: true` for the allowlisted admin   |
 
 This proves the token lifecycle and templates/log transport. It does **not**
 prove live Resend delivery or inbox rendering.
 
 ## Platform-admin abuse controls
 
-| Step | Result |
-| --- | --- |
-| `GET /api/admin/accounts?query=target-smoke` | 200; returned the user and workspace with operator fields only |
-| Normal user calling the same endpoint | 403 |
-| Suspend user | 200; `suspendedAt` and reason stored |
-| Existing target session | **401** |
-| Target login | **401** `invalid-credentials` |
-| Unsuspend user | 200; login works again |
-| Suspend workspace | 200; reason stored |
-| Event after workspace suspension | **403** `workspace-unavailable` |
-| Audit rows | `user.suspended`, `user.unsuspended`, `workspace.suspended`, `workspace.unsuspended` |
+| Step                                         | Result                                                                               |
+| -------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `GET /api/admin/accounts?query=target-smoke` | 200; returned the user and workspace with operator fields only                       |
+| Normal user calling the same endpoint        | 403                                                                                  |
+| Suspend user                                 | 200; `suspendedAt` and reason stored                                                 |
+| Existing target session                      | **401**                                                                              |
+| Target login                                 | **401** `invalid-credentials`                                                        |
+| Unsuspend user                               | 200; login works again                                                               |
+| Suspend workspace                            | 200; reason stored                                                                   |
+| Event after workspace suspension             | **403** `workspace-unavailable`                                                      |
+| Audit rows                                   | `user.suspended`, `user.unsuspended`, `workspace.suspended`, `workspace.unsuspended` |
 
 The first workspace-suspension attempt still ingested an event: the entitlement
 lookup filtered `deletedAt` but not `suspendedAt`. Fixed in `src/lib/entitlements.ts`
