@@ -57,6 +57,15 @@ requests, CodeQL with the extended and quality query packs, and Trivy
 filesystem/secret/misconfiguration scanning. SARIF is uploaded to GitHub code
 scanning.
 
+CodeQL, dependency review, and SARIF upload require GitHub Advanced Security
+on a private repository. This repository is private and GHAS is not purchased,
+so those steps are skipped and the secret scan plus both Trivy scans still run.
+After purchasing GHAS (or making the repository public), set the repository
+variable `GHAS_ENABLED=true` to re-enable them. Until then, CodeQL and
+dependency-review results are **UNVERIFIED** in CI; run `pnpm audit --prod`
+locally and run CodeQL before a release if the change touches authentication,
+authorization, or tenant isolation.
+
 `container` builds the production Docker image with the commit SHA as
 `BUILD_VERSION`, then scans the image with Trivy and fails on CRITICAL/HIGH
 vulnerabilities with a fix available. A second non-blocking scan uploads the
