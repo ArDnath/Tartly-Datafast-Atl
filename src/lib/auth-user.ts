@@ -15,6 +15,8 @@ export interface AuthResponse {
     role: string;
     createdAt?: Date;
     emailVerifiedAt?: Date | null;
+    displayName?: string | null;
+    logoUrl?: string | null;
     isAdmin: boolean;
     isPlatformAdmin?: boolean;
   };
@@ -36,6 +38,8 @@ export async function createAuthResponse(
     role: string;
     createdAt?: Date;
     emailVerifiedAt?: Date | null;
+    displayName?: string | null;
+    logoUrl?: string | null;
   },
   request: Request,
 ): Promise<AuthResponse> {
@@ -51,6 +55,8 @@ export async function createAuthResponse(
       role: user.role,
       createdAt: user.createdAt,
       emailVerifiedAt: user.emailVerifiedAt ?? null,
+      displayName: user.displayName ?? null,
+      logoUrl: user.logoUrl ?? null,
       isAdmin: user.role === ROLES.admin,
       isPlatformAdmin: isPlatformAdmin(user),
     },

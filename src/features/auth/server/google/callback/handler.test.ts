@@ -3,11 +3,16 @@ import { createAuthResponse } from '@/lib/auth-user';
 import { consumeRateLimit } from '@/lib/rate-limit';
 import { findOrCreateGoogleUser, GoogleAccountError } from '../account';
 import { createGoogleOAuthStateToken, GOOGLE_OAUTH_STATE_COOKIE } from '../config';
+import { resolvePostSignInPath } from '../../post-signin';
 import { exchangeGoogleCode, GoogleOAuthError } from '../service';
 import { GET } from './handler';
 
 vi.mock('@/lib/auth-user', () => ({
   createAuthResponse: vi.fn(),
+}));
+
+vi.mock('../../post-signin', () => ({
+  resolvePostSignInPath: vi.fn(),
 }));
 
 vi.mock('@/lib/rate-limit', async () => {
@@ -82,6 +87,7 @@ beforeEach(() => {
     remaining: 29,
     retryAfterSeconds: 0,
   });
+  vi.mocked(resolvePostSignInPath).mockResolvedValue('/app/revenue');
 });
 
 afterEach(() => {
@@ -100,6 +106,15 @@ test('creates a session and returns to the sealed app return URL', async () => {
     config: expect.objectContaining({ clientId: 'google-client-id' }),
     code: 'code',
   });
+  expect(resolvePostSignInPath).toHaveBeenCalledWith('user-1', '/app/revenue');
+});
+
+test('routes a first-time user to onboarding instead of the dashboard', async () => {
+  vi.mocked(resolvePostSignInPath).mockResolvedValue('/onboarding');
+
+  const response = await GET(callbackRequest('state-value'));
+
+  expect(response.headers.get('location')).toBe('https://tartly.test/onboarding');
 });
 
 test('rejects a callback whose URL state does not match the signed cookie', async () => {

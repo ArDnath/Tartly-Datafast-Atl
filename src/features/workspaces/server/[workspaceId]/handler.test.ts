@@ -31,6 +31,7 @@ const access = {
     id: 'workspace-1',
     name: 'Acme',
     slug: 'acme',
+    logoUrl: null,
     ownerId: 'user-1',
     planId: 'starter',
     subscriptionStatus: 'active',
@@ -121,6 +122,23 @@ test('refuses to transfer ownership to a non-member', async () => {
 
   expect(response.status).toBe(400);
   expect(prisma.transaction).not.toHaveBeenCalled();
+});
+
+test('updates a workspace photo', async () => {
+  vi.mocked(parseRequest).mockResolvedValue({
+    auth: { user: { id: 'user-1' } },
+    body: { logoUrl: 'data:image/png;base64,AAAA' },
+    query: {},
+  } as any);
+
+  const response = await PATCH(request('PATCH'), params());
+
+  expect(response.status).toBe(200);
+  expect(prisma.client.workspace.update).toHaveBeenCalledWith({
+    where: { id: 'workspace-1' },
+    data: { logoUrl: 'data:image/png;base64,AAAA' },
+    select: { id: true },
+  });
 });
 
 test('transfers ownership to an existing member and demotes the old owner', async () => {

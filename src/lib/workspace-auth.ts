@@ -1,6 +1,6 @@
-import type { Auth } from '@/lib/types';
-import prisma from '@/lib/prisma';
 import { uuid } from '@/lib/crypto';
+import prisma from '@/lib/prisma';
+import type { Auth } from '@/lib/types';
 
 /**
  * The only workspace permission module. New SaaS routes must call
@@ -89,6 +89,7 @@ export interface WorkspaceAccess {
     id: string;
     name: string;
     slug: string;
+    logoUrl: string | null;
     ownerId: string;
     planId: string | null;
     subscriptionStatus: string;
@@ -110,6 +111,7 @@ export async function getWorkspaceMembership(userId: string, workspaceId: string
           id: true,
           name: true,
           slug: true,
+          logoUrl: true,
           ownerId: true,
           planId: true,
           subscriptionStatus: true,
@@ -163,6 +165,7 @@ export async function requireWorkspaceAccess(
       id: membership.workspace.id,
       name: membership.workspace.name,
       slug: membership.workspace.slug,
+      logoUrl: membership.workspace.logoUrl,
       ownerId: membership.workspace.ownerId,
       planId: membership.workspace.planId,
       subscriptionStatus: membership.workspace.subscriptionStatus,
@@ -212,10 +215,12 @@ export async function getUserWorkspaces(userId: string) {
           id: true,
           name: true,
           slug: true,
+          logoUrl: true,
           ownerId: true,
           planId: true,
           subscriptionStatus: true,
           createdAt: true,
+          onboardingCompletedAt: true,
         },
       },
     },
@@ -243,19 +248,25 @@ export interface CreatedWorkspace {
   id: string;
   name: string;
   slug: string;
+  logoUrl: string | null;
   ownerId: string;
   planId: string | null;
   subscriptionStatus: string;
+  onboardingCompletedAt: Date | null;
 }
 
 export async function createWorkspaceForUser({
   userId,
   name,
   slug,
+  logoUrl,
+  planId = 'starter',
 }: {
   userId: string;
   name: string;
   slug?: string;
+  logoUrl?: string | null;
+  planId?: string;
 }): Promise<CreatedWorkspace> {
   const base = slugifyWorkspaceName(name);
   const candidate = slug || `${base}-${uuid().slice(0, 8)}`;
@@ -269,16 +280,20 @@ export async function createWorkspaceForUser({
         id: uuid(),
         name: name.trim(),
         slug: candidate,
+        logoUrl: logoUrl ?? null,
         ownerId: userId,
+        planId,
         subscriptionStatus: 'incomplete',
       },
       select: {
         id: true,
         name: true,
         slug: true,
+        logoUrl: true,
         ownerId: true,
         planId: true,
         subscriptionStatus: true,
+        onboardingCompletedAt: true,
       },
     });
 

@@ -18,20 +18,22 @@ model OssInstallationIdentity {
 }
 
 model Workspace {
-  id                 String    @id() @default(uuid()) @map("workspace_id") @db.Uuid
-  name               String    @db.VarChar(100)
-  slug               String    @unique @db.VarChar(100)
-  ownerId            String    @map("owner_id") @db.Uuid
-  planId             String?   @map("plan_id") @db.VarChar(50)
-  subscriptionStatus String    @default("incomplete") @map("subscription_status") @db.VarChar(50)
-  createdAt          DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt          DateTime? @map("deleted_at") @db.Timestamptz(6)
-  suspendedAt        DateTime? @map("suspended_at") @db.Timestamptz(6)
-  suspensionReason   String?   @map("suspension_reason") @db.VarChar(500)
-  setupEventsCount   Int       @default(0) @map("setup_events_count")
+  id                    String    @id() @default(uuid()) @map("workspace_id") @db.Uuid
+  name                  String    @db.VarChar(100)
+  slug                  String    @unique @db.VarChar(100)
+  logoUrl               String?   @map("logo_url") @db.Text
+  ownerId               String    @map("owner_id") @db.Uuid
+  planId                String?   @map("plan_id") @db.VarChar(50)
+  subscriptionStatus    String    @default("incomplete") @map("subscription_status") @db.VarChar(50)
+  createdAt             DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt             DateTime? @map("deleted_at") @db.Timestamptz(6)
+  suspendedAt           DateTime? @map("suspended_at") @db.Timestamptz(6)
+  suspensionReason      String?   @map("suspension_reason") @db.VarChar(500)
+  setupEventsCount      Int       @default(0) @map("setup_events_count")
+  onboardingCompletedAt DateTime? @map("onboarding_completed_at") @db.Timestamptz(6)
 
-  owner                User                  @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  owner                User                        @relation("WorkspaceOwner", fields: [ownerId], references: [id])
   memberships          WorkspaceMembership[]
   invitations          WorkspaceInvitation[]
   websites             Website[]
@@ -106,17 +108,17 @@ model PlatformSubscription {
 /// Raw provider webhook bookkeeping. `provider_event_id` is unique, so a
 /// replayed delivery is acknowledged without being applied twice.
 model BillingEvent {
-  id              String    @id() @default(uuid()) @map("billing_event_id") @db.Uuid
-  providerName    String    @map("provider_name") @db.VarChar(50)
-  providerEventId String    @unique @map("provider_event_id") @db.VarChar(255)
-  eventType       String    @map("event_type") @db.VarChar(100)
-  workspaceId     String?   @map("workspace_id") @db.Uuid
-  eventAt         DateTime  @map("event_at") @db.Timestamptz(6)
-  payload         Json
-  processingStatus String   @default("received") @map("processing_status") @db.VarChar(50)
-  errorMessage    String?   @map("error_message")
-  receivedAt      DateTime  @default(now()) @map("received_at") @db.Timestamptz(6)
-  processedAt     DateTime? @map("processed_at") @db.Timestamptz(6)
+  id               String    @id() @default(uuid()) @map("billing_event_id") @db.Uuid
+  providerName     String    @map("provider_name") @db.VarChar(50)
+  providerEventId  String    @unique @map("provider_event_id") @db.VarChar(255)
+  eventType        String    @map("event_type") @db.VarChar(100)
+  workspaceId      String?   @map("workspace_id") @db.Uuid
+  eventAt          DateTime  @map("event_at") @db.Timestamptz(6)
+  payload          Json
+  processingStatus String    @default("received") @map("processing_status") @db.VarChar(50)
+  errorMessage     String?   @map("error_message")
+  receivedAt       DateTime  @default(now()) @map("received_at") @db.Timestamptz(6)
+  processedAt      DateTime? @map("processed_at") @db.Timestamptz(6)
 
   @@index([providerName, eventType])
   @@index([workspaceId, receivedAt])
@@ -126,21 +128,21 @@ model BillingEvent {
 /// Only invoices the provider actually issued are stored. No invoice is
 /// invented for a pending checkout or a failed charge.
 model BillingInvoice {
-  id                     String    @id() @default(uuid()) @map("billing_invoice_id") @db.Uuid
-  workspaceId            String    @map("workspace_id") @db.Uuid
-  providerName           String    @map("provider_name") @db.VarChar(50)
-  providerInvoiceId      String    @map("provider_invoice_id") @db.VarChar(255)
-  providerPaymentId      String?   @map("provider_payment_id") @db.VarChar(255)
-  status                 String    @db.VarChar(50)
-  currency               String    @default("USD") @db.VarChar(10)
-  amountCents            Int       @default(0) @map("amount_cents")
-  periodStart            DateTime? @map("period_start") @db.Timestamptz(6)
-  periodEnd              DateTime? @map("period_end") @db.Timestamptz(6)
-  issuedAt               DateTime  @map("issued_at") @db.Timestamptz(6)
-  paidAt                 DateTime? @map("paid_at") @db.Timestamptz(6)
-  hostedUrl              String?   @map("hosted_url")
-  createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt              DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                String    @id() @default(uuid()) @map("billing_invoice_id") @db.Uuid
+  workspaceId       String    @map("workspace_id") @db.Uuid
+  providerName      String    @map("provider_name") @db.VarChar(50)
+  providerInvoiceId String    @map("provider_invoice_id") @db.VarChar(255)
+  providerPaymentId String?   @map("provider_payment_id") @db.VarChar(255)
+  status            String    @db.VarChar(50)
+  currency          String    @default("USD") @db.VarChar(10)
+  amountCents       Int       @default(0) @map("amount_cents")
+  periodStart       DateTime? @map("period_start") @db.Timestamptz(6)
+  periodEnd         DateTime? @map("period_end") @db.Timestamptz(6)
+  issuedAt          DateTime  @map("issued_at") @db.Timestamptz(6)
+  paidAt            DateTime? @map("paid_at") @db.Timestamptz(6)
+  hostedUrl         String?   @map("hosted_url")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   workspace Workspace @relation(fields: [workspaceId], references: [id])
 
@@ -152,14 +154,14 @@ model BillingInvoice {
 /// Audit trail for plan changes. The provider remains the source of truth for
 /// the subscription itself; this records who asked for what and when.
 model BillingSubscriptionChange {
-  id            String    @id() @default(uuid()) @map("billing_subscription_change_id") @db.Uuid
-  workspaceId   String    @map("workspace_id") @db.Uuid
-  fromPlanId    String?   @map("from_plan_id") @db.VarChar(50)
-  toPlanId      String    @map("to_plan_id") @db.VarChar(50)
-  changeType    String    @map("change_type") @db.VarChar(50)
-  requestedBy   String?   @map("requested_by") @db.Uuid
-  effectiveAt   DateTime? @map("effective_at") @db.Timestamptz(6)
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  id          String    @id() @default(uuid()) @map("billing_subscription_change_id") @db.Uuid
+  workspaceId String    @map("workspace_id") @db.Uuid
+  fromPlanId  String?   @map("from_plan_id") @db.VarChar(50)
+  toPlanId    String    @map("to_plan_id") @db.VarChar(50)
+  changeType  String    @map("change_type") @db.VarChar(50)
+  requestedBy String?   @map("requested_by") @db.Uuid
+  effectiveAt DateTime? @map("effective_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
   workspace Workspace @relation(fields: [workspaceId], references: [id])
 
@@ -244,19 +246,19 @@ model WorkspaceInvitation {
 }
 
 model User {
-  id              String    @id() @map("user_id") @db.Uuid
-  username        String    @unique @db.VarChar(255)
-  password        String?   @db.VarChar(60)
-  googleId        String?   @unique @map("google_id") @db.VarChar(255)
-  role            String    @map("role") @db.VarChar(50)
-  logoUrl         String?   @map("logo_url") @db.VarChar(2183)
-  displayName     String?   @map("display_name") @db.VarChar(255)
-  emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamptz(6)
-  createdAt       DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
-  suspendedAt     DateTime? @map("suspended_at") @db.Timestamptz(6)
-  suspensionReason String?  @map("suspension_reason") @db.VarChar(500)
+  id               String    @id() @map("user_id") @db.Uuid
+  username         String    @unique @db.VarChar(255)
+  password         String?   @db.VarChar(60)
+  googleId         String?   @unique @map("google_id") @db.VarChar(255)
+  role             String    @map("role") @db.VarChar(50)
+  logoUrl          String?   @map("logo_url") @db.VarChar(2183)
+  displayName      String?   @map("display_name") @db.VarChar(255)
+  emailVerifiedAt  DateTime? @map("email_verified_at") @db.Timestamptz(6)
+  createdAt        DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(6)
+  suspendedAt      DateTime? @map("suspended_at") @db.Timestamptz(6)
+  suspensionReason String?   @map("suspension_reason") @db.VarChar(500)
 
   websites                Website[]                @relation("user")
   createdBy               Website[]                @relation("createUser")

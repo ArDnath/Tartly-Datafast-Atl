@@ -31,6 +31,9 @@ export interface Auth {
     isAdmin: boolean;
     isPlatformAdmin?: boolean;
     emailVerifiedAt?: Date | null;
+    displayName?: string | null;
+    logoUrl?: string | null;
+    onboardingRequired?: boolean;
   };
   shareToken?: ShareTokenPayload;
   /** Where the credential came from; used for CSRF decisions. */

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sanitizeAuthReturnUrl } from '@/features/auth/lib/auth-return-url';
+import { withWebsiteReturnUrl } from '@/features/auth/lib/auth-return-url';
 import {
   buildGoogleAuthorizationUrl,
   createGoogleOAuthState,
@@ -15,7 +15,10 @@ import { redirectToLogin } from '../redirect';
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const returnUrl = sanitizeAuthReturnUrl(url.searchParams.get('returnUrl'));
+  const returnUrl = withWebsiteReturnUrl(
+    url.searchParams.get('returnUrl'),
+    url.searchParams.get('website'),
+  );
   const config = getGoogleOAuthConfig(request);
 
   if (!config) {

@@ -86,10 +86,9 @@ describe('findOrCreateGoogleUser', () => {
     );
   });
 
-  test('creates a passwordless account, workspace, and membership for a new user', async () => {
+  test('creates a passwordless account for a new user', async () => {
     createPersonalAccountMock.mockResolvedValue({
       user: { id: 'user-2', username: 'founder@example.com', role: 'user' },
-      workspace: { id: 'workspace-1', name: "founder's workspace", slug: 'founder-workspace' },
     });
 
     const user = await findOrCreateGoogleUser(profile);

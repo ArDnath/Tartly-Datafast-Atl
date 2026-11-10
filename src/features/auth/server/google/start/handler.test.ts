@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { GOOGLE_OAUTH_STATE_COOKIE } from '../config';
+import { GOOGLE_OAUTH_STATE_COOKIE, readGoogleOAuthStateToken } from '../config';
 import { GET } from './handler';
 
 beforeEach(() => {
@@ -28,6 +28,20 @@ test('redirects to Google with the callback and a signed state cookie', async ()
   expect(location).toContain('state=');
   expect(response.headers.get('set-cookie')).toContain(`${GOOGLE_OAUTH_STATE_COOKIE}=`);
   expect(response.headers.get('cache-control')).toBe('no-store');
+});
+
+test('carries the landing-page website into onboarding through Google', async () => {
+  const response = await GET(
+    new Request(
+      'https://tartly.test/api/auth/google?returnUrl=%2Fonboarding&website=https%3A%2F%2Fariyaman.in',
+    ),
+  );
+  const cookie = response.headers.get('set-cookie') ?? '';
+  const token = decodeURIComponent(cookie.split(';')[0].split('=').slice(1).join('='));
+
+  expect(readGoogleOAuthStateToken(token)).toMatchObject({
+    returnUrl: '/onboarding?website=https%3A%2F%2Fariyaman.in',
+  });
 });
 
 test('returns to login with a readable error when credentials are missing', async () => {

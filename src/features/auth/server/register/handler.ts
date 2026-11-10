@@ -22,7 +22,6 @@ import {
 const schema = z.object({
   username: z.email().max(255),
   password: z.string().min(8).max(72),
-  workspaceName: z.string().trim().min(1).max(100).optional(),
 });
 
 const IP_LIMIT = { limit: 5, windowSeconds: 60 * 60 };

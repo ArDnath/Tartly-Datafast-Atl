@@ -76,6 +76,7 @@ beforeEach(() => {
       id: 'workspace-a',
       name: 'Acme',
       slug: 'acme',
+      logoUrl: null,
       ownerId: 'user-a',
       planId: 'pro',
       subscriptionStatus: 'active',

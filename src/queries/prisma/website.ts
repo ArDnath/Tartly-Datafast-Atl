@@ -236,8 +236,12 @@ async function deleteWebsiteData(
     where: { websiteId },
   });
 
-  await tx.visitor.deleteMany({
+  // Visitor.firstSessionId/lastSessionId reference Session with onDelete: Restrict,
+  // and Session.visitorId references Visitor with onDelete: Restrict. Break the
+  // visitor -> session links, delete the sessions, then delete the visitors.
+  await tx.visitor.updateMany({
     where: { websiteId },
+    data: { firstSessionId: null, lastSessionId: null },
   });
 
   await tx.sessionReplaySaved.deleteMany({
@@ -265,6 +269,10 @@ async function deleteWebsiteData(
   });
 
   await tx.session.deleteMany({
+    where: { websiteId },
+  });
+
+  await tx.visitor.deleteMany({
     where: { websiteId },
   });
 

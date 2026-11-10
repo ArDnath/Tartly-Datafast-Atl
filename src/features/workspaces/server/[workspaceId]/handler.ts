@@ -3,10 +3,24 @@ import prisma from '@/lib/prisma';
 import { parseRequest } from '@/lib/request';
 import { badRequest, forbidden, json, notFound, ok } from '@/lib/response';
 import { requireWorkspaceAccess } from '@/lib/workspace-auth';
+import {
+  isWorkspaceLogoUrl,
+  WORKSPACE_LOGO_MAX_LENGTH,
+} from '@/features/workspaces/lib/workspace-logo';
 import { recordAuditEvent } from '@/queries/prisma';
+
+const logoUrlSchema = z
+  .string()
+  .trim()
+  .max(WORKSPACE_LOGO_MAX_LENGTH)
+  .refine(isWorkspaceLogoUrl, {
+    message: 'Upload a PNG, JPEG, WebP, or GIF image.',
+  })
+  .nullable();
 
 const updateSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
+  logoUrl: logoUrlSchema.optional(),
   transferToUserId: z.uuid().optional(),
 });
 
@@ -63,6 +77,14 @@ export async function PATCH(
     await prisma.client.workspace.update({
       where: { id: workspaceId },
       data: { name: body.name },
+      select: { id: true },
+    });
+  }
+
+  if (body.logoUrl !== undefined) {
+    await prisma.client.workspace.update({
+      where: { id: workspaceId },
+      data: { logoUrl: body.logoUrl },
       select: { id: true },
     });
   }
@@ -124,6 +146,7 @@ export async function PATCH(
     resourceType: 'workspace',
     metadata: {
       nameChanged: Boolean(body.name),
+      logoChanged: body.logoUrl !== undefined,
       transferredTo: body.transferToUserId ?? null,
     },
   });
