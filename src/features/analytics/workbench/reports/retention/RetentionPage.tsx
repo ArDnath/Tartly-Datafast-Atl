@@ -15,7 +15,12 @@ export function RetentionPage({ websiteId }: { websiteId: string }) {
 
   return (
     <Column gap>
-      <WebsiteControls websiteId={websiteId} allowDateFilter={false} allowMonthFilter />
+      <WebsiteControls
+        websiteId={websiteId}
+        allowFilter={false}
+        allowDateFilter={false}
+        allowMonthFilter
+      />
       <Retention websiteId={websiteId} startDate={monthStartDate} endDate={monthEndDate} />
     </Column>
   );

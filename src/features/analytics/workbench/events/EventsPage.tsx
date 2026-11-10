@@ -9,7 +9,6 @@ import { MetricCard } from '@/features/analytics/components/metrics/MetricCard';
 import { MetricsBar } from '@/features/analytics/components/metrics/MetricsBar';
 import { MetricsTable } from '@/features/analytics/components/metrics/MetricsTable';
 import { useEventStatsQuery } from '@/features/analytics/hooks/useEventStatsQuery';
-import { WebsiteControls } from '@/features/analytics/workbench/WebsiteControls';
 import { formatLongNumber } from '@/lib/format';
 import { EventProperties } from './EventProperties';
 import { EventsDataTable } from './EventsDataTable';
@@ -61,7 +60,6 @@ export function EventsPage({ websiteId }) {
 
   return (
     <Column gap="3">
-      <WebsiteControls websiteId={websiteId} />
       <LoadingPanel
         data={metrics}
         isLoading={isLoading}

@@ -11,7 +11,7 @@ import {
 } from '@talivia/react-zen';
 import { type ReactNode, useState } from 'react';
 import { useMessages } from '@/components/hooks';
-import { Maximize, X } from '@/components/icons';
+import { Maximize, Xmark as X } from '@/components/icons';
 
 export interface PanelProps extends ColumnProps {
   title?: string;
@@ -29,6 +29,13 @@ const fullscreenStyles = {
   border: 'none',
   zIndex: 9999,
 } as any;
+
+// Every panel shares the same soft top light. It is a texture, not elevation,
+// so it never adds a drop shadow to the working surface.
+const surfaceTexture = {
+  backgroundImage:
+    'linear-gradient(180deg, var(--rl-panel-sheen) 0, transparent var(--rl-panel-sheen-height))',
+};
 
 export function Panel({
   title,
@@ -58,7 +65,11 @@ export function Panel({
       position="relative"
       gap
       {...props}
-      style={{ ...style, ...(isFullscreen ? fullscreenStyles : { height, width }) }}
+      style={{
+        ...surfaceTexture,
+        ...style,
+        ...(isFullscreen ? fullscreenStyles : { height, width }),
+      }}
     >
       {title && <Heading>{title}</Heading>}
       {description && <Text color="muted">{description}</Text>}

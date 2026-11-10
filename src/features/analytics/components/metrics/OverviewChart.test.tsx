@@ -61,7 +61,7 @@ test('overview chart uses interval hover and a flat zero visitors line', () => {
     tension: 0.44,
   });
   expect(visitorsDataset.backgroundColor).toEqual(expect.any(Function));
-  expect(visitorsDataset.borderColor).toBe('#3b82ff');
+  expect(visitorsDataset.borderColor).toBe('#56a4f8');
   const visibleVisitorPoints = visitorsDataset.data.filter(
     (point: any) => !point.taliviaContextPoint && !point.taliviaBoundaryPoint,
   );
@@ -75,7 +75,8 @@ test('overview chart uses interval hover and a flat zero visitors line', () => {
   expect(chartState.props.chartOptions.scales.x.display).toBe(false);
   expect(chartState.props.chartOptions.scales.x.border.display).toBe(false);
   expect(chartState.props.chartOptions.scales.visitors.display).toBe(false);
-  expect(chartState.props.chartOptions.scales.visitors.grid.display).toBe(false);
+  expect(chartState.props.chartOptions.scales.visitors.grid.display).toBe(true);
+  expect(chartState.props.chartOptions.scales.visitors.grid.borderDash).toEqual([4, 6]);
   expect(chartState.props.chartOptions.scales.visitors.border.display).toBe(false);
   expect(chartState.props.chartOptions.scales.revenue.display).toBe(false);
   expect(chartState.props.chartOptions.scales.revenue.grid.display).toBe(false);
@@ -382,9 +383,9 @@ test('overview chart renders refunds as a dashed stacked bar', () => {
     taliviaDashedBarBorderDash: [4, 4],
     taliviaDashedBarBorderWidth: 2,
     taliviaDashedBarFillGradient: [
-      { offset: 0, color: 'rgba(45, 191, 114, 0.36)' },
-      { offset: 0.54, color: 'rgba(45, 191, 114, 0.18)' },
-      { offset: 1, color: 'rgba(45, 191, 114, 0.08)' },
+      { offset: 0, color: 'rgba(255, 138, 102, 0.36)' },
+      { offset: 0.54, color: 'rgba(255, 138, 102, 0.18)' },
+      { offset: 1, color: 'rgba(255, 138, 102, 0.08)' },
     ],
     backgroundColor: 'transparent',
     borderColor: 'transparent',
@@ -415,7 +416,7 @@ test('overview chart renders refunds as a dashed stacked bar', () => {
     }),
   ).toEqual({ topLeft: 8, topRight: 8 });
   expect(refundDataset.taliviaDashedBarBorderColor({ raw: refundDataset.data[dataIndex] })).toBe(
-    '#2dbf72',
+    '#ff8a66',
   );
 });
 
@@ -642,5 +643,5 @@ test('overview tooltip shows zero revenue when there are no revenue datasets', (
 
   expect(screen.getByText('Visitors')).toBeInTheDocument();
   expect(screen.getByText('Revenue')).toBeInTheDocument();
-  expect(screen.getByText('$0')).toBeInTheDocument();
+  expect(within(screen.getByTestId('overview-tooltip')).getByText('$0')).toBeInTheDocument();
 });

@@ -1,8 +1,7 @@
 import { Column, Grid, Icon, ProgressBar, Row, Text } from '@talivia/react-zen';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { useMessages, useNavigation } from '@/components/hooks';
-import { File, User } from '@/components/icons';
-import { Lightning } from '@/components/svg';
+import { Page as File, Flash as Lightning, User } from '@/components/icons';
 import { ReportEditButton } from '@/features/analytics/components/input/ReportEditButton';
 import { useResultQuery } from '@/features/analytics/hooks/useResultQuery';
 import { formatLongNumber } from '@/lib/format';

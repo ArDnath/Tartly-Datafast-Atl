@@ -91,7 +91,7 @@ export function WebsiteTeamSettings() {
       {workspaceId && (
         <Link
           href={renderUrl('/app/settings/workspace', false)}
-          style={{ color: '#f2b4cb', fontSize: 13, fontWeight: 600 }}
+          style={{ color: 'var(--accent-text)', fontSize: 13, fontWeight: 600 }}
         >
           {canManageMembers ? 'Manage workspace members' : 'View workspace members'}
         </Link>

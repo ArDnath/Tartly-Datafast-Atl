@@ -49,6 +49,7 @@ const SERVER_MODULES = [
   'developer',
   'legacy',
   'payments',
+  'onboarding',
   'share',
   'system',
   'websites',
@@ -63,7 +64,15 @@ const NEXT_CONFIG =
 const SHARED_ROOTS = ['components', 'lib', 'permissions', 'queries', 'store'];
 
 /** Shared design-system / infrastructure directories under src/components. */
-const SHARED_COMPONENT_DIRS = ['backgrounds', 'brand', 'charts', 'common', 'hooks', 'input', 'svg'];
+const SHARED_COMPONENT_DIRS = [
+  'backgrounds',
+  'brand',
+  'charts',
+  'common',
+  'hooks',
+  'input',
+  'theme',
+];
 
 /**
  * `src/lib` is the cross-cutting infrastructure layer. Domain helpers belong
@@ -119,6 +128,7 @@ const SHARED_LIB_MODULES = new Set([
   'share-redaction.ts',
   'share-sections.ts',
   'storage.ts',
+  'theme.ts',
   'types.ts',
   'url.ts',
   'usage.ts',

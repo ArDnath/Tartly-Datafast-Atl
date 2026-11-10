@@ -13,7 +13,7 @@ import { useState } from 'react';
 import { Empty } from '@/components/common/Empty';
 import { MultiSelect } from '@/components/common/MultiSelect';
 import { useFilters, useFormat } from '@/components/hooks/index';
-import { X } from '@/components/icons';
+import { Xmark as X } from '@/components/icons';
 import { useWebsiteValuesQuery } from '@/features/analytics/hooks/useWebsiteValuesQuery';
 import { isSearchOperator } from '@/lib/params';
 

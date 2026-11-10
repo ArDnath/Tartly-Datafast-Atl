@@ -1,7 +1,6 @@
 'use client';
 import { Column, Grid, ListItem, SearchField, Select } from '@talivia/react-zen';
 import { useState } from 'react';
-import { WebsiteControls } from '@/features/analytics/workbench/WebsiteControls';
 import { useDateRange, useMessages } from '@/components/hooks';
 import { Attribution } from './Attribution';
 
@@ -16,7 +15,6 @@ export function AttributionPage({ websiteId }: { websiteId: string }) {
 
   return (
     <Column gap="6">
-      <WebsiteControls websiteId={websiteId} />
       <Grid columns={{ base: '1fr', md: '1fr 1fr 1fr' }} gap>
         <Column>
           <Select label={t(labels.model)} value={model} defaultValue={model} onChange={setModel}>

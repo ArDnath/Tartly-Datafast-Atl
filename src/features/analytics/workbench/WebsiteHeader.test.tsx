@@ -46,14 +46,13 @@ beforeEach(() => {
   websiteState.canUpdate = true;
 });
 
-test('website header uses a primary Settings button', () => {
+test('website header exposes the settings shortcut as a quiet control', () => {
   render(<WebsiteHeader showActions />, { route: '/app/website-id' });
 
   const settingsLink = screen.getByRole('link', { name: 'Settings' });
 
   expect(settingsLink).toHaveAttribute('href', '/app/website-id/settings');
-  expect(settingsLink).toHaveClass('bg-primary');
-  expect(settingsLink).toHaveClass('website-settings-button');
+  expect(settingsLink).toHaveClass('site-settings-button');
   expect(screen.queryByText('Edit')).not.toBeInTheDocument();
 });
 

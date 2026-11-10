@@ -13,33 +13,125 @@
   --marketing-blush: #a63a60;
   --marketing-blush-soft: #f2b4cb;
   --marketing-blush-ink: #2b1622;
-  --primary: #f4f4f5;
-  --primary-foreground: #1b1b1b;
-  --talivia-app-background: #0d0d0d;
-  --talivia-card-background: #161616;
-  --talivia-card-border: #ffffff12;
+  /* Public pages use one quiet paper texture: a warm top glow over a fine
+     dot field. The landing page adds its own editorial hatch and grid on top. */
+  --marketing-texture-glow: rgba(242, 180, 203, 0.14);
+  --marketing-texture-dot: rgba(31, 41, 55, 0.07);
+  --marketing-texture-dot-size: 24px;
+  --marketing-sheen: rgba(255, 255, 255, 0.66);
+  --marketing-sheen-height: 104px;
   --talivia-control-radius: 10px;
-  --talivia-tooltip-background: #242426;
-  --talivia-tooltip-border: #ffffff18;
-  --talivia-tooltip-shadow: 0 16px 42px rgba(0, 0, 0, 0.42);
+  /* Shared paper grain. The fixed overlay below reads these values. */
+  --rl-grain: url("/textures/grain.svg");
+  --rl-grain-opacity: 0.035;
+  --rl-grain-blend: soft-light;
 }
 
-:root {
+/*
+ * Product surfaces (/login, /onboarding, /app) are themeable. Light is the
+ * default for first paint; the root layout's inline script restores the saved
+ * choice (or dark) before the browser paints. Dark stays the default theme for
+ * visitors with no saved preference.
+ */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --primary: #1f1f1f;
+  --primary-foreground: #fefaea;
+  --primary-hover: #333333;
+  --talivia-app-background: #fefaea;
+  --talivia-card-background: #ffffff;
+  --talivia-card-border: rgba(31, 31, 31, 0.12);
+  --talivia-tooltip-background: #ffffff;
+  --talivia-tooltip-border: rgba(31, 31, 31, 0.14);
+  --talivia-tooltip-shadow: 0 16px 42px rgba(31, 31, 31, 0.16);
+
   --surface-raised: var(--talivia-app-background);
   --surface-base: var(--talivia-card-background);
-  --surface-sunken: #1f1f1f;
+  --surface-sunken: #f4efd8;
+  --surface-overlay: #ffffff;
+  --surface-disabled: #f4efd8;
+  --surface-hover: #f1ecd6;
+  --surface-subtle: rgba(31, 31, 31, 0.035);
+  --surface-subtle-hover: rgba(31, 31, 31, 0.06);
+  --inverse-surface: #1f1f1f;
+  --inverse-ink: #fefaea;
+  --text-primary: #1f1f1f;
+  --text-strong: #1f1f1f;
+  --text-soft: #45443f;
+  --text-muted: #66655f;
+  --text-disabled: #9b9a92;
+  --text-on-inverse: #fefaea;
+  --border-default: rgba(31, 31, 31, 0.12);
+  --border-muted: rgba(31, 31, 31, 0.08);
+  --border-strong: rgba(31, 31, 31, 0.24);
+  --interactive-bg: #f4efd8;
+  --interactive-bg-hover: #ece5c8;
+  --interactive-bg-pressed: #e4dab6;
+  --focus-ring-offset: var(--talivia-app-background);
+  --focus-ring-color: #a63a60;
+  --accent-text: #a63a60;
+  --accent-text-strong: #7d2847;
+  --status-info-bg: rgba(59, 130, 255, 0.1);
+  --status-info-text: #1e4f9e;
+  --status-success: #178a4c;
+  --status-success-bg: rgba(23, 138, 76, 0.1);
+  --status-success-text: #126c3c;
+  --status-warning-bg: rgba(180, 110, 10, 0.12);
+  --status-warning-text: #8a5407;
+  --status-error: #c22f2f;
+  --status-error-bg: rgba(194, 47, 47, 0.1);
+  --status-error-text: #a12828;
+
+  /* Product-surface texture. These are deliberately quieter than the
+     marketing texture: the dashboard is a working surface, not a poster. */
+  --rl-app-dot: rgba(31, 31, 31, 0.07);
+  --rl-app-dot-size: 24px;
+  --rl-app-glow: rgba(166, 58, 96, 0.055);
+  --rl-app-glow-cool: rgba(255, 255, 255, 0.5);
+  --rl-panel-sheen: rgba(254, 250, 234, 0.62);
+  --rl-panel-sheen-height: 112px;
+}
+
+[data-theme="dark"],
+.dark {
+  color-scheme: dark;
+  --primary: #f4f4f5;
+  --primary-foreground: #1f1f1f;
+  --primary-hover: #e8e8ea;
+  --talivia-app-background: #1f1f1f;
+  --talivia-card-background: #262626;
+  --talivia-card-border: rgba(255, 255, 255, 0.08);
+  --talivia-tooltip-background: #2e2e30;
+  --talivia-tooltip-border: rgba(255, 255, 255, 0.1);
+  --talivia-tooltip-shadow: 0 16px 42px rgba(0, 0, 0, 0.42);
+
+  --surface-raised: var(--talivia-app-background);
+  --surface-base: var(--talivia-card-background);
+  --surface-sunken: #171717;
   --surface-overlay: var(--talivia-card-background);
   --surface-disabled: var(--talivia-card-background);
-  --text-primary: var(--gray-100);
-  --text-muted: var(--gray-400);
-  --text-disabled: var(--gray-500);
+  --surface-hover: #2b2b2b;
+  --surface-subtle: rgba(255, 255, 255, 0.025);
+  --surface-subtle-hover: rgba(255, 255, 255, 0.05);
+  --inverse-surface: #f4f4f5;
+  --inverse-ink: #1f1f1f;
+  --text-primary: #f4f4f5;
+  --text-strong: #f2f2f2;
+  --text-soft: #c9c9cf;
+  --text-muted: #a1a1aa;
+  --text-disabled: #737373;
+  --text-on-inverse: #1f1f1f;
   --border-default: var(--talivia-card-border);
   --border-muted: var(--talivia-card-border);
-  --border-strong: #ffffff1f;
-  --interactive-bg: #1f1f1f;
-  --interactive-bg-hover: #262626;
-  --interactive-bg-pressed: #303030;
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --interactive-bg: #2a2a2a;
+  --interactive-bg-hover: #303030;
+  --interactive-bg-pressed: #383838;
   --focus-ring-offset: var(--talivia-app-background);
+  --focus-ring-color: rgba(242, 180, 203, 0.78);
+  --accent-text: #f2b4cb;
+  --accent-text-strong: #f7d2e0;
   --status-info-bg: rgba(59, 130, 255, 0.16);
   --status-info-text: #b7d4ff;
   --status-success: #2dbf72;
@@ -50,6 +142,15 @@
   --status-error: #ff4545;
   --status-error-bg: rgba(255, 69, 69, 0.16);
   --status-error-text: #ffb3b3;
+
+  --rl-grain-opacity: 0.055;
+  --rl-grain-blend: soft-light;
+  --rl-app-dot: rgba(255, 255, 255, 0.065);
+  --rl-app-dot-size: 24px;
+  --rl-app-glow: rgba(242, 180, 203, 0.045);
+  --rl-app-glow-cool: rgba(255, 255, 255, 0.025);
+  --rl-panel-sheen: rgba(255, 255, 255, 0.045);
+  --rl-panel-sheen-height: 112px;
 }
 
 html,
@@ -62,8 +163,320 @@ body {
   min-height: 100vh;
 }
 
+body {
+  background-image: radial-gradient(circle, var(--rl-app-dot) 0.55px, transparent 1.1px);
+  background-size: var(--rl-app-dot-size) var(--rl-app-dot-size);
+}
+
 html {
   scrollbar-gutter: stable;
+}
+
+/* ---------------------------------------------------------------------------
+ * Surface texture
+ * A single fixed grain layer gives every surface the same tactility, while
+ * the per-surface rules below add a quiet dot field and a directional glow.
+ * Everything is decorative, pointer-transparent, and silent under forced
+ * colors and reduced motion.
+ * ------------------------------------------------------------------------- */
+body::after {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  background-image: var(--rl-grain);
+  background-size: 180px 180px;
+  content: "";
+  pointer-events: none;
+  opacity: var(--rl-grain-opacity);
+  mix-blend-mode: var(--rl-grain-blend);
+}
+
+/* The signed-in product is a quiet, flat room: no dot field, no coloured
+   glow. Data is the only texture on the page. */
+.talivia-app-shell {
+  background-color: var(--talivia-app-background);
+  background-image: none;
+}
+
+body:has(.talivia-app-shell) {
+  background-image: none;
+}
+
+body:has(.talivia-app-shell)::after {
+  display: none;
+}
+
+/* One flat card for the hero chart and one flat card for each breakdown.
+   The reference dashboard (DataFast) keeps every working surface at the same
+   quiet tonal step; texture never competes with the numbers. */
+.dashboard-hero-panel,
+.dashboard-panel {
+  border-radius: 10px !important;
+  border-color: var(--talivia-card-border) !important;
+  background: var(--talivia-card-background) !important;
+  background-image: none !important;
+}
+
+.dashboard-hero-panel {
+  overflow: visible !important;
+}
+
+.dashboard-panel {
+  overflow: hidden;
+}
+
+/* One-row page chrome: context and period controls share the left edge. */
+.site-toolbar-wrap {
+  padding-top: 2px;
+}
+
+.site-toolbar {
+  min-height: 40px;
+}
+
+.site-toolbar-controls {
+  min-width: 0;
+}
+
+.site-switcher {
+  height: 36px;
+  min-height: 36px !important;
+  min-width: 190px;
+  max-width: min(100%, 280px);
+  padding: 0 10px;
+  border-radius: 10px !important;
+}
+
+.site-switcher-name {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.site-settings-button {
+  width: 36px;
+  height: 36px;
+  min-height: 36px !important;
+  padding: 0 !important;
+  justify-content: center;
+  border-color: var(--talivia-card-border) !important;
+  background: var(--talivia-card-background) !important;
+  color: var(--text-primary) !important;
+  box-shadow: none;
+}
+
+.site-filter-button {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  min-height: 36px !important;
+  padding: 0 !important;
+  justify-content: center;
+}
+
+.site-filter-button > div {
+  gap: 0;
+}
+
+.site-filter-button .text-base {
+  display: none;
+}
+
+@media (hover: hover) {
+  .site-settings-button:hover {
+    border-color: var(--border-strong) !important;
+    background: var(--surface-hover) !important;
+  }
+}
+
+/* Horizontal destination row replaces the old left rail. */
+.website-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.website-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.website-nav-link {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+@media (hover: hover) {
+  .website-nav-link:hover {
+    background: var(--surface-subtle-hover);
+    color: var(--text-primary);
+  }
+}
+
+.website-nav-link[data-selected] {
+  background: var(--surface-subtle);
+  color: var(--text-primary);
+}
+
+.website-nav-more[data-selected] {
+  color: var(--accent-text);
+}
+
+.website-nav-menu {
+  min-width: 240px;
+}
+
+.website-nav-menu [data-selected] {
+  color: var(--accent-text);
+}
+
+/* Website list: one calm card per site, money and audience in one line. */
+.portfolio-site-card {
+  position: relative;
+  min-height: 196px;
+  overflow: hidden;
+  border: 1px solid var(--talivia-card-border);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, var(--rl-panel-sheen) 0, transparent var(--rl-panel-sheen-height)),
+    var(--talivia-card-background);
+  transition: border-color 120ms ease;
+}
+
+@media (hover: hover) {
+  .website-overview-card:hover .portfolio-site-card {
+    border-color: var(--border-strong);
+  }
+}
+
+.portfolio-toolbar {
+  min-height: 48px;
+}
+
+/* The single quiet exit, fixed away from the working area. */
+.app-user-avatar {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--surface-subtle);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.app-user-name {
+  max-width: 180px;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 550;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-logout {
+  position: fixed;
+  bottom: 18px;
+  left: 18px;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--talivia-card-border);
+  border-radius: 10px;
+  background: var(--talivia-card-background);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+@media (hover: hover) {
+  .app-logout:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-hover);
+    color: var(--text-primary);
+  }
+}
+
+.app-logout:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .app-logout {
+    width: 36px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .app-logout-label {
+    display: none;
+  }
+}
+
+.talivia-auth-shell {
+  background-color: var(--talivia-app-background) !important;
+  background-image:
+    radial-gradient(760px 460px at 50% -10%, var(--rl-app-glow), transparent 70%),
+    radial-gradient(980px 560px at 50% 112%, var(--rl-app-glow-cool), transparent 66%),
+    radial-gradient(circle, var(--rl-app-dot) 0.6px, transparent 1.2px);
+  background-size:
+    auto,
+    auto,
+    var(--rl-app-dot-size) var(--rl-app-dot-size);
+}
+
+/* Shared card sheen: one soft top light, never a coloured glow. */
+.talivia-panel-sheen {
+  background-image: linear-gradient(
+    180deg,
+    var(--rl-panel-sheen) 0,
+    transparent var(--rl-panel-sheen-height)
+  );
+}
+
+@media (forced-colors: active) {
+  body::after {
+    display: none;
+  }
+}
+
+@media print {
+  body::after {
+    display: none;
+  }
 }
 
 /* ---------------------------------------------------------------------------
@@ -121,6 +534,12 @@ html {
     color: var(--text-primary);
     -webkit-text-fill-color: currentColor;
   }
+
+  /* The chrome-and-blush gradient is tuned for the dark canvas; light mode
+   * swaps in ink-and-blush so the wordmark keeps its contrast on cream. */
+  [data-theme="light"] .tartly-wordmark {
+    background-image: linear-gradient(100deg, #a63a60 0%, #7d2847 34%, #1f1f1f 100%);
+  }
 }
 
 [role="tablist"] {
@@ -143,6 +562,32 @@ html {
 .breakdown-tabs .tab {
   padding-top: 0.25rem !important;
   padding-bottom: 0.25rem !important;
+}
+
+.talivia-dashboard-panel-header {
+  min-height: 40px;
+}
+
+.talivia-dashboard-panel-tabs .tab {
+  padding-inline: 0 !important;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.talivia-dashboard-panel-tabs .tab[data-selected] {
+  color: var(--text-primary);
+  font-weight: 650 !important;
+}
+
+.talivia-dashboard-sort,
+.talivia-dashboard-expand {
+  min-height: 28px !important;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.talivia-dashboard-sort[data-sort="revenue"] {
+  color: var(--text-primary);
 }
 
 [role="tooltip"],
@@ -177,7 +622,7 @@ html {
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  color: #f2f2f2;
+  color: var(--text-strong);
   font-size: 13px;
   font-weight: 700;
   line-height: 1.2;
@@ -204,7 +649,7 @@ html {
   gap: 8px;
   align-items: center;
   min-width: 0;
-  color: #f2f2f2;
+  color: var(--text-strong);
   font-size: 13px;
   line-height: 1.25;
 }
@@ -265,17 +710,17 @@ html {
 
 .talivia-control:hover {
   border-color: var(--border-strong) !important;
-  background: #1b1b1b !important;
+  background: var(--surface-hover) !important;
 }
 
 .talivia-control[data-hovered] {
   border-color: var(--border-strong) !important;
-  background: #1b1b1b !important;
+  background: var(--surface-hover) !important;
 }
 
 .talivia-control:active,
 .talivia-control[data-pressed] {
-  background: #202020 !important;
+  background: var(--surface-hover) !important;
 }
 
 .talivia-control:disabled,
@@ -295,7 +740,7 @@ html {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #f2b4cb;
+  color: var(--accent-text);
   line-height: inherit;
   text-decoration: none;
   transition: color 140ms ease;
@@ -305,7 +750,7 @@ html {
 .talivia-inline-external-link:hover,
 .talivia-inline-external-link[data-hovered],
 .talivia-inline-external-link:focus-visible {
-  color: #f7d2e0;
+  color: var(--accent-text-strong);
 }
 
 .talivia-inline-external-link-text {
@@ -375,7 +820,7 @@ html {
   border-radius: var(--talivia-control-radius);
   background: var(--talivia-app-background);
   color: var(--text-primary);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  box-shadow: inset 0 0 0 1px var(--surface-subtle);
 }
 
 .talivia-filter-chip-content {
@@ -384,7 +829,7 @@ html {
 
 .talivia-filter-chip-label,
 .talivia-filter-chip-value {
-  color: #f2f2f2 !important;
+  color: var(--text-strong) !important;
 }
 
 .talivia-filter-chip-operator {
@@ -418,7 +863,6 @@ html {
 
 .talivia-auth-shell {
   color: var(--text-primary);
-  background: var(--talivia-app-background) !important;
 }
 
 .talivia-auth-centered {
@@ -449,6 +893,15 @@ html {
   color: var(--text-primary);
   font-size: 13px;
   line-height: 1.45;
+}
+
+.talivia-auth-subtext {
+  max-width: 320px;
+  margin: 2px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+  text-align: center;
 }
 
 .talivia-auth-email-form {
@@ -541,6 +994,13 @@ html {
   box-shadow: none !important;
 }
 
+/* The floating theme control is chrome, not a form action. */
+.talivia-auth-shell .talivia-theme-toggle {
+  width: 34px;
+  min-height: 34px;
+  border-radius: 9px !important;
+}
+
 .talivia-auth-shell button.bg-primary,
 .talivia-auth-shell button[data-variant="primary"],
 .talivia-auth-shell button[type="submit"] {
@@ -552,7 +1012,7 @@ html {
 .talivia-auth-shell button.bg-primary:hover,
 .talivia-auth-shell button[data-variant="primary"]:hover,
 .talivia-auth-shell button[type="submit"]:hover {
-  background: #e8e8ea !important;
+  background: var(--primary-hover) !important;
 }
 
 .talivia-auth-google-wrap {
@@ -798,7 +1258,7 @@ html {
     .payment-provider-option
   )[data-hovered] {
   border-color: var(--border-strong) !important;
-  background: #1b1b1b !important;
+  background: var(--surface-hover) !important;
 }
 
 .talivia-app-shell button.breakdown-sort-button,
@@ -867,7 +1327,7 @@ button.breakdown-sort-button[data-pressed] {
 .talivia-app-shell button.payment-provider-option:hover,
 .talivia-app-shell button.payment-provider-option[data-hovered] {
   border-color: var(--border-strong) !important;
-  background: #111111 !important;
+  background: var(--surface-hover) !important;
 }
 
 .talivia-app-shell button.payment-provider-option[data-selected="true"] {
@@ -903,8 +1363,8 @@ button.breakdown-sort-button[data-pressed] {
   overflow: hidden;
   place-items: center;
   border-radius: 999px;
-  background: #181818;
-  color: #d9d9d9;
+  background: var(--surface-sunken);
+  color: var(--text-soft);
 }
 
 .talivia-payment-provider-logo img {
@@ -947,7 +1407,7 @@ button.breakdown-sort-button[data-pressed] {
 }
 
 .payment-provider-option[data-connected="true"] .payment-provider-option-status {
-  color: #9cf0bf;
+  color: var(--status-success-text);
 }
 
 .talivia-app-shell .website-settings-button,
@@ -956,8 +1416,8 @@ button.breakdown-sort-button[data-pressed] {
 .talivia-app-shell .website-settings-button:active,
 .talivia-app-shell .website-settings-button[data-pressed] {
   border-color: transparent !important;
-  background: #f4f4f5 !important;
-  color: #1b1b1b !important;
+  background: var(--inverse-surface) !important;
+  color: var(--inverse-ink) !important;
 }
 
 .website-card-settings-link {
@@ -1000,11 +1460,11 @@ button.breakdown-sort-button[data-pressed] {
 
 .website-card-settings-link:hover,
 .website-card-settings-link:focus-visible {
-  color: #f2b4cb;
+  color: var(--accent-text);
 }
 
 .website-card-settings-link:focus-visible {
-  outline: 2px solid rgba(242, 180, 203, 0.72);
+  outline: 2px solid var(--focus-ring-color);
   outline-offset: 1px;
 }
 
@@ -1043,10 +1503,10 @@ button.breakdown-sort-button[data-pressed] {
   width: 28px;
   height: 28px;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--border-strong);
   border-radius: 999px;
-  color: #a8a8a8;
-  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  background: var(--surface-subtle-hover);
   font-size: 12px;
   font-weight: 720;
   line-height: 1;
@@ -1068,7 +1528,7 @@ button.breakdown-sort-button[data-pressed] {
   justify-content: space-between;
   gap: 16px;
   padding: 12px 14px;
-  border-left: 2px solid #2dbf72;
+  border-left: 2px solid var(--status-success);
   border-radius: 0 12px 12px 0;
   background: rgba(45, 191, 114, 0.075);
 }
@@ -1078,13 +1538,13 @@ button.breakdown-sort-button[data-pressed] {
 }
 
 .payment-connection-status-copy > :first-child {
-  color: #fff;
+  color: var(--text-strong);
   font-size: 13px;
   line-height: 1.35;
 }
 
 .payment-connection-status-copy > :not(:first-child) {
-  color: #a7a7ad;
+  color: var(--text-muted);
   font-size: 12px;
   line-height: 1.35;
 }
@@ -1109,10 +1569,10 @@ button.breakdown-sort-button[data-pressed] {
   align-items: flex-start;
   gap: 7px;
   padding: 9px 11px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--border-default);
   border-radius: 9px;
-  color: #e2e2e2;
-  background: rgba(255, 255, 255, 0.025);
+  color: var(--text-soft);
+  background: var(--surface-subtle);
   text-decoration: none;
   transition:
     border-color 120ms ease,
@@ -1122,9 +1582,9 @@ button.breakdown-sort-button[data-pressed] {
 
 .payment-guide-link:hover,
 .payment-guide-link[data-hovered] {
-  border-color: rgba(255, 255, 255, 0.16);
-  color: #f2f2f2;
-  background: rgba(255, 255, 255, 0.045);
+  border-color: var(--border-strong);
+  color: var(--text-strong);
+  background: var(--surface-subtle-hover);
 }
 
 .payment-guide-link:focus-visible {
@@ -1214,7 +1674,7 @@ button.breakdown-sort-button[data-pressed] {
 .talivia-popover [aria-label="Select"] > button:hover,
 .talivia-popover [aria-label="Select"] > button[data-hovered] {
   border-color: var(--border-strong) !important;
-  background: #1b1b1b !important;
+  background: var(--surface-hover) !important;
 }
 
 [role="listbox"],
@@ -1268,13 +1728,13 @@ button.breakdown-sort-button[data-pressed] {
 [role="menuitem"][data-focus],
 [role="menuitem"][data-focused],
 [role="menuitem"][data-hovered] {
-  background: #202020 !important;
+  background: var(--surface-hover) !important;
 }
 
 [role="option"][data-selected],
 [role="menuitemradio"][data-selected] {
   background: rgba(242, 180, 203, 0.14) !important;
-  color: #f2b4cb;
+  color: var(--accent-text);
 }
 
 .talivia-popover > div {
@@ -1311,13 +1771,13 @@ button.breakdown-sort-button[data-pressed] {
 .talivia-popover [role="menuitemradio"]:hover,
 .talivia-popover [role="menuitemradio"][data-focus],
 .talivia-popover [role="menuitemradio"][data-hovered] {
-  background: #202020 !important;
+  background: var(--surface-hover) !important;
 }
 
 .talivia-popover [role="option"][data-selected],
 .talivia-popover [role="menuitemradio"][data-selected] {
   background: rgba(242, 180, 203, 0.14) !important;
-  color: #f2b4cb;
+  color: var(--accent-text);
 }
 
 .talivia-popover [role="separator"] {
@@ -1352,7 +1812,7 @@ button.breakdown-sort-button[data-pressed] {
 [role="dialog"] textarea,
 [role="dialog"] select {
   border-color: var(--talivia-card-border) !important;
-  background: #0d0d0d !important;
+  background: var(--talivia-app-background) !important;
   color: var(--text-primary) !important;
   box-shadow: none !important;
 }
@@ -1413,13 +1873,13 @@ button.breakdown-sort-button[data-pressed] {
 
 .talivia-nav-menu-item:hover,
 .talivia-nav-menu-item[data-hovered] {
-  background: #1b1b1b !important;
+  background: var(--surface-hover) !important;
   color: var(--text-primary);
 }
 
 .talivia-nav-menu-item[data-selected] {
   background: rgba(242, 180, 203, 0.14) !important;
-  color: #f2b4cb;
+  color: var(--accent-text);
 }
 
 .talivia-expanded-toolbar {
@@ -1447,7 +1907,7 @@ button.breakdown-sort-button[data-pressed] {
 .talivia-expanded-icon-button:hover,
 .talivia-expanded-icon-button[data-hovered] {
   border-color: var(--border-strong) !important;
-  background: #1b1b1b !important;
+  background: var(--surface-hover) !important;
 }
 
 .talivia-expanded-table table {
@@ -1471,7 +1931,7 @@ button.breakdown-sort-button[data-pressed] {
 
 .talivia-expanded-table tr:hover td,
 .talivia-expanded-table [role="row"]:hover [role="cell"] {
-  background: #1b1b1b !important;
+  background: var(--surface-hover) !important;
 }
 
 .talivia-expanded-pager {
@@ -1499,7 +1959,7 @@ button.breakdown-sort-button[data-pressed] {
 .talivia-expanded-pager button:hover,
 .talivia-expanded-pager button[data-hovered] {
   border-color: var(--border-strong) !important;
-  background: #1b1b1b !important;
+  background: var(--surface-hover) !important;
 }
 
 .talivia-expanded-pager button:disabled,
@@ -1543,7 +2003,7 @@ button.breakdown-sort-button[data-pressed] {
 }
 
 .talivia-session-preview-row:hover {
-  background: #1b1b1b;
+  background: var(--surface-hover);
 }
 
 .talivia-session-preview-row:focus,
@@ -1598,7 +2058,7 @@ button.breakdown-sort-button[data-pressed] {
 }
 
 .talivia-sessions-table-row:hover {
-  background: #1b1b1b;
+  background: var(--surface-hover);
 }
 
 .talivia-session-meta {
@@ -1606,7 +2066,7 @@ button.breakdown-sort-button[data-pressed] {
   align-items: center;
   min-width: 0;
   overflow: hidden;
-  color: #c9c9cf;
+  color: var(--text-soft);
   font-size: 12px;
   line-height: 1.2;
   white-space: nowrap;
@@ -1642,7 +2102,7 @@ button.breakdown-sort-button[data-pressed] {
 .talivia-session-meta-label {
   min-width: 0;
   overflow: hidden;
-  color: #c9c9cf !important;
+  color: var(--text-soft) !important;
   font-size: 12px;
   line-height: 1.2;
   text-overflow: ellipsis;
@@ -1651,13 +2111,13 @@ button.breakdown-sort-button[data-pressed] {
 .talivia-session-meta-separator {
   flex-shrink: 0;
   padding: 0 4px;
-  color: #ffffff3a;
+  color: var(--border-strong);
   font-size: 11px;
 }
 
 .talivia-session-source {
   overflow: hidden;
-  color: #f2f2f2;
+  color: var(--text-strong);
 }
 
 .talivia-session-source img {
@@ -1683,9 +2143,9 @@ button.breakdown-sort-button[data-pressed] {
   display: block;
   width: var(--talivia-activity-size, 9px);
   height: var(--talivia-activity-size, 9px);
-  border: 1px solid #ffffff0f;
+  border: 1px solid var(--border-muted);
   border-radius: 2px;
-  background: #ffffff08;
+  background: var(--surface-subtle);
 }
 
 .talivia-session-activity-day[data-level="1"] {
@@ -1704,8 +2164,8 @@ button.breakdown-sort-button[data-pressed] {
 }
 
 .talivia-session-activity-day[data-level="4"] {
-  border-color: rgba(242, 180, 203, 0.72);
-  background: #f2b4cb;
+  border-color: var(--focus-ring-color);
+  background: var(--accent-text);
 }
 
 .talivia-session-activity-day-empty {
@@ -1787,7 +2247,12 @@ button.breakdown-sort-button[data-pressed] {
 }
 
 .talivia-dual-metric-row {
+  font-size: 12px;
   transition: opacity 160ms ease;
+}
+
+.talivia-dual-metric-row .rt-Text {
+  font-size: 12px !important;
 }
 
 .talivia-dual-metric-row[data-dimmed="true"] {
@@ -1887,7 +2352,7 @@ button.breakdown-sort-button[data-pressed] {
   padding: 8px 10px;
   border: 1px solid var(--talivia-card-border);
   border-radius: 12px;
-  background: #131313;
+  background: var(--surface-sunken);
 }
 
 .talivia-import-card {
@@ -1916,7 +2381,7 @@ button.breakdown-sort-button[data-pressed] {
 
 .talivia-import-card-heading h3 {
   margin: 0;
-  color: #fff;
+  color: var(--text-strong);
   font-size: 17px;
   font-weight: 780;
   line-height: 1.15;
@@ -1924,7 +2389,7 @@ button.breakdown-sort-button[data-pressed] {
 
 .talivia-import-card-heading p {
   margin: 4px 0 0;
-  color: #9c9ca3;
+  color: var(--text-muted);
   font-size: 13px;
   line-height: 1.3;
 }
@@ -1935,15 +2400,15 @@ button.breakdown-sort-button[data-pressed] {
   height: 42px;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-default);
   border-radius: 12px;
   background: rgba(91, 103, 245, 0.12);
   color: #9fa8ff;
 }
 
 .talivia-import-logo[data-source="talivia"] {
-  background: #0d0d0d;
-  color: #f5f5f5;
+  background: var(--inverse-surface);
+  color: var(--inverse-ink);
 }
 
 .talivia-import-logo[data-source="umami"] {
@@ -1967,7 +2432,7 @@ button.breakdown-sort-button[data-pressed] {
   border: 1px solid rgba(45, 191, 114, 0.28);
   border-radius: 999px;
   background: rgba(45, 191, 114, 0.1);
-  color: #8fe6b8;
+  color: var(--status-success-text);
   font-size: 12px;
   font-weight: 760;
   white-space: nowrap;
@@ -1976,7 +2441,7 @@ button.breakdown-sort-button[data-pressed] {
 .talivia-import-description {
   max-width: 720px;
   margin: 0;
-  color: #b5b5ba;
+  color: var(--text-muted);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -1986,13 +2451,13 @@ button.breakdown-sort-button[data-pressed] {
   gap: 3px;
   max-width: 560px;
   padding: 12px 14px;
-  border-left: 2px solid #2dbf72;
+  border-left: 2px solid var(--status-success);
   border-radius: 0 12px 12px 0;
   background: rgba(45, 191, 114, 0.075);
 }
 
 .talivia-import-summary strong {
-  color: #fff;
+  color: var(--text-strong);
   font-size: 13px;
   line-height: 1.35;
   overflow-wrap: anywhere;
@@ -2001,7 +2466,7 @@ button.breakdown-sort-button[data-pressed] {
 .talivia-import-summary span,
 .talivia-import-help,
 .talivia-import-file-name {
-  color: #a7a7ad;
+  color: var(--text-muted);
   font-size: 12px;
   line-height: 1.45;
 }
@@ -2036,9 +2501,9 @@ button.talivia-import-button {
 }
 
 .talivia-data-management-panel {
-  border-color: #ffffff12 !important;
+  border-color: var(--talivia-card-border) !important;
   border-radius: 20px !important;
-  background: #161616 !important;
+  background: var(--talivia-card-background) !important;
 }
 
 .talivia-visually-hidden {
@@ -2095,7 +2560,7 @@ button.talivia-import-button {
 .talivia-session-info-value {
   min-width: 0;
   overflow: hidden;
-  color: #f2f2f2;
+  color: var(--text-strong);
   font-size: 14px;
   font-weight: 700;
   line-height: 1.25;
@@ -2131,7 +2596,7 @@ button.talivia-import-button {
 .talivia-session-activity h2 {
   margin: 2px 0 6px !important;
   border-radius: 5px;
-  background: #3f3f3f52;
+  background: var(--surface-subtle-hover);
   padding: 10px;
   text-align: center;
 }
@@ -2147,9 +2612,9 @@ button.talivia-import-button {
   align-items: center;
   overflow: hidden;
   border-radius: 8px;
-  background: #ffffff0a;
+  background: var(--surface-subtle);
   padding: 3px 8px;
-  color: #f2f2f2;
+  color: var(--text-strong);
   font-size: 14px;
   font-weight: 800;
   line-height: 1.2;
@@ -2159,7 +2624,7 @@ button.talivia-import-button {
 
 .talivia-session-event-pill-payment {
   background: rgba(45, 191, 114, 0.14);
-  color: #d8ffe9;
+  color: var(--status-success-text);
 }
 
 .talivia-session-event-link {
@@ -2269,7 +2734,7 @@ button.talivia-import-button {
 }
 
 .talivia-payments-table-row:not(.talivia-payments-table-row-static):hover {
-  background: #1b1b1b;
+  background: var(--surface-hover);
 }
 
 .talivia-payments-table-row-static {
@@ -2281,7 +2746,7 @@ button.talivia-import-button {
 .talivia-payments-provider,
 .talivia-payments-time,
 .talivia-payments-date {
-  color: #f2f2f2;
+  color: var(--text-strong);
 }
 
 .talivia-payments-session,
@@ -2300,7 +2765,7 @@ button.talivia-import-button {
 }
 
 .talivia-payments-amount {
-  color: #f2f2f2;
+  color: var(--text-strong);
   font-weight: 600;
   text-align: right;
   white-space: nowrap;
@@ -2365,7 +2830,7 @@ button.talivia-import-button {
 
 .website-chart-error {
   display: grid;
-  height: 445px;
+  height: 471px;
   place-items: center;
 }
 
@@ -2374,11 +2839,11 @@ button.talivia-import-button {
   grid-auto-columns: max-content;
   grid-auto-flow: column;
   grid-template-columns: none;
-  column-gap: 34px;
+  column-gap: 30px;
   align-items: start;
-  height: 104px;
+  height: 96px;
   min-width: 0;
-  padding: 16px 22px 14px;
+  padding: 14px 20px 12px;
   overflow-x: auto;
   overflow-y: hidden;
 }
@@ -2392,10 +2857,10 @@ button.talivia-import-button {
 .website-chart-metric-item:not(:last-child)::after {
   content: "";
   position: absolute;
-  top: 10%;
-  right: -17px;
+  top: 8%;
+  right: -15px;
   width: 1px;
-  height: 80%;
+  height: 84%;
   background: var(--talivia-card-border);
 }
 
@@ -2405,45 +2870,45 @@ button.talivia-import-button {
   gap: 8px;
   min-width: 0;
   color: var(--text-muted);
-  font-size: 13px;
-  font-weight: 650;
+  font-size: 12px;
+  font-weight: 600;
   line-height: 1.1;
   white-space: nowrap;
 }
 
 .website-chart-metric-online {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 999px;
   background: var(--status-success);
 }
 
 .website-chart-metric-value {
-  margin-top: 7px;
+  margin-top: 6px;
   color: var(--text-primary);
-  font-size: clamp(24px, 2.1vw, 30px);
-  font-weight: 760;
+  font-size: clamp(22px, 2vw, 28px);
+  font-weight: 720;
   line-height: 1;
-  letter-spacing: 0;
+  letter-spacing: -0.01em;
   white-space: nowrap;
 }
 
 .website-chart-metric-change {
   display: flex;
   align-items: center;
-  gap: 5px;
-  min-height: 18px;
-  margin-top: 8px;
+  gap: 4px;
+  min-height: 16px;
+  margin-top: 6px;
   color: var(--text-muted);
-  font-size: 13px;
-  font-weight: 650;
+  font-size: 11px;
+  font-weight: 600;
   line-height: 1;
   white-space: nowrap;
 }
 
 .website-chart-metric-change svg {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
 }
 
 .website-chart-metric-change-positive {
@@ -2482,8 +2947,8 @@ body:has([data-talivia-share-embed="true"]) {
   z-index: 4;
   display: grid;
   place-items: center;
-  border-radius: 20px;
-  background: rgba(13, 13, 13, 0.12);
+  border-radius: 10px;
+  background: var(--surface-subtle);
   pointer-events: none;
 }
 
@@ -2907,18 +3372,18 @@ select:-webkit-autofill:focus {
 }
 
 .website-section-nav-link:hover {
-  background: #1b1b1b;
+  background: var(--surface-hover);
   color: var(--text-primary);
 }
 
 .website-section-nav-link[data-selected] {
   border-color: rgba(242, 180, 203, 0.22);
   background: rgba(242, 180, 203, 0.1);
-  color: #f2b4cb;
+  color: var(--accent-text);
 }
 
 .website-section-nav-link:focus-visible {
-  outline: 2px solid rgba(242, 180, 203, 0.72);
+  outline: 2px solid var(--focus-ring-color);
   outline-offset: 1px;
 }
 
@@ -2951,7 +3416,7 @@ select:-webkit-autofill:focus {
 .website-section-tab[data-selected] {
   border-color: rgba(242, 180, 203, 0.22);
   background: rgba(242, 180, 203, 0.1);
-  color: #f2b4cb;
+  color: var(--accent-text);
 }
 
 @media (max-width: 1023px) {
@@ -2969,7 +3434,7 @@ select:-webkit-autofill:focus {
  * Keyboard focus always uses the single blush signal; motion is optional.
  * ------------------------------------------------------------------------- */
 :where(a, button, input, select, textarea, summary, [role="button"], [tabindex]):focus-visible {
-  outline: 2px solid rgba(242, 180, 203, 0.78);
+  outline: 2px solid var(--focus-ring-color);
   outline-offset: 2px;
 }
 

@@ -2,7 +2,7 @@ import { Button, Icon, ListItem, Row, Select, Text } from '@talivia/react-zen';
 import { isAfter } from 'date-fns';
 import { useMemo } from 'react';
 import { useDateRange, useMessages, useUrlState } from '@/components/hooks/index';
-import { ChevronRight } from '@/components/icons';
+import { NavArrowRight as ChevronRight } from '@/components/icons';
 import { DateFilter } from '@/components/input/DateFilter';
 import { useDateRangeQuery } from '@/features/analytics/hooks/useDateRangeQuery';
 import { getDateRangeValue } from '@/lib/date';
@@ -70,7 +70,7 @@ export function WebsiteDateFilter({
         </Button>
       )}
       <DateFilter
-        className="min-w-[200px]"
+        className="min-w-[150px]"
         value={dateValue}
         onChange={handleChange}
         showAllTime={hasData && showAllTime}

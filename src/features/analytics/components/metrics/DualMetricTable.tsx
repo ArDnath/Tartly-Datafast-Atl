@@ -6,16 +6,16 @@ import { MetricLabel } from '@/features/analytics/components/metrics/MetricLabel
 import { useDashboardBreakdownQuery } from '@/features/analytics/hooks/useDashboardBreakdownQuery';
 import { formatLongCurrency, formatLongNumber } from '@/lib/format';
 
-const VISITOR_COLOR = '#3b82ff';
-const REVENUE_COLOR = '#2dbf72';
+const VISITOR_COLOR = '#4c9aff';
+const REVENUE_COLOR = '#ff8f6b';
 const VISITOR_LANE_WIDTH = 62;
 const REVENUE_LANE_WIDTH = 100 - VISITOR_LANE_WIDTH;
 const METRIC_STACK_RADIUS = 8;
-const COMPACT_ROW_HEIGHT = 34;
+const COMPACT_ROW_HEIGHT = 32;
 const COMPACT_ROW_GAP = 0;
-const STACK_VERTICAL_INSET = 1.5;
-const MIN_VISIBLE_ROWS = 10;
-const COMPACT_TABLE_BOTTOM_PADDING = 10;
+const STACK_VERTICAL_INSET = 1;
+const MIN_VISIBLE_ROWS = 6;
+const COMPACT_TABLE_BOTTOM_PADDING = 8;
 const VALUE_COLUMN_WIDTH = 84;
 const STACK_RIGHT_GUTTER = '5%';
 const SEGMENT_GAP = 2;
@@ -64,6 +64,16 @@ export function DualMetricTable({
       isFetching={isFetching}
       isLoading={isLoading}
       error={error}
+      isEmpty={!isLoading && !isFetching && (data?.rows?.length ?? 0) === 0}
+      renderEmpty={() => (
+        <Row
+          alignItems="center"
+          justifyContent="center"
+          minHeight={`${COMPACT_TABLE_MIN_HEIGHT}px`}
+        >
+          <Text color="muted">No data</Text>
+        </Row>
+      )}
       minHeight={`${COMPACT_TABLE_MIN_HEIGHT}px`}
     >
       <div
@@ -169,7 +179,12 @@ function DualMetricRow({
           <Text
             weight="bold"
             align="right"
-            style={{ position: 'relative', zIndex: 1, color: '#f2f2f2' }}
+            style={{
+              position: 'relative',
+              zIndex: 1,
+              color: 'var(--text-strong)',
+              fontSize: 12,
+            }}
           >
             {value}
           </Text>

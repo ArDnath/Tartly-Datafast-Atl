@@ -51,7 +51,7 @@ export function UsageBanner() {
   meters.sort((a, b) => ORDER[b.meter.status] - ORDER[a.meter.status]);
   const worst = meters[0];
   const isPaused = worst.meter.status === 'limit';
-  const color = isPaused ? '#ff6b6b' : '#f2b4cb';
+  const color = isPaused ? '#ff6b6b' : 'var(--accent-text)';
 
   return (
     <Row

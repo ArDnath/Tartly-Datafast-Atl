@@ -9,8 +9,8 @@ import { WebsiteAddButton } from '@/features/websites/WebsiteAddButton';
 import { useActiveWorkspace } from '@/features/workspaces/hooks/useActiveWorkspace';
 
 const SURFACE = {
-  background: '#161616',
-  borderColor: '#ffffff12',
+  background: 'var(--talivia-card-background)',
+  borderColor: 'var(--talivia-card-border)',
   borderRadius: 20,
 } as const;
 
@@ -77,14 +77,14 @@ export function WebsitesSettingsPage() {
               <Row gap="3" alignItems="center" style={{ marginTop: 4 }}>
                 <Link
                   href={renderUrl(`/app/${website.id}`, false)}
-                  style={{ color: '#f2b4cb', fontSize: 13, fontWeight: 600 }}
+                  style={{ color: 'var(--accent-text)', fontSize: 13, fontWeight: 600 }}
                 >
                   Open dashboard
                 </Link>
                 {website.access?.canUpdate && (
                   <Link
                     href={renderUrl(`/app/${website.id}/settings`, false)}
-                    style={{ color: '#ffffff99', fontSize: 13 }}
+                    style={{ color: 'var(--text-muted)', fontSize: 13 }}
                   >
                     Website settings
                   </Link>

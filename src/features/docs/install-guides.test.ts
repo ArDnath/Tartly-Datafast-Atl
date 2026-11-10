@@ -15,7 +15,7 @@ const context = {
 test('install guides cover the documented frameworks with unique slugs', () => {
   const slugs = INSTALL_GUIDES.map(guide => guide.slug).sort();
 
-  expect(slugs).toEqual(['astro', 'html', 'nextjs', 'react', 'remix', 'vite']);
+  expect(slugs).toEqual(['astro', 'html', 'nextjs', 'other', 'react', 'remix', 'vite']);
 
   for (const guide of INSTALL_GUIDES) {
     expect(guide.slug).toMatch(/^[a-z0-9-]+$/);
@@ -28,6 +28,10 @@ test('install guides cover the documented frameworks with unique slugs', () => {
       expect(guide.statusNote).toMatch(/not been run/i);
     }
   }
+});
+
+test('keeps the no-code guide as the last install option', () => {
+  expect(INSTALL_GUIDES[INSTALL_GUIDES.length - 1]?.slug).toBe('other');
 });
 
 test('every generated snippet contains the real tracker contract', () => {

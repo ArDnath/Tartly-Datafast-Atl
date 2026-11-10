@@ -1,7 +1,7 @@
 import { Button, Icon } from '@talivia/react-zen';
 import { DataGrid } from '@/components/common/DataGrid';
 import { type GridStateSource, useGridState } from '@/components/hooks';
-import { X } from '@/components/icons';
+import { Xmark as X } from '@/components/icons';
 import { useWebsiteSessionsQuery } from '@/features/analytics/hooks/useWebsiteSessionsQuery';
 import { SessionsTable } from './SessionsTable';
 

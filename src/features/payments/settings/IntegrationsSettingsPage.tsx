@@ -37,8 +37,8 @@ const PROVIDER_LABELS: Record<string, string> = {
 };
 
 const CARD_STYLE = {
-  background: '#161616',
-  borderColor: '#ffffff12',
+  background: 'var(--talivia-card-background)',
+  borderColor: 'var(--talivia-card-border)',
   borderRadius: 20,
 } as const;
 
@@ -183,7 +183,7 @@ export function IntegrationsSettingsPage() {
                 {website.access?.canUpdate && (
                   <Link
                     href={renderUrl(`/app/${website.id}/settings#payments`, false)}
-                    style={{ color: '#f2b4cb', fontSize: 13, fontWeight: 600 }}
+                    style={{ color: 'var(--accent-text)', fontSize: 13, fontWeight: 600 }}
                   >
                     Manage payment connections
                   </Link>
@@ -209,7 +209,7 @@ export function IntegrationsSettingsPage() {
         <Text weight="bold">Provider guides</Text>
         <Text size="sm" color="muted">
           Setup steps, attribution fields, and official provider links live in the{' '}
-          <Link href="/docs" style={{ color: '#f2b4cb' }}>
+          <Link href="/docs" style={{ color: 'var(--accent-text)' }}>
             documentation
           </Link>
           .

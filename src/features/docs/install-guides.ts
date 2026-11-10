@@ -215,6 +215,26 @@ ${attributes}
 }`;
     },
   },
+  {
+    slug: 'other',
+    title: 'Other / No-code',
+    summary:
+      'Use the custom-code, code-injection, or embed field in your site builder. The snippet is plain HTML and needs no build step.',
+    language: 'html',
+    status: 'untested',
+    statusNote: UNTESTED_RUNTIME,
+    steps: [
+      'Find the custom-code setting in your builder: Webflow → Project Settings → Custom Code; Framer → Site Settings → General → Custom Code; WordPress → Appearance → Theme File Editor (footer.php) or a header/footer plugin; Shopify → Themes → Edit code → theme.liquid; Wix → Settings → Custom Code; Squarespace → Settings → Advanced → Code Injection → Footer.',
+      'Paste the snippet before the closing </body> tag, or into the footer/body code field.',
+      'Publish the site, open it in a normal browser profile, and wait for the live check to report the first event.',
+    ],
+    notes: [
+      'No package install, build step, or framework import is required. Every guide generates the same plain script tag.',
+      'If the builder strips script tags, add the snippet through a global "Embed" or "HTML" element in the footer instead of a per-page block.',
+      'Some builders only allow custom code on a paid plan or on a custom domain.',
+    ],
+    code: htmlSnippet,
+  },
 ];
 
 export const INSTALL_TROUBLESHOOTING = [
@@ -236,6 +256,11 @@ export const INSTALL_TROUBLESHOOTING = [
     title: 'Single-page app routes are not counted',
     detail:
       'The tracker hooks history.pushState and history.replaceState. If your router bypasses both, send a manual pageview on navigation.',
+  },
+  {
+    title: 'A no-code builder strips the script',
+    detail:
+      "Some builders remove script tags from per-page HTML blocks. Enter the snippet through the global custom-code or footer injection setting instead, or use the builder's Embed element.",
   },
   {
     title: 'The verification step still says waiting',

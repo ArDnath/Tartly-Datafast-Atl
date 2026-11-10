@@ -5,6 +5,7 @@ import { useAnalyticsOverlays } from '@/features/analytics/components/AnalyticsO
 import { useWebsiteStatsQuery } from '@/features/analytics/hooks/useWebsiteStatsQuery';
 import { WebsiteChart } from './WebsiteChart';
 import { WebsiteChartMetricStrip } from './WebsiteChartMetricStrip';
+import { WebsiteCharts } from './WebsiteCharts';
 import { WebsitePanels } from './WebsitePanels';
 
 export function WebsitePage({ websiteId }: { websiteId: string }) {
@@ -16,17 +17,15 @@ export function WebsitePage({ websiteId }: { websiteId: string }) {
   return (
     <Column gap>
       <Panel
-        minHeight="445px"
+        className="dashboard-hero-panel"
+        minHeight="471px"
         paddingX="0"
         paddingY="0"
         gap="0"
         style={{
           overflow: 'visible',
           position: 'relative',
-          marginBottom: 34,
-          borderRadius: 20,
-          borderColor: '#ffffff12',
-          background: '#161616',
+          marginBottom: 12,
         }}
       >
         {isInitialLoading ? (
@@ -43,6 +42,7 @@ export function WebsitePage({ websiteId }: { websiteId: string }) {
           </div>
         )}
       </Panel>
+      {!isInitialLoading && <WebsiteCharts websiteId={websiteId} />}
       <WebsitePanels
         websiteId={websiteId}
         onOpenAnalytics={openAnalytics}

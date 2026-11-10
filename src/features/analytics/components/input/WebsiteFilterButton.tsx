@@ -1,7 +1,7 @@
 import { Checkbox, Row } from '@talivia/react-zen';
 import { useState } from 'react';
 import { useFilters, useMessages, useUrlState } from '@/components/hooks/index';
-import { ListFilter } from '@/components/icons';
+import { FilterList as ListFilter } from '@/components/icons';
 import { DialogButton } from '@/components/input/DialogButton';
 import { FilterEditForm } from '@/features/analytics/components/input/FilterEditForm';
 import { filtersArrayToObject } from '@/lib/params';
@@ -38,7 +38,7 @@ export function WebsiteFilterButton({
 
   return (
     <DialogButton
-      className="talivia-control"
+      className="talivia-control site-filter-button"
       icon={<ListFilter />}
       label={t(labels.filter)}
       variant="outline"

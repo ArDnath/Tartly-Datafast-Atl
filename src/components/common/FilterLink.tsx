@@ -2,7 +2,7 @@ import { Icon, Row, Text } from '@talivia/react-zen';
 import { type HTMLAttributes, type MouseEvent, type ReactNode, useState } from 'react';
 import Link from '@/components/common/Link';
 import { useMessages, useUrlState } from '@/components/hooks';
-import { ExternalLink } from '@/components/icons';
+import { OpenNewWindow as ExternalLink } from '@/components/icons';
 
 export interface FilterLinkProps extends HTMLAttributes<HTMLDivElement> {
   type: string;

@@ -14,7 +14,7 @@ import { endOfDay, subMonths } from 'date-fns';
 import { useState } from 'react';
 import { Empty } from '@/components/common/Empty';
 import { useApi, useMessages, useMobile, useTimezone } from '@/components/hooks';
-import { X } from '@/components/icons';
+import { Xmark as X } from '@/components/icons';
 
 export function useEventDataDateRange() {
   const { fromUtc, toUtc, timezone, canonicalizeTimezone } = useTimezone();

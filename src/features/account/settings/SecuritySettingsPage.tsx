@@ -21,8 +21,8 @@ import { PasswordChangeForm } from '@/features/account/settings/PasswordChangeFo
 import { BRAND } from '@/lib/brand';
 
 const CARD_STYLE = {
-  background: '#161616',
-  borderColor: '#ffffff12',
+  background: 'var(--talivia-card-background)',
+  borderColor: 'var(--talivia-card-border)',
   borderRadius: 20,
 } as const;
 
@@ -220,7 +220,7 @@ export function SecuritySettingsPage() {
               border: '1px solid #ffffff1f',
               borderRadius: 10,
               padding: '8px 14px',
-              color: '#f4f4f5',
+              color: 'var(--text-strong)',
               textDecoration: 'none',
               fontSize: 13,
             }}

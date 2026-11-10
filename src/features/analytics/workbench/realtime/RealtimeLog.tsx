@@ -12,8 +12,7 @@ import {
   useMobile,
   useTimezone,
 } from '@/components/hooks';
-import { Eye, User } from '@/components/icons';
-import { Lightning } from '@/components/svg';
+import { Eye, Flash as Lightning, User } from '@/components/icons';
 import { FilterButtons } from '@/features/analytics/components/input/FilterButtons';
 import { BROWSERS, OS_NAMES } from '@/lib/constants';
 import { SessionLink } from '../sessions/SessionDetails';

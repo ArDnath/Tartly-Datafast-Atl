@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import Link, { type LinkProps } from '@/components/common/Link';
-import { ExternalLink as ExternalLinkIcon } from '@/components/icons';
+import { OpenNewWindow as ExternalLinkIcon } from '@/components/icons';
 
 export function InlineExternalLink({
   children,

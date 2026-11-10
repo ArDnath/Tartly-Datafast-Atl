@@ -1,6 +1,6 @@
 import { Button, Column, Icon, List, MenuTrigger, Popover, SearchField } from '@talivia/react-zen';
 import type { ReactNode } from 'react';
-import { ChevronRight } from '@/components/icons';
+import { NavArrowRight as ChevronRight } from '@/components/icons';
 
 interface MultiSelectProps {
   value?: string[];

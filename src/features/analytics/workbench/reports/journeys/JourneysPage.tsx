@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Panel } from '@/components/common/Panel';
 import { useDateRange, useMessages } from '@/components/hooks';
 import { FilterButtons } from '@/features/analytics/components/input/FilterButtons';
-import { WebsiteControls } from '@/features/analytics/workbench/WebsiteControls';
 import { Journey } from './Journey';
 
 const JOURNEY_STEPS = [2, 3, 4, 5, 6, 7];
@@ -37,7 +36,6 @@ export function JourneysPage({ websiteId }: { websiteId: string }) {
 
   return (
     <Column gap>
-      <WebsiteControls websiteId={websiteId} />
       <Grid columns="repeat(3, 1fr)" gap>
         <Select label={t(labels.steps)} value={steps} defaultValue={steps} onChange={setSteps}>
           {JOURNEY_STEPS.map(step => (

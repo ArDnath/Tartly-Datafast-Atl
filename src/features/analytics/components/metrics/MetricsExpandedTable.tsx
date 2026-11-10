@@ -3,7 +3,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { Pager } from '@/components/common/Pager';
 import { useGridState, useLocale, useMessages } from '@/components/hooks/index';
-import { X } from '@/components/icons';
+import { Xmark as X } from '@/components/icons';
 import { DownloadButton } from '@/features/analytics/components/input/DownloadButton';
 import {
   KeywordSourceLabel,

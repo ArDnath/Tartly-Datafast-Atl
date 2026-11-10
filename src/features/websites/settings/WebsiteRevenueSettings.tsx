@@ -34,14 +34,14 @@ const PAYMENT_GUIDES = {
 } as const;
 
 const PAYMENT_SECTION_STYLE: CSSProperties = {
-  borderTop: '1px solid #ffffff12',
+  borderTop: '1px solid var(--talivia-card-border)',
   paddingTop: 24,
 };
 
 const SETTINGS_CARD_STYLE: CSSProperties = {
   borderRadius: 20,
-  borderColor: '#ffffff12',
-  background: '#161616',
+  borderColor: 'var(--talivia-card-border)',
+  background: 'var(--talivia-card-background)',
 };
 
 type DisconnectableProvider = 'stripe' | 'yolfi' | 'dodo' | 'lemonsqueezy' | 'polar';

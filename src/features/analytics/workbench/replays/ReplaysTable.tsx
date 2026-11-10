@@ -1,9 +1,10 @@
 import { Button, DataColumn, DataTable, type DataTableProps, Icon } from '@talivia/react-zen';
-import { Play } from 'lucide-react';
+
 import { Avatar } from '@/components/common/Avatar';
 import { DateDistance } from '@/components/common/DateDistance';
 import { TypeIcon } from '@/components/common/TypeIcon';
 import { useFormat, useMessages } from '@/components/hooks';
+import { Play } from '@/components/icons';
 import { SessionLink } from '../sessions/SessionDetails';
 
 function formatDuration(ms: number) {

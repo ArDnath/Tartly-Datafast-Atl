@@ -13,7 +13,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { AppModal } from '@/components/common/AppModal';
 import { IconLabel } from '@/components/common/IconLabel';
 import { useMobile } from '@/components/hooks';
-import { X } from '@/components/icons';
+import { Xmark as X } from '@/components/icons';
 
 export interface DialogButtonProps extends Omit<ButtonProps, 'children'> {
   icon?: ReactNode;

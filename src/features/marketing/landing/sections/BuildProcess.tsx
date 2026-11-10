@@ -1,30 +1,30 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
+import { Reveal } from '../motion/Reveal';
+import { subscribeScroll } from '../motion/scrollFrame';
 
 type Step = {
   title: string;
   description: string;
 };
 
-const leftSteps: Step[] = [
+// Reading order for both the mobile rail and the desktop zigzag.
+const STEPS: Step[] = [
   {
     title: 'Install one script tag',
     description:
       'Add the tracker to your site and verify the first event before you pay. One script, no framework lock-in, no plugin to keep in sync.',
   },
   {
-    title: 'Match payments to visits',
-    description:
-      'Each payment is linked to the visit that produced it: source, campaign, landing page, and the pages seen before checkout.',
-  },
-];
-
-const rightSteps: Step[] = [
-  {
     title: 'Connect your checkout',
     description:
       'Connect Stripe, Dodo Payments, Lemon Squeezy, Polar, or Yolfi, or send payments through the manual API. Your checkout stays where it is.',
+  },
+  {
+    title: 'Match payments to visits',
+    description:
+      'Each payment is linked to the visit that produced it: source, campaign, landing page, and the pages seen before checkout.',
   },
   {
     title: 'Grow what works',
@@ -33,147 +33,189 @@ const rightSteps: Step[] = [
   },
 ];
 
-// Reading order on mobile: the staggered columns collapse into a single
-// timeline, so the steps must alternate left/right to keep the flow.
-const stackedSteps = [leftSteps[0], rightSteps[0], leftSteps[1], rightSteps[1]];
-
 function measure(el: HTMLElement, start: number, end: number) {
   const rect = el.getBoundingClientRect();
   const percent = (start - rect.top) / (start - end);
   return Math.min(Math.max(percent, 0), 1);
 }
 
-function fillClassName(percent: number) {
-  return `size-4 ${percent > 0.95 ? 'bg-gray-800' : 'bg-gray-300'}`;
-}
-
-function StepBlock({ step }: { step: Step }) {
+function StepBlock({ step, number }: { step: Step; number: number }) {
   return (
-    <div>
-      <h3 className="font-domine text-xl underline">{step.title}</h3>
-      <p className="mt-6 text-sm/6 text-gray-500">{step.description}</p>
+    <div className="max-w-lg">
+      <p className="font-mono text-[10px] font-bold tracking-[0.18em] text-lp-primary uppercase">
+        Step {String(number).padStart(2, '0')}
+      </p>
+      <h3 className="mt-2 text-xl font-black tracking-tight text-lp-ink md:text-2xl">
+        {step.title}
+      </h3>
+      <p className="mt-3 text-sm/6 text-lp-fg-muted">{step.description}</p>
     </div>
   );
 }
 
+/**
+ * The spine is the section's structural device: one line that fills as the
+ * reader scrolls, with a node per step. Desktop zigzags around it, mobile runs
+ * it down the left edge, and both share a single frame-throttled measurement so
+ * the two layouts can never drift apart.
+ *
+ * Progress is written straight to the DOM instead of React state: a scroll
+ * linked value that re-rendered four steps every frame would waste the frame
+ * budget for no visual gain.
+ */
 export function BuildProcess() {
-  const desktopSegments = useRef<(HTMLDivElement | null)[]>([]);
-  const mobileSegments = useRef<(HTMLDivElement | null)[]>([]);
-  const [progress, setProgress] = useState<number[]>([0, 0, 0]);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const desktopRail = useRef<HTMLDivElement | null>(null);
+  const mobileRail = useRef<HTMLDivElement | null>(null);
+  const desktopFill = useRef<HTMLDivElement | null>(null);
+  const mobileFill = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const handleScroll = () => {
+    let lastProgress = -1;
+
+    const update = () => {
+      const section = sectionRef.current;
+
+      if (section) {
+        const sectionRect = section.getBoundingClientRect();
+
+        if (sectionRect.bottom < -160 || sectionRect.top > window.innerHeight + 160) {
+          return;
+        }
+      }
+
       const windowHeight = window.innerHeight;
       const start = windowHeight * 0.6;
       const end = windowHeight * 0.2;
 
-      const updated = [0, 1, 2].map(index => {
-        // The staggered desktop columns and the stacked mobile column each
-        // carry their own copy of every segment. The inactive tree is
-        // display: none, which reports a zero-sized rect, so measure whichever
-        // segment is actually visible.
-        const desktop = desktopSegments.current[index];
-        if (desktop) {
-          const rect = desktop.getBoundingClientRect();
-          if (rect.width > 0 || rect.height > 0) {
-            return measure(desktop, start, end);
-          }
+      const desktop = desktopRail.current;
+      const mobile = mobileRail.current;
+
+      // Only one rail is laid out at a time; the hidden one reports a
+      // zero-sized rect, so measure whichever is actually visible.
+      let progress: number | null = null;
+
+      if (desktop) {
+        const rect = desktop.getBoundingClientRect();
+        if (rect.width > 0 || rect.height > 0) {
+          progress = measure(desktop, start, end);
         }
+      }
 
-        const mobile = mobileSegments.current[index];
-        return mobile ? measure(mobile, start, end) : 0;
+      if (progress === null && mobile) {
+        const rect = mobile.getBoundingClientRect();
+        if (rect.width > 0 || rect.height > 0) {
+          progress = measure(mobile, start, end);
+        }
+      }
+
+      if (progress === null || Math.abs(progress - lastProgress) < 0.001) {
+        return;
+      }
+
+      lastProgress = progress;
+
+      if (desktopFill.current) {
+        desktopFill.current.style.transform = `scaleY(${progress})`;
+      }
+      if (mobileFill.current) {
+        mobileFill.current.style.transform = `scaleY(${progress})`;
+      }
+
+      const nodes = sectionRef.current?.querySelectorAll<HTMLElement>('[data-step-node]');
+      nodes?.forEach(node => {
+        const index = Number(node.dataset.stepNode);
+        const active = progress >= index / (STEPS.length - 1);
+        node.dataset.active = active ? 'true' : 'false';
       });
-
-      setProgress(updated);
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-
-    return () => window.removeEventListener('scroll', handleScroll);
+    return subscribeScroll(update);
   }, []);
 
   return (
-    <section id="process" className="mt-24 flex flex-col items-center md:mt-32">
-      <p className="font-domine text-gray-700">Simple 4-Step Process</p>
+    <section ref={sectionRef} id="process" className="border-b border-lp-line bg-lp-secondary/55">
+      <div className="mx-auto flex max-w-7xl flex-col items-center px-6 py-16 md:py-20">
+        <Reveal>
+          <p className="lp-eyebrow">How it works</p>
+        </Reveal>
 
-      <h2 className="mt-5 max-w-sm px-2 text-center text-3xl font-extrabold tracking-[-0.02em] text-gray-900 md:px-0">
-        From one script tag to revenue you can act on
-      </h2>
+        <Reveal delay={80}>
+          <h2 className="lp-display mt-3 max-w-2xl text-center text-3xl sm:text-4xl md:text-5xl">
+            FROM ONE SCRIPT TAG TO REVENUE YOU CAN ACT ON
+          </h2>
+        </Reveal>
 
-      {/* Mobile: a single-column timeline keeps the scroll-progress animation. */}
-      <div className="mt-12 flex w-full flex-col items-center md:hidden">
-        <div className="size-4 bg-gray-800" />
+        <Reveal delay={140}>
+          <p className="mt-4 max-w-md text-center text-sm/6 text-lp-fg-muted text-pretty">
+            Four steps. No data team, no warehouse, no CSV exports. The tracker and your checkout do
+            the joining.
+          </p>
+        </Reveal>
 
-        {stackedSteps.map((step, index) => {
-          const segmentIndex = index - 1;
+        {/* Mobile: the same spine, on the left edge, so steps stay scannable. */}
+        <div className="relative mt-10 w-full md:hidden">
+          <div
+            ref={mobileRail}
+            className="absolute top-2 bottom-2 left-3 w-0.5 overflow-hidden bg-lp-line"
+            aria-hidden="true"
+          >
+            <div
+              ref={mobileFill}
+              style={{ transform: 'scaleY(0)' }}
+              className="h-full w-full origin-top bg-lp-primary"
+            />
+          </div>
 
-          return (
-            <div key={step.title} className="flex w-full flex-col items-center">
-              {index > 0 && (
-                <div className="flex flex-col items-center">
-                  <div
-                    ref={el => {
-                      mobileSegments.current[segmentIndex] = el;
-                    }}
-                    className="relative h-20 w-0.5 overflow-hidden bg-gray-300"
-                  >
-                    <div
-                      style={{ height: `${progress[segmentIndex] * 100}%` }}
-                      className="absolute top-0 left-0 w-full bg-gray-800 transition-[height] duration-150 ease-linear"
-                    />
-                  </div>
-                  <div className={fillClassName(progress[segmentIndex])} />
-                </div>
-              )}
-
-              <div className="flex max-w-md flex-col px-6 py-8 text-center">
-                <h3 className="font-domine text-xl underline">{step.title}</h3>
-                <p className="mt-4 text-sm/6 text-gray-500">{step.description}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Desktop: staggered columns around the shared animated spine. */}
-      <div className="hidden flex-col md:flex md:flex-row">
-        <div>
-          {leftSteps.map(step => (
-            <div key={step.title} className="h-60 max-w-lg md:mt-60">
-              <StepBlock step={step} />
-            </div>
-          ))}
-        </div>
-
-        <div className="hidden flex-col items-center md:flex">
-          <div className="size-4 bg-gray-800" />
-
-          {[0, 1, 2].map(index => (
-            <div key={index} className="flex flex-col items-center">
-              <div
-                ref={el => {
-                  desktopSegments.current[index] = el;
-                }}
-                data-index={index}
-                className="relative mx-10 h-60 w-0.5 overflow-hidden bg-gray-300"
-              >
-                <div
-                  style={{ height: `${progress[index] * 100}%` }}
-                  className="absolute top-0 left-0 w-full bg-gray-800 transition-[height] duration-150 ease-linear"
+          <ol className="flex flex-col gap-10">
+            {STEPS.map((step, index) => (
+              <Reveal as="li" key={step.title} delay={index * 70} className="relative pl-9">
+                <span
+                  aria-hidden="true"
+                  data-step-node={index}
+                  className="lp-step-node absolute top-1 left-3 size-3 -translate-x-1/2 rounded-sm"
                 />
-              </div>
-              <div className={fillClassName(progress[index])} />
-            </div>
-          ))}
+                <StepBlock step={step} number={index + 1} />
+              </Reveal>
+            ))}
+          </ol>
         </div>
 
-        <div>
-          {rightSteps.map((step, index) => (
-            <div key={step.title} className={`h-60 max-w-lg ${index === 0 ? '' : 'md:mt-60'}`}>
-              <StepBlock step={step} />
-            </div>
-          ))}
+        {/* Desktop: alternate sides around the shared spine. */}
+        <div className="relative mt-12 hidden w-full md:block">
+          <div
+            ref={desktopRail}
+            className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 overflow-hidden bg-lp-line"
+            aria-hidden="true"
+          >
+            <div
+              ref={desktopFill}
+              style={{ transform: 'scaleY(0)' }}
+              className="h-full w-full origin-top bg-lp-primary"
+            />
+          </div>
+
+          <ol className="relative flex flex-col gap-9">
+            {STEPS.map((step, index) => (
+              <Reveal
+                as="li"
+                key={step.title}
+                delay={index * 70}
+                className={`relative flex ${
+                  index % 2 === 0
+                    ? 'justify-start pr-[calc(50%+2.5rem)]'
+                    : 'justify-end pl-[calc(50%+2.5rem)]'
+                }`}
+              >
+                <span
+                  aria-hidden="true"
+                  data-step-node={index}
+                  className="lp-step-node absolute top-1 left-1/2 z-10 size-3 -translate-x-1/2 rounded-sm"
+                />
+                <StepBlock step={step} number={index + 1} />
+              </Reveal>
+            ))}
+          </ol>
         </div>
       </div>
     </section>

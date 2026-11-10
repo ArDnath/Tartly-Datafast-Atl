@@ -8,24 +8,25 @@ import { useMessages, useNavigation } from '@/components/hooks';
 import {
   ArrowLeft,
   CreditCard,
-  Gauge,
-  Globe2,
+  DashboardSpeed as Gauge,
+  Internet as Globe2,
   Lock,
   Network,
-  ScrollText,
-  Settings2,
+  Journal as ScrollText,
+  SettingsProfiles as Settings2,
   ShieldAlert,
-  TrendingUp,
-  UserRound,
-  Users,
+  GraphUp as TrendingUp,
+  User as UserRound,
+  Group as Users,
 } from '@/components/icons';
 import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { APP_LAYOUT_MAX_WIDTH } from '@/lib/constants';
 
 const SETTINGS_SURFACE_STYLE: CSSProperties = {
   borderRadius: 20,
-  borderColor: '#ffffff12',
-  background: '#161616',
+  borderColor: 'var(--talivia-card-border)',
+  background:
+    'linear-gradient(180deg, var(--rl-panel-sheen) 0, transparent var(--rl-panel-sheen-height)), var(--talivia-card-background)',
 };
 
 type SettingsKey =

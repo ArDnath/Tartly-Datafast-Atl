@@ -9,12 +9,13 @@ import {
   Row,
   Text,
 } from '@talivia/react-zen';
-import { Bookmark, X } from 'lucide-react';
+
 import { useState } from 'react';
 import { Avatar } from '@/components/common/Avatar';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { useMessages, useUpdateQuery } from '@/components/hooks';
 import { touch } from '@/components/hooks/useModified';
+import { Bookmark, Xmark as X } from '@/components/icons';
 import { useReplayQuery } from '@/features/analytics/hooks/useReplayQuery';
 import { useReplaySavedQuery } from '@/features/analytics/hooks/useReplaySavedQuery';
 import { useWebsiteSessionQuery } from '@/features/analytics/hooks/useWebsiteSessionQuery';

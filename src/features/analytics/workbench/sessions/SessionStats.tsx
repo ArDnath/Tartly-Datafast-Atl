@@ -29,7 +29,10 @@ export function SessionStats({ data }) {
           <Text color="muted" weight="bold" style={{ fontSize: 13 }}>
             {item.label}
           </Text>
-          <Text weight="bold" style={{ color: '#f4f4f5', fontSize: 22, lineHeight: 1.05 }}>
+          <Text
+            weight="bold"
+            style={{ color: 'var(--text-strong)', fontSize: 22, lineHeight: 1.05 }}
+          >
             {item.value}
           </Text>
         </Column>

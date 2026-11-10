@@ -18,21 +18,21 @@ const dateFormats = {
   year: 'yyyy',
 };
 
-const VISITOR_LINE_COLOR = '#3b82ff';
-const VISITOR_LINE_DIM = 'rgba(59, 130, 255, 0.26)';
-const VISITOR_LINE_HOVER = '#7fc3ff';
+const VISITOR_LINE_COLOR = '#56a4f8';
+const VISITOR_LINE_DIM = 'rgba(86, 164, 248, 0.26)';
+const VISITOR_LINE_HOVER = '#8bc4ff';
 const VISITOR_AREA_FALLBACK = 'rgba(44, 101, 214, 0.18)';
-const REVENUE_COLOR = '#2dbf72';
+const REVENUE_COLOR = '#ff8a66';
 const REFUND_COLOR = REVENUE_COLOR;
-const REFUND_INACTIVE_COLOR = 'rgba(45, 191, 114, 0.32)';
+const REFUND_INACTIVE_COLOR = 'rgba(255, 138, 102, 0.32)';
 const REFUND_FILL_GRADIENT = [
-  { offset: 0, color: 'rgba(45, 191, 114, 0.36)' },
-  { offset: 0.54, color: 'rgba(45, 191, 114, 0.18)' },
-  { offset: 1, color: 'rgba(45, 191, 114, 0.08)' },
+  { offset: 0, color: 'rgba(255, 138, 102, 0.36)' },
+  { offset: 0.54, color: 'rgba(255, 138, 102, 0.18)' },
+  { offset: 1, color: 'rgba(255, 138, 102, 0.08)' },
 ];
-const AXIS_TEXT_COLOR = 'rgba(232, 236, 245, 0.66)';
-const AXIS_LINE_COLOR = '#ffffff12';
-const HOVER_LINE_COLOR = 'rgba(232, 236, 245, 0.14)';
+const AXIS_TEXT_COLOR = 'var(--text-muted)';
+const AXIS_LINE_COLOR = 'var(--talivia-card-border)';
+const HOVER_LINE_COLOR = 'var(--border-strong)';
 const CHART_RENDER_PIXEL_HEIGHT = 340;
 const CHART_RENDER_HEIGHT = `calc(${CHART_RENDER_PIXEL_HEIGHT}px + 1px)`;
 const VISITOR_LINE_MAX_WIDTH = 4;
@@ -89,8 +89,8 @@ function createVisitorAreaGradient(context: any) {
   }
 
   const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-  gradient.addColorStop(0, 'rgba(69, 137, 255, 0.28)');
-  gradient.addColorStop(0.42, 'rgba(42, 93, 186, 0.21)');
+  gradient.addColorStop(0, 'rgba(86, 164, 248, 0.26)');
+  gradient.addColorStop(0.42, 'rgba(48, 105, 190, 0.18)');
   gradient.addColorStop(1, 'rgba(18, 42, 77, 0)');
 
   return gradient;
@@ -451,16 +451,16 @@ function createAxisTicks(
   visualAxisMax?: number,
 ): AxisTick[] {
   if (!Number.isFinite(maxValue) || maxValue <= 0) {
-    return [];
+    return [{ value: 0, label: formatValue(0), position: 0 }];
   }
 
-  const step = getNiceStep(maxValue);
-  const dataAxisMax = getAxisMax(maxValue);
+  const step = maxValue < 10 ? 1 : getNiceStep(maxValue);
+  const dataAxisMax = Math.max(step, Math.ceil(maxValue / step) * step);
   const positionAxisMax =
     Number.isFinite(visualAxisMax) && Number(visualAxisMax) > 0
       ? Number(visualAxisMax)
       : dataAxisMax;
-  const ticks: AxisTick[] = [];
+  const ticks: AxisTick[] = [{ value: 0, label: formatValue(0), position: 0 }];
 
   for (let value = step; value <= dataAxisMax + step / 10; value += step) {
     const roundedValue = Number(value.toPrecision(12));
@@ -563,7 +563,7 @@ function AxisTicks({ ticks, side }: { ticks: AxisTick[]; side: 'left' | 'right' 
               position: 'absolute',
               top: '50%',
               color: 'var(--overview-chart-axis-text)',
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: 500,
               lineHeight: 1,
               whiteSpace: 'nowrap',
@@ -881,8 +881,10 @@ export function OverviewChart({ data, unit, minDate, maxDate, currency }: Overvi
           max: visitorAxisMax,
           beginAtZero: true,
           grid: {
-            display: false,
+            display: true,
             color: AXIS_LINE_COLOR,
+            borderDash: [4, 6],
+            drawTicks: false,
           },
           border: {
             display: false,
@@ -1051,74 +1053,81 @@ export function OverviewChart({ data, unit, minDate, maxDate, currency }: Overvi
     <div style={chartStyle}>
       <div
         style={{
-          position: 'relative',
-          left: -1,
-          width: 'calc(100% + 2px)',
-          height: CHART_RENDER_HEIGHT,
-          marginBottom: -1,
-          overflow: 'visible',
+          padding: '0 clamp(28px, 4vw, 56px)',
+          boxSizing: 'border-box',
         }}
       >
-        <AxisTicks ticks={visitorTicks} side="left" />
-        <AxisTicks ticks={revenueTicks} side="right" />
-        <Chart
-          type="bar"
-          chartData={chartSeries.chartData}
-          chartOptions={chartOptions}
-          onTooltip={handleTooltip}
-          onChartLayout={handleChartLayout}
-          height={CHART_RENDER_HEIGHT}
-          animationDuration={0}
-          showLegend={false}
-          style={{
-            borderRadius: '0 0 20px 20px',
-            overflow: 'hidden',
-          }}
-        />
         <div
-          aria-hidden="true"
-          className="talivia-chart-x-axis"
-          data-compact={chartLayout?.compact || undefined}
           style={{
-            position: 'absolute',
-            top: '100%',
-            right: 0,
-            left: 0,
-            height: 34,
-            color: 'var(--overview-chart-axis-text)',
-            pointerEvents: 'none',
-            zIndex: 2,
+            position: 'relative',
+            left: -1,
+            width: 'calc(100% + 2px)',
+            height: CHART_RENDER_HEIGHT,
+            marginBottom: -1,
+            overflow: 'visible',
           }}
         >
-          {positionedXTicks.map(tick => (
-            <span
-              key={`x-${tick.value}`}
-              style={{
-                position: 'absolute',
-                top: 0,
-                display: 'block',
-                height: 10,
-                borderLeft: '2px solid var(--overview-chart-axis-line)',
-                left: tick.pixel ?? `${tick.position}%`,
-              }}
-            >
+          <AxisTicks ticks={visitorTicks} side="left" />
+          <AxisTicks ticks={revenueTicks} side="right" />
+          <Chart
+            type="bar"
+            chartData={chartSeries.chartData}
+            chartOptions={chartOptions}
+            onTooltip={handleTooltip}
+            onChartLayout={handleChartLayout}
+            height={CHART_RENDER_HEIGHT}
+            animationDuration={0}
+            showLegend={false}
+            style={{
+              borderRadius: '0 0 10px 10px',
+              overflow: 'hidden',
+            }}
+          />
+          <div
+            aria-hidden="true"
+            className="talivia-chart-x-axis"
+            data-compact={chartLayout?.compact || undefined}
+            style={{
+              position: 'absolute',
+              top: '100%',
+              right: 0,
+              left: 0,
+              height: 34,
+              color: 'var(--overview-chart-axis-text)',
+              pointerEvents: 'none',
+              zIndex: 2,
+            }}
+          >
+            {positionedXTicks.map(tick => (
               <span
+                key={`x-${tick.value}`}
                 style={{
                   position: 'absolute',
-                  top: 14,
-                  left: -0.5,
-                  color: 'var(--overview-chart-axis-text)',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  lineHeight: 1,
-                  whiteSpace: 'nowrap',
-                  transform: 'translateX(-50%)',
+                  top: 0,
+                  display: 'block',
+                  height: 10,
+                  borderLeft: '2px solid var(--overview-chart-axis-line)',
+                  left: tick.pixel ?? `${tick.position}%`,
                 }}
               >
-                {tick.label}
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: 14,
+                    left: -0.5,
+                    color: 'var(--overview-chart-axis-text)',
+                    fontSize: 12,
+                    fontWeight: 500,
+                    lineHeight: 1,
+                    whiteSpace: 'nowrap',
+                    transform: 'translateX(-50%)',
+                  }}
+                >
+                  {tick.label}
+                </span>
               </span>
-            </span>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
       {tooltip && <ChartTooltip {...tooltip} />}

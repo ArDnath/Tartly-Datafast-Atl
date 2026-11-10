@@ -5,7 +5,6 @@ import { Panel } from '@/components/common/Panel';
 import { SectionHeader } from '@/components/common/SectionHeader';
 import { useDateRange, useNavigation } from '@/components/hooks';
 import { useReportsQuery } from '@/features/analytics/hooks/useReportsQuery';
-import { WebsiteControls } from '@/features/analytics/workbench/WebsiteControls';
 import { Funnel } from './Funnel';
 import { FunnelAddButton } from './FunnelAddButton';
 
@@ -19,7 +18,6 @@ export function FunnelsPage({ websiteId }: { websiteId: string }) {
 
   return (
     <Column gap>
-      <WebsiteControls websiteId={websiteId} />
       {!isSharePage && (
         <SectionHeader>
           <FunnelAddButton websiteId={websiteId} />

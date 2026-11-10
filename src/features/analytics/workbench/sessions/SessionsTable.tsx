@@ -63,7 +63,7 @@ export function SessionsTable({
             <Row alignItems="center" gap="3" minWidth="0">
               <Avatar seed={(isVisitorTable && row.visitorId) || row.id} size={30} />
               <Column gap="0" minWidth="0">
-                <Text truncate style={{ color: '#f2f2f2', fontWeight: 600 }}>
+                <Text truncate style={{ color: 'var(--text-strong)', fontWeight: 600 }}>
                   {label}
                 </Text>
                 <SessionMeta session={row} />
@@ -74,7 +74,7 @@ export function SessionsTable({
             <Row alignItems="center" gap="2" minWidth="0" className="talivia-session-source">
               {hasSessionSourceFavicon(source) && <Favicon domain={source} />}
               <Column gap="0" minWidth="0">
-                <Text truncate style={{ color: '#f2f2f2', fontWeight: 500 }}>
+                <Text truncate style={{ color: 'var(--text-strong)', fontWeight: 500 }}>
                   {source}
                 </Text>
                 {hasDifferentSessionSource && (
@@ -84,7 +84,7 @@ export function SessionsTable({
                 )}
               </Column>
             </Row>
-            <Text style={{ color: '#f2f2f2' }}>{formatSessionSpend(row, locale)}</Text>
+            <Text style={{ color: 'var(--text-strong)' }}>{formatSessionSpend(row, locale)}</Text>
             <Column
               alignItems="flex-end"
               className="talivia-session-last-seen"

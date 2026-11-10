@@ -1,10 +1,11 @@
 import Link from 'next/link';
+import { Reveal } from '../motion/Reveal';
 
 interface StackTile {
   name: string;
   logo: string;
   href: string;
-  /** Brand colour used for the tile tint and the hover label dot. */
+  /** Brand colour used for the hover rule and the tooltip dot. */
   tint: string;
 }
 
@@ -19,7 +20,7 @@ interface StackTile {
  * React, Astro, Framer, HTML5, WordPress, Shopify, Webflow, Remix, Next.js,
  * and Vite; monochrome Simple Icons remain for Wix, Squarespace, Ghost, and
  * Google Tag Manager, which have no colored square mark in that source.
- * Every tile keeps its logo in full colour against a soft brand tint and
+ * Every tile keeps its logo in full colour against a neutral cream chip and
  * reveals the platform name in a tooltip on hover or keyboard focus.
  */
 const SITE_PLATFORMS: StackTile[] = [
@@ -89,7 +90,7 @@ function LogoTile({ tile }: { tile: StackTile }) {
         href={tile.href}
         aria-label={tile.name}
         style={{ '--tile-tint': tile.tint } as React.CSSProperties}
-        className="group/tile stack-tile relative flex size-full items-center justify-center rounded-lg border p-2 transition duration-300 hover:-translate-y-0.5 hover:shadow-sm focus-visible:-translate-y-0.5 focus-visible:shadow-sm"
+        className="group/tile stack-tile relative flex size-full items-center justify-center rounded-md border p-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-primary"
       >
         <img
           src={tile.logo}
@@ -99,7 +100,7 @@ function LogoTile({ tile }: { tile: StackTile }) {
         />
         <span
           aria-hidden="true"
-          className="stack-tip pointer-events-none absolute bottom-full left-1/2 z-20 mb-1.5 flex -translate-x-1/2 translate-y-1 items-center gap-1.5 rounded-md border px-2 py-0.5 text-[11px] font-medium whitespace-nowrap opacity-0 shadow-sm transition duration-200 group-hover/tile:translate-y-0 group-hover/tile:opacity-100 group-focus-visible/tile:translate-y-0 group-focus-visible/tile:opacity-100"
+          className="stack-tip pointer-events-none absolute bottom-full left-1/2 z-20 mb-1.5 flex -translate-x-1/2 translate-y-1 items-center gap-1.5 rounded-sm border px-2 py-0.5 font-mono text-[10px] font-semibold whitespace-nowrap opacity-0 group-hover/tile:translate-y-0 group-hover/tile:opacity-100 group-focus-visible/tile:translate-y-0 group-focus-visible/tile:opacity-100"
         >
           <span
             className="size-1.5 rounded-full"
@@ -114,25 +115,30 @@ function LogoTile({ tile }: { tile: StackTile }) {
 }
 
 function StackPanel({
+  index,
   title,
   tiles,
   footer,
 }: {
+  index: string;
   title: string;
   tiles: StackTile[];
   footer: React.ReactNode;
 }) {
   return (
-    <div className="flex h-full flex-col">
-      <h3 className="pb-7 text-center text-[10px] font-medium tracking-[0.14em] text-gray-400 uppercase">
-        {title}
-      </h3>
-      <ul className="grid flex-1 grid-cols-4 justify-items-center gap-2 sm:flex sm:flex-wrap sm:content-start sm:justify-center">
+    <div className="flex h-full flex-col rounded-lg border border-lp-line bg-lp-card p-5 md:p-6">
+      <div className="flex items-center justify-between gap-3 border-b border-lp-line pb-4">
+        <h3 className="lp-label text-lp-fg-muted">{title}</h3>
+        <span className="font-mono text-[10px] font-bold text-lp-primary">{index}</span>
+      </div>
+
+      <ul className="grid flex-1 grid-cols-4 content-start justify-items-center gap-2 py-5 sm:flex sm:flex-wrap sm:justify-start">
         {tiles.map(tile => (
           <LogoTile key={tile.name} tile={tile} />
         ))}
       </ul>
-      <p className="mt-2.5 text-[11px]/4 text-gray-400">{footer}</p>
+
+      <p className="border-t border-lp-line pt-3 text-[11px]/4 text-lp-fg-muted">{footer}</p>
     </div>
   );
 }
@@ -148,38 +154,58 @@ export function StackSection() {
     <section
       id="integrations"
       aria-labelledby="stack-title"
-      className="mx-auto mt-20 max-w-7xl px-4"
+      className="border-b border-lp-line bg-lp-canvas"
     >
-      <div className="max-w-sm">
-        <h2 id="stack-title" className="font-domine text-3xl font-extrabold text-gray-900">
-          WORKS WITH YOUR STACK
-        </h2>
-        <p className="mt-3 text-sm/6 text-gray-500">
-          Drop one script tag into the platform or framework you already deploy. Every guide
-          generates the same snippet from the same website ID.
+      <div className="mx-auto max-w-7xl px-6 py-16 md:py-20">
+        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-xl">
+            <Reveal>
+              <p className="lp-eyebrow">Integrations</p>
+            </Reveal>
+            <Reveal delay={80}>
+              <h2 id="stack-title" className="lp-display mt-3 text-3xl sm:text-4xl md:text-5xl">
+                WORKS WITH YOUR STACK
+              </h2>
+            </Reveal>
+          </div>
+          <Reveal delay={140}>
+            <p className="max-w-md text-sm/6 text-lp-fg-muted md:text-right">
+              Drop one script tag into the platform or framework you already deploy. Every guide
+              generates the same snippet from the same website ID.
+            </p>
+          </Reveal>
+        </div>
+
+        <div className="mt-9 grid items-stretch gap-4 md:grid-cols-2">
+          <Reveal className="h-full">
+            <StackPanel
+              index="01"
+              title="No code — site builders and CMS"
+              tiles={SITE_PLATFORMS}
+              footer="Plus any platform with a custom-code area."
+            />
+          </Reveal>
+          <Reveal delay={100} className="h-full">
+            <StackPanel
+              index="02"
+              title="Code — frameworks"
+              tiles={CODE_FRAMEWORKS}
+              footer="The same snippet works in any server-rendered template — PHP, Django, Express."
+            />
+          </Reveal>
+        </div>
+
+        <p className="mt-4 text-center text-[11px] text-lp-fg-muted">
+          Script-tag integration — native plugins and marketplace apps are not included yet. See the{' '}
+          <Link
+            href="/docs/install"
+            className="font-semibold text-lp-ink underline decoration-lp-primary/40 underline-offset-4 hover:decoration-lp-primary"
+          >
+            install guides
+          </Link>
+          . Payment providers have their own connect flow in settings.
         </p>
       </div>
-
-      <div className="mt-8 grid items-stretch gap-3 md:grid-cols-2">
-        <StackPanel
-          title="No code — site builders and CMS"
-          tiles={SITE_PLATFORMS}
-          footer="Plus any platform with a custom-code area."
-        />
-        <StackPanel
-          title="Code — frameworks"
-          tiles={CODE_FRAMEWORKS}
-          footer="The same snippet works in any server-rendered template — PHP, Django, Express."
-        />
-      </div>
-
-      <p className="mt-3 text-center text-xs text-gray-400">
-        Script-tag integration — native plugins and marketplace apps are not included yet. See the{' '}
-        <Link href="/docs/install" className="underline">
-          install guides
-        </Link>
-        . Payment providers have their own connect flow in settings.
-      </p>
     </section>
   );
 }

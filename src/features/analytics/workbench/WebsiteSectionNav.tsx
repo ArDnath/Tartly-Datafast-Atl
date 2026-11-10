@@ -1,22 +1,30 @@
 'use client';
 
-import { Column, Row, Text } from '@talivia/react-zen';
+import { Button, Icon, Menu, MenuItem, MenuTrigger, Popover, Row, Text } from '@talivia/react-zen';
 import { IconLabel } from '@/components/common/IconLabel';
 import Link from '@/components/common/Link';
 import { useNavigation } from '@/components/hooks';
 import {
-  AlignEndHorizontal,
+  AlignHorizontalSpacing as AlignEndHorizontal,
   Clock,
   Eye,
-  Gauge,
-  Layers,
-  PlayCircle,
-  Settings2,
-  Sheet,
-  Stethoscope,
+  FilterList as Funnel,
+  DashboardSpeed as Gauge,
+  Community as Layers,
+  Flash as Lightning,
+  Magnet,
+  MoneySquare as Money,
+  NavArrowDown,
+  Network,
+  PathArrow as Path,
+  Play as PlayCircle,
+  SettingsProfiles as Settings2,
+  Table as Sheet,
+  Activity as Stethoscope,
+  Label as Tag,
+  Trophy as Target,
   User,
 } from '@/components/icons';
-import { Funnel, Lightning, Magnet, Money, Network, Path, Tag, Target } from '@/components/svg';
 
 interface NavItem {
   id: string;
@@ -35,6 +43,12 @@ const LEGACY_ROUTES: Record<string, string> = {
   'revenue-journey': 'journeys',
   'revenue-diagnostics': 'diagnostics',
 };
+
+/**
+ * The daily working set. Everything else lives one click away in the More
+ * menu, so the dashboard never opens with a nineteen-item wall of links.
+ */
+const PRIMARY_ITEMS = ['overview', 'revenue', 'sessions', 'events', 'funnels', 'replays'];
 
 function getActiveSection(pathname: string, websiteId: string) {
   const base = `/app/${websiteId}`;
@@ -145,70 +159,77 @@ export function getWebsiteNavSections(websiteId: string): NavSection[] {
 
 function useActiveNav(websiteId: string) {
   const { pathname } = useNavigation();
+  const sections = getWebsiteNavSections(websiteId);
+  const items = sections.flatMap(section => section.items);
 
   return {
     active: getActiveSection(pathname, websiteId),
-    sections: getWebsiteNavSections(websiteId),
+    items,
+    primary: PRIMARY_ITEMS.map(id => items.find(item => item.id === id)).filter(
+      (item): item is NavItem => Boolean(item),
+    ),
+    more: items.filter(item => !PRIMARY_ITEMS.includes(item.id)),
   };
 }
 
+/**
+ * A single restrained row of destinations. It replaces the old left rail: the
+ * chart and the money should be the first thing on the screen, not navigation.
+ */
 export function WebsiteSectionNav({ websiteId }: { websiteId: string }) {
-  const { active, sections } = useActiveNav(websiteId);
+  const { active, primary, more } = useActiveNav(websiteId);
+  const activeMoreItem = more.find(item => item.id === active);
 
   return (
-    <Column as="nav" aria-label="Website sections" className="website-section-nav" gap="5">
-      {sections.map(section => (
-        <Column key={section.label} gap="1">
-          <Text className="website-section-nav-label">{section.label}</Text>
-          {section.items.map(item => {
-            const isActive = item.id === active;
+    <Row as="nav" aria-label="Website sections" className="website-nav" alignItems="center" gap="1">
+      {primary.map(item => (
+        <Link
+          key={item.id}
+          href={item.path}
+          className="website-nav-link"
+          data-selected={item.id === active ? '' : undefined}
+          aria-current={item.id === active ? 'page' : undefined}
+        >
+          {item.label}
+        </Link>
+      ))}
 
-            return (
-              <Link
+      <MenuTrigger>
+        <Button
+          className="website-nav-link website-nav-more"
+          variant="quiet"
+          data-selected={activeMoreItem ? '' : undefined}
+          aria-label={
+            activeMoreItem ? `More reports, ${activeMoreItem.label} active` : 'More reports'
+          }
+        >
+          <Row alignItems="center" gap="1">
+            <Text>{activeMoreItem?.label || 'More'}</Text>
+            <Icon size="sm">
+              <NavArrowDown />
+            </Icon>
+          </Row>
+        </Button>
+        <Popover className="talivia-popover website-nav-menu" placement="bottom start">
+          <Menu>
+            {more.map(item => (
+              <MenuItem
                 key={item.id}
+                id={item.id}
                 href={item.path}
-                className="website-section-nav-link"
-                data-selected={isActive ? '' : undefined}
-                aria-current={isActive ? 'page' : undefined}
+                data-selected={item.id === active ? '' : undefined}
               >
                 <IconLabel icon={item.icon} label={item.label} />
-              </Link>
-            );
-          })}
-        </Column>
-      ))}
-    </Column>
+              </MenuItem>
+            ))}
+          </Menu>
+        </Popover>
+      </MenuTrigger>
+    </Row>
   );
 }
 
+/** Kept as the small-screen alias so existing mounts keep one contract. */
 export function WebsiteSectionTabs({ websiteId }: { websiteId: string }) {
-  const { active, sections } = useActiveNav(websiteId);
-
-  return (
-    <Row
-      as="nav"
-      aria-label="Website sections"
-      className="website-section-tabs"
-      gap="1"
-      overflowX="auto"
-    >
-      {sections
-        .flatMap(section => section.items)
-        .map(item => {
-          const isActive = item.id === active;
-
-          return (
-            <Link
-              key={item.id}
-              href={item.path}
-              className="website-section-tab"
-              data-selected={isActive ? '' : undefined}
-              aria-current={isActive ? 'page' : undefined}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
-    </Row>
-  );
+  return <WebsiteSectionNav websiteId={websiteId} />;
 }

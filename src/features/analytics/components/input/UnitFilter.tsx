@@ -11,6 +11,14 @@ export function UnitFilter() {
   const storedDateRange = useApp(dateRangeSelector);
 
   const DATE_RANGE_UNIT_CONFIG = {
+    '0day': {
+      defaultUnit: 'hour',
+      availableUnits: ['hour'],
+    },
+    '24hour': {
+      defaultUnit: 'hour',
+      availableUnits: ['hour'],
+    },
     '0week': {
       defaultUnit: 'day',
       availableUnits: ['day', 'hour'],

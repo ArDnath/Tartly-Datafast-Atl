@@ -1,6 +1,6 @@
 import { Button, Icon, Row, Text } from '@talivia/react-zen';
 import { useMessages } from '@/components/hooks';
-import { ChevronRight } from '@/components/icons';
+import { NavArrowRight as ChevronRight } from '@/components/icons';
 
 export interface PagerProps {
   page: string | number;

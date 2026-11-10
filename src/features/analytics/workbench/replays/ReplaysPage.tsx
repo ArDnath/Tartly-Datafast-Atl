@@ -4,7 +4,6 @@ import type { Key } from 'react';
 import { Panel } from '@/components/common/Panel';
 import { useMessages, useStoredState } from '@/components/hooks';
 import { useAnalyticsOverlays } from '@/features/analytics/components/AnalyticsOverlayContext';
-import { WebsiteControls } from '@/features/analytics/workbench/WebsiteControls';
 import { ReplaysDataTable } from './ReplaysDataTable';
 import { SavedReplaysDataTable } from './SavedReplaysDataTable';
 
@@ -21,7 +20,6 @@ export function ReplaysPage({ websiteId }: { websiteId: string }) {
 
   return (
     <Column gap="3">
-      <WebsiteControls websiteId={websiteId} />
       <Panel>
         <Tabs selectedKey={tab} onSelectionChange={handleSelect}>
           <TabList>

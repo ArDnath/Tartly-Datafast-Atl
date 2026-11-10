@@ -3,7 +3,7 @@ import { IconLabel } from '@/components/common/IconLabel';
 import { LinkButton } from '@/components/common/LinkButton';
 import { PageHeader } from '@/components/common/PageHeader';
 import { useMessages, useNavigation, useSlug } from '@/components/hooks';
-import { Edit, ExternalLink, Link } from '@/components/icons';
+import { Edit, OpenNewWindow as ExternalLink, Link } from '@/components/icons';
 import { useLink } from '@/features/legacy/hooks/useLink';
 
 export function LinkHeader({ showActions = true }: { showActions?: boolean }) {

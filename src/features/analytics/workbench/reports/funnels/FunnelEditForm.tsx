@@ -16,7 +16,7 @@ import {
 } from '@talivia/react-zen';
 import { Fragment, useState } from 'react';
 import { useApi, useMessages, useMobile, useUpdateQuery } from '@/components/hooks';
-import { Plus, X } from '@/components/icons';
+import { Plus, Xmark as X } from '@/components/icons';
 import { ActionSelect } from '@/features/analytics/components/input/ActionSelect';
 import { LookupField } from '@/features/analytics/components/input/LookupField';
 import { useReportQuery } from '@/features/analytics/hooks/useReportQuery';
