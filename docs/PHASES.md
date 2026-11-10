@@ -81,6 +81,33 @@ code:
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
 
+## 2026-11-11 — VPS preview deployment of the launch branch
+
+- Deployed `feature/launch-experience` (`87a7167`) to the existing single-VPS
+  stack at <https://tartly.in> so the new landing page and launch UI can be
+  reviewed publicly.
+- Method: shipped the commit as a git bundle (the VPS clone has no GitHub
+  credentials and the repository is private), checked out `preview-launch`,
+  built `tartly-app:87a7167…`, applied the three additive migrations
+  (`google_oauth`, `workspace_logo`, `workspace_onboarding_completed`) to Neon,
+  restarted only the `app` service, and waited for `/api/health/ready`.
+- Verified: `/api/health/ready` reports `version: 87a7167…` and
+  `database: up`; `/`, `/pricing`, `/docs`, `/login`, `/robots.txt`, and
+  `/sitemap.xml` return 200; `www` redirects 308 to the apex; HSTS is present.
+- Rollback: the previous image `tartly-app:cc068cb…` and commit `cc068cb`
+  remain on the host, and `main` in `/opt/tartly/app` still points at
+  `cc068cb`.
+- **UNVERIFIED / caveat:** sign-in is Google-only on this branch and
+  `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` are not set on the VPS. The
+  existing OAuth client rejects
+  `https://tartly.in/api/auth/google/callback` with
+  `redirect_uri_mismatch`. Human action: add that redirect URI in Google Cloud
+  Console, add the two secrets to `/opt/tartly/runtime/.env`, and restart the
+  app. Until then `/app` cannot be demonstrated.
+- **N/A:** full `pnpm gate` for this deployment-only slice — the VPS Docker
+  build ran TypeScript and the production `next build` successfully, but the
+  test, coverage, and lint gate was not rerun.
+
 ## 2026-11-11 — EvilCharts-style ECharts blocks in the preview and the app
 
 - Added `echarts@6.1.0` and one lazy loader (`src/components/charts/echarts`)
