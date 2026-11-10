@@ -105,7 +105,9 @@ test('creates a session and returns to the sealed app return URL', async () => {
 test('rejects a callback whose URL state does not match the signed cookie', async () => {
   const response = await GET(callbackRequest('state-value', 'state=other-state&code=code'));
 
-  expect(response.headers.get('location')).toBe('https://tartly.test/login?error=invalid-state');
+  expect(response.headers.get('location')).toBe(
+    'https://tartly.test/login?error=invalid-state&returnUrl=%2Fapp',
+  );
   expect(exchangeGoogleCode).not.toHaveBeenCalled();
 });
 
