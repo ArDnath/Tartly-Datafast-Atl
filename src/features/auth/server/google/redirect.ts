@@ -33,10 +33,7 @@ export function redirectToLogin(
 ) {
   const url = new URL('/login', getPublicOrigin(request));
   url.searchParams.set('error', error);
-
-  if (returnUrl) {
-    url.searchParams.set('returnUrl', sanitizeAuthReturnUrl(returnUrl));
-  }
+  url.searchParams.set('returnUrl', sanitizeAuthReturnUrl(returnUrl));
 
   return withNoStore(appendCookies(NextResponse.redirect(url), cookies));
 }
