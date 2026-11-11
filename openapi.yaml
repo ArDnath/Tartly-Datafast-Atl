@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
-  title: RevenueLens API
+  title: Tartly API
   version: 1.0.0
   description: |
-    Public and operator API surfaces for RevenueLens. The analytics dashboard
+    Public and operator API surfaces for Tartly. The analytics dashboard
     uses cookie-authenticated internal routes that are documented by their
     handler tests; this contract covers the integration, developer, billing,
     and operator endpoints that external clients use.
@@ -18,8 +18,8 @@ info:
     All responses that contain an error use
     `{ "error": { "code", "message", "status" } }`.
 servers:
-  - url: https://revenuelens.app
-    description: Production placeholder; replace with the real domain.
+  - url: https://tartly.in
+    description: Production.
   - url: http://localhost:3000
     description: Local development.
 tags:
@@ -46,7 +46,7 @@ paths:
                 required: [ok, service, version]
                 properties:
                   ok: { type: boolean, const: true }
-                  service: { type: string, const: revenuelens }
+                  service: { type: string, const: tartly }
                   version: { type: string }
 
   /api/health/ready:
