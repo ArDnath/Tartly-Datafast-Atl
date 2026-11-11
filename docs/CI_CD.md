@@ -217,10 +217,11 @@ not a constraint today.
 Status-check contexts are the job names, not `CI / <job>`: a ruleset matches the
 check run exactly, and a wrong string silently blocks every merge.
 
-The `production` environment stores the deploy secrets and has no required
-reviewer by design: the deploy is already limited to `main` after green CI, and a
-solo maintainer cannot approve their own deployment. Add a reviewer when a
-second deployer exists.
+The `production` environment requires the repository owner as a reviewer and
+restricts deployments to protected branches (`main`). `prevent_self_review` is
+false, so a solo maintainer can approve their own deployment; enable
+self-review prevention when a second deployer exists. The deploy job also runs
+only after a successful `main` CI.
 
 ## Dependency policy
 

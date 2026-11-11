@@ -43,12 +43,12 @@
   review, and Trivy filesystem/container scans. On the public repository,
   CodeQL, dependency review, and SARIF upload all run; the `Verify` job also
   publishes coverage in the run summary.
-- Production deploy: the last recorded successful deploy was run 42397381387
-  for `04d7023`; `/api/health/live` and `/api/health/ready` returned 200 with
-  `version: 04d7023`. Runs after that fail at `git fetch` because the host clone
-  uses an HTTPS remote with no credentials; the fix is a read-only SSH deploy
-  key (`docs/CI_CD.md` → Host repository access). The `production` environment
-  reviewer is not configured; the `main` ruleset is active.
+- Production deploy: the last successful recorded deploy was run 42397381387
+  for `04d7023`. The 2026-11-11 failures were caused by an HTTPS clone of a
+  private repository; the repository is now public, so the host can fetch
+  anonymously, and the deploy run waits for the required `production`
+  environment approval. The environment also restricts deployments to `main`;
+  the `main` ruleset is active.
 - Delivery history: six phase branches delivered through pull requests #1–#6;
   the next slices follow the same feature-branch → PR → merge loop.
 - Runtime smoke: the public docs routes return 200, and `/app/settings`,
@@ -85,6 +85,23 @@ code:
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
 
+## 2026-11-11 — CodeQL error remediation and merge-gate rollout
+
+- Fixed the two CodeQL error alerts: `js/redos` in `DOMAIN_REGEX` (bounded
+  labels and a hard dot separator replace the nested quantifiers) and
+  `js/log-injection` in the local LemonSqueezy proxy (fixed log message instead
+  of the raw error object). Added a ReDoS regression test.
+- Applied the checked-in merge gate to the now-public repository: ruleset
+  `main-protection` (id 27043347) is active, and `delete_branch_on_merge` is
+  enabled. A full-history gitleaks audit found 13 `generic-api-key` entries,
+  all fake test fixtures in upstream test files (no real credentials).
+- Remaining CodeQL inventory: 20 warnings plus a MEDIUM zlib CVE in the
+  container image (fix `1.4-r0` is not yet in the Alpine 3.24 repository);
+  tracked as follow-up work, none blocks CI.
+- Verified: `pnpm gate` exit 0 on the fix branch — 203 test files passed /
+  1 gated skip, 936 tests passed / 1 skipped, coverage 66.17% statements /
+  55.05% branches / 63.41% functions / 66.59% lines, build green.
+
 ## 2026-11-11 — CI merge gate, deploy access preflight, coverage summary
 
 - Checked in a `main` repository ruleset
@@ -117,8 +134,9 @@ shutdown or destructive action should be taken based on this tracker.
   (`main-protection`, id 27043347). A full-history gitleaks audit found 13
   `generic-api-key` entries, all fake test fixtures in upstream test files (no
   real credentials).
-- **Pending human action (external):** add the VPS read-only deploy key and
-  switch `/opt/tartly/app` `origin` to SSH, then re-run the deploy workflow.
+- **Pending human action (external):** approve the waiting production
+  deployment. A read-only VPS deploy key remains recommended so the host does
+  not depend on anonymous public fetches.
 
 ## 2026-11-11 — PR queue recovery and launch experience delivery
 
