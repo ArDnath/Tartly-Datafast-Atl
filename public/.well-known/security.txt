@@ -1,5 +1,5 @@
-Contact: mailto:support@revenuelens.app
+Contact: mailto:support@tartly.in
 Expires: 2027-11-06T00:00:00.000Z
 Preferred-Languages: en
-Canonical: https://revenuelens.app/.well-known/security.txt
-Policy: https://revenuelens.app/legal/acceptable-use
+Canonical: https://tartly.in/.well-known/security.txt
+Policy: https://tartly.in/legal/acceptable-use
