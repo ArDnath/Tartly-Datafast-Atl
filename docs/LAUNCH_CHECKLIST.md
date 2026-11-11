@@ -127,10 +127,10 @@ human action. No launch claim is allowed without a stored result.
   environment secrets/variables, and deploy run 42397381387 for
   `04d7023`. `/api/health/live` and `/api/health/ready` return 200 with the
   deployed version; `/api/health/ready` reports `database: up`.
-- [x] Production environment requires a reviewer with admin bypass disabled;
-  `main` requires the Verify, Security, and Container checks, resolved
-  conversations, and rejects force-pushes and branch deletion
-  (`docs/CI_CD.md`).
+- [x] Production environment restricts deployments to `main` and has no
+  reviewer gate, so a green merge deploys automatically; `main` requires the
+  Verify, Security, and Container checks, resolved conversations, and rejects
+  force-pushes and branch deletion (`docs/CI_CD.md`).
 
 ## Go-to-market
 

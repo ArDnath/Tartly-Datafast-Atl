@@ -1,8 +1,9 @@
 name: Deploy production
 
-# Runs only after CI succeeds for a push to main. It is intentionally
+# Runs automatically after CI succeeds for a push to main. It is intentionally
 # disabled until the operator creates the production environment and the
 # deployment secrets, then sets the repository variable DEPLOY_ENABLED=true.
+# The production environment has no reviewer gate: a green merge deploys.
 on:
   workflow_run:
     workflows: [CI]

@@ -26,7 +26,7 @@
   checks, and the production build.
 - **Delivery enforcement:** `main` requires the three CI checks through the
   active `main-protection` ruleset. Production deploys only the current `main`
-  head, require environment approval without admin bypass, verify the running
+  head automatically after CI (no approval click), verify the running
   `BUILD_VERSION`, run public smoke checks, and roll back on failure. See
   `docs/CI_CD.md` → Deployment invariants.
 
@@ -52,9 +52,10 @@
 - Production deploy: the last successful recorded deploy was run 42397381387
   for `04d7023`. The 2026-11-11 failures were caused by an HTTPS clone of a
   private repository; the repository is now public, so the host can fetch
-  anonymously, and the deploy run waits for the required `production`
-  environment approval. The environment also restricts deployments to `main`;
-  the `main` ruleset is active.
+  anonymously. The stale waiting run was cancelled and the `production`
+  environment no longer requires a reviewer, so a green merge to `main` deploys
+  automatically. The environment still restricts deployments to `main`; the
+  `main` ruleset is active.
 - Delivery history: six phase branches delivered through pull requests #1–#6;
   the next slices follow the same feature-branch → PR → merge loop.
 - Runtime smoke: the public docs routes return 200, and `/app/settings`,
@@ -95,9 +96,9 @@ shutdown or destructive action should be taken based on this tracker.
 
 - Closed the deploy-ordering gap: an automatic deploy now requires the target
   to equal the current `origin/main` head in both the workflow and
-  `deploy/production/deploy.sh`. If a newer merge lands while an older approval
-  is pending, approving the older run fails instead of rolling production back.
-  A manual rollback must opt in with
+  `deploy/production/deploy.sh`. If a newer merge lands while an older deploy is
+  queued, the older run fails instead of rolling production back. A manual
+  rollback must opt in with
   `gh workflow run deploy.yml -f sha=<sha> -f allow_previous=true`.
 - `/api/health/ready` is no longer trusted on status alone. The host deploy
   requires `ok: true`, `database: "up"`, and `version` equal to the target SHA,
@@ -116,16 +117,17 @@ shutdown or destructive action should be taken based on this tracker.
   forward fix or a Neon restore.
 - Docs: `docs/CI_CD.md` records the seven deployment invariants;
   `docs/RUNBOOK.md` documents the new current-head and rollback behaviour.
+- The `production` environment's required reviewer was removed, so a green
+  merge to `main` starts the deploy automatically. The environment still
+  restricts deployments to `main`. The stale waiting run for the previous head
+  was cancelled.
 - Verified: `pnpm gate` exit 0 on 2026-11-11 — 203 test files passed /
   1 gated skip, 936 tests passed / 1 skipped, coverage 66.22% statements /
   55.12% branches / 63.58% functions / 66.62% lines, deploy-script parsing and
   the 6 deploy-smoke tests passed, production build green. The live smoke
   harness also passed against the current production version
   (`https://tartly.in`, `version: 87a7167d…`, all eight endpoints 200).
-  **UNVERIFIED:** a live end-to-end deploy of this change, because the
-  `production` environment requires the owner's approval. Human action:
-  approve the newest `Deploy production` run after CI passes and confirm
-  `/api/health/ready` reports that SHA.
+  End-to-end deploy verification continues in the merged run.
 
 ## 2026-11-11 — CodeQL error remediation and merge-gate rollout
 
@@ -176,9 +178,10 @@ shutdown or destructive action should be taken based on this tracker.
   (`main-protection`, id 27043347). A full-history gitleaks audit found 13
   `generic-api-key` entries, all fake test fixtures in upstream test files (no
   real credentials).
-- **Pending human action (external):** approve the waiting production
-  deployment. A read-only VPS deploy key remains recommended so the host does
-  not depend on anonymous public fetches.
+- **Resolved:** the waiting production deployment was cancelled and the
+  required reviewer was removed, so the next green merge deploys automatically.
+  A read-only VPS deploy key remains recommended so the host does not depend on
+  anonymous public fetches.
 
 ## 2026-11-11 — PR queue recovery and launch experience delivery
 

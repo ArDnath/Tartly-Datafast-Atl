@@ -7,15 +7,14 @@ secrets into a ticket or chat.
 ## 1. Deploy
 
 Automatic path: merge a green PR to `main`. The `CI` workflow must pass, then
-`Deploy production` runs `deploy/production/deploy.sh` for the exact merged SHA
-after the `production` environment approval. It builds an immutable image tagged
-with the commit SHA, runs `prisma migrate deploy`, restarts only the app
-container, waits for `/api/health/ready` to report the exact new SHA, and runs
-the public smoke checks. See `docs/CI_CD.md` for the one-time host and secret
-setup.
+`Deploy production` starts automatically for the exact merged SHA. It builds an
+immutable image tagged with the commit SHA, runs `prisma migrate deploy`,
+restarts only the app container, waits for `/api/health/ready` to report the
+exact new SHA, and runs the public smoke checks. See `docs/CI_CD.md` for the
+one-time host and secret setup.
 
-An automatic deploy is refused if a newer commit reached `main` while approval
-was pending. Approve the newest run; do not approve the stale one.
+An automatic deploy is refused if a newer commit reached `main` before it
+started. The newest deploy wins; the stale run fails without touching the host.
 
 Manual path (same script, same guarantees):
 

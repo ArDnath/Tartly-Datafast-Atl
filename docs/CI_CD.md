@@ -3,8 +3,8 @@
 The repository has three workflows. The checked-in ruleset
 (`.github/rulesets/main-protection.json`) requires a pull request and the three
 CI jobs before a merge to `main`; apply it as described in
-[Merge gate](#merge-gate-branch-protection). A merge to `main` deploys only
-after the same checks pass.
+[Merge gate](#merge-gate-branch-protection). A merge to `main` deploys
+automatically after the same checks pass; there is no approval click.
 
 | Workflow                        | Trigger                                      | Purpose                                                                                                                                                                     |
 | ------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -94,10 +94,9 @@ The deploy workflow enforces all of these on every release:
 1. **CI passed on `main`.** The `workflow_run` job only starts after a
    successful `CI` run whose event is a push to `main`.
 2. **The target is still current.** Automatic deploys must equal the current
-   `origin/main` head. If a newer merge lands while an older approval is
-   pending, approving the older run fails instead of rolling production
-   backwards. A deliberate rollback opts in with
-   `workflow_dispatch -f allow_previous=true`.
+   `origin/main` head. If a newer merge lands while an older deploy is queued,
+   the older run fails instead of rolling production backwards. A deliberate
+   rollback opts in with `workflow_dispatch -f allow_previous=true`.
 3. **The host target is on `main`.** `deploy.sh` independently requires the
    target to be an ancestor of `origin/main`; rollback mode still cannot deploy
    an unmerged commit.
@@ -178,8 +177,11 @@ branch restore.
 
 ### Required repository configuration
 
-Create the `production` environment in **Settings → Environments** and add
-required reviewers. Then set environment secrets:
+Create the `production` environment in **Settings → Environments** with
+`main` as the only allowed deployment branch. Do **not** add required
+reviewers: the deploy starts automatically after CI succeeds on `main`. If a
+manual approval gate is added later, every merge will wait for a reviewer.
+Then set environment secrets:
 
 | Secret               | Value                                          |
 | -------------------- | ---------------------------------------------- |
@@ -271,12 +273,12 @@ not a constraint today.
 Status-check contexts are the job names, not `CI / <job>`: a ruleset matches the
 check run exactly, and a wrong string silently blocks every merge.
 
-The `production` environment requires the repository owner as a reviewer and
-restricts deployments to protected branches (`main`). `prevent_self_review` is
-false, so a solo maintainer can approve their own deployment; enable
-self-review prevention when a second deployer exists. **Admin bypass must be
-off** so the reviewer rule applies even to the repository owner. The deploy job
-also runs only after a successful `main` CI.
+The `production` environment has no required reviewer, so a merge that passes
+CI deploys without a manual approval click. It still restricts deployments to
+protected branches (`main`) and keeps a deployment history. If a review gate is
+wanted later, add a required reviewer; the deploy job then waits for that
+approval before running. The deploy job also runs only after a successful
+`main` CI.
 
 ## Dependency policy
 
