@@ -35,21 +35,24 @@ class ResizeObserver {
   disconnect() {}
 }
 
-class IntersectionObserver {
-  readonly root = null;
+class IntersectionObserverMock implements IntersectionObserver {
+  readonly root: Element | Document | null = null;
   readonly rootMargin = '';
-  readonly thresholds = [];
+  readonly scrollMargin = '';
+  readonly thresholds: readonly number[] = [];
+
+  constructor(_callback: IntersectionObserverCallback, _options?: IntersectionObserverInit) {}
 
   observe() {}
   unobserve() {}
   disconnect() {}
-  takeRecords() {
+  takeRecords(): IntersectionObserverEntry[] {
     return [];
   }
 }
 
 window.ResizeObserver = ResizeObserver;
-window.IntersectionObserver = IntersectionObserver;
+window.IntersectionObserver = IntersectionObserverMock;
 
 afterEach(() => {
   cleanup();
