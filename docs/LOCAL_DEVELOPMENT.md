@@ -3,12 +3,12 @@
 This repository can run its full analytics loop on an 8 GB machine without
 Docker. The default local stack is:
 
-| Process | Approx. RAM | Required |
-| --- | --- | --- |
-| Next.js dev server (Turbopack) | 1.0–1.3 GB | yes |
-| PostgreSQL (user-owned cluster) | 150–250 MB | yes, unless you use Neon |
-| Redis | 0 | no; the app falls back to PostgreSQL |
-| ClickHouse / Kafka | 0 | no; this fork does not provision them |
+| Process                         | Approx. RAM | Required                              |
+| ------------------------------- | ----------- | ------------------------------------- |
+| Next.js dev server (Turbopack)  | 1.0–1.3 GB  | yes                                   |
+| PostgreSQL (user-owned cluster) | 150–250 MB  | yes, unless you use Neon              |
+| Redis                           | 0           | no; the app falls back to PostgreSQL  |
+| ClickHouse / Kafka              | 0           | no; this fork does not provision them |
 
 No Docker daemon, no ClickHouse container, and no Kafka broker are needed for
 local analytics development.
@@ -254,17 +254,17 @@ NODE_OPTIONS="--max-old-space-size=1536" pnpm dev:local
 
 ## 6. Troubleshooting
 
-| Symptom | Cause / fix |
-| --- | --- |
-| `role "talivia" does not exist` | The port is served by a different PostgreSQL instance. Check `pnpm db:local status`, or change the port in `.env` and run `pnpm db:local reset`. |
-| `port 5433 already in use` | Another Postgres is running. Either use it (if it has the role/database) or stop it, then `pnpm db:local reset`. |
-| `ECONNREFUSED 127.0.0.1:5433` | Local cluster is stopped. Run `pnpm db:local start`. |
-| `{"beep":"boop"}` from `/api/send` | `isbot` detected the client. Send a browser `User-Agent` or set `DISABLE_BOT_CHECK=true` in `.env` for local testing. |
-| ClickHouse migration skipped | Expected. `CLICKHOUSE_URL` is unset in local development. |
-| Email not delivered | Expected locally. Read `.dev-emails/outbox.log`. |
-| First page load is slow | Turbopack compiles routes on demand. Later requests are fast. |
-| Neon query is slow after idle | Neon compute woke up. Retry; the app retries idempotent reads. |
-| `APP_SECRET must be ...` | `.env` has a missing/placeholder secret. Generate one with `openssl rand -hex 32`. |
+| Symptom                            | Cause / fix                                                                                                                                      |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `role "talivia" does not exist`    | The port is served by a different PostgreSQL instance. Check `pnpm db:local status`, or change the port in `.env` and run `pnpm db:local reset`. |
+| `port 5433 already in use`         | Another Postgres is running. Either use it (if it has the role/database) or stop it, then `pnpm db:local reset`.                                 |
+| `ECONNREFUSED 127.0.0.1:5433`      | Local cluster is stopped. Run `pnpm db:local start`.                                                                                             |
+| `{"beep":"boop"}` from `/api/send` | `isbot` detected the client. Send a browser `User-Agent` or set `DISABLE_BOT_CHECK=true` in `.env` for local testing.                            |
+| ClickHouse migration skipped       | Expected. `CLICKHOUSE_URL` is unset in local development.                                                                                        |
+| Email not delivered                | Expected locally. Read `.dev-emails/outbox.log`.                                                                                                 |
+| First page load is slow            | Turbopack compiles routes on demand. Later requests are fast.                                                                                    |
+| Neon query is slow after idle      | Neon compute woke up. Retry; the app retries idempotent reads.                                                                                   |
+| `APP_SECRET must be ...`           | `.env` has a missing/placeholder secret. Generate one with `openssl rand -hex 32`.                                                               |
 
 ---
 
