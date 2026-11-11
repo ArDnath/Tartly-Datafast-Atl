@@ -13,6 +13,7 @@
  * http://localhost:3000). Each new run creates a fresh account, so repeated
  * runs are limited by the register rate limit (5 per IP per hour).
  */
+import { randomUUID } from 'node:crypto';
 import 'dotenv/config';
 
 const baseUrl = (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
@@ -121,7 +122,7 @@ async function ensureWebsite() {
 }
 
 async function sendEvent(website) {
-  const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const suffix = `${Date.now()}-${randomUUID().slice(0, 8)}`;
 
   const result = await api('/api/send', {
     method: 'POST',

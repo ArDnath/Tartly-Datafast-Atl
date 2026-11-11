@@ -30,13 +30,15 @@ const defaultPackage = {
   },
 };
 
-if (!fs.existsSync(distDir)) {
-  fs.mkdirSync(distDir);
-}
+fs.mkdirSync(distDir, { recursive: true });
 
-const pkg = fs.existsSync(packageFile)
-  ? JSON.parse(fs.readFileSync(packageFile, 'utf8'))
-  : defaultPackage;
+let pkg = defaultPackage;
+
+try {
+  pkg = JSON.parse(fs.readFileSync(packageFile, 'utf8'));
+} catch {
+  // The package manifest is created on the first component build.
+}
 
 let published = '0.0.0';
 

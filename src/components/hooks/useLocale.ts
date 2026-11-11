@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { LOCALE_CONFIG } from '@/lib/constants';
 import { httpGet } from '@/lib/fetch';
-import { getDateLocale, getTextDirection } from '@/lib/lang';
+import { getDateLocale, getTextDirection, languages } from '@/lib/lang';
 import { setItem } from '@/lib/storage';
 import { setLocale, useApp } from '@/store/app';
 import enUS from '../../../public/intl/messages/en-US.json';
@@ -20,12 +20,16 @@ export function useLocale() {
   const dateLocale = getDateLocale(locale);
 
   async function loadMessages(locale: string) {
+    if (!Object.hasOwn(languages, locale)) return;
+
     const { data } = await httpGet(`/intl/messages/${locale}.json`);
 
     messages[locale] = data;
   }
 
   async function saveLocale(value: string) {
+    if (!Object.hasOwn(languages, value)) return;
+
     if (!messages[value]) {
       await loadMessages(value);
     }

@@ -38,24 +38,23 @@
 - Overall percent (average of phases 0–12): **94%**
 - Build state at last check: **green** — `pnpm gate` (Biome format, Biome
   lint, `tsc --noEmit`, coverage-enforced tests, production build) passes.
-  Latest local full run (2026-11-09): **193 test files passed / 1 gated skip**,
-  **889 tests passed / 1 skipped**, coverage **67.81% statements / 56.20%
-  branches / 63.90% functions / 68.16% lines**, plus the explicit 48-assertion
+  Latest local full run (2026-11-11): **203 test files passed / 1 gated skip**,
+  **936 tests passed / 1 skipped**, coverage **66.20% statements / 55.07%
+  branches / 63.58% functions / 66.61% lines**, plus the explicit 48-assertion
   PostgreSQL analytics smoke and the recorded load probe.
-- GitHub CI: **green on `main`** (run 43011857299 for `04c3d4e`). The three-job
+- GitHub CI: **green on `main`** (run 43066591765 for `619099b`). The three-job
   pipeline starts PostgreSQL 17, runs format, lint, typecheck, coverage tests,
   a clean production dependency audit, `prisma migrate deploy`, the Phase 7
   analytics smoke, and `pnpm build`, then runs gitleaks, CodeQL, dependency
   review, and Trivy filesystem/container scans. On the public repository,
   CodeQL, dependency review, and SARIF upload all run; the `Verify` job also
   publishes coverage in the run summary.
-- Production deploy: the last successful recorded deploy was run 42397381387
-  for `04d7023`. The 2026-11-11 failures were caused by an HTTPS clone of a
-  private repository; the repository is now public, so the host can fetch
-  anonymously. The stale waiting run was cancelled and the `production`
-  environment no longer requires a reviewer, so a green merge to `main` deploys
-  automatically. The environment still restricts deployments to `main`; the
-  `main` ruleset is active.
+- Production deploy: the first automatic post-merge deploy, run 43068497241 for
+  `main` at `619099b`, succeeded in 10m05s. `/api/health/ready` returned
+  `version: 619099b94157579f2570a8767097cbd5454a3a36`, `database: "up"`, and
+  the post-deploy smoke job passed. The earlier HTTPS-clone failures remain
+  resolved by the host's read-only SSH deploy key. The `production` environment
+  still restricts deployments to `main`; the `main` ruleset is active.
 - Delivery history: six phase branches delivered through pull requests #1–#6;
   the next slices follow the same feature-branch → PR → merge loop.
 - Runtime smoke: the public docs routes return 200, and `/app/settings`,
@@ -91,6 +90,35 @@ code:
 
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
+
+## 2026-11-11 — Automatic CD verified on Ubuntu 26.04; security alert remediation
+
+- CD is live: merging PR #44 started CI 43066591765 and deploy 43068497241. The
+  deploy built `tartly-app:619099b…`, ran migrations, restarted only the app,
+  verified the exact-SHA readiness payload, and passed the eight-route public
+  smoke. Production is healthy at `619099b…`.
+- Both SSH directions are verified: GitHub Actions → VPS uses
+  `DEPLOY_SSH_KEY` (the `github-actions-tartly` key is present in
+  `/home/deploy/.ssh/authorized_keys`), and VPS → GitHub uses the
+  `tartly-vps-deploy` read-only deploy key (`ssh -T` reports the repository).
+  The host remote is `git@github.com:…`, not HTTPS.
+- Host baseline: Ubuntu 26.04.1 LTS, Docker 29.9.2, Compose v5.6.1, UFW only
+  22/80/443, password SSH disabled, unattended-upgrades and fail2ban active,
+  `/opt/tartly/runtime/.env` mode 600 owned by `deploy`. Two stray manual Caddy
+  containers that published 8080/8443 outside the compose stack were stopped;
+  8080 is no longer externally reachable. BuildKit cache was pruned from 50.9GB
+  to 10.5GB (disk 70% → 32%).
+- Security branch `fix/security-alerts`: local `pnpm gate` exit 0 — 203 test
+  files passed / 1 skip, 936 tests passed / 1 skip, coverage 66.20/55.07/63.58/
+  66.61, production build green. `pnpm audit --prod` reports 0; the full audit
+  is down from 8 findings to 1 accepted dev-only `deepmerge` advisory. `tsup` 9
+  removes the vulnerable `glob`/`minimatch` chain; overrides pin
+  `postcss-selector-parser` 6.1.5/7.1.6 and `diff` 4.0.4. CodeQL fixes cover
+  insecure randomness, ReDoS, SQL escaping, locale property injection, the
+  file-system race, and redundant assignments. The Dockerfile runs `apk upgrade`
+  to pick up zlib 1.4-r0 (CVE-2026-4738). Final GitHub alert close/dismissal is
+  verified after the merge scan; the accepted/false-positive reasons are in
+  `docs/SECURITY_REVIEW.md`.
 
 ## 2026-11-11 — CD enforcement: current-head deploy, exact-SHA readiness, public smoke
 

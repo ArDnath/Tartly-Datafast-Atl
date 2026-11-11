@@ -403,9 +403,8 @@ const Grainient = ({
       const cached = colorCache.get(key);
       if (cached) return cached;
       let rgb = [0, 0, 0];
-      if (probe) {
+      if (probe && typeof CSS !== 'undefined' && CSS.supports('color', key)) {
         probe.clearRect(0, 0, 1, 1);
-        probe.fillStyle = '#000000';
         probe.fillStyle = key;
         probe.fillRect(0, 0, 1, 1);
         const [r, g, b] = probe.getImageData(0, 0, 1, 1).data;
@@ -679,8 +678,13 @@ const Grainient = ({
       wake();
     };
 
+    const createResizeObserver = (callback: ResizeObserverCallback) => {
+      // CodeQL's DOM model treats ResizeObserver as a zero-argument constructor.
+      // codeql[js/superfluous-trailing-arguments]
+      return new ResizeObserver(callback);
+    };
     const resizeObserver =
-      typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null;
+      typeof ResizeObserver !== 'undefined' ? createResizeObserver(resize) : null;
     resizeObserver?.observe(container);
     const intersection =
       typeof IntersectionObserver !== 'undefined'

@@ -132,7 +132,7 @@ export function Journey({ websiteId, steps, startStep, endStep, view }: JourneyP
         (sum: number, { selected, selectedCount, active, activeCount, totalCount }) => {
           if (!selectedNode) {
             sum += totalCount;
-          } else if (!activeNode && selectedNode && selected) {
+          } else if (!activeNode && selected) {
             sum += selectedCount;
           } else if (activeNode && active) {
             sum += activeCount;

@@ -50,6 +50,9 @@ ENV PATH="/app/node_modules/.bin:${PATH}"
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
+# Alpine 3.24 ships zlib 1.4-r0, which fixes CVE-2026-4738. The node base
+# image still carries 1.3.2-r1, so upgrade the runtime packages explicitly.
+RUN apk upgrade --no-cache
 RUN apk add --no-cache curl
 # The runtime only needs `node`. Removing npm and npx drops their bundled
 # dependency trees (and their advisories) from the shipped image.

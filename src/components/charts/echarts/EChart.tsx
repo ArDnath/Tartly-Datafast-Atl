@@ -138,6 +138,8 @@ export function EChart({ option, height = 220, className, style, ariaLabel }: EC
 
         chartRef.current = chart;
         chart.setOption(applyMotionPreference(optionRef.current));
+        // CodeQL's DOM model treats ResizeObserver as a zero-argument constructor.
+        // codeql[js/superfluous-trailing-arguments]
         resizeObserver = new ResizeObserver(() => chart.resize());
         resizeObserver.observe(containerRef.current);
         setIsReady(true);

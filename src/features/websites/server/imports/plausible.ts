@@ -133,7 +133,7 @@ function readNumber(row: Row, names: string[]) {
   const value = read(row, names);
   if (!value) return undefined;
 
-  const parsed = Number(value.replace(/[$,%\s,]/g, ''));
+  const parsed = Number(value.replace(/[$,%\s]/g, ''));
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 

@@ -40,7 +40,13 @@ const applyBackingSize = (width: number, height: number, devicePixelRatio: numbe
   offscreenCanvas.height = Math.round(height * devicePixelRatio);
 };
 
+const workerOrigin = self.location.origin;
+
 addEventListener('message', (event: MessageEvent<WelcomeHalftoneWorkerMessage>) => {
+  // A dedicated worker only accepts messages from its creating document, but
+  // reject a mismatched origin explicitly as defence in depth.
+  if (event.origin && event.origin !== workerOrigin) return;
+
   const message = event.data;
 
   if (message.type === 'init') {

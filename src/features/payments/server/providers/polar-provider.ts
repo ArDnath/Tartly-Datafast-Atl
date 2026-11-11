@@ -421,7 +421,7 @@ async function listPolarResource(
 ) {
   const items: Record<string, any>[] = [];
   let page = 1;
-  let maxPage = 1;
+  let maxPage: number;
   let reachedCutoff = false;
 
   do {

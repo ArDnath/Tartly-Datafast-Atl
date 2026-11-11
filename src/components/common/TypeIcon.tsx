@@ -6,7 +6,8 @@ function getIconName(type: 'browser' | 'country' | 'device' | 'os', value: strin
     .trim()
     .toLowerCase()
     .replace(/\W+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
 
   if (type !== 'os') {
     return normalized || 'unknown';
