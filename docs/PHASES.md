@@ -85,6 +85,23 @@ code:
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
 
+## 2026-11-11 — CodeQL error remediation and merge-gate rollout
+
+- Fixed the two CodeQL error alerts: `js/redos` in `DOMAIN_REGEX` (bounded
+  labels and a hard dot separator replace the nested quantifiers) and
+  `js/log-injection` in the local LemonSqueezy proxy (fixed log message instead
+  of the raw error object). Added a ReDoS regression test.
+- Applied the checked-in merge gate to the now-public repository: ruleset
+  `main-protection` (id 27043347) is active, and `delete_branch_on_merge` is
+  enabled. A full-history gitleaks audit found 13 `generic-api-key` entries,
+  all fake test fixtures in upstream test files (no real credentials).
+- Remaining CodeQL inventory: 20 warnings plus a MEDIUM zlib CVE in the
+  container image (fix `1.4-r0` is not yet in the Alpine 3.24 repository);
+  tracked as follow-up work, none blocks CI.
+- Verified: `pnpm gate` exit 0 on the fix branch — 203 test files passed /
+  1 gated skip, 936 tests passed / 1 skipped, coverage 66.17% statements /
+  55.05% branches / 63.41% functions / 66.59% lines, build green.
+
 ## 2026-11-11 — CI merge gate, deploy access preflight, coverage summary
 
 - Checked in a `main` repository ruleset
