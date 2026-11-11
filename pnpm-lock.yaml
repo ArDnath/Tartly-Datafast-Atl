@@ -170,10 +170,10 @@ importers:
         version: 5.0.8
       next:
         specifier: 16.4.5
-        version: 16.4.5(@types/node@24.19.2)(babel-plugin-react-compiler@19.1.0-rc.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        version: 16.4.5(@types/node@24.19.2)(babel-plugin-react-compiler@19.1.0-rc.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       next-intl:
         specifier: 4.14.9
-        version: 4.14.9(@swc/helpers@0.5.24)(@types/react@19.3.0)(next@16.4.5(@types/node@24.19.2)(babel-plugin-react-compiler@19.1.0-rc.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)
+        version: 4.14.9(@swc/helpers@0.5.24)(@types/react@19.3.0)(next@16.4.5(@types/node@24.19.2)(babel-plugin-react-compiler@19.1.0-rc.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)
       node-fetch:
         specifier: ^3.2.8
         version: 3.3.2
@@ -305,8 +305,8 @@ importers:
         specifier: 4.1.6
         version: 4.1.6(vitest@4.1.12)
       babel-plugin-react-compiler:
-        specifier: 19.1.0-rc.2
-        version: 19.1.0-rc.2
+        specifier: 19.1.0-rc.3
+        version: 19.1.0-rc.3
       cross-env:
         specifier: ^10.1.0
         version: 10.1.0
@@ -406,16 +406,8 @@ packages:
     resolution: {integrity: sha512-uMHhvmDmwFiLuiozaoRYTZHqMFuu3fem/X9JY78lohAuLoh8LSGGC8JqUzo2cVuBsBxkjMZNk56CE7ock8Xxkw==}
     engines: {node: ^22.18.0 || >=24.11.0}
 
-  '@babel/helper-string-parser@7.27.1':
-    resolution: {integrity: sha512-qMlSxKbpRlAridDExk92nSobyDdpPijUq2DW6oDnUqd0iOGxmQjyqhMIihI9+zv4LPyZdRje2cavWPbCbWm3eA==}
-    engines: {node: '>=6.9.0'}
-
   '@babel/helper-string-parser@7.29.13':
     resolution: {integrity: sha512-fWegr+WsEsiMVW4KUNdIIzzMTZSzNiqhy0//6+2MRi2d5NFNsL/AYwBQW8eBnRbTBVRnDVzjaJEUqKaCWjMMdQ==}
-    engines: {node: '>=6.9.0'}
-
-  '@babel/helper-validator-identifier@7.28.5':
-    resolution: {integrity: sha512-qSs4ifwzKJSV39ucNjsvc6WVHs6b7S03sOh2OcHF9UHfVPqWWALUsNUVzhSBiItjRZoLHx7nIarVjqKVusUZ1Q==}
     engines: {node: '>=6.9.0'}
 
   '@babel/helper-validator-identifier@7.29.7':
@@ -437,10 +429,6 @@ packages:
 
   '@babel/runtime@7.29.13':
     resolution: {integrity: sha512-v+oN26xP4YIlQsbQ/CbTH1WG5m/l/DjKKZNy/Kp3f/AFvbgt7Em/D0FeMM3O2hX0YzeN2M16W8lOpyhIkfCBcQ==}
-    engines: {node: '>=6.9.0'}
-
-  '@babel/types@7.28.2':
-    resolution: {integrity: sha512-ruv7Ae4J5dUYULmeXw1gmb7rYRz57OWCPM57pHojnLq/3Z1CK2lNSLTCVjxVk1F/TZHwOZZrOWi0ur95BbLxNQ==}
     engines: {node: '>=6.9.0'}
 
   '@babel/types@7.29.11':
@@ -2507,8 +2495,8 @@ packages:
     resolution: {integrity: sha512-NZKeq9AfyQvEeNlN0zSYAaWrmBffJh3IELMZfRpJVWgrpEbtEpnjvzqBPf+mxoI287JohRDoa+/nsfqqiZmF6g==}
     engines: {node: '>= 6.0.0'}
 
-  babel-plugin-react-compiler@19.1.0-rc.2:
-    resolution: {integrity: sha512-kSNA//p5fMO6ypG8EkEVPIqAjwIXm5tMjfD1XRPL/sRjYSbJ6UsvORfaeolNWnZ9n310aM0xJP7peW26BuCVzA==}
+  babel-plugin-react-compiler@19.1.0-rc.3:
+    resolution: {integrity: sha512-mjRn69WuTz4adL0bXGx8Rsyk1086zFJeKmes6aK0xPuK3aaXmDJdLHqwKKMrpm6KAI1MCoUK72d2VeqQbu8YIA==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -5712,11 +5700,7 @@ snapshots:
       js-tokens: 10.0.0
     optional: true
 
-  '@babel/helper-string-parser@7.27.1': {}
-
   '@babel/helper-string-parser@7.29.13': {}
-
-  '@babel/helper-validator-identifier@7.28.5': {}
 
   '@babel/helper-validator-identifier@7.29.7': {}
 
@@ -5730,11 +5714,6 @@ snapshots:
   '@babel/runtime@7.28.3': {}
 
   '@babel/runtime@7.29.13': {}
-
-  '@babel/types@7.28.2':
-    dependencies:
-      '@babel/helper-string-parser': 7.27.1
-      '@babel/helper-validator-identifier': 7.28.5
 
   '@babel/types@7.29.11':
     dependencies:
@@ -7511,9 +7490,9 @@ snapshots:
 
   aws-ssl-profiles@1.1.2: {}
 
-  babel-plugin-react-compiler@19.1.0-rc.2:
+  babel-plugin-react-compiler@19.1.0-rc.3:
     dependencies:
-      '@babel/types': 7.28.2
+      '@babel/types': 7.29.11
 
   balanced-match@1.0.2: {}
 
@@ -8984,7 +8963,7 @@ snapshots:
 
   next-intl-swc-plugin-extractor@4.14.9: {}
 
-  next-intl@4.14.9(@swc/helpers@0.5.24)(@types/react@19.3.0)(next@16.4.5(@types/node@24.19.2)(babel-plugin-react-compiler@19.1.0-rc.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1):
+  next-intl@4.14.9(@swc/helpers@0.5.24)(@types/react@19.3.0)(next@16.4.5(@types/node@24.19.2)(babel-plugin-react-compiler@19.1.0-rc.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1):
     dependencies:
       '@eloqnt/config': 0.1.1
       '@eloqnt/format-json': 0.1.0
@@ -8994,7 +8973,7 @@ snapshots:
       '@swc/core': 1.16.22(@swc/helpers@0.5.24)
       icu-minify: 4.14.10
       negotiator: 1.0.0
-      next: 16.4.5(@types/node@24.19.2)(babel-plugin-react-compiler@19.1.0-rc.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      next: 16.4.5(@types/node@24.19.2)(babel-plugin-react-compiler@19.1.0-rc.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       next-intl-swc-plugin-extractor: 4.14.9
       react: 19.3.1
       use-intl: 4.14.10(@types/react@19.3.0)(react@19.3.1)
@@ -9003,7 +8982,7 @@ snapshots:
     transitivePeerDependencies:
       - '@swc/helpers'
 
-  next@16.4.5(@types/node@24.19.2)(babel-plugin-react-compiler@19.1.0-rc.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
+  next@16.4.5(@types/node@24.19.2)(babel-plugin-react-compiler@19.1.0-rc.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
     dependencies:
       '@next/env': 16.4.5
       '@swc/helpers': 0.5.23
@@ -9022,7 +9001,7 @@ snapshots:
       '@next/swc-linux-x64-musl': 16.4.5
       '@next/swc-win32-arm64-msvc': 16.4.5
       '@next/swc-win32-x64-msvc': 16.4.5
-      babel-plugin-react-compiler: 19.1.0-rc.2
+      babel-plugin-react-compiler: 19.1.0-rc.3
       sharp: 0.35.5(@types/node@24.19.2)
     transitivePeerDependencies:
       - '@babel/core'
