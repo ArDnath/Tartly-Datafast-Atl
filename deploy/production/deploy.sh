@@ -99,6 +99,28 @@ rollback() {
 cd "$APP_DIR"
 PREVIOUS_SHA=$(git rev-parse HEAD)
 
+# Never wait on a credential prompt. The host reads the repository through a
+# read-only SSH deploy key configured in the deploy user's ~/.ssh/config. An
+# HTTPS remote with no credential helper must fail fast with a fixable error,
+# not hang until the CI job times out.
+export GIT_TERMINAL_PROMPT=0
+export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"
+
+ORIGIN_URL=$(git remote get-url origin 2>/dev/null || true)
+[ -n "$ORIGIN_URL" ] || die "no 'origin' remote configured in $APP_DIR"
+
+if ! git ls-remote --exit-code --heads origin main >/dev/null 2>&1; then
+  log "ERROR: cannot read origin/main from '$ORIGIN_URL' (missing key or network error)"
+  log "The deploy user must fetch this repository non-interactively."
+  log "One-time fix, as the deploy user:"
+  log "  1. ssh-keygen -t ed25519 -N '' -C tartly-vps-deploy -f ~/.ssh/id_ed25519_github"
+  log "  2. add ~/.ssh/id_ed25519_github.pub to the repository as a READ-ONLY deploy key"
+  log "  3. ~/.ssh/config: Host github.com / User git / IdentityFile ~/.ssh/id_ed25519_github / IdentitiesOnly yes"
+  log "  4. git remote set-url origin git@github.com:<owner>/<repo>.git"
+  log "Never embed a personal access token in the remote URL. See docs/CI_CD.md."
+  die "repository access preflight failed"
+fi
+
 log "fetching origin/main"
 git fetch --prune origin '+refs/heads/main:refs/remotes/origin/main'
 
