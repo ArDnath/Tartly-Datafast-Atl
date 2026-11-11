@@ -1,0 +1,191 @@
+.page {
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 48px 20px;
+  background-color: var(--talivia-app-background);
+  background-image:
+    radial-gradient(720px 440px at 50% -8%, var(--rl-app-glow), transparent 72%),
+    radial-gradient(900px 520px at 50% 112%, var(--rl-app-glow-cool), transparent 68%),
+    radial-gradient(circle, var(--rl-app-dot) 0.6px, transparent 1.2px);
+  background-size:
+    auto,
+    auto,
+    var(--rl-app-dot-size) var(--rl-app-dot-size);
+  color: var(--text-primary);
+}
+
+.card {
+  display: flex;
+  width: min(100%, 440px);
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.lockup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.title {
+  margin: 4px 0 0;
+  font-size: clamp(1.75rem, 5vw, 2.35rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+}
+
+.subtitle {
+  max-width: 360px;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.summary {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  border: 1px solid var(--talivia-card-border);
+  border-radius: 16px;
+  background-color: var(--talivia-card-background);
+  background-image: linear-gradient(180deg, var(--rl-panel-sheen) 0, transparent 112px);
+  text-align: left;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.row strong {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.price {
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.spinnerRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid color-mix(in srgb, var(--accent-text) 28%, transparent);
+  border-top-color: var(--accent-text);
+  border-radius: 999px;
+  animation: spin 720ms linear infinite;
+}
+
+.error {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--status-error);
+  border-radius: 12px;
+  background: var(--status-error-bg);
+  color: var(--status-error-text);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  padding: 0 16px;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+.primary {
+  border: 1px solid transparent;
+  background: var(--accent-text);
+  color: var(--talivia-app-background);
+}
+
+.secondary {
+  border: 1px solid var(--talivia-card-border);
+  background: var(--talivia-card-background);
+  color: var(--text-primary);
+}
+
+@media (hover: hover) {
+  .primary:hover {
+    transform: translateY(-1px);
+  }
+
+  .secondary:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-hover);
+  }
+}
+
+.primary:focus-visible,
+.secondary:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 1600ms;
+  }
+
+  .primary,
+  .secondary {
+    transition: none;
+  }
+}

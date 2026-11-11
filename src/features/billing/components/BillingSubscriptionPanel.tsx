@@ -4,12 +4,28 @@ import { Button, Column, Grid, Heading, Row, Text, useToast } from '@talivia/rea
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useApi } from '@/components/hooks';
+import {
+  type BillingProductAvailability,
+  isBillingProductAvailable,
+} from '@/features/billing/lib/access';
 import type { BillingInterval } from '@/lib/billing-lifecycle';
-import { formatUsd, PLANS, type PlanId } from '@/lib/plans';
+import {
+  clampTrafficTierIndex,
+  DEFAULT_TRAFFIC_TIER_INDEX,
+  formatTrafficEvents,
+  formatUsd,
+  getTrafficAnnualCents,
+  getTrafficDisplayPriceCents,
+  getTrafficEvents,
+  PLANS,
+  TRAFFIC_TIERS,
+  type PlanId,
+} from '@/lib/plans';
 
 interface BillingSubscription {
   planId: PlanId;
   interval: BillingInterval;
+  trafficTierIndex: number | null;
   lifecycleStatus: string;
   providerStatus: string;
   currency: string;
@@ -38,7 +54,7 @@ interface BillingStateResponse {
   subscription: BillingSubscription | null;
   invoices: BillingInvoice[];
   customer: { email: string } | null;
-  availableProducts: Array<{ planId: PlanId; interval: BillingInterval }>;
+  availableProducts: BillingProductAvailability[];
 }
 
 const SURFACE = {
@@ -109,6 +125,7 @@ export function BillingSubscriptionPanel({
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [interval, setInterval] = useState<BillingInterval>('monthly');
+  const [tierIndex, setTierIndex] = useState<number | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
@@ -141,6 +158,11 @@ export function BillingSubscriptionPanel({
   const isOwner = role === 'OWNER';
   const isActive = Boolean(billing?.subscription?.active);
   const currentPlan = billing?.subscription?.planId ?? currentPlanId;
+  const currentTierIndex = clampTrafficTierIndex(
+    billing?.subscription?.trafficTierIndex ?? DEFAULT_TRAFFIC_TIER_INDEX,
+  );
+  const effectiveTierIndex = clampTrafficTierIndex(tierIndex ?? currentTierIndex);
+  const sliderPercent = (effectiveTierIndex / (TRAFFIC_TIERS.length - 1)) * 100;
 
   async function run(label: string, action: () => Promise<void>) {
     setBusy(label);
@@ -161,6 +183,7 @@ export function BillingSubscriptionPanel({
         workspaceId,
         planId,
         interval,
+        tierIndex: effectiveTierIndex,
       })) as { url: string };
 
       window.location.href = url;
@@ -169,8 +192,13 @@ export function BillingSubscriptionPanel({
 
   async function changePlan(planId: PlanId) {
     await run(`change-${planId}`, async () => {
-      await post('/billing/change-plan', { workspaceId, planId });
+      await post('/billing/change-plan', {
+        workspaceId,
+        planId,
+        tierIndex: effectiveTierIndex,
+      });
       await queryClient.invalidateQueries({ queryKey: ['workspace-billing', workspaceId] });
+      await queryClient.invalidateQueries({ queryKey: ['billing-access', workspaceId] });
       toast('Plan change requested. It applies after the provider confirms it.');
     });
   }
@@ -188,6 +216,7 @@ export function BillingSubscriptionPanel({
       await post('/billing/cancel', { workspaceId });
       setConfirmCancel(false);
       await queryClient.invalidateQueries({ queryKey: ['workspace-billing', workspaceId] });
+      await queryClient.invalidateQueries({ queryKey: ['billing-access', workspaceId] });
       toast('Cancellation scheduled for the end of the paid period.');
     });
   }
@@ -258,6 +287,15 @@ export function BillingSubscriptionPanel({
                   {formatMoney(subscription.amountCents, subscription.currency)}
                 </Text>
               </Row>
+              <Text size="sm" color="muted">
+                {formatTrafficEvents(
+                  getTrafficEvents(
+                    subscription.planId,
+                    subscription.trafficTierIndex ?? DEFAULT_TRAFFIC_TIER_INDEX,
+                  ),
+                )}{' '}
+                events / month included
+              </Text>
             </Column>
             <Text size="sm" style={{ color: status.color }}>
               {status.label}
@@ -337,13 +375,48 @@ export function BillingSubscriptionPanel({
             )}
           </Row>
 
+          <Column gap="2">
+            <Row justifyContent="space-between" alignItems="baseline" gap="3" wrap="wrap">
+              <Text size="sm" color="muted">
+                Monthly traffic
+              </Text>
+              <Text size="sm" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                Starter {formatTrafficEvents(getTrafficEvents('starter', effectiveTierIndex))} · Pro{' '}
+                {formatTrafficEvents(getTrafficEvents('pro', effectiveTierIndex))}
+              </Text>
+            </Row>
+            <input
+              type="range"
+              min={0}
+              max={TRAFFIC_TIERS.length - 1}
+              step={1}
+              value={effectiveTierIndex}
+              onChange={event => setTierIndex(Number(event.target.value))}
+              aria-label="Monthly traffic"
+              aria-valuetext={`${getTrafficEvents('starter', effectiveTierIndex).toLocaleString('en-US')} Starter events, ${getTrafficEvents('pro', effectiveTierIndex).toLocaleString('en-US')} Pro events`}
+              style={{
+                accentColor: 'var(--accent-text)',
+                background: `linear-gradient(to right, var(--accent-text) 0%, var(--accent-text) ${sliderPercent}%, var(--talivia-card-border) ${sliderPercent}%, var(--talivia-card-border) 100%)`,
+                borderRadius: 999,
+                height: 4,
+                width: '100%',
+              }}
+            />
+          </Column>
+
           <Grid columns={{ base: '1fr', md: 'repeat(2, minmax(0, 1fr))' }} gap="3">
             {PLANS.map(plan => {
-              const isCurrent = isActive && currentPlan === plan.id;
-              const productAvailable = billing.availableProducts.some(
-                product => product.planId === plan.id && product.interval === interval,
+              const isCurrent =
+                isActive && currentPlan === plan.id && currentTierIndex === effectiveTierIndex;
+              const productAvailable = isBillingProductAvailable(
+                billing.availableProducts,
+                plan.id,
+                interval,
+                effectiveTierIndex,
               );
-              const price = interval === 'annual' ? plan.annualPriceCents : plan.monthlyPriceCents;
+              const price = getTrafficDisplayPriceCents(plan.id, effectiveTierIndex, interval);
+              const annualPrice = getTrafficAnnualCents(plan.id, effectiveTierIndex);
+              const events = getTrafficEvents(plan.id, effectiveTierIndex);
 
               return (
                 <Column key={plan.id} border padding="4" gap="2" style={SURFACE}>
@@ -352,13 +425,18 @@ export function BillingSubscriptionPanel({
                     <Text style={{ fontVariantNumeric: 'tabular-nums' }}>
                       {formatUsd(price)}
                       <Text as="span" size="sm" color="muted">
-                        {interval === 'annual' ? '/yr' : '/mo'}
+                        /mo
                       </Text>
                     </Text>
                   </Row>
                   <Text size="sm" color="muted">
                     {plan.websiteLimit} website{plan.websiteLimit === 1 ? '' : 's'} ·{' '}
-                    {plan.eventsPerMonth.toLocaleString('en-US')} events/month
+                    {events.toLocaleString('en-US')} events/month
+                  </Text>
+                  <Text size="sm" color="muted">
+                    {interval === 'annual'
+                      ? `${formatUsd(annualPrice)} billed yearly`
+                      : 'Billed monthly'}
                   </Text>
                   <Button
                     variant={isCurrent ? 'quiet' : 'primary'}
@@ -370,7 +448,7 @@ export function BillingSubscriptionPanel({
                     {isCurrent
                       ? 'Current plan'
                       : !productAvailable
-                        ? 'Price not configured'
+                        ? 'Tier not configured'
                         : isActive
                           ? `Switch to ${plan.name}`
                           : `Choose ${plan.name}`}

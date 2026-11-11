@@ -1,6 +1,6 @@
 const DEFAULT_RETURN_URL = '/app';
 const INTERNAL_ORIGIN = 'http://internal.local';
-const ALLOWED_RETURN_PATHS = ['/app', '/onboarding'];
+const ALLOWED_RETURN_PATHS = ['/app', '/onboarding', '/checkout'];
 const MAX_WEBSITE_LENGTH = 255;
 
 function isAllowedReturnPath(pathname: string) {

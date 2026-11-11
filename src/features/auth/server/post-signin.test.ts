@@ -67,6 +67,12 @@ describe('resolvePostSignInPath', () => {
     );
   });
 
+  test('carries a pricing checkout through first-run onboarding', async () => {
+    await expect(
+      resolvePostSignInPath('user-1', '/checkout?plan=pro&interval=annual&tier=3'),
+    ).resolves.toBe('/onboarding?next=%2Fcheckout%3Fplan%3Dpro%26interval%3Dannual%26tier%3D3');
+  });
+
   test('keeps the requested app URL for an existing member', async () => {
     prismaMock.client.workspaceMembership.findMany.mockResolvedValue([
       { role: 'MEMBER', workspace: { onboardingCompletedAt: new Date() } },

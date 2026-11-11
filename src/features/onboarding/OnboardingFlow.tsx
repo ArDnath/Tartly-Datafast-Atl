@@ -13,6 +13,7 @@ import {
   type OnboardingStep,
   resolveOnboardingStep,
 } from '@/features/onboarding/lib/steps';
+import { sanitizeOnboardingNextPath } from '@/features/onboarding/lib/next-path';
 import { normalizeWebsiteDomain } from '@/features/onboarding/lib/website-domain';
 import { BackGlyph, Spinner } from './components/OnboardingControls';
 import styles from './Onboarding.module.css';
@@ -57,7 +58,13 @@ interface OnboardingWebsiteResponse {
   website: WebsiteSummary;
 }
 
-export function OnboardingFlow({ initialWebsite }: { initialWebsite?: string } = {}) {
+export function OnboardingFlow({
+  initialWebsite,
+  nextPath,
+}: {
+  initialWebsite?: string;
+  nextPath?: string;
+} = {}) {
   const router = useRouter();
   const { get: apiGet, post: apiPost } = useApi();
   const { user, setUser, isLoading: authLoading } = useLoginQuery();
@@ -272,9 +279,13 @@ export function OnboardingFlow({ initialWebsite }: { initialWebsite?: string } =
         setUser({ ...user, onboardingRequired: false });
       }
 
+      // Preserve a checkout or deep-link intent across first-run setup. The
+      // sanitizer limits the destination to /app and /checkout.
+      const destination = sanitizeOnboardingNextPath(nextPath);
+
       // The singleton welcome gate reads this flag once and then rewrites the
       // URL, so a refresh never replays the animation.
-      router.replace('/app?welcome=1');
+      router.replace(destination ?? '/app?welcome=1');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not finish setup.');
       setBusy(false);

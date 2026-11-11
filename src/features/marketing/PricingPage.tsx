@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { BrandWordmark } from '@/components/brand/BrandMark';
 import { Check } from '@/components/icons';
+import { buildCheckoutPath } from '@/features/billing/lib/checkout-intent';
 import { BRAND } from '@/lib/brand';
 import {
   DEFAULT_TRAFFIC_TIER_INDEX,
@@ -193,7 +194,11 @@ export function PricingPage() {
               </p>
 
               <Link
-                href={`/signup?plan=${plan.id}&events=${events}`}
+                href={buildCheckoutPath({
+                  planId: plan.id,
+                  interval: billing,
+                  tierIndex,
+                })}
                 className={plan.highlight ? styles.ctaPrimary : styles.ctaSecondary}
               >
                 Start {FREE_TRIAL_DAYS}-day free trial

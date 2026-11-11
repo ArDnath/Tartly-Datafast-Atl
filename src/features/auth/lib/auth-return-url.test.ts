@@ -7,6 +7,9 @@ test('keeps same-origin app and onboarding return URLs', () => {
   expect(sanitizeAuthReturnUrl('/onboarding?website=acme.com')).toBe(
     '/onboarding?website=acme.com',
   );
+  expect(sanitizeAuthReturnUrl('/checkout?plan=pro&interval=annual&tier=3')).toBe(
+    '/checkout?plan=pro&interval=annual&tier=3',
+  );
 });
 
 test('rejects external, protocol-relative, and unrelated return URLs', () => {

@@ -1,0 +1,110 @@
+.banner {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-text) 22%, transparent);
+  background-color: var(--talivia-app-background);
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--accent-text) 7%, transparent),
+    transparent
+  );
+  color: var(--text-primary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.inner {
+  display: flex;
+  width: 100%;
+  max-width: 1120px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+.pill {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid color-mix(in srgb, var(--accent-text) 34%, transparent);
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: color-mix(in srgb, var(--accent-text) 9%, transparent);
+  color: var(--accent-text);
+  font-family: var(--font-family);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent-text);
+}
+
+.copy {
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.copy strong {
+  color: var(--text-primary);
+  font-weight: 650;
+}
+
+.link {
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 650;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.urgent {
+  border-bottom-color: color-mix(in srgb, var(--status-warning-text) 30%, transparent);
+}
+
+@media (max-width: 640px) {
+  .banner {
+    justify-content: center;
+    padding: 8px 12px;
+  }
+
+  .inner {
+    justify-content: center;
+    gap: 6px;
+  }
+}
+
+@media (forced-colors: active) {
+  .banner,
+  .pill {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+}

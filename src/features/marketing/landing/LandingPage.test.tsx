@@ -126,6 +126,26 @@ describe('marketing landing page', () => {
     expect(screen.getByText('$9.16')).toBeInTheDocument();
   });
 
+  test('checkout links carry the selected plan, billing period, and traffic tier', async () => {
+    const { user } = render(<LandingPage />);
+    const starter = document.querySelector('[data-plan="starter"]') as HTMLElement;
+
+    expect(within(starter).getByRole('link')).toHaveAttribute(
+      'href',
+      '/checkout?plan=starter&interval=monthly&tier=3',
+    );
+
+    fireEvent.change(screen.getByRole('slider', { name: /Monthly traffic/i }), {
+      target: { value: '0' },
+    });
+    await user.click(screen.getByRole('button', { name: /Yearly/i }));
+
+    expect(within(starter).getByRole('link')).toHaveAttribute(
+      'href',
+      '/checkout?plan=starter&interval=annual&tier=0',
+    );
+  });
+
   test('shows the factual capability answers instead of invented testimonials', () => {
     render(<LandingPage />);
 

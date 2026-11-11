@@ -8,6 +8,7 @@ import {
   Sparks as SparklesIcon,
   Flash as ZapIcon,
 } from '@/components/icons';
+import { buildCheckoutPath } from '@/features/billing/lib/checkout-intent';
 import {
   DEFAULT_TRAFFIC_TIER_INDEX,
   FREE_TRIAL_DAYS,
@@ -235,7 +236,11 @@ export function PricingSection() {
                       </div>
 
                       <Link
-                        href={`/signup?plan=${plan.id}&events=${events}`}
+                        href={buildCheckoutPath({
+                          planId: plan.id,
+                          interval: billing,
+                          tierIndex,
+                        })}
                         className={`mt-5 flex h-12 w-full items-center justify-center rounded-md text-xs font-black tracking-[0.14em] uppercase ${
                           plan.highlight
                             ? 'lp-btn-shadow bg-lp-primary text-white'
