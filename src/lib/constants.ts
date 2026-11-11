@@ -231,8 +231,10 @@ export const CHART_COLORS = [
   '#ffec16',
 ];
 
-export const DOMAIN_REGEX =
-  /^(localhost(:[1-9]\d{0,4})?|((?=[a-z0-9-_]{1,63}\.)(xn--)?[a-z0-9-_]+(-[a-z0-9-_]+)*\.)+(xn--)?[a-z0-9-_]{2,63})$/;
+// Each label is bounded and the dot is a hard separator, so the engine cannot
+// backtrack across overlapping `[a-z0-9_-]` runs. The previous nested
+// quantifier (`[a-z0-9-_]+(-[a-z0-9-_]+)*`) was exponential on long `--` runs.
+export const DOMAIN_REGEX = /^(localhost(:[1-9]\d{0,4})?|(?:[a-z0-9_-]{1,63}\.)+[a-z0-9_-]{2,63})$/;
 export const SHARE_ID_REGEX = /^[a-zA-Z0-9]{8,50}$/;
 export const DATETIME_REGEX =
   /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{3}(Z|\+[0-9]{2}:[0-9]{2})?)?$/;

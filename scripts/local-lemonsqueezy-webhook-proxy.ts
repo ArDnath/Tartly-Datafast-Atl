@@ -26,8 +26,8 @@ const server = http.createServer((request, response) => {
     },
   );
 
-  upstream.on('error', error => {
-    console.error('[lemonsqueezy-webhook-proxy] upstream failed', error);
+  upstream.on('error', () => {
+    console.error('[lemonsqueezy-webhook-proxy] upstream failed');
     if (!response.headersSent) {
       response.writeHead(502, { 'content-type': 'application/json' });
     }
