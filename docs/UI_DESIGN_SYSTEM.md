@@ -48,19 +48,19 @@ Characteristics:
 
 ### Colour
 
-| Token | Value | Use |
-| --- | --- | --- |
-| `--rl-canvas` | `#1b1b1b` | Page ground, app canvas |
-| `--rl-card` | `#222222` | Cards, panels, marketing surfaces |
-| `--rl-muted` / `--rl-accent` | `#262626` / `#2e2e2e` | Inputs, toggles, chips, pressed state |
-| `--rl-fg` | `#f4f4f5` | Primary text, primary button fill |
-| `--rl-muted-fg` | `#a1a1aa` | Secondary text, labels, metadata |
-| `--rl-border` | `rgba(255,255,255,0.08)` | Hairline borders |
-| `--rl-blush` | `#f2b4cb` | **Signal only:** live event, active progress, revenue highlight |
-| `--rl-blush-soft` | `#f7d2e0` | On-signal icon/text |
-| `--rl-blush-ink` | `#2b1622` | Text on blush fill |
-| `--rl-warning` | `#f8b84e` | Usage warnings (80%) |
-| `--rl-danger` | `#ffb3b3` | Errors (dark-palette-safe) |
+| Token                        | Value                    | Use                                                             |
+| ---------------------------- | ------------------------ | --------------------------------------------------------------- |
+| `--rl-canvas`                | `#1b1b1b`                | Page ground, app canvas                                         |
+| `--rl-card`                  | `#222222`                | Cards, panels, marketing surfaces                               |
+| `--rl-muted` / `--rl-accent` | `#262626` / `#2e2e2e`    | Inputs, toggles, chips, pressed state                           |
+| `--rl-fg`                    | `#f4f4f5`                | Primary text, primary button fill                               |
+| `--rl-muted-fg`              | `#a1a1aa`                | Secondary text, labels, metadata                                |
+| `--rl-border`                | `rgba(255,255,255,0.08)` | Hairline borders                                                |
+| `--rl-blush`                 | `#f2b4cb`                | **Signal only:** live event, active progress, revenue highlight |
+| `--rl-blush-soft`            | `#f7d2e0`                | On-signal icon/text                                             |
+| `--rl-blush-ink`             | `#2b1622`                | Text on blush fill                                              |
+| `--rl-warning`               | `#f8b84e`                | Usage warnings (80%)                                            |
+| `--rl-danger`                | `#ffb3b3`                | Errors (dark-palette-safe)                                      |
 
 Rules:
 
@@ -70,15 +70,15 @@ Rules:
 
 ### Typography
 
-| Role | Size | Weight | Line-height | Tracking |
-| --- | --- | --- | --- | --- |
-| Display | `clamp(2.25rem, 6vw, 3.75rem)` | 600 | 1.05 | `-0.045em` |
-| Page title | 20px | 600 | 1.2 | `-0.03em` |
-| Section | 18px | 600 | 1.2 | `-0.02em` |
-| Body | 13–15px | 400 | 1.55–1.65 | normal |
-| Label | 11–12px | 500 | 1.2 | `0.02em` |
-| Eyebrow | 10–11px | 500–600 | 1.2 | `0.12–0.16em`, uppercase |
-| Data | 12–13px | 500–600 | 1.2 | tabular numerals |
+| Role       | Size                           | Weight  | Line-height | Tracking                 |
+| ---------- | ------------------------------ | ------- | ----------- | ------------------------ |
+| Display    | `clamp(2.25rem, 6vw, 3.75rem)` | 600     | 1.05        | `-0.045em`               |
+| Page title | 20px                           | 600     | 1.2         | `-0.03em`                |
+| Section    | 18px                           | 600     | 1.2         | `-0.02em`                |
+| Body       | 13–15px                        | 400     | 1.55–1.65   | normal                   |
+| Label      | 11–12px                        | 500     | 1.2         | `0.02em`                 |
+| Eyebrow    | 10–11px                        | 500–600 | 1.2         | `0.12–0.16em`, uppercase |
+| Data       | 12–13px                        | 500–600 | 1.2         | tabular numerals         |
 
 Font stack: `Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
 "Segoe UI", sans-serif` (already `--font-family` in `src/app/global.css`). No
@@ -95,14 +95,14 @@ bundled font files, so no font licence to clear.
 
 ### Motion
 
-| Token | Value | Use |
-| --- | --- | --- |
-| `ONBOARDING_MOTION_SLIDE_OFFSET` | `12px` | Step enter/exit translate |
-| `ONBOARDING_MOTION_STAGGER_DELAY` | `70ms` | Sequential reveal inside a step |
-| `ONBOARDING_MOTION_DURATION_SECONDS` | `0.32s` | Step transition |
-| Easing | `ease-in-out` | Step transitions |
-| Hover/press | `160ms ease` | Buttons, inputs |
-| Welcome hold | `4.2s` (0.9s reduced motion) | Welcome overlay |
+| Token                                | Value                        | Use                             |
+| ------------------------------------ | ---------------------------- | ------------------------------- |
+| `ONBOARDING_MOTION_SLIDE_OFFSET`     | `12px`                       | Step enter/exit translate       |
+| `ONBOARDING_MOTION_STAGGER_DELAY`    | `70ms`                       | Sequential reveal inside a step |
+| `ONBOARDING_MOTION_DURATION_SECONDS` | `0.32s`                      | Step transition                 |
+| Easing                               | `ease-in-out`                | Step transitions                |
+| Hover/press                          | `160ms ease`                 | Buttons, inputs                 |
+| Welcome hold                         | `4.2s` (0.9s reduced motion) | Welcome overlay                 |
 
 Directional logic (copied from Tartly's `OnboardingTransitionOutlet`):
 
@@ -225,33 +225,33 @@ is tracked in `docs/PHASES.md`.
 
 ## 6. Implementation map
 
-| Concern | File |
-| --- | --- |
-| Brand config | `src/lib/brand.ts` |
-| Brand mark/wordmark | `src/components/brand/BrandMark.tsx` |
-| Global tokens | `src/app/global.css` |
-| Landing page | `src/features/marketing/LandingPage.tsx`, `Landing.module.css` |
-| Pricing page | `src/features/marketing/PricingPage.tsx`, `Pricing.module.css` |
-| Documentation shell | `src/features/docs/DocsPage.tsx`, `Docs.module.css` |
-| Revenue guides | `src/features/docs/content.ts` |
-| App shell / top nav | `src/features/app-shell/App.tsx`, `TopNav.tsx` |
-| Portfolio overview | `src/features/portfolio/AppEntryPage.tsx` |
-| Settings shell/overview | `src/features/settings/SettingsHomePage.tsx` |
-| Account, security, preferences settings | `src/features/account/settings/` |
-| Integrations settings | `src/features/payments/settings/` |
-| Plan and usage settings | `src/features/billing/UsageSettingsPage.tsx` |
-| Website workbench | `src/features/analytics/workbench/` |
-| Website workbench nav | `src/features/analytics/workbench/WebsiteSectionNav.tsx` |
-| Analytics widgets | `src/features/analytics/components/metrics/` |
-| Analytics filters/selectors | `src/features/analytics/components/input/` |
-| Share widgets | `src/features/share/components/` |
-| Domain query hooks | `src/features/<domain>/hooks/` |
-| Workspace settings | `src/features/workspaces/settings/` |
-| Website list settings | `src/features/websites/settings/` |
-| Onboarding flow | `src/features/onboarding/OnboardingFlow.tsx`, `Onboarding.module.css` |
-| Plan config | `src/lib/plans.ts` |
-| Workspace permissions | `src/lib/workspace-auth.ts` |
-| Frozen legacy features | `src/features/legacy/{boards,links,pixels}/` |
+| Concern                                 | File                                                                  |
+| --------------------------------------- | --------------------------------------------------------------------- |
+| Brand config                            | `src/lib/brand.ts`                                                    |
+| Brand mark/wordmark                     | `src/components/brand/BrandMark.tsx`                                  |
+| Global tokens                           | `src/app/global.css`                                                  |
+| Landing page                            | `src/features/marketing/LandingPage.tsx`, `Landing.module.css`        |
+| Pricing page                            | `src/features/marketing/PricingPage.tsx`, `Pricing.module.css`        |
+| Documentation shell                     | `src/features/docs/DocsPage.tsx`, `Docs.module.css`                   |
+| Revenue guides                          | `src/features/docs/content.ts`                                        |
+| App shell / top nav                     | `src/features/app-shell/App.tsx`, `TopNav.tsx`                        |
+| Portfolio overview                      | `src/features/portfolio/AppEntryPage.tsx`                             |
+| Settings shell/overview                 | `src/features/settings/SettingsHomePage.tsx`                          |
+| Account, security, preferences settings | `src/features/account/settings/`                                      |
+| Integrations settings                   | `src/features/payments/settings/`                                     |
+| Plan and usage settings                 | `src/features/billing/UsageSettingsPage.tsx`                          |
+| Website workbench                       | `src/features/analytics/workbench/`                                   |
+| Website workbench nav                   | `src/features/analytics/workbench/WebsiteSectionNav.tsx`              |
+| Analytics widgets                       | `src/features/analytics/components/metrics/`                          |
+| Analytics filters/selectors             | `src/features/analytics/components/input/`                            |
+| Share widgets                           | `src/features/share/components/`                                      |
+| Domain query hooks                      | `src/features/<domain>/hooks/`                                        |
+| Workspace settings                      | `src/features/workspaces/settings/`                                   |
+| Website list settings                   | `src/features/websites/settings/`                                     |
+| Onboarding flow                         | `src/features/onboarding/OnboardingFlow.tsx`, `Onboarding.module.css` |
+| Plan config                             | `src/lib/plans.ts`                                                    |
+| Workspace permissions                   | `src/lib/workspace-auth.ts`                                           |
+| Frozen legacy features                  | `src/features/legacy/{boards,links,pixels}/`                          |
 
 Do not duplicate these tokens into per-component literals. If a new screen
 needs a colour, add it to the shared token block or `brand.ts`; do not invent a

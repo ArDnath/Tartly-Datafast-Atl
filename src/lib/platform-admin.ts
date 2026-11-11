@@ -14,7 +14,7 @@
 export function isPlatformAdmin(
   user: { id: string; username: string; role: string } | null | undefined,
 ) {
-  if (!user || user.role !== 'admin') {
+  if (user?.role !== 'admin') {
     return false;
   }
 

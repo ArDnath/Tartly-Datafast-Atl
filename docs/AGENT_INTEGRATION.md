@@ -8,11 +8,11 @@ Create the key in **Settings → Websites → API keys**. The key is shown once.
 
 ## HTTP endpoints
 
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `GET` | `/api/developer/verify` | Installed status, event count, last event |
-| `GET` | `/api/developer/events?limit=20` | Recent pageviews (max 100) |
-| `GET` | `/api/developer/diagnose` | Checks plus a concrete fix for each failure |
+| Method | Path                             | Purpose                                     |
+| ------ | -------------------------------- | ------------------------------------------- |
+| `GET`  | `/api/developer/verify`          | Installed status, event count, last event   |
+| `GET`  | `/api/developer/events?limit=20` | Recent pageviews (max 100)                  |
+| `GET`  | `/api/developer/diagnose`        | Checks plus a concrete fix for each failure |
 
 Authentication:
 

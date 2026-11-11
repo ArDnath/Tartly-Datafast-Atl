@@ -7,18 +7,18 @@ credentials exist.
 
 ## OWASP Top 10 mapping
 
-| Risk | Control | Evidence |
-| --- | --- | --- |
-| A01 Broken access control | Central website/workspace authorization; tenant-scoped queries; static boundary tests; platform-admin allowlist | `src/permissions/website.ts`, `src/lib/workspace-auth.ts`, `src/lib/tenant-boundaries.test.ts`, `src/permissions/website.workspace.test.ts`, `src/features/account/server/admin/**` |
-| A02 Cryptographic failures | bcrypt password hashes; SHA-512 token-at-rest; AES-256-GCM provider credentials; HttpOnly/Secure/SameSite cookies; constant-time webhook compare | `src/lib/password.ts`, `src/lib/auth-session.ts`, `src/lib/crypto.ts`, `src/features/billing/lib/standard-webhook.ts` |
-| A03 Injection | Parameterized Prisma/raw SQL; Zod schemas; no string-built SQL; React escaping | `src/lib/schema.ts`, `src/features/analytics/server/queries/sql/**`, all `parseRequest` call sites |
-| A04 Insecure design | Two billing contexts separated; entitlements from server records; no checkout-redirect activation; plan limits server-side | `docs/PLATFORM_BILLING.md`, `src/lib/entitlements.ts`, `src/lib/plans.ts` |
-| A05 Security misconfiguration | CSP, HSTS in production, nosniff, frame/referrer/permissions policy, no stack traces in production responses | `next.config.ts`, `src/lib/response.ts` |
-| A06 Vulnerable components | `pnpm audit --prod`; CI fails on critical; overrides for patched transitive packages | this doc, `.github/workflows/ci.yml`, `package.json` `pnpm.overrides` |
-| A07 Identification/authentication | Rate-limited login/reset/register; single-use expiring tokens; session revocation; suspended-user rejection | `src/lib/rate-limit.ts`, `src/lib/auth-tokens.ts`, `src/lib/auth-session.ts`, `src/lib/auth.ts` |
-| A08 Software/data integrity | Versioned Prisma migrations; webhook HMAC; idempotent provider events; audit log; outbox-style processing | `prisma/migrations/**`, `src/features/billing/server/service.ts`, `src/features/payments/server/**` |
-| A09 Logging/monitoring failures | Structured JSON logs, secret redaction, error-tracking hook, health/readiness, audit events | `src/lib/logger.ts`, `src/features/system/server/health/**`, `src/queries/prisma/audit.ts` |
-| A10 SSRF | Outbound calls use fixed provider endpoints; no user-supplied URL fetch in request handlers; webhook URLs are provider-configured | `src/features/payments/server/providers/**`, `src/lib/fetch.ts` |
+| Risk                              | Control                                                                                                                                          | Evidence                                                                                                                                                                            |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A01 Broken access control         | Central website/workspace authorization; tenant-scoped queries; static boundary tests; platform-admin allowlist                                  | `src/permissions/website.ts`, `src/lib/workspace-auth.ts`, `src/lib/tenant-boundaries.test.ts`, `src/permissions/website.workspace.test.ts`, `src/features/account/server/admin/**` |
+| A02 Cryptographic failures        | bcrypt password hashes; SHA-512 token-at-rest; AES-256-GCM provider credentials; HttpOnly/Secure/SameSite cookies; constant-time webhook compare | `src/lib/password.ts`, `src/lib/auth-session.ts`, `src/lib/crypto.ts`, `src/features/billing/lib/standard-webhook.ts`                                                               |
+| A03 Injection                     | Parameterized Prisma/raw SQL; Zod schemas; no string-built SQL; React escaping                                                                   | `src/lib/schema.ts`, `src/features/analytics/server/queries/sql/**`, all `parseRequest` call sites                                                                                  |
+| A04 Insecure design               | Two billing contexts separated; entitlements from server records; no checkout-redirect activation; plan limits server-side                       | `docs/PLATFORM_BILLING.md`, `src/lib/entitlements.ts`, `src/lib/plans.ts`                                                                                                           |
+| A05 Security misconfiguration     | CSP, HSTS in production, nosniff, frame/referrer/permissions policy, no stack traces in production responses                                     | `next.config.ts`, `src/lib/response.ts`                                                                                                                                             |
+| A06 Vulnerable components         | `pnpm audit --prod`; CI fails on critical; overrides for patched transitive packages                                                             | this doc, `.github/workflows/ci.yml`, `package.json` `pnpm.overrides`                                                                                                               |
+| A07 Identification/authentication | Rate-limited login/reset/register; single-use expiring tokens; session revocation; suspended-user rejection                                      | `src/lib/rate-limit.ts`, `src/lib/auth-tokens.ts`, `src/lib/auth-session.ts`, `src/lib/auth.ts`                                                                                     |
+| A08 Software/data integrity       | Versioned Prisma migrations; webhook HMAC; idempotent provider events; audit log; outbox-style processing                                        | `prisma/migrations/**`, `src/features/billing/server/service.ts`, `src/features/payments/server/**`                                                                                 |
+| A09 Logging/monitoring failures   | Structured JSON logs, secret redaction, error-tracking hook, health/readiness, audit events                                                      | `src/lib/logger.ts`, `src/features/system/server/health/**`, `src/queries/prisma/audit.ts`                                                                                          |
+| A10 SSRF                          | Outbound calls use fixed provider endpoints; no user-supplied URL fetch in request handlers; webhook URLs are provider-configured                | `src/features/payments/server/providers/**`, `src/lib/fetch.ts`                                                                                                                     |
 
 ## Tenant isolation
 
@@ -85,7 +85,7 @@ Command: `pnpm audit` on 2026-11-06.
 - Safe transitive overrides were applied for `browserslist`, `d3-color`, `defu`,
   `fast-uri`, `hono`, `js-yaml`, `source-map-js`, `svgo`, `minimatch` (3.1.4 /
   5.1.8 / 9.0.7 / >=10.2.1 by exact-version selector), `@isaacs/brace-expansion`
-  >=5.0.1, `brace-expansion` (>=1.1.17 / >=2.1.3), and `mysql2` >=3.23.1 (applied
+  > =5.0.1, `brace-expansion` (>=1.1.17 / >=2.1.3), and `mysql2` >=3.23.1 (applied
   2026-11-06; upstream released the combined minimatch/brace-expansion fixes as
   same-major patches, so the follow-up was closed without forcing majors).
   The unused `del` dev dependency was removed (nothing imported it; its

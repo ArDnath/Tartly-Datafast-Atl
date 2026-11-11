@@ -211,64 +211,62 @@ test.each([
     first: '2026-06-10T00:00:00.000Z',
     second: '2026-06-11T00:00:00.000Z',
   },
-])('keeps adjacent $unit payment bars apart across phone, tablet and desktop resizes', ({
-  unit,
-  end,
-  first,
-  second,
-}) => {
-  render(
-    <OverviewChart
-      data={{
-        visitors: [],
-        revenue: [
-          { x: 'Revenue', t: first, y: 13, count: 1 },
-          { x: 'Revenue', t: second, y: 70, count: 1, refunds: 5 },
-        ],
-      }}
-      minDate={new Date('2026-06-01T00:00:00.000Z')}
-      maxDate={new Date(end)}
-      unit={unit}
-      currency="USD"
-    />,
-  );
-  const canvas: any = { width: 1400, height: 340, getContext: () => context };
-  const context = new Proxy(
-    {
-      canvas,
-      measureText: (value: string) => ({ width: String(value).length * 6 }),
-      createLinearGradient: () => ({ addColorStop: () => {} }),
-    } as any,
-    { get: (target, key) => target[key] ?? (() => {}) },
-  );
-  const chart = new ChartJS(canvas, {
-    type: 'bar',
-    platform: BasicPlatform,
-    data: chartState.props.chartData,
-    plugins: [{ id: 'layout-only-test', beforeDraw: () => false }],
-    options: { ...chartState.props.chartOptions, responsive: false, animation: false },
-  });
-  try {
-    const paidIndexes = chartState.props.chartData.datasets[1].data.flatMap(
-      (point: any, index: number) => (point.y > 0 ? [index] : []),
+])(
+  'keeps adjacent $unit payment bars apart across phone, tablet and desktop resizes',
+  ({ unit, end, first, second }) => {
+    render(
+      <OverviewChart
+        data={{
+          visitors: [],
+          revenue: [
+            { x: 'Revenue', t: first, y: 13, count: 1 },
+            { x: 'Revenue', t: second, y: 70, count: 1, refunds: 5 },
+          ],
+        }}
+        minDate={new Date('2026-06-01T00:00:00.000Z')}
+        maxDate={new Date(end)}
+        unit={unit}
+        currency="USD"
+      />,
     );
-    for (const width of [280, 375, 430, 600, 768, 820, 900, 1024, 1400]) {
-      chart.resize(width, 340);
-      chart.update('none');
-      const bars: any[] = chart.getDatasetMeta(1).data;
-      const refunds: any[] = chart.getDatasetMeta(2).data;
-      const firstBar = bars[paidIndexes[0]];
-      const secondBar = bars[paidIndexes[1]];
-      expect(firstBar.width).toBeGreaterThan(0);
-      expect(firstBar.x + firstBar.width / 2).toBeLessThan(secondBar.x - secondBar.width / 2);
-      expect(refunds[paidIndexes[1]].width).toBe(secondBar.width);
-      expect(secondBar.width).toBeLessThanOrEqual(26);
+    const canvas: any = { width: 1400, height: 340, getContext: () => context };
+    const context = new Proxy(
+      {
+        canvas,
+        measureText: (value: string) => ({ width: String(value).length * 6 }),
+        createLinearGradient: () => ({ addColorStop: () => {} }),
+      } as any,
+      { get: (target, key) => target[key] ?? (() => {}) },
+    );
+    const chart = new ChartJS(canvas, {
+      type: 'bar',
+      platform: BasicPlatform,
+      data: chartState.props.chartData,
+      plugins: [{ id: 'layout-only-test', beforeDraw: () => false }],
+      options: { ...chartState.props.chartOptions, responsive: false, animation: false },
+    });
+    try {
+      const paidIndexes = chartState.props.chartData.datasets[1].data.flatMap(
+        (point: any, index: number) => (point.y > 0 ? [index] : []),
+      );
+      for (const width of [280, 375, 430, 600, 768, 820, 900, 1024, 1400]) {
+        chart.resize(width, 340);
+        chart.update('none');
+        const bars: any[] = chart.getDatasetMeta(1).data;
+        const refunds: any[] = chart.getDatasetMeta(2).data;
+        const firstBar = bars[paidIndexes[0]];
+        const secondBar = bars[paidIndexes[1]];
+        expect(firstBar.width).toBeGreaterThan(0);
+        expect(firstBar.x + firstBar.width / 2).toBeLessThan(secondBar.x - secondBar.width / 2);
+        expect(refunds[paidIndexes[1]].width).toBe(secondBar.width);
+        expect(secondBar.width).toBeLessThanOrEqual(26);
+      }
+      expect((chart.getDatasetMeta(1).data[paidIndexes[1]] as any).width).toBe(26);
+    } finally {
+      chart.destroy();
     }
-    expect((chart.getDatasetMeta(1).data[paidIndexes[1]] as any).width).toBe(26);
-  } finally {
-    chart.destroy();
-  }
-});
+  },
+);
 
 test('overview chart extends the selected visitor series to both chart edges', () => {
   render(

@@ -32,6 +32,7 @@ not `true`; it never attempts an unauthenticated or unpinned-host deploy.
 ## 2. Roll back
 
 1. Redeploy the previous known-good commit SHA:
+
    ```bash
    gh workflow run deploy.yml -f sha=<previous-40-char-main-sha>
    ```
@@ -59,6 +60,7 @@ Symptoms: event volume far above plan, one IP/domain dominating, Redis/DB
 latency, 429s, or usage-limit emails firing early.
 
 1. Confirm the spike is real and tied to one website/IP:
+
    ```sql
    select website_id, count(*) from website_event
    where created_at > now() - interval '15 minutes'
@@ -117,11 +119,11 @@ database.
 
 ## 10. Health endpoints
 
-| Endpoint | Meaning |
-| --- | --- |
-| `/api/health/live` | process responds; no database check |
-| `/api/health/ready` | database reachable; 503 when not |
-| `/api/health` | same readiness check (legacy alias) |
+| Endpoint            | Meaning                             |
+| ------------------- | ----------------------------------- |
+| `/api/health/live`  | process responds; no database check |
+| `/api/health/ready` | database reachable; 503 when not    |
+| `/api/health`       | same readiness check (legacy alias) |
 
 Use `live` for container restarts and `ready` for load-balancer traffic.
 

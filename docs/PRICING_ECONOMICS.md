@@ -19,14 +19,14 @@
 
 ## 1. Competitor pricing (fetched 2026-11-04)
 
-| Vendor | Entry price | What the entry tier includes | Source |
-| --- | --- | --- | --- |
-| **DataFast** | **$9/mo** Starter | 10k monthly events, 1 website, 1 team member, 3-year retention; Growth **$19/mo** adds 30 websites/members, 5+ years, social mentions, link attribution. 14-day trial, 2 months free yearly. | <https://datafa.st/> (pricing markup; values rendered by the page's number component) |
-| **Talivia Cloud** | **$9.99/mo** founding offer | 14-day trial, then $9.99/mo for the first 100 paying accounts, **unlimited websites and events for the first 12 months**. Standard event-based pricing applies after month 12; the standard rates are **not published on the page**. | <https://talivia.com/> (`#pricing`, JSON-LD offer) |
-| **Plausible** | **$9/mo** Starter | 10k monthly pageviews, 1 site; Growth **$14** (3 sites, 3 members); Business **$19** (10 sites, 10 members, funnels, ecommerce revenue attribution). 30-day trial, 2 months free yearly. | <https://plausible.io/#pricing> |
-| **Fathom** | **$15/mo** | Up to 100k monthly pageviews, 50 sites included; 7-day trial; 2 months free yearly. Price rises with pageviews ($25/200k, $45/500k, $60/1M, …). | <https://usefathom.com/pricing> |
-| **Umami Cloud** | **$0** Hobby / **$20/mo** Pro | Hobby: 100k events, 1 website, 6-month retention. Pro: 1M events included, $0.00003/extra event, 20 websites, 10 members, 2-year retention, API/MCP. Business $200 (10M events, unlimited sites, replay/heatmaps). | <https://umami.is/pricing> |
-| **Simple Analytics** | **$20/mo** | 100k monthly pageviews, 1 user; +$20/mo per extra user; free hobby plan (1 user, 5 sites, 1 month history, badge required); 2 months free yearly. | <https://www.simpleanalytics.com/pricing> |
+| Vendor               | Entry price                   | What the entry tier includes                                                                                                                                                                                                         | Source                                                                                |
+| -------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| **DataFast**         | **$9/mo** Starter             | 10k monthly events, 1 website, 1 team member, 3-year retention; Growth **$19/mo** adds 30 websites/members, 5+ years, social mentions, link attribution. 14-day trial, 2 months free yearly.                                         | <https://datafa.st/> (pricing markup; values rendered by the page's number component) |
+| **Talivia Cloud**    | **$9.99/mo** founding offer   | 14-day trial, then $9.99/mo for the first 100 paying accounts, **unlimited websites and events for the first 12 months**. Standard event-based pricing applies after month 12; the standard rates are **not published on the page**. | <https://talivia.com/> (`#pricing`, JSON-LD offer)                                    |
+| **Plausible**        | **$9/mo** Starter             | 10k monthly pageviews, 1 site; Growth **$14** (3 sites, 3 members); Business **$19** (10 sites, 10 members, funnels, ecommerce revenue attribution). 30-day trial, 2 months free yearly.                                             | <https://plausible.io/#pricing>                                                       |
+| **Fathom**           | **$15/mo**                    | Up to 100k monthly pageviews, 50 sites included; 7-day trial; 2 months free yearly. Price rises with pageviews ($25/200k, $45/500k, $60/1M, …).                                                                                      | <https://usefathom.com/pricing>                                                       |
+| **Umami Cloud**      | **$0** Hobby / **$20/mo** Pro | Hobby: 100k events, 1 website, 6-month retention. Pro: 1M events included, $0.00003/extra event, 20 websites, 10 members, 2-year retention, API/MCP. Business $200 (10M events, unlimited sites, replay/heatmaps).                   | <https://umami.is/pricing>                                                            |
+| **Simple Analytics** | **$20/mo**                    | 100k monthly pageviews, 1 user; +$20/mo per extra user; free hobby plan (1 user, 5 sites, 1 month history, badge required); 2 months free yearly.                                                                                    | <https://www.simpleanalytics.com/pricing>                                             |
 
 **Takeaway:** the market entry point is $9–$20/mo for 10k–100k monthly units.
 Our $7.99 Starter includes 100k events and is the cheapest paid entry among
@@ -34,7 +34,7 @@ these. Our $14.99 Pro includes 1M events and up to 50 websites, so it sits
 between Fathom's 100k and 1M tiers while including revenue attribution.
 
 **Talivia-specific caution:** Talivia Cloud's founding offer is temporarily
-$9.99 with *unlimited* sites/events for 12 months. We cannot match "unlimited"
+$9.99 with _unlimited_ sites/events for 12 months. We cannot match "unlimited"
 on a shared PostgreSQL event store. Compete on price, clarity, and developer
 experience — not on an unsustainable unlimited promise. State clearly that our
 limits are monthly and that overage pauses rather than surprises.
@@ -43,20 +43,20 @@ limits are monthly and that overage pauses rather than surprises.
 
 ## 2. Our plan proposal
 
-| | **Starter** | **Pro** |
-| --- | --- | --- |
-| Monthly | **$7.99** | **$14.99** |
-| Annual (2 months free) | **$79.90** | **$149.90** |
-| Free trial | **7 days, 2,000 events, 1 site** | **7 days, 2,000 events, 1 site** |
-| Websites | **1** | **up to 50** |
-| Members | 1 | 10 |
-| Billable events / month | **100,000** | **1,000,000** |
-| Analytics retention | **90 days** | **365 days** |
-| Session replay | **not included** | **2,000 sessions/mo**, 30-day replay retention |
-| Payment connections | 1 | unlimited |
-| Revenue attribution | first + last touch | first + last touch, funnels, journeys |
-| Support | email | priority email |
-| Export | CSV | CSV + full backup |
+|                         | **Starter**                      | **Pro**                                        |
+| ----------------------- | -------------------------------- | ---------------------------------------------- |
+| Monthly                 | **$7.99**                        | **$14.99**                                     |
+| Annual (2 months free)  | **$79.90**                       | **$149.90**                                    |
+| Free trial              | **7 days, 2,000 events, 1 site** | **7 days, 2,000 events, 1 site**               |
+| Websites                | **1**                            | **up to 50**                                   |
+| Members                 | 1                                | 10                                             |
+| Billable events / month | **100,000**                      | **1,000,000**                                  |
+| Analytics retention     | **90 days**                      | **365 days**                                   |
+| Session replay          | **not included**                 | **2,000 sessions/mo**, 30-day replay retention |
+| Payment connections     | 1                                | unlimited                                      |
+| Revenue attribution     | first + last touch               | first + last touch, funnels, journeys          |
+| Support                 | email                            | priority email                                 |
+| Export                  | CSV                              | CSV + full backup                              |
 
 Why these limits:
 
@@ -80,19 +80,19 @@ DataFast tier where a public comparison exists.
 
 ## 3. Cost assumptions
 
-| Cost | Assumption | Source |
-| --- | --- | --- |
-| App hosting | Vercel Pro **$20/mo** including $20 usage credit; overage possible | <https://vercel.com/pricing> (2026-11-04) |
-| Database compute | Neon Launch **$0.106/CU-hour**, 0.25 CU average ≈ **$19.35/mo** base; model uses $30/mo at 100 customers, scaling with load | <https://neon.com/pricing> (2026-11-04) |
-| Database storage | Neon **$0.35/GB-month** | same |
-| Event row size | **1 KB/event** including indexes (conservative) | engineering assumption |
-| Replay payload | **0.5 MB/session** (rrweb gzip, mixed session lengths) | engineering assumption; measure in Phase 7 |
-| Email | Resend Free **3,000 emails/mo** at launch; Pro **$20/mo** at 50k | <https://resend.com/pricing> (2026-11-04) |
-| Payment fees | Dodo **4% + $0.40** per transaction (US cards); +3% for international cards/APMs; +3% BNPL | <https://dodopayments.com/pricing> (2026-11-04) |
-| Plan mix | **70% Starter / 30% Pro** | assumption; validate after launch |
-| Blended ARPU | 0.7 × 7.99 + 0.3 × 14.99 = **$10.09/mo** | derived |
-| Domain | ~$1.50/mo amortized | assumption (registrar-dependent) |
-| Support | Founder time at launch; no salary cost modelled | assumption |
+| Cost             | Assumption                                                                                                                  | Source                                          |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| App hosting      | Vercel Pro **$20/mo** including $20 usage credit; overage possible                                                          | <https://vercel.com/pricing> (2026-11-04)       |
+| Database compute | Neon Launch **$0.106/CU-hour**, 0.25 CU average ≈ **$19.35/mo** base; model uses $30/mo at 100 customers, scaling with load | <https://neon.com/pricing> (2026-11-04)         |
+| Database storage | Neon **$0.35/GB-month**                                                                                                     | same                                            |
+| Event row size   | **1 KB/event** including indexes (conservative)                                                                             | engineering assumption                          |
+| Replay payload   | **0.5 MB/session** (rrweb gzip, mixed session lengths)                                                                      | engineering assumption; measure in Phase 7      |
+| Email            | Resend Free **3,000 emails/mo** at launch; Pro **$20/mo** at 50k                                                            | <https://resend.com/pricing> (2026-11-04)       |
+| Payment fees     | Dodo **4% + $0.40** per transaction (US cards); +3% for international cards/APMs; +3% BNPL                                  | <https://dodopayments.com/pricing> (2026-11-04) |
+| Plan mix         | **70% Starter / 30% Pro**                                                                                                   | assumption; validate after launch               |
+| Blended ARPU     | 0.7 × 7.99 + 0.3 × 14.99 = **$10.09/mo**                                                                                    | derived                                         |
+| Domain           | ~$1.50/mo amortized                                                                                                         | assumption (registrar-dependent)                |
+| Support          | Founder time at launch; no salary cost modelled                                                                             | assumption                                      |
 
 Storage per customer:
 
@@ -115,12 +115,12 @@ At 500: 2,055 GB → **$719.25/mo**.
 At 1,000: 4,110 GB → **$1,438.50/mo**.
 At 5,000: 20,550 GB → **$7,192.50/mo**.
 
-| Customers | MRR | Dodo fees | Net revenue | Neon compute | Neon storage | App + email + domain | Total cost | Gross profit | Margin |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 100 | $1,009 | $80.36 | $928.64 | $30 | $143.85 | $23 | $196.85 | $731.79 | **78.8%** |
-| 500 | $5,045 | $401.80 | $4,643.20 | $80 | $719.25 | $43 | $842.25 | $3,800.95 | **81.9%** |
-| 1,000 | $10,090 | $803.60 | $9,286.40 | $150 | $1,438.50 | $43 | $1,631.50 | $7,654.90 | **82.4%** |
-| 5,000 | $50,450 | $4,018.00 | $46,432.00 | $600 | $7,192.50 | $85 | $7,877.50 | $38,554.50 | **83.0%** |
+| Customers | MRR     | Dodo fees | Net revenue | Neon compute | Neon storage | App + email + domain | Total cost | Gross profit | Margin    |
+| --------- | ------- | --------- | ----------- | ------------ | ------------ | -------------------- | ---------- | ------------ | --------- |
+| 100       | $1,009  | $80.36    | $928.64     | $30          | $143.85      | $23                  | $196.85    | $731.79      | **78.8%** |
+| 500       | $5,045  | $401.80   | $4,643.20   | $80          | $719.25      | $43                  | $842.25    | $3,800.95    | **81.9%** |
+| 1,000     | $10,090 | $803.60   | $9,286.40   | $150         | $1,438.50    | $43                  | $1,631.50  | $7,654.90    | **82.4%** |
+| 5,000     | $50,450 | $4,018.00 | $46,432.00  | $600         | $7,192.50    | $85                  | $7,877.50  | $38,554.50   | **83.0%** |
 
 Notes:
 

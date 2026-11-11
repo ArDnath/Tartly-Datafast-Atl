@@ -156,8 +156,7 @@ export async function parseShareToken(request: Request): Promise<ShareTokenPaylo
     const payload = parseToken(token, secret()) as ShareTokenPayload | null;
 
     if (
-      !payload ||
-      payload.purpose !== 'share' ||
+      payload?.purpose !== 'share' ||
       typeof payload.shareId !== 'string' ||
       typeof payload.shareSlug !== 'string' ||
       typeof payload.shareType !== 'number'

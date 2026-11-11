@@ -10,7 +10,7 @@ paths-ignore:
   - public/script.js
   - public/recorder.js
   - docs
-  - '**/*.min.js'
+  - "**/*.min.js"
 
 queries:
   - uses: security-extended

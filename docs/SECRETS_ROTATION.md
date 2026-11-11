@@ -6,22 +6,22 @@ in an API response and the structured logger redacts secret-like keys.
 
 ## Inventory
 
-| Secret | Used for | Rotation impact |
-| --- | --- | --- |
-| `APP_SECRET` | signs tokens, derives visitor IDs, encrypts analytics-provider credentials | invalidates sessions and requires provider-secret re-encryption |
-| `APP_SECRET_PREVIOUS` | temporary read-only rotation key | remove after rotation |
-| `DATABASE_URL` / `DATABASE_URL_UNPOOLED` | runtime / migrations | brief connection errors; use Neon credential rotation |
-| `DATABASE_REPLICA_URL` | analytics reads | read path falls back to primary |
-| `RESEND_API_KEY` | verification/reset/invite/usage email | email delivery stops until updated |
-| `ERROR_TRACKING_WEBHOOK` | optional error collector | observability only |
-| `PLATFORM_ADMIN_EMAILS` | platform-operator allowlist | access boundary; change deliberately |
-| `DODO_PAYMENTS_API_KEY` | platform billing (context A) | checkout/portal/cancel stop |
-| `DODO_PAYMENTS_WEBHOOK_SECRET` | verifies platform billing webhooks | webhook deliveries rejected |
-| `DODO_*_PRODUCT_ID` | plan mapping | checkout fails closed for unknown products |
-| Provider connection secrets | customer revenue integrations (context B) | encrypted per website; rotate per provider |
-| Website API keys | CLI/MCP/developer reads | hashed at rest; revoke and reissue |
-| `REDIS_URL` | optional cache | cache misses, rate limits unaffected |
-| `CLICKHOUSE_URL` / `KAFKA_*` | optional scale tier | analytics query path falls back or fails |
+| Secret                                   | Used for                                                                   | Rotation impact                                                 |
+| ---------------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `APP_SECRET`                             | signs tokens, derives visitor IDs, encrypts analytics-provider credentials | invalidates sessions and requires provider-secret re-encryption |
+| `APP_SECRET_PREVIOUS`                    | temporary read-only rotation key                                           | remove after rotation                                           |
+| `DATABASE_URL` / `DATABASE_URL_UNPOOLED` | runtime / migrations                                                       | brief connection errors; use Neon credential rotation           |
+| `DATABASE_REPLICA_URL`                   | analytics reads                                                            | read path falls back to primary                                 |
+| `RESEND_API_KEY`                         | verification/reset/invite/usage email                                      | email delivery stops until updated                              |
+| `ERROR_TRACKING_WEBHOOK`                 | optional error collector                                                   | observability only                                              |
+| `PLATFORM_ADMIN_EMAILS`                  | platform-operator allowlist                                                | access boundary; change deliberately                            |
+| `DODO_PAYMENTS_API_KEY`                  | platform billing (context A)                                               | checkout/portal/cancel stop                                     |
+| `DODO_PAYMENTS_WEBHOOK_SECRET`           | verifies platform billing webhooks                                         | webhook deliveries rejected                                     |
+| `DODO_*_PRODUCT_ID`                      | plan mapping                                                               | checkout fails closed for unknown products                      |
+| Provider connection secrets              | customer revenue integrations (context B)                                  | encrypted per website; rotate per provider                      |
+| Website API keys                         | CLI/MCP/developer reads                                                    | hashed at rest; revoke and reissue                              |
+| `REDIS_URL`                              | optional cache                                                             | cache misses, rate limits unaffected                            |
+| `CLICKHOUSE_URL` / `KAFKA_*`             | optional scale tier                                                        | analytics query path falls back or fails                        |
 
 `STRIPE_WEBHOOK_SECRET`, `LEMONSQUEEZY_WEBHOOK_SECRET`, and
 `POLAR_WEBHOOK_SECRET` are legacy fallbacks only. Normal connections store a
@@ -47,9 +47,11 @@ window:
 2. Set `APP_SECRET=<new>` and `APP_SECRET_PREVIOUS=<old>` in the secret manager.
 3. Deploy and restart the app.
 4. Run:
+
    ```bash
    pnpm rotate:provider-secrets
    ```
+
    The script scans `payment_provider_connection` and
    `provider_webhook_cleanup_job`, re-encrypts `credentialsRef` and
    `webhookSecretRef`, and prints counts only.
