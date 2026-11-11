@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { Panel } from '@/components/common/Panel';
 import { useLocale, useMessages } from '@/components/hooks';
-import { Users } from '@/components/icons';
+import { Group as Users } from '@/components/icons';
 import { useResultQuery } from '@/features/analytics/hooks/useResultQuery';
 import { formatDate } from '@/lib/date';
 import { formatLongNumber } from '@/lib/format';

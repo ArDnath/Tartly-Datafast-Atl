@@ -1,6 +1,5 @@
 'use client';
 import { Column } from '@talivia/react-zen';
-import { WebsiteControls } from '@/features/analytics/workbench/WebsiteControls';
 import { useDateRange } from '@/components/hooks';
 import { UTM } from './UTM';
 
@@ -11,7 +10,6 @@ export function UTMPage({ websiteId }: { websiteId: string }) {
 
   return (
     <Column gap>
-      <WebsiteControls websiteId={websiteId} />
       <UTM websiteId={websiteId} startDate={startDate} endDate={endDate} />
     </Column>
   );

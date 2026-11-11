@@ -2,7 +2,7 @@ import { useSpring } from '@react-spring/web';
 import { Button, Column, Icon, Row, Text, Tooltip, TooltipTrigger } from '@talivia/react-zen';
 import type { CSSProperties, ReactNode } from 'react';
 import { AnimatedDiv } from '@/components/common/AnimatedDiv';
-import { Info } from '@/components/icons';
+import { InfoCircle as Info } from '@/components/icons';
 import { ChangeLabel } from '@/features/analytics/components/metrics/ChangeLabel';
 import { formatNumber } from '@/lib/format';
 
@@ -22,8 +22,8 @@ export interface MetricCardProps {
 const overviewCardStyle: CSSProperties = {
   overflow: 'hidden',
   borderRadius: 20,
-  borderColor: '#ffffff12',
-  background: '#161616',
+  borderColor: 'var(--talivia-card-border)',
+  background: 'var(--talivia-card-background)',
 };
 
 export const MetricCard = ({

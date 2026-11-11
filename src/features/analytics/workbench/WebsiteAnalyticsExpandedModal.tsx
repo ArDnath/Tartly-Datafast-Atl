@@ -7,7 +7,13 @@ import { IconLabel } from '@/components/common/IconLabel';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { Panel } from '@/components/common/Panel';
 import { useDateRange, useMobile } from '@/components/hooks';
-import { CreditCard, MousePointerClick, Target, UserRound, X } from '@/components/icons';
+import {
+  CreditCard,
+  CursorPointer as MousePointerClick,
+  Trophy as Target,
+  User as UserRound,
+  Xmark as X,
+} from '@/components/icons';
 import { MobileMenuButton } from '@/components/input/MobileMenuButton';
 import type { AnalyticsSection } from '@/features/analytics/components/AnalyticsOverlayContext';
 import { MetricsExpandedTable } from '@/features/analytics/components/metrics/MetricsExpandedTable';
@@ -187,7 +193,13 @@ function GoalsAnalyticsPanel({ websiteId, onClose }: { websiteId: string; onClos
           {goals.length ? (
             <Grid columns={{ base: '1fr', md: 'repeat(2, minmax(0, 1fr))' }} gap="3">
               {goals.map((report: any) => (
-                <Panel key={report.id} style={{ background: '#161616', borderColor: '#ffffff12' }}>
+                <Panel
+                  key={report.id}
+                  style={{
+                    background: 'var(--talivia-card-background)',
+                    borderColor: 'var(--talivia-card-border)',
+                  }}
+                >
                   <Goal {...report} startDate={startDate} endDate={endDate} />
                 </Panel>
               ))}

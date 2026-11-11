@@ -12,7 +12,7 @@ export const LINKS_URL = `${globalThis?.location?.origin}/q`;
 export const PIXELS_URL = `${globalThis?.location?.origin}/p`;
 
 export const APP_LAYOUT_MAX_WIDTH = '1080px';
-export const WEBSITE_LAYOUT_MAX_WIDTH = '1320px';
+export const WEBSITE_LAYOUT_MAX_WIDTH = '1080px';
 export const DEFAULT_LOCALE = 'en-US';
 export const DEFAULT_ANIMATION_DURATION = 300;
 export const DEFAULT_DATE_RANGE_VALUE = '24hour';

@@ -3,7 +3,6 @@ import {
   Icon,
   Menu,
   MenuItem,
-  MenuSeparator,
   MenuTrigger,
   Popover,
   Pressable,
@@ -14,7 +13,7 @@ import {
   TooltipTrigger,
 } from '@talivia/react-zen';
 import { useLocale, useMessages, useMobile } from '@/components/hooks';
-import { Globe, LogOut, Settings, UserCircle } from '@/components/icons';
+import { Globe, Settings, UserCircle } from '@/components/icons';
 import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { languages } from '@/lib/lang';
 
@@ -28,24 +27,14 @@ export function UserButton({ showText = true, onClose }: UserButtonProps) {
   const { t, labels } = useMessages();
   const { locale, saveLocale } = useLocale();
   const { isMobile } = useMobile();
+  const userLabel =
+    user?.displayName?.trim() || user?.username?.split('@')[0] || user?.username || '';
+  const initial = userLabel.charAt(0).toUpperCase();
 
   const languageItems = Object.keys(languages).map(key => ({
     value: key,
     label: languages[key].label,
   }));
-
-  const items = [
-    {
-      id: 'separator',
-      separator: true,
-    },
-    {
-      id: 'logout',
-      label: t(labels.logout),
-      path: '/logout',
-      icon: <LogOut />,
-    },
-  ].filter(Boolean);
 
   return (
     <MenuTrigger>
@@ -61,14 +50,18 @@ export function UserButton({ showText = true, onClose }: UserButtonProps) {
             style={{ cursor: 'pointer', textWrap: 'nowrap', overflow: 'hidden', outline: 'none' }}
           >
             <Row alignItems="center" gap padding>
-              <Icon>
-                <UserCircle />
-              </Icon>
-              {showText && <Text>{user.username}</Text>}
+              <span className="app-user-avatar" aria-hidden="true">
+                {initial || (
+                  <Icon>
+                    <UserCircle />
+                  </Icon>
+                )}
+              </span>
+              {showText && !isMobile && <Text className="app-user-name">{userLabel}</Text>}
             </Row>
           </Row>
         </Pressable>
-        <Tooltip placement="right">{user.username}</Tooltip>
+        <Tooltip placement="right">{userLabel}</Tooltip>
       </TooltipTrigger>
       <Popover className="talivia-popover" placement="top start">
         <Column minWidth="200px">
@@ -109,19 +102,6 @@ export function UserButton({ showText = true, onClose }: UserButtonProps) {
                 </Menu>
               </Popover>
             </SubmenuTrigger>
-            {items.map(({ id, path, label, icon, separator }: any) => {
-              if (separator) {
-                return <MenuSeparator key={id} />;
-              }
-              return (
-                <MenuItem key={id} id={id} href={path}>
-                  <Row alignItems="center" gap>
-                    <Icon>{icon}</Icon>
-                    <Text>{label}</Text>
-                  </Row>
-                </MenuItem>
-              );
-            })}
           </Menu>
         </Column>
       </Popover>

@@ -3,7 +3,6 @@ import { Column, Tab, TabList, TabPanel, Tabs } from '@talivia/react-zen';
 import type { Key } from 'react';
 import { Panel } from '@/components/common/Panel';
 import { useMessages, useStoredState } from '@/components/hooks';
-import { WebsiteControls } from '@/features/analytics/workbench/WebsiteControls';
 import { SessionProperties } from './SessionProperties';
 import { SessionsDataTable } from './SessionsDataTable';
 
@@ -19,7 +18,6 @@ export function SessionsPage({ websiteId }) {
 
   return (
     <Column gap="3">
-      <WebsiteControls websiteId={websiteId} />
       <Panel>
         <Tabs selectedKey={tab} onSelectionChange={handleSelect}>
           <TabList>

@@ -7,10 +7,12 @@ export interface WorkspaceSummary {
   id: string;
   name: string;
   slug: string;
+  logoUrl: string | null;
   ownerId: string;
   planId: string | null;
   subscriptionStatus: string;
   createdAt?: string;
+  onboardingCompletedAt?: string | null;
 }
 
 export interface WorkspaceMembershipSummary {

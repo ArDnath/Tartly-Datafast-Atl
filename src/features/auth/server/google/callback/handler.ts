@@ -13,6 +13,7 @@ import {
 } from '../config';
 import { redirectAfterSignIn, redirectToLogin } from '../redirect';
 import { exchangeGoogleCode, GoogleOAuthError } from '../service';
+import { resolvePostSignInPath } from '../../post-signin';
 
 const CALLBACK_IP_LIMIT = { limit: 30, windowSeconds: 15 * 60 };
 
@@ -82,7 +83,11 @@ export async function GET(request: Request) {
 
     logger.info('auth.google_sign_in', { userId: user.id });
 
-    return redirectAfterSignIn(request, state.returnUrl, [
+    // New accounts have no workspace yet. Send them to onboarding instead of
+    // the old auto-created-workspace dashboard.
+    const destination = await resolvePostSignInPath(user.id, state.returnUrl);
+
+    return redirectAfterSignIn(request, destination, [
       auth.sessionCookie,
       clearGoogleOAuthStateCookie(),
     ]);

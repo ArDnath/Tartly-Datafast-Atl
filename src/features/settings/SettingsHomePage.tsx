@@ -23,8 +23,8 @@ interface WorkspaceUsageResponse {
 }
 
 const CARD_STYLE = {
-  background: '#161616',
-  borderColor: '#ffffff12',
+  background: 'var(--talivia-card-background)',
+  borderColor: 'var(--talivia-card-border)',
   borderRadius: 20,
 } as const;
 
@@ -110,7 +110,7 @@ export function SettingsHomePage() {
           </Column>
           <Link
             href={renderUrl('/app/settings/workspace', false)}
-            style={{ color: '#f2b4cb', fontSize: 13, fontWeight: 600 }}
+            style={{ color: 'var(--accent-text)', fontSize: 13, fontWeight: 600 }}
           >
             Manage workspace
           </Link>
@@ -127,7 +127,7 @@ export function SettingsHomePage() {
           </Text>
           <Link
             href={renderUrl('/app/settings/billing', false)}
-            style={{ color: '#f2b4cb', fontSize: 13, fontWeight: 600 }}
+            style={{ color: 'var(--accent-text)', fontSize: 13, fontWeight: 600 }}
           >
             Open plan and usage
           </Link>
@@ -139,7 +139,7 @@ export function SettingsHomePage() {
           </Text>
           <Link
             href={renderUrl('/app/settings/websites', false)}
-            style={{ color: '#f2b4cb', fontSize: 13, fontWeight: 600 }}
+            style={{ color: 'var(--accent-text)', fontSize: 13, fontWeight: 600 }}
           >
             Manage websites
           </Link>
@@ -155,7 +155,7 @@ export function SettingsHomePage() {
           </Text>
           <Link
             href={renderUrl('/app/settings/integrations', false)}
-            style={{ color: '#f2b4cb', fontSize: 13, fontWeight: 600 }}
+            style={{ color: 'var(--accent-text)', fontSize: 13, fontWeight: 600 }}
           >
             Review integrations
           </Link>
@@ -167,7 +167,7 @@ export function SettingsHomePage() {
           </Text>
           <Link
             href={renderUrl('/app/settings/security', false)}
-            style={{ color: '#f2b4cb', fontSize: 13, fontWeight: 600 }}
+            style={{ color: 'var(--accent-text)', fontSize: 13, fontWeight: 600 }}
           >
             Open security
           </Link>
@@ -180,13 +180,13 @@ export function SettingsHomePage() {
           <Row gap="3" alignItems="center" wrap="wrap">
             <Link
               href={renderUrl('/app/settings/account', false)}
-              style={{ color: '#f2b4cb', fontSize: 13, fontWeight: 600 }}
+              style={{ color: 'var(--accent-text)', fontSize: 13, fontWeight: 600 }}
             >
               Manage account
             </Link>
             <Link
               href={renderUrl('/app/settings/preferences', false)}
-              style={{ color: '#ffffff99', fontSize: 13 }}
+              style={{ color: 'var(--text-muted)', fontSize: 13 }}
             >
               Preferences
             </Link>

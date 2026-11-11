@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from '@talivia/react-zen';
 import { useFilters, useFormat, useMessages, useUrlState } from '@/components/hooks/index';
-import { Bookmark, X } from '@/components/icons';
+import { Bookmark, Xmark as X } from '@/components/icons';
 import { useWebsiteSegmentQuery } from '@/features/analytics/hooks/useWebsiteSegmentQuery';
 import { SegmentEditForm } from '@/features/analytics/workbench/segments/SegmentEditForm';
 import { isSearchOperator } from '@/lib/params';

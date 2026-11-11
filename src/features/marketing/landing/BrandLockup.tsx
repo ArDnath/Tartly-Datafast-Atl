@@ -7,8 +7,8 @@ import { BRAND } from '@/lib/brand';
  */
 export function BrandLockup({ size = 30 }: { size?: number }) {
   return (
-    <span className="inline-flex items-center gap-2 text-gray-900">
-      <BrandMark size={size} />
+    <span className="inline-flex items-center gap-2 text-lp-ink">
+      <BrandMark size={size} alt="" />
       <span className="text-lg font-semibold tracking-[-0.035em]">{BRAND.name}</span>
     </span>
   );

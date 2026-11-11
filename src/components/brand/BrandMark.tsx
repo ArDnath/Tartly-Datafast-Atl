@@ -7,11 +7,20 @@ import { BRAND } from '@/lib/brand';
  * nav/auth/onboarding sizes used across the product. The 22% corner radius
  * matches the app-icon convention used by the source brand.
  */
-export function BrandMark({ size = 32, className }: { size?: number; className?: string }) {
+export function BrandMark({
+  size = 32,
+  className,
+  alt,
+}: {
+  size?: number;
+  className?: string;
+  /** Override the accessible name; pass "" where visible text already names the brand. */
+  alt?: string;
+}) {
   return (
     <img
       src={BRAND.logo.mark}
-      alt={BRAND.logo.alt}
+      alt={alt ?? BRAND.logo.alt}
       width={size}
       height={size}
       className={className ? `brand-mark ${className}` : 'brand-mark'}

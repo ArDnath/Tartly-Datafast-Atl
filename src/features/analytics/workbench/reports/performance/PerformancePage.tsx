@@ -1,6 +1,5 @@
 'use client';
 import { Column } from '@talivia/react-zen';
-import { WebsiteControls } from '@/features/analytics/workbench/WebsiteControls';
 import { useDateRange } from '@/components/hooks';
 import { Performance } from './Performance';
 
@@ -11,7 +10,6 @@ export function PerformancePage({ websiteId }: { websiteId: string }) {
 
   return (
     <Column gap>
-      <WebsiteControls websiteId={websiteId} />
       <Performance websiteId={websiteId} startDate={startDate} endDate={endDate} unit={unit} />
     </Column>
   );

@@ -10,12 +10,12 @@ import {
   Tabs,
   TextField,
 } from '@talivia/react-zen';
-import { X } from 'lucide-react';
+
 import { useState } from 'react';
 import { Avatar } from '@/components/common/Avatar';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { useMessages } from '@/components/hooks';
-import { ArrowUpDown } from '@/components/icons';
+import { Sort as ArrowUpDown, Xmark as X } from '@/components/icons';
 import { useWebsiteSessionQuery } from '@/features/analytics/hooks/useWebsiteSessionQuery';
 import { type ActivitySortDirection, SessionActivity } from './SessionActivity';
 import { SessionData } from './SessionData';

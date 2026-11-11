@@ -2,6 +2,7 @@
 import { Column, Loading } from '@talivia/react-zen';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { APP_SECRET_CONFIGURATION_ERROR_CODE } from '@/lib/app-config';
 import { sanitizeAuthReturnUrl } from '@/features/auth/lib/auth-return-url';
@@ -19,12 +20,20 @@ export function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      router.replace(returnUrl);
+      const destination =
+        user.onboardingRequired && !returnUrl.startsWith('/onboarding') ? '/onboarding' : returnUrl;
+
+      router.replace(destination);
     }
   }, [user, router, returnUrl]);
 
   if (isLoading || user) {
-    return <Loading placement="absolute" />;
+    return (
+      <>
+        <ThemeToggle floating />
+        <Loading placement="absolute" />
+      </>
+    );
   }
 
   return (
@@ -35,6 +44,7 @@ export function LoginPage() {
       height="100vh"
       backgroundColor="surface-raised"
     >
+      <ThemeToggle floating />
       <LoginForm
         returnUrl={returnUrl}
         initialError={configurationError}

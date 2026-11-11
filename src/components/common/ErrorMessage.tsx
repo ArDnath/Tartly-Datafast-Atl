@@ -1,6 +1,6 @@
 import { Icon, Row, Text } from '@talivia/react-zen';
 import { useMessages } from '@/components/hooks';
-import { AlertTriangle } from '@/components/icons';
+import { WarningTriangle as AlertTriangle } from '@/components/icons';
 
 export function ErrorMessage() {
   const { t, messages } = useMessages();

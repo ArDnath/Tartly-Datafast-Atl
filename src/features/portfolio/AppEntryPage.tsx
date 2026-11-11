@@ -12,7 +12,7 @@ import {
   useNavigation,
   useUrlState,
 } from '@/components/hooks';
-import { ChevronRight, Edit, Globe2 } from '@/components/icons';
+import { NavArrowRight as ChevronRight, Edit, Internet as Globe2 } from '@/components/icons';
 import { DateFilter } from '@/components/input/DateFilter';
 import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { useWebsiteOverviewQuery } from '@/features/portfolio/hooks/useWebsiteOverviewQuery';
@@ -21,6 +21,7 @@ import { getDateRangeValue } from '@/lib/date';
 import { formatCurrency, formatLongCurrency, formatLongNumber } from '@/lib/format';
 import { WebsiteAddButton } from '../websites/WebsiteAddButton';
 import { WebsiteFirstRunPanel } from '../websites/WebsiteFirstRunPanel';
+import { PortfolioCharts } from './PortfolioCharts';
 
 const CHART_WIDTH = 420;
 const CHART_HEIGHT = 132;
@@ -28,9 +29,7 @@ const CHART_TOP = 12;
 const CHART_BOTTOM = CHART_HEIGHT;
 const REVENUE_COLOR = '#2dbf72';
 const TRAFFIC_COLOR = '#3b82ff';
-const OVERVIEW_CARD_BACKGROUND = '#161616';
-const OVERVIEW_CARD_BORDER = '#ffffff12';
-const OVERVIEW_AXIS_COLOR = '#ffffff12';
+const OVERVIEW_AXIS_COLOR = 'var(--talivia-card-border)';
 const OVERVIEW_CARD_INFO_HEIGHT = 68;
 const OVERVIEW_BAR_EDGE_GAP = 10;
 const APP_DATE_FILTER_VALUES = ['0day', '24hour', '0week', '7day', '0month', '30day'];
@@ -57,20 +56,6 @@ interface WebsiteOverview {
     revenue: number;
     payments: number;
   }[];
-}
-
-interface MrrChannelRow {
-  channel: string;
-  label: string;
-  mrr: number;
-  subscriptions: number;
-  currency?: string | null;
-}
-
-interface PortfolioMrr {
-  totalMrr: number | null;
-  currency?: string | null;
-  channels: MrrChannelRow[];
 }
 
 function formatDateLabel(date: string) {
@@ -294,152 +279,6 @@ function WebsiteMiniChart({
   );
 }
 
-function SummaryMetric({ value, label }: { value: string; label: string }) {
-  return (
-    <Row alignItems="baseline" gap="2" minWidth="0">
-      <Text size="xl" weight="bold" wrap="nowrap">
-        {value}
-      </Text>
-      <Text size="lg" color="muted" wrap="nowrap">
-        {label}
-      </Text>
-    </Row>
-  );
-}
-
-function PortfolioMetric({
-  label,
-  value,
-  hint,
-  signal,
-}: {
-  label: string;
-  value: string;
-  hint: string;
-  signal?: boolean;
-}) {
-  return (
-    <Column
-      gap="1"
-      paddingX="4"
-      paddingY="4"
-      style={{
-        minHeight: 104,
-        borderRadius: 14,
-        border: `1px solid ${signal ? 'rgba(242, 180, 203, 0.22)' : OVERVIEW_CARD_BORDER}`,
-        background: OVERVIEW_CARD_BACKGROUND,
-      }}
-    >
-      <Text size="sm" color="muted">
-        {label}
-      </Text>
-      <Text
-        size="xl"
-        weight="bold"
-        style={{
-          fontVariantNumeric: 'tabular-nums',
-          color: signal ? '#f2b4cb' : undefined,
-        }}
-      >
-        {value}
-      </Text>
-      <Text size="sm" color="muted">
-        {hint}
-      </Text>
-    </Column>
-  );
-}
-
-function MrrByChannelPanel({ mrr }: { mrr?: PortfolioMrr }) {
-  const { locale } = useLocale();
-
-  if (!mrr?.channels.length) {
-    return null;
-  }
-
-  const hasSingleCurrency = !!mrr.currency;
-  const totalMrr = mrr.totalMrr || 0;
-
-  return (
-    <Column
-      gap="3"
-      paddingX="4"
-      paddingY="4"
-      style={{
-        borderRadius: 16,
-        border: `1px solid ${OVERVIEW_CARD_BORDER}`,
-        background: OVERVIEW_CARD_BACKGROUND,
-      }}
-    >
-      <Row alignItems="baseline" justifyContent="space-between" gap="3" wrap="wrap">
-        <Column gap="1" minWidth="0">
-          <Text size="lg" weight="bold">
-            Current MRR by channel
-          </Text>
-          <Text size="sm" color="muted">
-            Active subscriptions by the channel that first brought the customer in. Not affected by
-            the date filter.
-          </Text>
-        </Column>
-        <Text
-          size="xl"
-          weight="bold"
-          style={{ color: '#f2b4cb', fontVariantNumeric: 'tabular-nums' }}
-        >
-          {hasSingleCurrency
-            ? formatLongCurrency(totalMrr, mrr.currency as string, locale)
-            : 'Mixed'}
-        </Text>
-      </Row>
-
-      <Column gap="3">
-        {mrr.channels.map(row => {
-          const share = totalMrr > 0 ? Math.max(2, (row.mrr / totalMrr) * 100) : 0;
-
-          return (
-            <Column key={row.channel} gap="1">
-              <Row alignItems="baseline" justifyContent="space-between" gap="3">
-                <Text size="sm">{row.label}</Text>
-                <Row alignItems="baseline" gap="3">
-                  <Text size="sm" color="muted" wrap="nowrap">
-                    {row.subscriptions} {row.subscriptions === 1 ? 'subscription' : 'subscriptions'}
-                  </Text>
-                  <Text
-                    size="sm"
-                    weight="bold"
-                    wrap="nowrap"
-                    style={{ fontVariantNumeric: 'tabular-nums' }}
-                  >
-                    {row.currency ? formatLongCurrency(row.mrr, row.currency, locale) : '—'}
-                  </Text>
-                </Row>
-              </Row>
-              <div
-                aria-hidden="true"
-                style={{
-                  height: 4,
-                  borderRadius: 999,
-                  background: 'rgba(255, 255, 255, 0.06)',
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    width: `${share}%`,
-                    height: '100%',
-                    borderRadius: 999,
-                    background: 'rgba(242, 180, 203, 0.72)',
-                  }}
-                />
-              </div>
-            </Column>
-          );
-        })}
-      </Column>
-    </Column>
-  );
-}
-
 function WebsiteCard({ website }: { website: WebsiteOverview }) {
   const { renderUrl } = useNavigation();
   const { locale } = useLocale();
@@ -459,32 +298,13 @@ function WebsiteCard({ website }: { website: WebsiteOverview }) {
           textDecoration: 'none',
         }}
       >
-        <Column
-          backgroundColor="surface-base"
-          border
-          borderRadius
-          paddingX="0"
-          paddingY="0"
-          gap="0"
-          style={{
-            position: 'relative',
-            minHeight: 180,
-            overflow: 'hidden',
-            borderRadius: 20,
-            borderColor: OVERVIEW_CARD_BORDER,
-            background: OVERVIEW_CARD_BACKGROUND,
-            transition: 'border-color 120ms ease, transform 120ms ease',
-          }}
-        >
+        <Column className="portfolio-site-card" gap="0">
           <Column
             gap="1"
             style={{
               height: OVERVIEW_CARD_INFO_HEIGHT,
-              left: 0,
-              padding: '10px 16px 8px',
-              position: 'absolute',
-              right: 0,
-              top: 0,
+              padding: '14px 16px 8px',
+              position: 'relative',
               zIndex: 2,
             }}
           >
@@ -492,7 +312,7 @@ function WebsiteCard({ website }: { website: WebsiteOverview }) {
               alignItems="center"
               gap="2"
               minWidth="0"
-              style={{ paddingRight: canOpenSettings ? 40 : 0 }}
+              style={{ paddingRight: canOpenSettings ? 34 : 0 }}
             >
               {domain ? (
                 <Favicon
@@ -509,23 +329,22 @@ function WebsiteCard({ website }: { website: WebsiteOverview }) {
               </Text>
             </Row>
 
-            <Row alignItems="center" gap="4" minWidth="0" style={{ whiteSpace: 'nowrap' }}>
-              <SummaryMetric
-                value={formatLongCurrency(metrics.revenue, currency, locale)}
-                label={t(labels.revenue)}
-              />
-              <SummaryMetric
-                value={formatLongNumber(metrics.visitors)}
-                label={t(labels.visitors)}
-              />
+            <Row alignItems="baseline" gap="4" minWidth="0" style={{ whiteSpace: 'nowrap' }}>
+              <Text size="xl" weight="bold" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                {formatLongCurrency(metrics.revenue, currency, locale)}
+              </Text>
+              <Text size="sm" color="muted">
+                {formatLongNumber(metrics.visitors)} {t(labels.visitors).toLocaleLowerCase(locale)}
+              </Text>
             </Row>
           </Column>
 
           <div
             aria-hidden="true"
             style={{
-              position: 'absolute',
-              inset: `${OVERVIEW_CARD_INFO_HEIGHT}px 0 0`,
+              flex: 1,
+              minHeight: 96,
+              position: 'relative',
               zIndex: 1,
               pointerEvents: 'none',
             }}
@@ -556,11 +375,10 @@ export function AppEntryPage() {
     query: { offset = 0 },
   } = useUrlState();
   const { dateRange, isAllTime, isCustomRange } = useDateRange();
-  const { getErrorMessage } = useMessages();
+  const { getErrorMessage, t, labels } = useMessages();
   const { data, isLoading, error } = useWebsiteOverviewQuery();
   const isInitialLoading = isLoading && !data;
   const websites = (data?.data || []) as WebsiteOverview[];
-  const mrrByChannel = (data as { mrrByChannel?: PortfolioMrr } | undefined)?.mrrByChannel;
   const { locale } = useLocale();
   const showActions = user?.role !== ROLES.viewOnly;
   const showDateStepButtons = !isAllTime && !isCustomRange;
@@ -577,15 +395,9 @@ export function AppEntryPage() {
     (sum, website) => sum + Number(website.metrics.visitors || 0),
     0,
   );
-  const totalPayments = websites.reduce(
-    (sum, website) => sum + Number(website.metrics.payments || 0),
-    0,
-  );
   const currencies = new Set(websites.map(website => website.metrics.currency || DEFAULT_CURRENCY));
   const singleCurrency = currencies.size <= 1;
   const portfolioCurrency = [...currencies][0] || DEFAULT_CURRENCY;
-  const revenuePerVisitor = totalVisitors ? totalRevenue / totalVisitors : 0;
-  const purchaseRate = totalVisitors ? (totalPayments / totalVisitors) * 100 : 0;
   const hasSites = websites.length > 0;
 
   const handleDateChange = (date: string) => {
@@ -596,16 +408,40 @@ export function AppEntryPage() {
     patch({ offset: Number(offset) + increment });
   };
 
+  const summary = hasSites
+    ? [
+        `${websites.length} ${websites.length === 1 ? 'website' : 'websites'}`,
+        singleCurrency ? formatCurrency(totalRevenue, portfolioCurrency, locale) : 'Mixed currency',
+        `${formatLongNumber(totalVisitors)} ${t(labels.visitors).toLocaleLowerCase(locale)}`,
+      ].join(' · ')
+    : 'Connect your first site to start measuring revenue.';
+
   return (
     <PageBody isLoading={isInitialLoading} error={getErrorMessage(error)}>
-      <Column gap="4" margin="2">
-        <Row alignItems="center" justifyContent="flex-end" gap="3" wrap="wrap">
+      <Column gap="5" paddingTop="2">
+        <Row
+          className="portfolio-toolbar"
+          alignItems="flex-end"
+          justifyContent="space-between"
+          gap="3"
+          wrap="wrap"
+        >
+          <Column gap="1" minWidth="0">
+            <Text size="xl" weight="bold">
+              Websites
+            </Text>
+            <Text size="sm" color="muted">
+              {summary}
+            </Text>
+          </Column>
+
           <Row alignItems="center" gap="2" wrap="wrap">
             {showDateStepButtons && (
               <Button
                 className="talivia-control"
                 onPress={() => handleDateIncrement(-1)}
                 variant="outline"
+                aria-label="Previous period"
               >
                 <Icon rotate={180}>
                   <ChevronRight />
@@ -613,7 +449,7 @@ export function AppEntryPage() {
               </Button>
             )}
             <DateFilter
-              className="min-w-[200px]"
+              className="min-w-[180px]"
               value={dateValue}
               onChange={handleDateChange}
               allowedValues={APP_DATE_FILTER_VALUES}
@@ -626,76 +462,29 @@ export function AppEntryPage() {
                 onPress={() => handleDateIncrement(1)}
                 variant="outline"
                 isDisabled={disableForward}
+                aria-label="Next period"
               >
                 <Icon>
                   <ChevronRight />
                 </Icon>
               </Button>
             )}
+            {showActions && <WebsiteAddButton />}
           </Row>
-          {showActions && <WebsiteAddButton />}
         </Row>
 
-        {hasSites && (
-          <>
-            <Grid
-              columns={{
-                base: '1fr',
-                sm: 'repeat(2, minmax(0, 1fr))',
-                xl: 'repeat(4, minmax(0, 1fr))',
-              }}
-              gap="3"
-            >
-              <PortfolioMetric
-                label="Revenue"
-                value={
-                  singleCurrency ? formatCurrency(totalRevenue, portfolioCurrency, locale) : 'Mixed'
-                }
-                hint={
-                  singleCurrency
-                    ? `Across ${websites.length} website${websites.length === 1 ? '' : 's'}`
-                    : 'Sites report in different currencies'
-                }
-                signal
-              />
-              <PortfolioMetric
-                label="Revenue per visitor"
-                value={
-                  singleCurrency
-                    ? formatCurrency(revenuePerVisitor, portfolioCurrency, locale)
-                    : '—'
-                }
-                hint="Revenue divided by unique visitors"
-              />
-              <PortfolioMetric
-                label="Purchase rate"
-                value={`${purchaseRate.toFixed(2)}%`}
-                hint="Payments divided by unique visitors"
-              />
-              <PortfolioMetric
-                label="Visitors"
-                value={formatLongNumber(totalVisitors)}
-                hint={`${formatLongNumber(totalPayments)} payments in range`}
-              />
-            </Grid>
-
-            <MrrByChannelPanel mrr={mrrByChannel} />
-
-            <Row alignItems="baseline" justifyContent="space-between" gap="3" wrap="wrap">
-              <Column gap="1" minWidth="0">
-                <Text size="lg" weight="bold">
-                  Revenue by website
-                </Text>
-                <Text size="sm" color="muted">
-                  Money leads. Visitors and payments are supporting context.
-                </Text>
-              </Column>
-            </Row>
-          </>
+        {/* Mixed-currency portfolios are left to the per-site cards; summing
+            different currencies into one chart would be misleading. */}
+        {hasSites && singleCurrency && (
+          <PortfolioCharts sites={websites} currency={portfolioCurrency} />
         )}
 
         {websites.length === 0 && showActions ? (
           <WebsiteFirstRunPanel />
+        ) : websites.length === 0 ? (
+          <Row alignItems="center" justifyContent="center" style={{ minHeight: 220 }}>
+            <Text color="muted">No websites in this workspace yet.</Text>
+          </Row>
         ) : (
           <Grid
             columns={{

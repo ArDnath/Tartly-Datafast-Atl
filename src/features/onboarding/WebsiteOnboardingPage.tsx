@@ -5,16 +5,16 @@ import { useSearchParams } from 'next/navigation';
 import { PageBody } from '@/components/common/PageBody';
 import { Panel } from '@/components/common/Panel';
 import { useMessages, useModified, useNavigation } from '@/components/hooks';
-import { BRAND } from '@/lib/brand';
 import { WebsiteEditForm } from '@/features/websites/settings/WebsiteEditForm';
 import { WebsiteRevenueConnect } from '@/features/websites/settings/WebsiteRevenueSettings';
 import { WebsiteTrackingCode } from '@/features/websites/settings/WebsiteTrackingCode';
 import { WebsiteAddForm } from '@/features/websites/WebsiteAddForm';
 import { WebsiteProvider } from '@/features/websites/WebsiteProvider';
+import { BRAND } from '@/lib/brand';
 
 const CARD_STYLE = {
-  background: '#161616',
-  borderColor: '#ffffff12',
+  background: 'var(--talivia-card-background)',
+  borderColor: 'var(--talivia-card-border)',
   borderRadius: 22,
 } as const;
 
@@ -56,11 +56,11 @@ function Stepper({
             onClick={() => isAvailable && goToStep(item)}
             style={{
               alignItems: 'center',
-              background: isActive ? '#ffffff12' : 'transparent',
-              border: '1px solid #ffffff12',
-              borderColor: isActive ? '#f2b4cb' : '#ffffff12',
+              background: isActive ? 'var(--talivia-card-border)' : 'transparent',
+              border: '1px solid var(--talivia-card-border)',
+              borderColor: isActive ? 'var(--accent-text)' : 'var(--talivia-card-border)',
               borderRadius: 999,
-              color: index <= activeIndex ? '#f5f5f5' : '#9ca3af',
+              color: index <= activeIndex ? 'var(--text-strong)' : 'var(--text-muted)',
               cursor: isAvailable ? 'pointer' : 'not-allowed',
               display: 'inline-flex',
               font: 'inherit',
@@ -75,7 +75,7 @@ function Stepper({
               aria-hidden
               style={{
                 alignItems: 'center',
-                background: isActive ? '#f2b4cb' : '#ffffff12',
+                background: isActive ? 'var(--accent-text)' : 'var(--talivia-card-border)',
                 borderRadius: 999,
                 display: 'inline-flex',
                 height: 20,

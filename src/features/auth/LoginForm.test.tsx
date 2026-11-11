@@ -6,12 +6,17 @@ test('shows the larger Tartly lockup above a single Google sign-in action', () =
   render(<LoginForm returnUrl="/app/revenue" />);
 
   const logo = screen.getByRole('img', { name: 'Tartly' });
-  expect(logo).toHaveAttribute('width', '72');
-  expect(logo).toHaveAttribute('height', '72');
+  expect(logo).toHaveAttribute('width', '48');
+  expect(logo).toHaveAttribute('height', '48');
   expect(screen.getByText('Tartly')).toBeInTheDocument();
 
   const button = screen.getByRole('link', { name: 'Continue with Google' });
   expect(button).toHaveAttribute('href', '/api/auth/google?returnUrl=%2Fapp%2Frevenue');
+  expect(
+    screen.getByText(
+      'Use your Google account to sign in or create your Tartly workspace. No password needed.',
+    ),
+  ).toBeInTheDocument();
   expect(screen.queryByLabelText('Username')).not.toBeInTheDocument();
   expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
 });

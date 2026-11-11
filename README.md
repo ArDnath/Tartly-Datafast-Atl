@@ -41,27 +41,63 @@ subscription is active.
 
 ## Local development
 
-Requirements: Node.js 22 LTS or 24 LTS, pnpm 10+, and PostgreSQL 9.4+ (the
-local Compose file uses PostgreSQL 17).
+Requirements: Node.js 22 LTS or 24 LTS, pnpm 10+, and PostgreSQL client/server
+binaries. Docker is optional.
 
 ```bash
 cp .env.example .env
-openssl rand -hex 32
+openssl rand -hex 32   # put the value in APP_SECRET
+pnpm install
 ```
 
-Put the generated value in `APP_SECRET`, then install, migrate, and start:
+### Without Docker (recommended on low-RAM machines)
+
+`pnpm dev:local` starts a user-owned PostgreSQL cluster in `.local/pgdata` on
+the port from `DATABASE_URL`, applies migrations, generates the Prisma client,
+and starts Next.js:
 
 ```bash
-pnpm install --frozen-lockfile
-pnpm exec prisma migrate deploy
-pnpm dev
+pnpm dev:local
 ```
 
 Open `http://localhost:3000` and create an account at `/signup`. There is no
-default account and no default password.
+default account and no default password. Verification email is written to
+`.dev-emails/outbox.log` when `RESEND_API_KEY` is empty.
 
-Sessions are server-side and delivered through an HttpOnly, SameSite=Lax
-cookie. Password changes and resets revoke every session.
+Stop the database when you are done:
+
+```bash
+pnpm db:local stop
+pnpm db:local status
+pnpm db:local reset   # destructive: deletes .local/pgdata
+```
+
+### With Neon PostgreSQL
+
+Set both Neon connection strings in `.env`, then use the same command:
+
+```env
+DATABASE_URL=postgresql://...-pooler.../db?sslmode=require
+DATABASE_URL_UNPOOLED=postgresql://..../db?sslmode=require
+```
+
+```bash
+pnpm dev:local
+```
+
+The helper detects the remote host and skips the local cluster. `pnpm dev`
+runs `prisma migrate deploy` in its `predev` step.
+
+### Verify analytics
+
+With the app running:
+
+```bash
+pnpm smoke:local   # register → website → event → stats
+```
+
+Full guide, RAM notes, Neon switching, and troubleshooting:
+`docs/LOCAL_DEVELOPMENT.md`.
 
 Useful checks:
 
@@ -72,7 +108,7 @@ pnpm test
 pnpm build
 ```
 
-Or start PostgreSQL with Docker:
+Docker remains available if you prefer it:
 
 ```bash
 docker compose up -d postgres

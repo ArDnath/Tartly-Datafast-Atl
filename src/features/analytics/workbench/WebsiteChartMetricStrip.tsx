@@ -1,7 +1,7 @@
 import { Icon } from '@talivia/react-zen';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { ArrowRight } from '@/components/icons';
-import { type WebsiteOverviewMetric, useWebsiteOverviewMetrics } from './useWebsiteOverviewMetrics';
+import { useWebsiteOverviewMetrics, type WebsiteOverviewMetric } from './useWebsiteOverviewMetrics';
 
 function getChangePercent(value: number, change: number) {
   const previous = value - change;
@@ -83,7 +83,7 @@ export function WebsiteChartMetricStrip({ websiteId }: { websiteId: string }) {
         isLoading={isLoading}
         isFetching={isFetching && !metrics}
         error={errorMessage}
-        minHeight="104px"
+        minHeight="96px"
       >
         {metrics?.map(metric => (
           <MetricStripItem key={metric.label} metric={metric} isAllTime={isAllTime} />

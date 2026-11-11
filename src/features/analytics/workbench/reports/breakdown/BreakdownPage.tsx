@@ -3,12 +3,11 @@ import { Column, Row } from '@talivia/react-zen';
 import { useState } from 'react';
 import { Panel } from '@/components/common/Panel';
 import { useDateRange, useMessages } from '@/components/hooks';
-import { ListCheck } from '@/components/icons';
+import { TaskList as ListCheck } from '@/components/icons';
 import { DialogButton } from '@/components/input/DialogButton';
 import { DownloadButton } from '@/features/analytics/components/input/DownloadButton';
 import { useResultQuery } from '@/features/analytics/hooks/useResultQuery';
 import { FieldSelectForm } from '@/features/analytics/workbench/reports/breakdown/FieldSelectForm';
-import { WebsiteControls } from '@/features/analytics/workbench/WebsiteControls';
 import { Breakdown } from './Breakdown';
 
 export function BreakdownPage({ websiteId }: { websiteId: string }) {
@@ -23,7 +22,6 @@ export function BreakdownPage({ websiteId }: { websiteId: string }) {
   );
   return (
     <Column gap>
-      <WebsiteControls websiteId={websiteId} />
       <Row alignItems="center" justifyContent="flex-start">
         <FieldsButton value={fields} onChange={setFields} />
       </Row>

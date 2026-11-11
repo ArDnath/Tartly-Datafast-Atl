@@ -182,8 +182,8 @@ function InstallGuides() {
       <p className={styles.eyebrow}>Install</p>
       <h1 className={styles.title}>Install the tracker</h1>
       <p className={styles.lead}>
-        Pick the framework you deploy. Every guide generates the same script tag from the same
-        website ID, so you can switch guides without changing the data.
+        Pick the framework or site builder you deploy. Every guide generates the same script tag
+        from the same website ID, so you can switch guides without changing the data.
       </p>
 
       <aside className={styles.callout} aria-label="Verification status">

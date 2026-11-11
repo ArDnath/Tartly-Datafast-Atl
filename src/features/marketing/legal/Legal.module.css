@@ -8,7 +8,13 @@
   --text-primary: var(--marketing-ink);
 
   min-height: 100vh;
-  background: var(--rl-canvas);
+  background-color: var(--rl-canvas);
+  background-image:
+    radial-gradient(900px 520px at 50% -10%, var(--marketing-texture-glow), transparent 68%),
+    radial-gradient(circle, var(--marketing-texture-dot) 0.55px, transparent 1.1px);
+  background-size:
+    auto,
+    var(--marketing-texture-dot-size) var(--marketing-texture-dot-size);
   color: var(--rl-fg);
   font-family: var(--font-family), sans-serif;
 }

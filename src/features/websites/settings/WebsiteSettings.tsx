@@ -8,11 +8,11 @@ import {
   CreditCard,
   Database,
   Globe,
-  KeyRound,
-  MousePointer2,
-  Route,
-  Share2,
-  Users,
+  Key as KeyRound,
+  CursorPointer as MousePointer2,
+  MapsArrow as Route,
+  ShareAndroid as Share2,
+  Group as Users,
 } from '@/components/icons';
 import { useWebsite } from '@/features/websites/hooks/useWebsite';
 import { WebsiteApiKeysSettings } from './WebsiteApiKeysSettings';
@@ -69,8 +69,8 @@ const settingsSections = [
 
 const SETTINGS_SURFACE_STYLE: CSSProperties = {
   borderRadius: 20,
-  borderColor: '#ffffff12',
-  background: '#161616',
+  borderColor: 'var(--talivia-card-border)',
+  background: 'var(--talivia-card-background)',
 };
 
 type SettingsSectionId = (typeof settingsSections)[number]['id'];

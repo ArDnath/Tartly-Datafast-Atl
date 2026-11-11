@@ -7,6 +7,10 @@ import {
   getUserWorkspaces,
   slugifyWorkspaceName,
 } from '@/lib/workspace-auth';
+import {
+  isWorkspaceLogoUrl,
+  WORKSPACE_LOGO_MAX_LENGTH,
+} from '@/features/workspaces/lib/workspace-logo';
 import prisma from '@/lib/prisma';
 import { recordAuditEvent } from '@/queries/prisma';
 
@@ -18,6 +22,14 @@ const createSchema = z.object({
     .min(2)
     .max(80)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+    .optional(),
+  logoUrl: z
+    .string()
+    .trim()
+    .max(WORKSPACE_LOGO_MAX_LENGTH)
+    .refine(isWorkspaceLogoUrl, {
+      message: 'Upload a PNG, JPEG, WebP, or GIF image.',
+    })
     .optional(),
 });
 
@@ -71,12 +83,17 @@ export async function POST(request: Request) {
     userId: auth.user.id,
     name: body.name,
     slug,
+    logoUrl: body.logoUrl,
   });
 
   await recordAuditEvent({
     auth,
     eventType: 'workspace.created',
-    metadata: { name: workspace.name, slug: workspace.slug },
+    metadata: {
+      name: workspace.name,
+      slug: workspace.slug,
+      hasLogo: Boolean(workspace.logoUrl),
+    },
     request,
     resourceId: workspace.id,
     resourceType: 'workspace',
@@ -86,6 +103,7 @@ export async function POST(request: Request) {
     id: workspace.id,
     name: workspace.name,
     slug: workspace.slug,
+    logoUrl: workspace.logoUrl,
     ownerId: workspace.ownerId,
     planId: workspace.planId,
     subscriptionStatus: workspace.subscriptionStatus,

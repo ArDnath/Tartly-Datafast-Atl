@@ -22,8 +22,8 @@ interface ActivationFunnelResponse {
 }
 
 const CARD_STYLE = {
-  background: '#161616',
-  borderColor: '#ffffff12',
+  background: 'var(--talivia-card-background)',
+  borderColor: 'var(--talivia-card-border)',
   borderRadius: 20,
 } as const;
 
@@ -127,7 +127,7 @@ export function ActivationSettingsPage() {
                         width: `${Math.min(stage.fromStartPercent, 100)}%`,
                         height: '100%',
                         borderRadius: 999,
-                        background: '#f2b4cb',
+                        background: 'var(--accent-text)',
                       }}
                     />
                   </div>

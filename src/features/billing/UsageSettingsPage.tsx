@@ -39,15 +39,15 @@ interface WorkspaceUsageResponse {
 }
 
 const SURFACE = {
-  background: '#161616',
-  borderColor: '#ffffff12',
+  background: 'var(--talivia-card-background)',
+  borderColor: 'var(--talivia-card-border)',
   borderRadius: 20,
 } as const;
 
 const STATUS_COPY: Record<UsageMeter['status'], { label: string; color: string }> = {
   ok: { label: 'Healthy', color: '#2dbf72' },
-  warning: { label: '80% used', color: '#f2b4cb' },
-  grace: { label: 'Grace period', color: '#f2b4cb' },
+  warning: { label: '80% used', color: 'var(--accent-text)' },
+  grace: { label: 'Grace period', color: 'var(--accent-text)' },
   limit: { label: 'Ingestion paused', color: '#ff6b6b' },
 };
 
@@ -97,7 +97,7 @@ export function UsageBar({
         aria-valuemax={meter.included ? meter.limit : 0}
         aria-valuenow={meter.included ? Math.min(meter.used, meter.limit) : 0}
         style={{
-          background: '#ffffff0d',
+          background: 'var(--surface-subtle)',
           borderRadius: 999,
           height: 8,
           overflow: 'hidden',
@@ -229,7 +229,7 @@ export function UsageSettingsPage() {
             href="/pricing"
             style={{
               alignSelf: 'flex-start',
-              background: '#f2b4cb',
+              background: 'var(--accent-text)',
               border: '1px solid #f2b4cb',
               borderRadius: 10,
               color: '#141414',

@@ -4,7 +4,14 @@ import { DateDistance } from '@/components/common/DateDistance';
 import { Favicon } from '@/components/common/Favicon';
 import { TypeIcon } from '@/components/common/TypeIcon';
 import { useFormat, useLocale, useMessages, useRegionNames } from '@/components/hooks';
-import { Calendar, CreditCard, KeyRound, Landmark, MapPin, UserRound } from '@/components/icons';
+import {
+  Calendar,
+  CreditCard,
+  Key as KeyRound,
+  Bank as Landmark,
+  MapPin,
+  User as UserRound,
+} from '@/components/icons';
 import { SessionActivityHeatmap } from '@/features/analytics/components/metrics/SessionActivityHeatmap';
 import {
   getPaymentCustomerKey,

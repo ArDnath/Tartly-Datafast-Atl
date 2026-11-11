@@ -1,0 +1,173 @@
+.cover {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  background: var(--rl-canvas, var(--talivia-app-background));
+  pointer-events: none;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--rl-fg, var(--text-primary));
+  font-family: var(--font-family), Inter, ui-sans-serif, system-ui, sans-serif;
+  pointer-events: none;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(900px 520px at 50% 42%, rgba(242, 180, 203, 0.08), transparent 68%),
+    var(--rl-canvas, var(--talivia-app-background));
+  opacity: 1;
+  transition: opacity 700ms cubic-bezier(0.5, 0, 0.1, 1);
+  will-change: opacity;
+}
+
+.leaving .backdrop {
+  opacity: 0;
+  transition-delay: 80ms;
+}
+
+.halftoneLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  --welcome-dot-color: var(--text-disabled);
+}
+
+.title {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  max-width: min(90vw, 760px);
+  padding: 16px 24px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  text-align: center;
+  transition:
+    opacity 340ms cubic-bezier(0.4, 0, 1, 1),
+    transform 340ms cubic-bezier(0.4, 0, 1, 1);
+  will-change: transform;
+}
+
+.leaving .title {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.word {
+  display: inline-flex;
+  opacity: 0;
+  transform: translateY(14px);
+  animation: wordIn 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.chipWrap {
+  display: inline-flex;
+  opacity: 0;
+  transform: translateY(14px);
+  animation: wordIn 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(40vw, 360px);
+  color: inherit;
+}
+
+.chipAvatar {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--talivia-card-background);
+  box-shadow: 0 0 0 1px var(--border-default);
+}
+
+.chipAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chipInitials {
+  color: var(--rl-muted-fg, var(--text-muted));
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.chipName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes wordIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 640px) {
+  .title {
+    font-size: 26px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop {
+    transition-duration: 400ms;
+  }
+
+  .title {
+    transition-duration: 200ms;
+  }
+
+  .word,
+  .chipWrap {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.overlay[data-reduced="true"] .word,
+.overlay[data-reduced="true"] .chipWrap {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
+.overlay[data-reduced="true"] .backdrop {
+  transition-duration: 400ms;
+}
+
+.overlay[data-reduced="true"] .title {
+  transition-duration: 200ms;
+}

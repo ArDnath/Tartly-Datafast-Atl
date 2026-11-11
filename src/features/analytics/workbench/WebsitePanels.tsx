@@ -18,8 +18,8 @@ import { Favicon } from '@/components/common/Favicon';
 import { LinkButton } from '@/components/common/LinkButton';
 import { Panel } from '@/components/common/Panel';
 import { useDateParameters, useLocale, useMessages, useNavigation } from '@/components/hooks';
-import { ArrowUpDown, Maximize } from '@/components/icons';
-import { DualMetricTable } from '@/features/analytics/components/metrics/DualMetricTable';
+import { Maximize } from '@/components/icons';
+import { DashboardBreakdownPanel } from '@/features/analytics/components/metrics/DashboardBreakdownPanel';
 import { SessionActivityHeatmap } from '@/features/analytics/components/metrics/SessionActivityHeatmap';
 import { useWebsiteEventsSeriesQuery } from '@/features/analytics/hooks/useWebsiteEventsSeriesQuery';
 import { useWebsiteSessionsQuery } from '@/features/analytics/hooks/useWebsiteSessionsQuery';
@@ -34,9 +34,9 @@ import type { AnalyticsSection } from './WebsiteAnalyticsExpandedModal';
 import { WebsitePaymentsList } from './WebsitePaymentsList';
 
 const DETAIL_PANEL_STYLE: CSSProperties = {
-  borderRadius: 20,
-  borderColor: '#ffffff12',
-  background: '#161616',
+  borderRadius: 16,
+  borderColor: 'var(--talivia-card-border)',
+  background: 'var(--talivia-card-background)',
 };
 
 const EVENTS_OVERVIEW_HEIGHT = 332;
@@ -240,7 +240,7 @@ function EventsOverviewChart({
               x2={EVENTS_CHART_WIDTH - EVENTS_CHART_PADDING.right}
               y1={y}
               y2={y}
-              stroke="#ffffff12"
+              stroke="var(--talivia-card-border)"
               strokeDasharray="4 6"
               strokeWidth="1"
             />
@@ -271,7 +271,7 @@ function EventsOverviewChart({
           x2={EVENTS_CHART_WIDTH - EVENTS_CHART_PADDING.right}
           y1={baseY}
           y2={baseY}
-          stroke="#ffffff12"
+          stroke="var(--talivia-card-border)"
           strokeWidth="1"
         />
         {buckets.map((bucket, bucketIndex) => {
@@ -458,7 +458,7 @@ function EventsOverviewList({ events, isLoading }: { events: EventSummary[]; isL
             <Text
               truncate
               style={{
-                color: '#f2f2f2',
+                color: 'var(--text-strong)',
                 fontSize: 14,
                 fontWeight: 600,
                 minWidth: 0,
@@ -470,7 +470,7 @@ function EventsOverviewList({ events, isLoading }: { events: EventSummary[]; isL
             </Text>
             <Text
               style={{
-                color: '#c9c9cf',
+                color: 'var(--text-soft)',
                 fontSize: 14,
                 fontWeight: 500,
                 paddingLeft: 16,
@@ -549,7 +549,10 @@ function SessionsOverviewList({ sessions, isLoading }: { sessions: any[]; isLoad
             <Row alignItems="center" gap="3" minWidth="0">
               <Avatar seed={session.visitorId || session.id} size={28} />
               <Column gap="0" minWidth="0">
-                <Text truncate style={{ color: '#f2f2f2', fontSize: 14, fontWeight: 600 }}>
+                <Text
+                  truncate
+                  style={{ color: 'var(--text-strong)', fontSize: 14, fontWeight: 600 }}
+                >
                   {label}
                 </Text>
                 <SessionMeta session={session} />
@@ -557,17 +560,17 @@ function SessionsOverviewList({ sessions, isLoading }: { sessions: any[]; isLoad
             </Row>
             <Row alignItems="center" gap="2" minWidth="0" className="talivia-session-source">
               {hasSessionSourceFavicon(source) && <Favicon domain={source} />}
-              <Text truncate style={{ color: '#f2f2f2', fontSize: 13, fontWeight: 500 }}>
+              <Text truncate style={{ color: 'var(--text-strong)', fontSize: 13, fontWeight: 500 }}>
                 {source}
               </Text>
             </Row>
-            <Text style={{ color: '#c9c9cf', fontSize: 14 }}>
+            <Text style={{ color: 'var(--text-soft)', fontSize: 14 }}>
               {formatLongNumber(session.visits || 0)}
             </Text>
-            <Text style={{ color: '#c9c9cf', fontSize: 14 }}>
+            <Text style={{ color: 'var(--text-soft)', fontSize: 14 }}>
               {formatLongNumber(session.events || 0)}
             </Text>
-            <Text style={{ color: '#f2f2f2', fontSize: 14 }}>
+            <Text style={{ color: 'var(--text-strong)', fontSize: 14 }}>
               {formatSessionSpend(session, locale)}
             </Text>
             <Column
@@ -636,7 +639,7 @@ function EventsOverviewPanel({
           wrap="wrap"
           paddingX={{ base: '4', md: '5' }}
           paddingY="1"
-          style={{ borderBottom: '1px solid #ffffff12', minHeight: 48 }}
+          style={{ borderBottom: '1px solid var(--talivia-card-border)', minHeight: 48 }}
         >
           <TabList className="talivia-dashboard-panel-tabs">
             <Tab id="sessions">Visitors</Tab>
@@ -693,7 +696,7 @@ function EventsOverviewPanel({
             </div>
             <div
               style={{
-                borderLeft: '1px solid #ffffff12',
+                borderLeft: '1px solid var(--talivia-card-border)',
                 minWidth: 0,
                 padding: '14px 16px',
               }}
@@ -742,95 +745,6 @@ function EventsOverviewPanel({
   );
 }
 
-function BreakdownPanel({
-  websiteId,
-  tabs,
-  onOpen,
-}: {
-  websiteId: string;
-  tabs: { id: string; label: string; type: string }[];
-  onOpen: (view: string) => void;
-}) {
-  const [sort, setSort] = useState<'visitors' | 'revenue'>('visitors');
-  const [selectedTab, setSelectedTab] = useState(tabs[0]?.id || '');
-
-  const activeTab = tabs.find(tab => tab.id === selectedTab) || tabs[0];
-
-  const handleSort = () => {
-    setSort(value => (value === 'visitors' ? 'revenue' : 'visitors'));
-  };
-
-  const handleViewAll = () => {
-    if (activeTab) {
-      onOpen(activeTab.type);
-    }
-  };
-  const sortTrafficLabel = activeTab?.type === 'keywords' ? 'Traffic' : 'Visitors';
-
-  return (
-    <Panel paddingX="0" paddingY="0" gap="0" style={DETAIL_PANEL_STYLE}>
-      <Tabs
-        className="breakdown-tabs"
-        selectedKey={selectedTab}
-        onSelectionChange={key => setSelectedTab(String(key))}
-      >
-        <Row
-          className="talivia-dashboard-panel-header"
-          justifyContent="space-between"
-          alignItems="center"
-          gap="2"
-          wrap="wrap"
-          paddingX={{ base: '4', md: '5' }}
-          paddingY="1"
-          style={{ borderBottom: '1px solid #ffffff12' }}
-        >
-          <TabList className="talivia-dashboard-panel-tabs">
-            {tabs.map(tab => (
-              <Tab key={tab.id} id={tab.id}>
-                {tab.label}
-              </Tab>
-            ))}
-          </TabList>
-          <Row className="talivia-dashboard-panel-actions" alignItems="center" gap="1">
-            <Button
-              className="breakdown-sort-button talivia-dashboard-sort"
-              variant="quiet"
-              onPress={handleSort}
-              aria-label={sort === 'revenue' ? 'Revenue' : sortTrafficLabel}
-              title={sort === 'revenue' ? 'Revenue' : sortTrafficLabel}
-              data-sort={sort}
-            >
-              <Row alignItems="center" gap="2">
-                <Icon size="sm">
-                  <ArrowUpDown />
-                </Icon>
-                <span className="talivia-dashboard-sort-label">
-                  {sort === 'revenue' ? 'Revenue' : sortTrafficLabel}
-                </span>
-              </Row>
-            </Button>
-            <Button
-              className="breakdown-sort-button talivia-dashboard-expand"
-              variant="quiet"
-              onPress={handleViewAll}
-              aria-label="View all"
-            >
-              <Icon size="sm">
-                <Maximize />
-              </Icon>
-            </Button>
-          </Row>
-        </Row>
-        {tabs.map(tab => (
-          <TabPanel key={tab.id} id={tab.id}>
-            <DualMetricTable websiteId={websiteId} type={tab.type} sort={sort} />
-          </TabPanel>
-        ))}
-      </Tabs>
-    </Panel>
-  );
-}
-
 export function WebsitePanels({
   websiteId,
   onOpenAnalytics,
@@ -845,7 +759,7 @@ export function WebsitePanels({
   return (
     <Grid gap="3">
       <Grid columns={{ base: '1fr', md: 'repeat(2, minmax(0, 1fr))' }} gap="3">
-        <BreakdownPanel
+        <DashboardBreakdownPanel
           websiteId={websiteId}
           onOpen={onOpenBreakdown}
           tabs={[
@@ -860,7 +774,7 @@ export function WebsitePanels({
           ]}
         />
 
-        <BreakdownPanel
+        <DashboardBreakdownPanel
           websiteId={websiteId}
           onOpen={onOpenBreakdown}
           tabs={[
@@ -876,7 +790,7 @@ export function WebsitePanels({
       </Grid>
 
       <Grid columns={{ base: '1fr', md: 'repeat(2, minmax(0, 1fr))' }} gap="3">
-        <BreakdownPanel
+        <DashboardBreakdownPanel
           websiteId={websiteId}
           onOpen={onOpenBreakdown}
           tabs={[
@@ -886,7 +800,7 @@ export function WebsitePanels({
           ]}
         />
 
-        <BreakdownPanel
+        <DashboardBreakdownPanel
           websiteId={websiteId}
           onOpen={onOpenBreakdown}
           tabs={[

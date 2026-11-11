@@ -2,7 +2,7 @@ import { List, ListItem } from '@talivia/react-zen';
 import { Empty } from '@/components/common/Empty';
 import { IconLabel } from '@/components/common/IconLabel';
 import { LoadingPanel } from '@/components/common/LoadingPanel';
-import { ChartPie, UserPlus } from '@/components/icons';
+import { PercentageCircle as ChartPie, UserPlus } from '@/components/icons';
 import { useWebsiteSegmentsQuery } from '@/features/analytics/hooks/useWebsiteSegmentsQuery';
 
 export interface SegmentFiltersProps {

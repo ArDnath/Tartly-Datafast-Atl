@@ -1,11 +1,15 @@
 import { fireEvent } from '@testing-library/react';
-import { describe, expect, test, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { BRAND } from '@/lib/brand';
 import { PLANS } from '@/lib/plans';
 import { render, screen, within } from '@/test/render';
 import { LandingPage } from './LandingPage';
 
 const { scrollTo } = vi.hoisted(() => ({ scrollTo: vi.fn() }));
+
+beforeEach(() => {
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => null);
+});
 
 vi.mock('react-fast-marquee', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -68,13 +72,14 @@ describe('marketing landing page', () => {
     expect(within(stacks).getAllByRole('link')).toHaveLength(15);
   });
 
-  test('submits the website to signup', () => {
+  test('starts Google sign-in with the entered website', () => {
     render(<LandingPage />);
 
     const form = screen.getByRole('textbox', { name: /your website/i }).closest('form');
 
-    expect(form).toHaveAttribute('action', '/signup');
+    expect(form).toHaveAttribute('action', '/api/auth/google');
     expect(form).toHaveAttribute('method', 'get');
+    expect(form?.querySelector('input[name="returnUrl"]')).toHaveValue('/onboarding');
   });
 
   test('links the navbar brand back to the top of the page', () => {
@@ -128,5 +133,73 @@ describe('marketing landing page', () => {
     expect(screen.getByText('Which channel pays?')).toBeInTheDocument();
     expect(screen.getByText(/Eight questions between the first click/i)).toBeInTheDocument();
     expect(screen.queryByText(/testimonial/i)).not.toBeInTheDocument();
+  });
+
+  test('labels the hero workspace as an illustrative preview and switches views', async () => {
+    const { user } = render(<LandingPage />);
+    const nav = screen.getByRole('navigation', { name: /Dashboard sections/i });
+
+    expect(screen.getByText(/Illustrative preview · Tartly/i)).toBeInTheDocument();
+    expect(within(nav).getByRole('button', { name: 'Overview' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    await user.click(within(nav).getByRole('button', { name: 'Revenue' }));
+
+    expect(within(nav).getByRole('button', { name: 'Revenue' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByRole('region', { name: 'Channel breakdown' })).toBeInTheDocument();
+    expect(screen.getByText('Pro · annual')).toBeInTheDocument();
+  });
+
+  test('toggles the hero workspace theme without touching the landing page', async () => {
+    const { user } = render(<LandingPage />);
+
+    await user.click(screen.getByRole('button', { name: /Switch to dark theme/i }));
+
+    expect(screen.getByRole('button', { name: /Switch to light theme/i })).toBeInTheDocument();
+  });
+
+  test('changes the hero workspace table tab', async () => {
+    const { user } = render(<LandingPage />);
+    const details = screen.getByRole('region', { name: 'Visitor details' });
+
+    await user.click(within(details).getByRole('button', { name: 'Payments' }));
+
+    expect(within(details).getByText('Ankita Shil')).toBeInTheDocument();
+  });
+
+  test('points the closing hand asset at the primary call to action', () => {
+    const { container } = render(<LandingPage />);
+    const hand = container.querySelector('img[src*="hand.png"]');
+
+    expect(hand).toBeInTheDocument();
+    expect(hand?.getAttribute('src')).toContain('images%2Flanding%2Fhand.png');
+    expect(hand).toHaveAttribute('alt', '');
+    expect(hand).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  test('answers the trial, provider, and cancellation objections', () => {
+    render(<LandingPage />);
+
+    expect(
+      screen.getByRole('heading', { name: /Questions before you start/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/How does Tartly match revenue to traffic\?/i)).toBeInTheDocument();
+    expect(screen.getByText(/Which payment providers can I connect\?/i)).toBeInTheDocument();
+    expect(screen.getByText(/Can I cancel anytime\?/i)).toBeInTheDocument();
+  });
+
+  test('renders the payment providers that connect in settings', () => {
+    render(<LandingPage />);
+
+    expect(
+      screen.getByText(/Connects to the payment providers you already use/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Dodo Payments')).toBeInTheDocument();
+    expect(screen.getByText('Lemon Squeezy')).toBeInTheDocument();
   });
 });

@@ -34,43 +34,55 @@ const FOOTER_COLUMNS = [
 
 export function Footer() {
   return (
-    <footer className="w-full border-t border-gray-200 bg-canvas px-6 pt-10 text-sm text-slate-500 md:px-16 lg:px-24 xl:px-32">
-      <div className="grid grid-cols-1 gap-14 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="sm:col-span-2 lg:col-span-1">
-          <Link href="/" aria-label={BRAND.name}>
-            <BrandLockup size={28} />
-          </Link>
-          <p className="mt-6 max-w-xs text-sm/7">{BRAND.description}</p>
-          <a
-            className="mt-3 inline-block text-sm text-gray-500 transition hover:text-gray-800"
-            href={`mailto:${BRAND.supportEmail}`}
-          >
-            {BRAND.supportEmail}
-          </a>
+    <footer className="w-full border-t border-lp-line bg-lp-canvas px-6 pt-14 text-sm text-lp-fg-muted">
+      <div className="mx-auto max-w-7xl">
+        <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:gap-8">
+          <div>
+            <Link href="/" aria-label={BRAND.name}>
+              <BrandLockup size={28} />
+            </Link>
+            <p className="mt-5 max-w-xs text-xs/6">{BRAND.description}</p>
+            <a
+              className="mt-4 inline-block font-mono text-[11px] font-semibold text-lp-ink underline decoration-lp-primary/40 underline-offset-4 transition-[text-decoration-color] duration-200 hover:decoration-lp-primary"
+              href={`mailto:${BRAND.supportEmail}`}
+            >
+              {BRAND.supportEmail}
+            </a>
+          </div>
+
+          {FOOTER_COLUMNS.map(column => (
+            <div key={column.title} className="flex flex-col">
+              <h2 className="lp-label mb-4 text-lp-ink">{column.title}</h2>
+              <div className="flex flex-col space-y-2.5 text-[13px]">
+                {column.links.map(link => (
+                  <Link
+                    key={link.label}
+                    className="w-fit transition-colors hover:text-lp-primary"
+                    href={link.href}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
 
-        {FOOTER_COLUMNS.map(column => (
-          <div key={column.title} className="flex flex-col">
-            <div className="flex flex-col space-y-2.5 text-sm">
-              <h2 className="mb-5 font-semibold text-gray-800">{column.title}</h2>
-              {column.links.map(link => (
-                <Link key={link.label} className="transition hover:text-slate-600" href={link.href}>
-                  {link.label}
-                </Link>
-              ))}
-            </div>
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-lp-line py-6 font-mono text-[10px] tracking-[0.1em] uppercase md:flex-row">
+          <p className="text-center" suppressHydrationWarning>
+            Copyright {new Date().getFullYear()} © {BRAND.legalEntity}. All rights reserved.
+          </p>
+          <div className="flex items-center gap-4">
+            <Link className="transition-colors hover:text-lp-primary" href="/legal/privacy">
+              Privacy
+            </Link>
+            <Link className="transition-colors hover:text-lp-primary" href="/legal/terms">
+              Terms
+            </Link>
+            <Link className="transition-colors hover:text-lp-primary" href="/legal/cookies">
+              Cookies
+            </Link>
           </div>
-        ))}
-      </div>
-
-      <div className="mt-6 flex flex-col items-center justify-between gap-4 border-t border-slate-200 py-4 md:flex-row">
-        <p className="text-center" suppressHydrationWarning>
-          Copyright {new Date().getFullYear()} © {BRAND.legalEntity}. All rights reserved.
-        </p>
-        <div className="flex items-center gap-4">
-          <Link href="/legal/privacy">Privacy Policy</Link>
-          <Link href="/legal/terms">Terms of Service</Link>
-          <Link href="/legal/cookies">Cookie Policy</Link>
         </div>
       </div>
     </footer>

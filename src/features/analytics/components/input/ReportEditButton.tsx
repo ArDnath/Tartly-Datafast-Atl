@@ -13,7 +13,7 @@ import { type ReactNode, useState } from 'react';
 import { AppModal } from '@/components/common/AppModal';
 import { useDeleteQuery } from '@/components/hooks';
 import { useMessages } from '@/components/hooks/index';
-import { Edit, MoreHorizontal, Trash } from '@/components/icons';
+import { Edit, MoreHoriz as MoreHorizontal, Trash } from '@/components/icons';
 import { DialogButton } from '@/components/input/DialogButton';
 
 export function ReportEditButton({

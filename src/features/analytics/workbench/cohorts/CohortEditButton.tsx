@@ -1,7 +1,8 @@
-import { CohortEditForm } from '@/features/analytics/workbench/cohorts/CohortEditForm';
 import { useMessages } from '@/components/hooks';
 import { Edit } from '@/components/icons';
+
 import { DialogButton } from '@/components/input/DialogButton';
+import { CohortEditForm } from '@/features/analytics/workbench/cohorts/CohortEditForm';
 import type { Filter } from '@/lib/types';
 
 export function CohortEditButton({

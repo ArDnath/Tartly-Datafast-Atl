@@ -1,0 +1,62 @@
+.toggle {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border-default);
+  border-radius: 9px;
+  background: var(--talivia-card-background);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.toggle:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+
+.floating {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 60;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+}
+
+.sun {
+  display: none;
+}
+
+.moon {
+  display: block;
+}
+
+html[data-theme="dark"] .sun {
+  display: block;
+}
+
+html[data-theme="dark"] .moon {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .floating {
+    top: 12px;
+    right: 12px;
+  }
+}

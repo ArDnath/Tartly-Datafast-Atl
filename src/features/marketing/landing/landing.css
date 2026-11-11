@@ -5,6 +5,12 @@
  * importing the full Tailwind reset would rewrite dashboard defaults. We import
  * only the theme and utilities, and scan only this folder for class names.
  * Everything else in the product keeps its existing cascade.
+ *
+ * Visual language is adapted from tracerhq.co: warm cream ground (#fffbeb),
+ * near-black ink, hairline sand borders, a single signal orange (#ff4f00),
+ * dotted / hatched textures, small 4–8px radii, heavy tight-tracked headlines
+ * and hard offset shadows instead of soft elevation. All tokens stay scoped to
+ * `.landing-root` so docs, legal, and the dashboard are untouched.
  */
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities) source(none);
@@ -15,15 +21,41 @@
   --font-sans:
     var(--font-inter), Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
-  --font-domine: var(--font-domine-family), Domine, Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Geist Mono", Menlo, Consolas, monospace;
   --color-canvas: var(--marketing-canvas);
+  --color-lp-canvas: #fffbeb;
+  --color-lp-card: #fffdf6;
+  --color-lp-secondary: #f5eeda;
+  --color-lp-muted: #efe6cc;
+  --color-lp-ink: #171717;
+  --color-lp-fg-muted: #6b6660;
+  --color-lp-line: #ddd5cc;
+  --color-lp-primary: #ff4f00;
+  --color-lp-pink: #f2b4cb;
+  --color-lp-pink-soft: #fbe3ec;
+  --color-lp-pink-ink: #8f2f52;
 }
 
 .landing-root {
+  /* Re-point the shared marketing tokens on this page only. */
+  --marketing-canvas: #fffbeb;
+  --marketing-surface: #fffdf6;
+  --marketing-surface-muted: #f5eeda;
+  --marketing-ink: #171717;
+  --marketing-ink-strong: #0d0d0d;
+  --marketing-muted: #737373;
+  --marketing-line: #ddd5cc;
+  --marketing-blush: #ff4f00;
+  --marketing-blush-soft: #ffd9c7;
+  --marketing-blush-ink: #ffffff;
+
+  /* One weighted curve for every entrance. Never a browser default. */
+  --lp-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
   min-height: 100vh;
   overflow-x: clip;
-  background: var(--marketing-canvas);
-  color: #1f2937;
+  background: #fffbeb;
+  color: #171717;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -34,8 +66,8 @@
 }
 
 .landing-root ::selection {
-  background: rgba(242, 180, 203, 0.42);
-  color: #1b1b1b;
+  background: rgba(242, 180, 203, 0.55);
+  color: #171717;
 }
 
 .landing-root :where(a, button, input, textarea, summary, [role="button"], [tabindex]) {
@@ -46,42 +78,540 @@
   scroll-margin-top: 96px;
 }
 
-.landing-root .hand-image {
-  filter: drop-shadow(0 18px 30px rgba(17, 24, 39, 0.12));
+/* ------------------------------------------------------------------------- */
+/* Section labels                                                            */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
 }
 
-/* The template's marquee cards use a soft edge; keep the fade on white. */
-.landing-root .marquee-fade {
-  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+.landing-root .lp-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #ff4f00;
 }
 
-/* Stack tiles: soft brand-tinted chips that reveal the platform name on hover. */
+/* Blush is the secondary signal: used sparingly for badges and markers. */
+.landing-root .lp-eyebrow-pink {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #a63a60;
+}
+
+.landing-root .lp-display {
+  font-weight: 900;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+  color: #171717;
+  text-wrap: balance;
+}
+
+/* Orange underline that draws in once, like the tracerHQ hero accent. */
+.landing-root .lp-mark {
+  position: relative;
+  display: inline-block;
+  color: #ff4f00;
+  white-space: nowrap;
+}
+
+.landing-root .lp-mark::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.06em;
+  width: 100%;
+  height: 0.055em;
+  background: #ff4f00;
+  transform-origin: left center;
+  animation: lp-mark-draw 720ms var(--lp-ease) 360ms both;
+}
+
+/* Hand-drawn swirl under the hero accent, replacing the straight rule. */
+.landing-root .lp-mark-swirl {
+  position: relative;
+  display: inline-block;
+  color: #ff4f00;
+  white-space: nowrap;
+}
+
+.landing-root .lp-mark-swirl-line {
+  position: absolute;
+  left: -6%;
+  bottom: -0.14em;
+  width: 112%;
+  height: 0.26em;
+  color: #ff4f00;
+  overflow: visible;
+  pointer-events: none;
+  animation: lp-mark-swirl-wipe 1500ms ease-in-out both;
+}
+
+.landing-root .lp-mark-swirl-line path {
+  stroke-dasharray: none;
+}
+
+/* Consistent keyboard focus for every landing control. */
+.landing-root :where(a, button, summary):focus-visible {
+  outline: 2px solid #ff4f00;
+  outline-offset: 3px;
+}
+
+/* A pink marker swipe behind a word, used once or twice per page. */
+.landing-root .lp-highlight-pink {
+  background: linear-gradient(
+    180deg,
+    transparent 10%,
+    rgba(242, 180, 203, 0.55) 10%,
+    rgba(242, 180, 203, 0.55) 90%,
+    transparent 90%
+  );
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0 0.06em;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Textures                                                                  */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-dots {
+  background-image: radial-gradient(circle, rgba(23, 23, 23, 0.28) 0.6px, transparent 1.4px);
+  background-size: 24px 24px;
+  filter: blur(0.6px);
+}
+
+.landing-root .lp-hairline-grid {
+  background-image:
+    linear-gradient(to right, rgba(23, 23, 23, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(23, 23, 23, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.landing-root .lp-hatch {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(23, 23, 23, 0.22) 0,
+    rgba(23, 23, 23, 0.22) 0.75px,
+    transparent 0.75px,
+    transparent 10px
+  );
+}
+
+.landing-root .lp-hatch-pink {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(242, 180, 203, 0.7) 0,
+    rgba(242, 180, 203, 0.7) 0.5px,
+    transparent 0.5px,
+    transparent 10px
+  );
+}
+
+/* ------------------------------------------------------------------------- */
+/* Surfaces and shadows                                                      */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-hard {
+  box-shadow: 8px 8px 0 0 rgba(255, 79, 0, 0.2);
+}
+
+/*
+ * Hard-offset button: the shadow is pushed back on hover and flattened on
+ * press, which is this page's pressed-state language. Primitives are named so
+ * a colour change never re-interpolates unrelated properties.
+ */
+.landing-root .lp-btn-shadow {
+  box-shadow: 4px 4px 0 0 rgba(255, 79, 0, 0.35);
+  transition:
+    translate 140ms var(--lp-ease),
+    box-shadow 140ms var(--lp-ease),
+    opacity 140ms var(--lp-ease);
+}
+
+@media (hover: hover) {
+  .landing-root .lp-btn-shadow:hover {
+    translate: 2px 2px;
+    box-shadow: 2px 2px 0 0 rgba(255, 79, 0, 0.35);
+  }
+}
+
+.landing-root .lp-btn-shadow:focus-visible {
+  box-shadow: 2px 2px 0 0 rgba(255, 79, 0, 0.35);
+}
+
+.landing-root .lp-btn-shadow:active {
+  translate: 4px 4px;
+  box-shadow: 0 0 0 0 rgba(255, 79, 0, 0.35);
+}
+
+.landing-root .lp-btn-shadow:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.landing-root .lp-card-lift {
+  transition:
+    translate 180ms var(--lp-ease),
+    border-color 180ms var(--lp-ease),
+    box-shadow 180ms var(--lp-ease),
+    background-color 180ms var(--lp-ease);
+}
+
+@media (hover: hover) {
+  .landing-root .lp-card-lift:hover {
+    translate: -2px -2px;
+    border-color: #ff4f00;
+    box-shadow: 4px 4px 0 0 rgba(255, 79, 0, 0.18);
+  }
+}
+
+/* Pointing hand under the closing CTA: lift it off the card without a frame. */
+.landing-root .lp-hand {
+  filter: drop-shadow(0 18px 30px rgba(23, 23, 23, 0.12));
+}
+
+.landing-root .lp-rise {
+  animation: lp-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* One-shot entrance for the sample dashboard: values settle, never loop. */
+.landing-root .lp-kpi-in {
+  animation: lp-kpi-in 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.landing-root .lp-bar-in {
+  transform-origin: bottom center;
+  animation: lp-bar-rise 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.landing-root .lp-row-in {
+  animation: lp-row-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Price re-reads on a billing or traffic change: short, high-frequency feedback. */
+.landing-root .lp-price-tick {
+  animation: lp-price-tick 180ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+/* One-shot attention ring used when the closing CTA returns to the hero form. */
+.landing-root .lp-attention {
+  animation: lp-attention 720ms var(--lp-ease);
+}
+
+/* Answer fade when a native details element opens. */
+.landing-root details[open] .lp-faq-answer {
+  animation: lp-faq-in 420ms var(--lp-ease) both;
+}
+
+@keyframes lp-mark-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes lp-mark-swirl-wipe {
+  from {
+    clip-path: inset(-20% 100% -20% 0);
+  }
+  to {
+    clip-path: inset(-20% 0 -20% 0);
+  }
+}
+
+@keyframes lp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes lp-kpi-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes lp-bar-rise {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes lp-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes lp-price-tick {
+  from {
+    opacity: 0.25;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes lp-attention {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 79, 0, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgba(255, 79, 0, 0);
+  }
+}
+
+@keyframes lp-faq-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Hero entrance                                                             */
+/* ------------------------------------------------------------------------- */
+
+/*
+ * The hero is above the fold, so its reveal runs as a CSS entrance instead of
+ * waiting for hydration. Words rise and fade on the shared curve, staggered in
+ * reading order. `both` keeps the first frame hidden, so there is no flash.
+ */
+.landing-root .lp-hero-word {
+  display: inline-block;
+  animation: lp-hero-word 760ms var(--lp-ease) both;
+}
+
+.landing-root .lp-hero-in {
+  animation: lp-hero-in 700ms var(--lp-ease) both;
+}
+
+@keyframes lp-hero-word {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.5em, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes lp-hero-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Hand-drawn annotation that points at the interactive workspace. */
+/* ------------------------------------------------------------------------- */
+/* Scroll reveals                                                            */
+/* ------------------------------------------------------------------------- */
+
+/*
+ * Content is visible by default. Only a motion-ready, hydrated page hides the
+ * not-yet-revealed element, which keeps the page readable without JavaScript.
+ */
+.landing-root[data-motion="on"] [data-reveal] {
+  transition:
+    opacity 720ms var(--lp-ease),
+    transform 720ms var(--lp-ease);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.landing-root[data-motion="on"] [data-reveal]:not([data-revealed="true"]) {
+  opacity: 0;
+  transform: translate3d(0, var(--reveal-distance, 32px), 0);
+}
+
+.landing-root[data-motion="off"] [data-reveal] {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Tagline word reveal                                                       */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-word {
+  display: inline-block;
+  opacity: 0.26;
+  transform: translate3d(0, 0.08em, 0);
+  transition:
+    opacity 520ms var(--lp-ease),
+    transform 520ms var(--lp-ease);
+  transition-delay: calc(var(--word-index, 0) * 18ms);
+}
+
+.landing-root .lp-word[data-active="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Parallax                                                                  */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-parallax {
+  transform: translate3d(0, var(--lp-parallax-y, 0px), 0);
+  will-change: transform;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Process spine                                                             */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-step-node {
+  background: #ddd5cc;
+  transition: background-color 300ms var(--lp-ease);
+}
+
+.landing-root .lp-step-node[data-active="true"] {
+  background: #ff4f00;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Stack tiles                                                               */
+/* ------------------------------------------------------------------------- */
+
 .landing-root .stack-tile {
-  border-color: color-mix(in srgb, var(--tile-tint) 30%, transparent);
-  background: color-mix(in srgb, var(--tile-tint) 13%, var(--marketing-surface));
+  border-color: #ddd5cc;
+  background: #fffbeb;
+  transition:
+    translate 200ms ease-out,
+    border-color 200ms ease-out,
+    box-shadow 200ms ease-out,
+    background-color 200ms ease-out;
 }
 
-.landing-root .stack-tile:hover,
+@media (hover: hover) {
+  .landing-root .stack-tile:hover {
+    border-color: color-mix(in srgb, var(--tile-tint) 55%, #171717);
+    background: #fffdf6;
+    translate: -1px -1px;
+    box-shadow: 3px 3px 0 0 color-mix(in srgb, var(--tile-tint) 30%, transparent);
+  }
+}
+
 .landing-root .stack-tile:focus-visible {
-  border-color: color-mix(in srgb, var(--tile-tint) 52%, transparent);
-  background: color-mix(in srgb, var(--tile-tint) 22%, var(--marketing-surface));
+  border-color: color-mix(in srgb, var(--tile-tint) 55%, #171717);
+  background: #fffdf6;
+  translate: -1px -1px;
+  box-shadow: 3px 3px 0 0 color-mix(in srgb, var(--tile-tint) 30%, transparent);
 }
 
 .landing-root .stack-tip {
-  border-color: color-mix(in srgb, var(--tile-tint) 32%, transparent);
-  background: var(--marketing-surface);
-  color: var(--marketing-ink-strong);
-  box-shadow: 0 6px 16px rgba(31, 41, 55, 0.1);
+  border-color: #ddd5cc;
+  background: #171717;
+  color: #fffdf6;
+  box-shadow: 0 6px 16px rgba(23, 23, 23, 0.16);
+  transition:
+    translate 200ms ease-out,
+    opacity 200ms ease-out;
 }
 
-/* Keep the label working in browsers that report no hover-capable pointer. */
-.landing-root .stack-tile:hover .stack-tip,
 .landing-root .stack-tile:focus-visible .stack-tip {
   translate: -50% 0;
   opacity: 1;
 }
 
-/* Traffic slider: a thin track with one solid thumb, no native chrome. */
+@media (hover: hover) {
+  .landing-root .stack-tile:hover .stack-tip {
+    translate: -50% 0;
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Marquee                                                                   */
+/* ------------------------------------------------------------------------- */
+
+/* The card rail uses a soft edge; keep the fade on the cream ground. */
+.landing-root .marquee-fade {
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+/*
+ * The marquee clips vertical overflow, so a lifted card loses its top border.
+ * Keep the rail cards in place and let the frame respond instead.
+ */
+@media (hover: hover) {
+  .landing-root .marquee-fade .lp-card-lift:hover {
+    translate: 0 0;
+    box-shadow: 3px 3px 0 0 rgba(255, 79, 0, 0.12);
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Segmented billing control                                                 */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-seg {
+  position: relative;
+}
+
+.landing-root .lp-seg-thumb {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  background: #ff4f00;
+  border-radius: 4px;
+  transition: translate 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.landing-root .lp-seg-thumb[data-position="annual"] {
+  translate: 100% 0;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Pricing range                                                             */
+/* ------------------------------------------------------------------------- */
+
 .landing-root .pricing-range {
   -webkit-appearance: none;
   appearance: none;
@@ -92,8 +622,10 @@
   transition: filter 140ms ease;
 }
 
-.landing-root .pricing-range:hover {
-  filter: brightness(1.04);
+@media (hover: hover) {
+  .landing-root .pricing-range:hover {
+    filter: brightness(1.04);
+  }
 }
 
 .landing-root .pricing-range-sm {
@@ -104,22 +636,21 @@
   width: 16px;
   height: 16px;
   border-width: 2px;
-  transition: transform 140ms ease;
-}
-
-.landing-root .pricing-range-sm::-webkit-slider-thumb:hover {
-  transform: scale(1.12);
+  transition: scale 140ms ease-out;
 }
 
 .landing-root .pricing-range-sm::-moz-range-thumb {
   width: 12px;
   height: 12px;
   border-width: 2px;
-  transition: transform 140ms ease;
+  transition: scale 140ms ease-out;
 }
 
-.landing-root .pricing-range-sm::-moz-range-thumb:hover {
-  transform: scale(1.12);
+@media (hover: hover) {
+  .landing-root .pricing-range-sm::-webkit-slider-thumb:hover,
+  .landing-root .pricing-range-sm::-moz-range-thumb:hover {
+    scale: 1.12;
+  }
 }
 
 .landing-root .pricing-range::-webkit-slider-thumb {
@@ -127,10 +658,10 @@
   appearance: none;
   width: 22px;
   height: 22px;
-  border: 3px solid var(--marketing-canvas);
+  border: 3px solid #fffbeb;
   border-radius: 999px;
-  background: #1f2937;
-  box-shadow: 0 1px 4px rgba(17, 24, 39, 0.24);
+  background: #ff4f00;
+  box-shadow: 0 1px 4px rgba(23, 23, 23, 0.28);
   cursor: grab;
 }
 
@@ -141,26 +672,71 @@
 .landing-root .pricing-range::-moz-range-thumb {
   width: 18px;
   height: 18px;
-  border: 3px solid var(--marketing-canvas);
+  border: 3px solid #fffbeb;
   border-radius: 999px;
-  background: #1f2937;
-  box-shadow: 0 1px 4px rgba(17, 24, 39, 0.24);
+  background: #ff4f00;
+  box-shadow: 0 1px 4px rgba(23, 23, 23, 0.28);
   cursor: grab;
 }
 
 .landing-root .pricing-range:focus-visible {
-  outline: 2px solid var(--marketing-blush);
+  outline: 2px solid #ff4f00;
   outline-offset: 4px;
 }
+
+/* ------------------------------------------------------------------------- */
+/* Motion preferences                                                        */
+/* ------------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
   .landing-root {
     scroll-behavior: auto;
   }
 
+  .landing-root .lp-rise,
+  .landing-root .lp-mark::after,
+  .landing-root .lp-mark-swirl-line,
+  .landing-root .lp-kpi-in,
+  .landing-root .lp-bar-in,
+  .landing-root .lp-row-in,
+  .landing-root .lp-price-tick,
+  .landing-root .lp-attention,
+  .landing-root .lp-hero-word,
+  .landing-root .lp-hero-in,
+  .landing-root details[open] .lp-faq-answer {
+    animation: none;
+  }
+
+  .landing-root .lp-seg-thumb,
   .landing-root .stack-tile,
   .landing-root .stack-tile img,
-  .landing-root .stack-tip {
+  .landing-root .stack-tip,
+  .landing-root .lp-btn-shadow,
+  .landing-root .lp-card-lift,
+  .landing-root .lp-step-node {
     transition: none;
+  }
+
+  .landing-root .lp-mark-swirl-line {
+    clip-path: none;
+    stroke-dasharray: none;
+  }
+
+  /* The tagline and every scroll reveal land at their final state at once. */
+  .landing-root .lp-word {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .landing-root [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .landing-root .lp-parallax {
+    transform: none !important;
+    will-change: auto;
   }
 }

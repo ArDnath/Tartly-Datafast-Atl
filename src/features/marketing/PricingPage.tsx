@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { BrandWordmark } from '@/components/brand/BrandMark';
+import { Check } from '@/components/icons';
 import { BRAND } from '@/lib/brand';
 import {
   DEFAULT_TRAFFIC_TIER_INDEX,
@@ -26,21 +27,6 @@ import styles from './Pricing.module.css';
 type Billing = 'monthly' | 'annual';
 
 const SLIDER_LABELS = [0, 2, 3, 5, TRAFFIC_TIERS.length - 1];
-
-function Check() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" className={styles.check}>
-      <path
-        d="M3.5 8.5 6.5 11.5 12.5 4.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 function featureList(plan: Plan, events: number, billing: Billing) {
   const items = [
@@ -216,7 +202,7 @@ export function PricingPage() {
               <ul className={styles.features}>
                 {featureList(plan, events, billing).map(item => (
                   <li key={item}>
-                    <Check />
+                    <Check className={styles.check} width={14} height={14} aria-hidden="true" />
                     <span>{item}</span>
                   </li>
                 ))}

@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import { Suspense } from 'react';
 import { BRAND } from '@/lib/brand';
 import { getBaseUrl } from '@/lib/get-base-url';
+import { THEME_INIT_SCRIPT } from '@/lib/theme';
 import { Providers } from './Providers';
 import '@talivia/react-zen/styles.full.css';
 import './global.css';
@@ -23,8 +24,14 @@ const FAVICON_VERSION = '20261106';
 
 export default function ({ children }) {
   return (
-    <html lang="en" className={`dark ${inter.variable}`} suppressHydrationWarning>
+    <html lang="en" data-theme="dark" className={inter.variable} suppressHydrationWarning>
       <head>
+        {/*
+         * Applies the saved theme before the first paint. React keeps the DOM
+         * value during hydration because <html> suppresses attribute warnings.
+         */}
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static theme bootstrap, no user input */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <link rel="icon" href={`/favicon.ico?v=${FAVICON_VERSION}`} />
         <link
           rel="icon"
@@ -58,7 +65,7 @@ export default function ({ children }) {
         <meta name="msapplication-TileColor" content="#1b1b1b" />
         <meta name="theme-color" content="#1b1b1b" />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <Suspense>
           <Providers>{children}</Providers>
         </Suspense>

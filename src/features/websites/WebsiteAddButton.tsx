@@ -11,8 +11,8 @@ export function WebsiteAddButton() {
   return (
     <LinkButton
       href="/app/new"
-      className="talivia-control talivia-control-primary w-fit max-w-full shrink-0"
-      variant="primary"
+      className="talivia-control w-fit max-w-full shrink-0"
+      variant="outline"
     >
       <IconLabel icon={<Plus />} label={t(labels.addWebsite)} />
     </LinkButton>

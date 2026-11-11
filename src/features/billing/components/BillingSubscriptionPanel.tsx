@@ -42,14 +42,14 @@ interface BillingStateResponse {
 }
 
 const SURFACE = {
-  background: '#161616',
-  borderColor: '#ffffff12',
+  background: 'var(--talivia-card-background)',
+  borderColor: 'var(--talivia-card-border)',
   borderRadius: 20,
 } as const;
 
 const STATUS_COPY: Record<string, { label: string; color: string; detail: string }> = {
   ACTIVE: { label: 'Active', color: '#2dbf72', detail: 'Paid features are enabled.' },
-  TRIALING: { label: 'Trial', color: '#f2b4cb', detail: 'Your trial is running.' },
+  TRIALING: { label: 'Trial', color: 'var(--accent-text)', detail: 'Your trial is running.' },
   PAST_DUE: {
     label: 'Payment past due',
     color: '#f8b84e',
@@ -68,7 +68,7 @@ const STATUS_COPY: Record<string, { label: string; color: string; detail: string
   EXPIRED: { label: 'Expired', color: '#ff6b6b', detail: 'The subscription term has ended.' },
   INCOMPLETE: {
     label: 'Checkout incomplete',
-    color: '#a1a1aa',
+    color: 'var(--text-muted)',
     detail: 'No payment has been confirmed yet.',
   },
 };
@@ -226,7 +226,7 @@ export function BillingSubscriptionPanel({
 
       {notice && (
         <div role="status">
-          <Text size="sm" style={{ color: '#f2b4cb' }}>
+          <Text size="sm" style={{ color: 'var(--accent-text)' }}>
             {notice}
           </Text>
         </div>
@@ -416,7 +416,7 @@ export function BillingSubscriptionPanel({
                       href={invoice.hostedUrl}
                       target="_blank"
                       rel="noreferrer"
-                      style={{ color: '#f2b4cb' }}
+                      style={{ color: 'var(--accent-text)' }}
                     >
                       View invoice
                     </a>

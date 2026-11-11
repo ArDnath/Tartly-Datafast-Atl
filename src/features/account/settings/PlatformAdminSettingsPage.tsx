@@ -36,8 +36,8 @@ interface AdminAccountsResponse {
 }
 
 const CARD_STYLE = {
-  background: '#161616',
-  borderColor: '#ffffff12',
+  background: 'var(--talivia-card-background)',
+  borderColor: 'var(--talivia-card-border)',
   borderRadius: 20,
 } as const;
 
@@ -88,7 +88,7 @@ function SuspensionRow({
   };
 
   return (
-    <Column gap="2" paddingY="3" style={{ borderBottom: '1px solid #ffffff12' }}>
+    <Column gap="2" paddingY="3" style={{ borderBottom: '1px solid var(--talivia-card-border)' }}>
       <Row justifyContent="space-between" gap="3" wrap="wrap" alignItems="baseline">
         <Column gap="1" minWidth="0">
           <Text weight="bold">{label}</Text>

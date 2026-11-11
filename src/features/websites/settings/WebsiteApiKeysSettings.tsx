@@ -162,7 +162,7 @@ export function WebsiteApiKeysSettings({ websiteId }: { websiteId: string }) {
                   gap="4"
                   paddingY="3"
                   wrap="wrap"
-                  style={{ borderTop: '1px solid #ffffff12' }}
+                  style={{ borderTop: '1px solid var(--talivia-card-border)' }}
                 >
                   <Column gap="1">
                     <Row alignItems="center" gap="2" wrap="wrap">

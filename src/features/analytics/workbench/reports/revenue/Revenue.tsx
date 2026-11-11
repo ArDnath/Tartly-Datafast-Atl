@@ -1,21 +1,17 @@
-import { Column, Grid, Heading, Tab, TabList, TabPanel, Tabs } from '@talivia/react-zen';
-import { useMemo } from 'react';
+'use client';
+
+import { Column, Grid, Row, Text } from '@talivia/react-zen';
 import { DataGrid } from '@/components/common/DataGrid';
-import { GridRow } from '@/components/common/GridRow';
-import { LoadingPanel } from '@/components/common/LoadingPanel';
 import { Panel } from '@/components/common/Panel';
-import { useDateRange, useGridState, useMessages } from '@/components/hooks';
-import { ListTable } from '@/features/analytics/components/metrics/ListTable';
-import { MetricCard } from '@/features/analytics/components/metrics/MetricCard';
-import { MetricLabel } from '@/features/analytics/components/metrics/MetricLabel';
-import { MetricsBar } from '@/features/analytics/components/metrics/MetricsBar';
-import { RevenueChart } from '@/features/analytics/components/metrics/RevenueChart';
-import { useResultQuery } from '@/features/analytics/hooks/useResultQuery';
+import { useGridState, useMessages } from '@/components/hooks';
+import { useAnalyticsOverlays } from '@/features/analytics/components/AnalyticsOverlayContext';
+import { DashboardBreakdownPanel } from '@/features/analytics/components/metrics/DashboardBreakdownPanel';
 import { useRevenueSessionsQuery } from '@/features/analytics/hooks/useRevenueSessionsQuery';
 import { useWebsiteAttributionSettingsQuery } from '@/features/websites/hooks/useWebsiteAttributionSettingsQuery';
 import { DEFAULT_CURRENCY } from '@/lib/constants';
-import { formatLongCurrency, formatLongNumber } from '@/lib/format';
 import { SessionsTable } from '../../sessions/SessionsTable';
+import { WebsiteChart } from '../../WebsiteChart';
+import { WebsiteChartMetricStrip } from '../../WebsiteChartMetricStrip';
 
 function RevenueSessionsDataTable({
   websiteId,
@@ -34,208 +30,86 @@ function RevenueSessionsDataTable({
   );
 }
 
-export interface RevenueProps {
-  websiteId: string;
-  startDate: Date;
-  endDate: Date;
-  unit: string;
-}
-
-export function Revenue({ websiteId, startDate, endDate, unit }: RevenueProps) {
+export function Revenue({ websiteId }: { websiteId: string }) {
+  const { t, labels } = useMessages();
+  const { openBreakdown } = useAnalyticsOverlays();
   const settingsQuery = useWebsiteAttributionSettingsQuery(websiteId);
   const currency =
     settingsQuery.data?.defaultCurrency || process.env.defaultCurrency || DEFAULT_CURRENCY;
 
-  const { t, labels } = useMessages();
-  const { compare, isAllTime } = useDateRange();
-  const { data, error, isLoading } = useResultQuery<any>('revenue', {
-    websiteId,
-    startDate,
-    endDate,
-    currency,
-    compare,
-  });
-
-  const metrics = useMemo(() => {
-    if (!data) return [];
-
-    const { sum, count, average, unique_count, arpu, comparison } = data.total;
-
-    return [
-      {
-        value: sum,
-        label: t(labels.total),
-        change: comparison ? sum - comparison.sum : 0,
-        formatValue: (n: number) => formatLongCurrency(n, currency),
-      },
-      {
-        value: average,
-        label: t(labels.aov),
-        tooltip: (
-          <>
-            <div>Average Order Value</div>
-            <div>(Total Revenue / Orders)</div>
-          </>
-        ),
-        change: comparison ? average - comparison.average : 0,
-        formatValue: (n: number) => formatLongCurrency(n, currency),
-      },
-      {
-        value: arpu,
-        label: t(labels.arpu),
-        tooltip: (
-          <>
-            <div>Average Revenue Per User</div>
-            <div>(Total Revenue / All Sessions)</div>
-          </>
-        ),
-        change: comparison ? arpu - (comparison.arpu ?? 0) : 0,
-        formatValue: (n: number) => formatLongCurrency(n, currency),
-      },
-      {
-        value: count,
-        label: t(labels.orders),
-        change: comparison ? count - comparison.count : 0,
-        formatValue: formatLongNumber,
-      },
-      {
-        value: unique_count,
-        label: t(labels.uniqueCustomers),
-        change: comparison ? unique_count - comparison.unique_count : 0,
-        formatValue: formatLongNumber,
-      },
-    ] as any;
-  }, [data]);
-
-  const renderLabel = (type: string) => (data: any) => <MetricLabel type={type} data={data} />;
-
   return (
-    <Column gap>
-      <LoadingPanel data={data} isLoading={isLoading} error={error}>
-        {data && (
-          <Column gap>
-            <MetricsBar>
-              {metrics?.map(({ label, value, change, formatValue, tooltip }) => {
-                return (
-                  <MetricCard
-                    key={label}
-                    value={value}
-                    label={label}
-                    tooltip={tooltip}
-                    change={change}
-                    formatValue={formatValue}
-                    showChange={!isAllTime}
-                  />
-                );
-              })}
-            </MetricsBar>
-            <Panel>
-              <RevenueChart
-                data={data.chart}
-                unit={unit}
-                minDate={startDate}
-                maxDate={endDate}
-                currency={currency}
-              />
-            </Panel>
-            <Grid gap="3">
-              <GridRow layout="two">
-                <Panel>
-                  <Heading size="2xl">{t(labels.sources)}</Heading>
-                  <Tabs>
-                    <TabList>
-                      <Tab id="referrer">{t(labels.referrers)}</Tab>
-                      <Tab id="channel">{t(labels.channels)}</Tab>
-                    </TabList>
-                    <TabPanel id="referrer">
-                      <ListTable
-                        title={t(labels.referrer)}
-                        metric={t(labels.revenue)}
-                        data={data?.referrer.map(
-                          ({ name, value }: { name: string; value: number }) => ({
-                            label: name,
-                            count: Number(value),
-                            percent: (value / data?.total.sum) * 100,
-                          }),
-                        )}
-                        formatCount={(n: number) => formatLongCurrency(n, currency)}
-                        renderLabel={renderLabel('referrer')}
-                      />
-                    </TabPanel>
-                    <TabPanel id="channel">
-                      <ListTable
-                        title={t(labels.channel)}
-                        metric={t(labels.revenue)}
-                        data={data?.channel.map(
-                          ({ name, value }: { name: string; value: number }) => ({
-                            label: name,
-                            count: Number(value),
-                            percent: (value / data?.total.sum) * 100,
-                          }),
-                        )}
-                        formatCount={(n: number) => formatLongCurrency(n, currency)}
-                        renderLabel={renderLabel('channel')}
-                      />
-                    </TabPanel>
-                  </Tabs>
-                </Panel>
-                <Panel>
-                  <Heading size="2xl">{t(labels.location)}</Heading>
-                  <Tabs>
-                    <TabList>
-                      <Tab id="country">{t(labels.countries)}</Tab>
-                      <Tab id="region">{t(labels.regions)}</Tab>
-                    </TabList>
-                    <TabPanel id="country">
-                      <ListTable
-                        title={t(labels.country)}
-                        metric={t(labels.revenue)}
-                        data={data?.country.map(
-                          ({ name, value }: { name: string; value: number }) => ({
-                            label: name,
-                            count: Number(value),
-                            percent: (value / data?.total.sum) * 100,
-                          }),
-                        )}
-                        formatCount={(n: number) => formatLongCurrency(n, currency)}
-                        renderLabel={renderLabel('country')}
-                      />
-                    </TabPanel>
-                    <TabPanel id="region">
-                      <ListTable
-                        title={t(labels.region)}
-                        metric={t(labels.revenue)}
-                        data={data?.region.map(
-                          ({
-                            name,
-                            value,
-                            country,
-                          }: {
-                            name: string;
-                            value: number;
-                            country: string;
-                          }) => ({
-                            label: name,
-                            country,
-                            count: Number(value),
-                            percent: (value / data?.total.sum) * 100,
-                          }),
-                        )}
-                        formatCount={(n: number) => formatLongCurrency(n, currency)}
-                        renderLabel={renderLabel('region')}
-                      />
-                    </TabPanel>
-                  </Tabs>
-                </Panel>
-              </GridRow>
-            </Grid>
-            <Panel>
-              <Heading size="2xl">{t(labels.customers)}</Heading>
-              <RevenueSessionsDataTable websiteId={websiteId} currency={currency} />
-            </Panel>
-          </Column>
-        )}
-      </LoadingPanel>
+    <Column gap="3">
+      <Panel
+        className="dashboard-hero-panel"
+        minHeight="471px"
+        paddingX="0"
+        paddingY="0"
+        gap="0"
+        style={{ overflow: 'visible', position: 'relative' }}
+      >
+        <WebsiteChartMetricStrip websiteId={websiteId} />
+        <WebsiteChart websiteId={websiteId} />
+      </Panel>
+
+      <Grid columns={{ base: '1fr', md: 'repeat(2, minmax(0, 1fr))' }} gap="3">
+        <DashboardBreakdownPanel
+          websiteId={websiteId}
+          defaultSort="visitors"
+          onOpen={openBreakdown}
+          tabs={[
+            { id: 'channel', label: t(labels.channels), type: 'channel' },
+            { id: 'referrer', label: t(labels.referrers), type: 'referrer' },
+            { id: 'campaign', label: 'Campaign', type: 'utmCampaign' },
+            { id: 'keyword', label: 'Keywords', type: 'keywords' },
+          ]}
+        />
+
+        <DashboardBreakdownPanel
+          websiteId={websiteId}
+          defaultSort="visitors"
+          onOpen={openBreakdown}
+          tabs={[
+            { id: 'country', label: t(labels.countries), type: 'country' },
+            { id: 'region', label: t(labels.regions), type: 'region' },
+            { id: 'city', label: t(labels.cities), type: 'city' },
+          ]}
+        />
+
+        <DashboardBreakdownPanel
+          websiteId={websiteId}
+          defaultSort="visitors"
+          onOpen={openBreakdown}
+          tabs={[
+            { id: 'hostname', label: 'Hostname', type: 'hostname' },
+            { id: 'path', label: t(labels.page), type: 'path' },
+            { id: 'entry', label: t(labels.entry), type: 'entry' },
+          ]}
+        />
+
+        <DashboardBreakdownPanel
+          websiteId={websiteId}
+          defaultSort="visitors"
+          onOpen={openBreakdown}
+          tabs={[
+            { id: 'browser', label: t(labels.browsers), type: 'browser' },
+            { id: 'os', label: t(labels.os), type: 'os' },
+            { id: 'device', label: t(labels.devices), type: 'device' },
+          ]}
+        />
+      </Grid>
+
+      <Panel className="dashboard-panel" paddingX="0" paddingY="0" gap="0">
+        <Row
+          alignItems="center"
+          justifyContent="space-between"
+          paddingX="4"
+          paddingY="2"
+          style={{ borderBottom: '1px solid var(--talivia-card-border)' }}
+        >
+          <Text weight="bold">{t(labels.customers)}</Text>
+        </Row>
+        <RevenueSessionsDataTable websiteId={websiteId} currency={currency} />
+      </Panel>
     </Column>
   );
 }

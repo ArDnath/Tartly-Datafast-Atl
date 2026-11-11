@@ -93,6 +93,33 @@ bundled font files, so no font licence to clear.
 - Content width: app `1080px` (existing `APP_LAYOUT_MAX_WIDTH`); onboarding
   content column `440px`; marketing body `62–75ch`.
 
+### Texture
+
+Texture is what makes the flat surfaces feel made rather than filled. It is
+always decorative and never carries meaning, so it must stay below the text
+contrast threshold.
+
+- **Paper grain** — `public/textures/grain.svg` is a fixed, pointer-transparent
+  overlay on `body::after` at 3.5% in light mode and 5.5% in dark mode
+  (`--rl-grain-opacity`, `--rl-grain`, `soft-light` blend). It also covers the
+  landing page's existing editorial textures without rewriting them. Hidden in
+  `forced-colors` mode.
+- **Product canvas** — a 24px dot field plus two quiet radial glows on
+  `.talivia-app-shell` and `.talivia-auth-shell`
+  (`--rl-app-dot`, `--rl-app-glow`, `--rl-app-glow-cool`). The dots are below
+  7% alpha; they must never be used as a grid for content alignment.
+- **Marketing canvas** — the same 24px dot field with a warmer top glow
+  (`--marketing-texture-dot`, `--marketing-texture-glow`) on pricing, docs,
+  legal, and comparison pages. The landing page keeps its hatch, hairline grid,
+  and larger dot field on top.
+- **Cards** — one soft top sheen (`--rl-panel-sheen` for product surfaces,
+  `--marketing-sheen` for marketing surfaces, height 104–112px). No coloured
+  glow, no drop shadow, no second highlight. The sheen is a texture, not
+  elevation; hover still owns the only lifted state.
+- **Restraint** — do not texture charts, table rows, inputs, focus rings, or
+  status surfaces. When a token change would make texture compete with data,
+  reduce the alpha instead of adding another layer.
+
 ### Motion
 
 | Token                                | Value                        | Use                             |
@@ -102,7 +129,7 @@ bundled font files, so no font licence to clear.
 | `ONBOARDING_MOTION_DURATION_SECONDS` | `0.32s`                      | Step transition                 |
 | Easing                               | `ease-in-out`                | Step transitions                |
 | Hover/press                          | `160ms ease`                 | Buttons, inputs                 |
-| Welcome hold                         | `4.2s` (0.9s reduced motion) | Welcome overlay                 |
+| Welcome hold                         | `2.6s` (1.1s reduced motion) | App-wide welcome overlay        |
 
 Directional logic (copied from Tartly's `OnboardingTransitionOutlet`):
 
@@ -153,6 +180,17 @@ Directional logic (copied from Tartly's `OnboardingTransitionOutlet`):
 - Money always includes currency; use `Intl.NumberFormat`.
 - Revenue is the hero, not pageviews. Pageviews are supporting context.
 
+### Icons
+
+- **Iconoir** (`iconoir-react`, 1.5px stroke, 24px grid) is the only icon
+  library. Import every icon from `src/components/icons.ts`, which re-exports
+  the library so a future swap stays a one-file change.
+- Icons render at 16px in dense rows, 24px in empty states and page headers.
+  Do not mix in another icon set; provider and brand logos are images, not
+  icons.
+- Give icon-only buttons an `aria-label`; decorative icons stay
+  `aria-hidden="true"`.
+
 ---
 
 ## 4. Screen direction
@@ -166,15 +204,25 @@ Directional logic (copied from Tartly's `OnboardingTransitionOutlet`):
 
 ### App shell
 
-- Near-black canvas, 1080px content, hairline top nav.
+- Flat canvas, 1120 px content, hairline top nav.
 - Wordmark left, workspace switcher next, user menu right.
+- One fixed **Logout** control at the bottom-left of every signed-in surface;
+  it is the only exit and never sits inside the working area.
+- The website workbench has no left rail. One horizontal destination row holds
+  the daily reports; the rest live in a **More** menu.
 - The blush signal appears on live/revenue states, not nav.
 
 ### Revenue-first overview
 
-- First row: revenue, revenue per visitor, conversion rate, MRR by channel.
-- Second row: revenue by source, revenue by campaign, recent payments.
-- Traffic charts support the revenue story; they do not lead.
+- One toolbar row: website switcher and Settings on the left; Filter, period
+  steps, date range, and granularity on the right.
+- First panel: revenue, revenue per visitor, conversion rate, visitors, bounce
+  rate, session time, and online, above the traffic/revenue chart.
+- Then a 2×2 breakdown grid (referrers/channels/campaign/keywords,
+  countries/regions/cities, page/hostname/entry, browser/os/device), followed
+  by the activity panel.
+- Empty panels say "No data" in the centre; no fake rows or placeholder
+  values.
 - Empty state: "Install the tracker to see your first visit" with a copy action.
 
 ### Billing / usage
@@ -280,7 +328,8 @@ src/features/
   legacy/                    frozen boards, links, pixels, public pixel/link
                              collection handlers, lib/
   marketing/                 landing and pricing
-  onboarding/                welcome flow, website setup flow
+  onboarding/                activation onboarding (website → tracker →
+                             revenue), welcome-overlay port, lib/
   payments/                  provider connections, webhooks, integration
                              settings, lib/, server/queries
   portfolio/                 /app home (all websites)

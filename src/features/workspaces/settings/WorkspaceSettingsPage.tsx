@@ -35,8 +35,8 @@ interface Invitation {
 }
 
 const CARD_STYLE = {
-  background: '#161616',
-  borderColor: '#ffffff12',
+  background: 'var(--talivia-card-background)',
+  borderColor: 'var(--talivia-card-border)',
   borderRadius: 20,
 } as const;
 
@@ -128,13 +128,13 @@ export function WorkspaceSettingsPage() {
         <Row gap="3" alignItems="center" wrap="wrap" paddingTop="1">
           <Link
             href={renderUrl('/app/settings/websites', false)}
-            style={{ color: '#f2b4cb', fontSize: 13, fontWeight: 600 }}
+            style={{ color: 'var(--accent-text)', fontSize: 13, fontWeight: 600 }}
           >
             Manage websites
           </Link>
           <Link
             href={renderUrl('/app/settings/billing', false)}
-            style={{ color: '#ffffff99', fontSize: 13 }}
+            style={{ color: 'var(--text-muted)', fontSize: 13 }}
           >
             Plan and usage
           </Link>
@@ -179,8 +179,8 @@ export function WorkspaceSettingsPage() {
                 value={role}
                 onChange={event => setRole(event.target.value)}
                 style={{
-                  background: '#111',
-                  border: '1px solid #ffffff20',
+                  background: 'var(--talivia-app-background)',
+                  border: '1px solid var(--border-strong)',
                   borderRadius: 10,
                   color: 'inherit',
                   minHeight: 40,

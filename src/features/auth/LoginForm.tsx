@@ -45,8 +45,8 @@ export function LoginForm({ returnUrl, initialError, errorCode }: LoginFormProps
     : getInitialErrorMessage(initialError);
 
   return (
-    <Column className="talivia-auth-form talivia-auth-panel" alignItems="center" gap="7">
-      <BrandWordmark size={72} className="talivia-auth-lockup" />
+    <Column className="talivia-auth-form talivia-auth-panel" alignItems="center" gap="6">
+      <BrandWordmark size={48} className="talivia-auth-lockup" />
 
       {message ? (
         <p className="talivia-auth-error" role="alert">
@@ -63,6 +63,11 @@ export function LoginForm({ returnUrl, initialError, errorCode }: LoginFormProps
         <GoogleGlyph />
         <span>Continue with Google</span>
       </a>
+
+      <p className="talivia-auth-subtext">
+        Use your Google account to sign in or create your {BRAND.name} workspace. No password
+        needed.
+      </p>
     </Column>
   );
 }

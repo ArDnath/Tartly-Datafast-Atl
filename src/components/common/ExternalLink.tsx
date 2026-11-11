@@ -1,7 +1,7 @@
 import { Icon, Row, Text } from '@talivia/react-zen';
-import Link, { type LinkProps } from '@/components/common/Link';
 import type { ReactNode } from 'react';
-import { ExternalLink as LinkIcon } from '@/components/icons';
+import Link, { type LinkProps } from '@/components/common/Link';
+import { OpenNewWindow as LinkIcon } from '@/components/icons';
 
 export function ExternalLink({
   href,

@@ -3,8 +3,8 @@ import { Row } from '@talivia/react-zen';
 import { BrandWordmark } from '@/components/brand/BrandMark';
 import Link from '@/components/common/Link';
 import { useNavigation } from '@/components/hooks';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { UserButton } from '@/features/app-shell/components/UserButton';
-import { WorkspaceSwitcher } from '@/features/app-shell/components/WorkspaceSwitcher';
 import { BRAND } from '@/lib/brand';
 import { APP_LAYOUT_MAX_WIDTH } from '@/lib/constants';
 
@@ -12,11 +12,7 @@ export function TopNav({ showUser = true }: { showUser?: boolean }) {
   const { renderUrl } = useNavigation();
 
   return (
-    <Row
-      width="100%"
-      backgroundColor="transparent"
-      style={{ borderBottom: '1px solid var(--talivia-card-border)' }}
-    >
+    <Row width="100%" backgroundColor="transparent">
       <Row
         alignItems="center"
         justifyContent="space-between"
@@ -37,7 +33,7 @@ export function TopNav({ showUser = true }: { showUser?: boolean }) {
         </Row>
         {showUser && (
           <Row alignItems="center" gap="3" style={{ marginLeft: 'auto' }}>
-            <WorkspaceSwitcher />
+            <ThemeToggle />
             <UserButton />
           </Row>
         )}

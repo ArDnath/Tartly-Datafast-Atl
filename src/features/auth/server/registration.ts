@@ -1,9 +1,8 @@
 import { normalizeUsername } from '@/lib/auth-user';
 import { ROLES } from '@/lib/constants';
-import { hash, uuid } from '@/lib/crypto';
+import { uuid } from '@/lib/crypto';
 import { hashPassword } from '@/lib/password';
 import prisma from '@/lib/prisma';
-import { slugifyWorkspaceName } from '@/lib/workspace-auth';
 import { getUserByUsername } from '@/queries/prisma';
 
 export class RegistrationError extends Error {
@@ -21,11 +20,6 @@ export interface RegisteredAccount {
     username: string;
     role: string;
   };
-  workspace: {
-    id: string;
-    name: string;
-    slug: string;
-  };
 }
 
 export interface PersonalAccountInput {
@@ -35,18 +29,19 @@ export interface PersonalAccountInput {
   googleId?: string | null;
   displayName?: string | null;
   emailVerifiedAt?: Date | null;
-  workspaceName?: string;
-  planId?: string;
 }
 
 /**
- * Create the account, its personal workspace, OWNER membership, and initial
- * plan selection in one transaction. A failure at any point leaves no orphan
- * user or workspace behind.
+ * Create the account only.
  *
- * Plan status is `incomplete` until platform billing confirms a subscription
- * (Phase 5). The workspace starts its 7-day free trial: trial limits apply and
- * paid entitlements do not.
+ * A workspace is deliberately NOT created here. New accounts finish signing
+ * in first and then create their workspace inside `/onboarding`, where they
+ * choose its name, photo, and the first website. This keeps the workspace
+ * record (and its trial clock) tied to a real, user-confirmed action instead
+ * of a placeholder name derived from the email.
+ *
+ * Invited users already have a membership by the time they sign in and are
+ * routed straight to the app by `resolvePostSignInPath`.
  */
 export async function createPersonalAccount({
   username,
@@ -54,8 +49,6 @@ export async function createPersonalAccount({
   googleId = null,
   displayName = null,
   emailVerifiedAt = null,
-  workspaceName,
-  planId = 'starter',
 }: PersonalAccountInput): Promise<RegisteredAccount> {
   const normalized = normalizeUsername(username);
 
@@ -63,58 +56,25 @@ export async function createPersonalAccount({
     throw new RegistrationError('invalid-username', 'An email address is required.');
   }
 
-  const userId = uuid();
-  const name = workspaceName?.trim() || `${normalized.split('@')[0]}'s workspace`;
-  const slug = `${slugifyWorkspaceName(name)}-${hash(normalized).slice(0, 8)}`;
-
-  let account: unknown;
-
   try {
-    account = await prisma.transaction(async (tx: any) => {
-      const user = await tx.user.create({
-        data: {
-          id: userId,
-          username: normalized,
-          password: password === null ? null : hashPassword(password),
-          googleId,
-          displayName: displayName?.slice(0, 255) || null,
-          emailVerifiedAt,
-          role: ROLES.user,
-        },
-        select: {
-          id: true,
-          username: true,
-          role: true,
-        },
-      });
-
-      const workspace = await tx.workspace.create({
-        data: {
-          id: uuid(),
-          name: name.slice(0, 100),
-          slug,
-          ownerId: user.id,
-          planId,
-          subscriptionStatus: 'incomplete',
-        },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-        },
-      });
-
-      await tx.workspaceMembership.create({
-        data: {
-          id: uuid(),
-          workspaceId: workspace.id,
-          userId: user.id,
-          role: 'OWNER',
-        },
-      });
-
-      return { user, workspace };
+    const user = await prisma.client.user.create({
+      data: {
+        id: uuid(),
+        username: normalized,
+        password: password === null ? null : hashPassword(password),
+        googleId,
+        displayName: displayName?.slice(0, 255) || null,
+        emailVerifiedAt,
+        role: ROLES.user,
+      },
+      select: {
+        id: true,
+        username: true,
+        role: true,
+      },
     });
+
+    return { user };
   } catch (cause: any) {
     if (cause?.code === 'P2002') {
       throw new RegistrationError('username-taken', 'An account with that email already exists.');
@@ -122,20 +82,14 @@ export async function createPersonalAccount({
 
     throw cause;
   }
-
-  return account as RegisteredAccount;
 }
 
 export async function registerAccount({
   username,
   password,
-  workspaceName,
-  planId = 'starter',
 }: {
   username: string;
   password: string;
-  workspaceName?: string;
-  planId?: string;
 }): Promise<RegisteredAccount> {
   const normalized = normalizeUsername(username);
 
@@ -149,5 +103,5 @@ export async function registerAccount({
     throw new RegistrationError('username-taken', 'An account with that email already exists.');
   }
 
-  return createPersonalAccount({ username: normalized, password, workspaceName, planId });
+  return createPersonalAccount({ username: normalized, password });
 }

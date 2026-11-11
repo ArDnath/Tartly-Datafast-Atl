@@ -5,7 +5,7 @@
   (public, `origin`; default branch `main`)
 - **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
   forked locally at `/home/ariyaman/Dev/fight/efforts/revenuelens`
-- **Last updated:** 2026-11-09
+- **Last updated:** 2026-11-11
 - **Current phase:** Phases 10, 11, and 12 are implemented. A real local
   ingestion run (10,000 events, 50 concurrent clients, 157 req/s, p95 412 ms,
   0 errors) is recorded in `docs/LOAD_TEST.md`, and the run exposed and fixed a
@@ -30,10 +30,10 @@
 - Overall percent (average of phases 0–12): **94%**
 - Build state at last check: **green** — `pnpm gate` (Biome format, Biome
   lint, `tsc --noEmit`, coverage-enforced tests, production build) passes.
-  Latest local full run: **174 test files passed / 1 gated skip**, coverage
-  **67.6% statements / 55.6% branches / 63.4% functions / 68.0% lines**, plus
-  the explicit 48-assertion PostgreSQL analytics smoke and the recorded load
-  probe.
+  Latest local full run (2026-11-09): **193 test files passed / 1 gated skip**,
+  **889 tests passed / 1 skipped**, coverage **67.81% statements / 56.20%
+  branches / 63.90% functions / 68.16% lines**, plus the explicit 48-assertion
+  PostgreSQL analytics smoke and the recorded load probe.
 - GitHub CI: **green on `main`** (latest run 42396846690 for squash
   `04d7023`). The three-job pipeline starts PostgreSQL 17, runs format, lint,
   typecheck, coverage tests, a clean production dependency audit,
@@ -81,6 +81,210 @@ code:
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
 
+## 2026-11-11 — PR queue recovery and launch experience delivery
+
+- Cleared the open PR queue with squash merges after CI: #35
+  (`@rollup/plugin-alias` 6.0.1), #31 (Google-only sign-in), #26
+  (`serialize-error` 13.1.0), #38 (container scan disk fix), #36
+  (`babel-plugin-react-compiler` rc.3), #37 (TypeScript 7), and #33 (runtime
+  minor/patch group). Stale dependabot branches were rebased onto `main` so
+  their effective diff stayed limited to `package.json` and `pnpm-lock.yaml`.
+- Root cause of the failing container job: the ~14 GB hosted runner exhausted
+  its disk because BuildKit kept the local build cache while Trivy extracted
+  the image layers into `/tmp`. #38 prunes the local build cache after the
+  build and before the scans; the exported GitHub Actions cache is unchanged.
+- TypeScript 7 required the test `IntersectionObserver` mock to implement the
+  full interface, including `scrollMargin` (`src/test/setup.ts`). No other
+  source file needed migration.
+- `feature/launch-experience` was rebased onto the new `main` (the Google OAuth
+  commits were dropped because #31 already carried them) and delivered as a PR
+  with the activation onboarding, quiet app shell, light/dark toggle, landing
+  motion, and revenue charts.
+- Evidence: `pnpm gate` green on the rebased launch branch and on every
+  non-dependabot change; GitHub CI green on each merged PR.
+- **UNVERIFIED:** live Google consent, provider credentials, and the VPS
+  browser walkthrough remain human actions (see the section below).
+
+## 2026-11-11 — VPS preview deployment of the launch branch
+
+- Deployed `feature/launch-experience` (`87a7167`) to the existing single-VPS
+  stack at <https://tartly.in> so the new landing page and launch UI can be
+  reviewed publicly.
+- Method: shipped the commit as a git bundle (the VPS clone has no GitHub
+  credentials and the repository is private), checked out `preview-launch`,
+  built `tartly-app:87a7167…`, applied the three additive migrations
+  (`google_oauth`, `workspace_logo`, `workspace_onboarding_completed`) to Neon,
+  restarted only the `app` service, and waited for `/api/health/ready`.
+- Verified: `/api/health/ready` reports `version: 87a7167…` and
+  `database: up`; `/`, `/pricing`, `/docs`, `/login`, `/robots.txt`, and
+  `/sitemap.xml` return 200; `www` redirects 308 to the apex; HSTS is present.
+- Rollback: the previous image `tartly-app:cc068cb…` and commit `cc068cb`
+  remain on the host, and `main` in `/opt/tartly/app` still points at
+  `cc068cb`.
+- **UNVERIFIED / caveat:** sign-in is Google-only on this branch and
+  `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` are not set on the VPS. The
+  existing OAuth client rejects
+  `https://tartly.in/api/auth/google/callback` with
+  `redirect_uri_mismatch`. Human action: add that redirect URI in Google Cloud
+  Console, add the two secrets to `/opt/tartly/runtime/.env`, and restart the
+  app. Until then `/app` cannot be demonstrated.
+- **N/A:** full `pnpm gate` for this deployment-only slice — the VPS Docker
+  build ran TypeScript and the production `next build` successfully, but the
+  test, coverage, and lint gate was not rerun.
+
+## 2026-11-11 — EvilCharts-style ECharts blocks in the preview and the app
+
+- Added `echarts@6.1.0` and one lazy loader (`src/components/charts/echarts`)
+  so the canvas runtime is fetched only in the browser; the server render and
+  the rest of the bundle stay unchanged.
+- Three reusable blocks: `LineTrendChart` (glow, gradient wash, frosted
+  tooltip), `ComposedTrendChart` (rounded columns plus a glowing line, optional
+  second value axis, per-bar palette), and `SankeyFlowChart` (outside labels,
+  source-tinted bands, item tooltip). All colours resolve from the live CSS
+  tokens, so light and dark follow the existing theme toggle.
+- Landing interactive demo: **Revenue by day** is now a multi-colour bar +
+  line mixed chart (six-colour palette, previous period as the line). The
+  comparison line block and an acquisition → landing → product → purchase
+  sankey sit below it, scaled by range, site, and row filter.
+- `/app` portfolio home: the revenue trend is the same mixed chart, followed by
+  revenue-versus-visitors per site and a visitors → site → conversion sankey.
+- Website workbench: **Revenue and payments** (composed) and **Channel to
+  conversion** (sankey) read the existing tenant-scoped stats and
+  dashboard-breakdown endpoints. The inherited Chart.js overview chart is
+  retained because it owns compare mode, refunds, and the existing analytics
+  contract; the new blocks are additive.
+- Verified: `pnpm gate` exit 0 on 2026-11-11 — 202 test files passed / 1 gated
+  skip, 933 tests passed / 1 skipped, coverage 66.22% statements / 55.12%
+  branches / 63.58% functions / 66.62% lines, production build green. New
+  coverage: option builders (line, composed, sankey, palette), portfolio
+  aggregation/sankey, and revenue-flow sankey. Browser screenshots at 1440 px
+  and 390 px in light and dark; `/app` and `/app/[websiteId]` rendered live
+  data from a local PostgreSQL run (created through the real onboarding API,
+  then fed events and manual payments).
+- **N/A:** tenant isolation and persistence — the change adds presentation
+  components only and reads existing authorized endpoints; no schema, route,
+  cache, queue, or ingestion code changed.
+
+## 2026-11-10 — Premium surface texture pass
+
+- Added one shared paper-grain texture (`public/textures/grain.svg`, fixed
+  `body::after` overlay) across every route, plus a 24px dot field and quiet
+  radial glows on the product canvas, auth canvas, onboarding, docs, pricing,
+  legal, and comparison pages. The landing page keeps its existing hatch and
+  hairline grid; the grain sits underneath them.
+- Added a single soft top sheen to shared cards (`Panel`,
+  `.portfolio-site-card`, settings surfaces, pricing, docs, and comparison
+  cards). It is a texture only: no new drop shadow, no coloured glow, and hover
+  remains the only lifted state.
+- Tokens live in `src/app/global.css`:
+  `--rl-grain`, `--rl-grain-opacity`, `--rl-app-dot`, `--rl-app-glow`,
+  `--rl-panel-sheen`, and the marketing equivalents. Texture is hidden in
+  `forced-colors` and print, and carries no motion, so reduced-motion behaviour
+  is unchanged.
+- Fixed an adjacent auth-shell defect found during visual QA: the global
+  full-width auth button rule was stretching the floating theme toggle to
+  1,265px. `.talivia-theme-toggle` now keeps its 34px chrome size.
+- Verified: `pnpm gate` exit 0 on 2026-11-10 — 198 test files passed / 1
+  skipped, 904 tests passed / 1 skipped, coverage 66.05% statements / 55.2%
+  branches / 64.17% functions / 66.5% lines, production build green. Also
+  confirmed with targeted tests (35 passed), axe on `/pricing` (only the
+  pre-existing redundant-image-alt violation), and browser screenshots of `/`,
+  `/pricing`, `/docs`, `/login`, `/onboarding` (light and dark), and `/app`
+  (light and dark).
+
+## 2026-11-10 — Quiet DataFast-style app shell and dashboard
+
+- Replaced the signed-in visual chrome with a flat, quiet working surface:
+  the dot field, coloured corner glows, and body grain are removed inside
+  `.talivia-app-shell`. Content width is 1120 px on both `/app` and the
+  website workbench.
+- Removed the nineteen-item left rail from the website workbench. A single
+  horizontal destination row now carries Overview, Revenue, Visitors, Events,
+  Funnels, and Session replay; the remaining reports live in one **More**
+  menu. The old rail markup is still exported for compatibility but no longer
+  mounted.
+- The website header is one toolbar row: website switcher plus a quiet
+  icon-only Settings shortcut on the left, Filter, date step, date range, and
+  granularity on the right. Subpages use the same toolbar instead of a
+  second page header, so the screen has one consistent top edge.
+- `/app` (post-login home) is now a short page header with a single summary
+  line (websites · revenue · visitors), the period controls, and a three-up
+  grid of calm website cards. The four large portfolio KPI cards and the MRR
+  panel were removed from this page; revenue remains on every card and on the
+  website workbench.
+- Empty breakdown panels now render a centred "No data" line instead of an
+  empty body.
+- Added a fixed bottom-left **Logout** control on every signed-in surface
+  (`.app-logout`), labelled for screen readers and collapsed to an icon under
+  640 px.
+- Mobile: the account menu shows only the avatar glyph, so the wordmark and
+  workspace switcher no longer clip at 390 px.
+- Verified in the running browser at 1440×900 and 390×844 on `/app`,
+  `/app/[websiteId]`, and `/app/settings`; the More menu, empty states, and
+  logout control render as intended.
+- Evidence: `pnpm gate` exit 0 on 2026-11-10 — 198 test files passed / 1 gated
+  skip, 904 tests passed / 1 skipped, coverage 66.05% statements / 55.20%
+  branches / 64.17% functions / 66.50% lines, production build green.
+- **N/A:** backend-readiness and high-scale skills — this change touches only
+  presentation components and CSS; no route, query, auth, or ingestion code
+  changed. Tenant scoping, API contracts, migrations, caching, and queues are
+  untouched.
+
+## 2026-11-10 — Light/dark toggle for product surfaces
+
+- Added a theme toggle to `/login`, `/onboarding`, and the `/app` shell
+  (`TopNav`). Light canvas is `#FEFAEA`; dark canvas is `#1F1F1F`.
+- Theme tokens live in `src/app/global.css` (`:root` light, `[data-theme="dark"]`
+  dark); app surfaces, panels, charts, and settings panels now read those
+  tokens instead of hard-coded dark hex values where they drive CSS.
+- Hydration-safe: the root layout renders a fixed default and an inline
+  `<head>` script applies `localStorage["tartly-theme"]` before first paint;
+  `<html suppressHydrationWarning>` accepts the DOM value. The toggle's markup
+  is identical on server and client (glyphs are CSS-selected by
+  `data-theme`), so there is no hydration mismatch.
+- Verified: `pnpm typecheck`, Biome format/lint on the changed files, and the
+  full suite (897 passed, 1 skipped) are green; the new theme-toggle tests add
+  3 cases.
+
+## 2026-11-10 — Landing polish, micro-interactions, and impact pass
+
+- Applied the newly installed `better-ui` skill plus Impeccable's `animate` and
+  `bolder` references to the existing landing page. Content, plan logic,
+  tracker, and the Google sign-in flow are unchanged.
+- Polish: every hover effect now sits behind `@media (hover: hover)`; named
+  transition properties replace `all`; the feature-card rule animates scale
+  instead of width; keyboard focus gets a consistent orange ring; the mobile
+  menu traps focus, closes on Escape, and returns focus to its trigger.
+- Motion: one-shot hero-dashboard entrance (staggered revenue bars, KPI and
+  channel-row settle) instead of an infinite underline pulse; the closing CTA
+  carries a single attention ring to the hero form; the pricing segmented
+  control slides and the price ticks on a billing or tier change. All movement
+  is disabled under `prefers-reduced-motion`.
+- Impact: the "Traffic tells you who came" headline now holds one sentence per
+  line, the four-step spine was compressed into a true 1–2–3–4 zigzag with a
+  scroll-filled rail and a deeper sand band for section rhythm, and the plan
+  price is larger at the decision point.
+- Verified: landing + app-structure tests 26/26, typecheck, Biome format/lint,
+  axe (only the pre-existing brand-contrast items remain), and desktop/mobile
+  screenshots at 1440 px and 390 px.
+
+## 2026-11-10 — Landing page visual pass (tracerHQ reference)
+
+- Re-skinned the existing landing page without changing its content, plan
+  logic, tracker, or Google sign-in flow. Visual reference:
+  `https://www.tracerhq.co/`, fetched 2026-11-10.
+- Tokens are scoped to `.landing-root` so docs/legal/dashboard keep their
+  cascade: cream `#fffbeb`, ink `#171717`, sand borders `#ddd5cc`, one signal
+  orange `#ff4f00`, blush `#f2b4cb` highlights, mono micro-labels, sharp
+  corners, hard offset shadows.
+- Added the reference page's textures (dot grid, hairline grid, diagonal
+  hatch), a fixed floating nav bar, heavy tight-tracked headlines with an
+  orange underline accent, a CSS-built hero workspace frame labelled
+  "Illustrative preview · sample data", a bordered payment-provider strip, and
+  restyled process, pricing, capability rails, CTA, and footer.
+- Removed the Domine import; Inter is the single family again.
+- Verified: landing tests 10/10, typecheck, and the production build are green.
+
 ## 2026-11-09 — Google-only sign-in
 
 - `/login` is now a centered authentication canvas with a larger Tartly
@@ -107,6 +311,119 @@ shutdown or destructive action should be taken based on this tracker.
   race handling, callback state rejection, rate limiting, and the Google-only
   login surface. Live Google credentials are **UNVERIFIED** in this checkout;
   the human must create the OAuth client and add the redirect URI above.
+
+## 2026-11-09 — Landing CTA continues through Google
+
+- The landing hero **Start tracking** form now posts to `/api/auth/google`
+  with `returnUrl=/onboarding`. The entered website travels inside the signed
+  OAuth state and pre-fills the onboarding website field, so the customer no
+  longer sees a password signup screen.
+- `/signup` is no longer a screen. The route redirects to the same Google flow,
+  which keeps the pricing, navbar, footer, docs, and alternatives calls to
+  action working without exposing a password form.
+- Removed `SignupPage` and `SignupForm`. The password registration API remains
+  for existing accounts but has no customer-facing entry point.
+- `sanitizeAuthReturnUrl` now allows `/onboarding` in addition to `/app`,
+  preserves the query string, and still rejects external, protocol-relative,
+  and backslash paths.
+- Tests: landing form contract, signup redirect, Google website passthrough,
+  return-URL sanitizer, and website normalization.
+- The root `<body>` now carries `suppressHydrationWarning` because browser
+  extensions such as ColorZilla inject attributes like `cz-shortcut-listen`
+  before React hydrates. Real app markup is still checked normally.
+
+## 2026-11-09 — Activation onboarding: website → tracker → revenue
+
+- `/onboarding` no longer asks for a workspace name or photo. The three steps
+  are **website URL**, **install the tracker**, and **connect revenue**, then
+  the singleton welcome and `/app` overview. This supersedes the two-step
+  workspace-first flow below.
+- Step 1 calls `POST /api/onboarding/website`. The server finds or creates the
+  owner's workspace from the domain label and creates the first website in the
+  same request. The workspace remains the tenant boundary; it is simply not a
+  customer-facing setup question. Concurrent submits are idempotent through a
+  deterministic workspace slug and an existing-domain lookup.
+- Step 2 reuses `src/features/docs/install-guides.ts` for Next.js, React, Vite,
+  HTML, Astro, and Remix snippets. It polls
+  `GET /api/websites/:id/onboarding/verify`, which reads the real event store.
+  The step can be skipped and verified later.
+- Step 3 reuses the existing per-website payment-provider endpoint for Stripe,
+  Dodo, Lemon Squeezy, Polar, and Yolfi. Credentials stay encrypted and
+  tenant-scoped in the payments domain. The copy marks this as analytics
+  revenue, never platform billing.
+- Added `workspace.onboarding_completed_at` (migration
+  `20261109140000_workspace_onboarding_completed`) and
+  `POST /api/onboarding/complete`. Existing workspaces are backfilled as
+  complete so the release does not re-onboard current customers. Auth routing
+  and the app shell now use the flag, and an owner with an incomplete workspace
+  is sent back to `/onboarding` instead of the dashboard.
+- The welcome overlay is now a direct port of
+  `../tartly/components/app/onboarding/welcome-overlay/*`: the real canvas
+  halftone renderer, particle layout, 2,900-dash data set, worker/main-thread
+  fallback, word-by-word title, person chip, hold/teardown effects, and the
+  singleton `?welcome=1` gate with URL consumption. The CSS dot field is gone.
+- Tests: onboarding step and helper tests, website/complete handler tests
+  (auth, validation, conflict, tenant-owner check), workspace service tests
+  (creation, resume, double-submit race, plan limit, idempotent completion),
+  post-sign-in routing, component tests for all three steps, and the welcome
+  hold/teardown. Evidence: `pnpm gate` exit 0 on 2026-11-09 — 193 test files
+  passed / 1 gated skip, 889 tests passed / 1 skipped, coverage 67.81%
+  statements / 56.20% branches / 63.90% functions / 68.16% lines, production
+  build green. Migration applied locally (`prisma migrate deploy`); a live API
+  smoke registered a fresh account, created the invisible workspace + website
+  (`smoke-example.com`), verified `installed:false`, completed onboarding,
+  confirmed `onboardingRequired:false`, and received `409 already-onboarded` on
+  a repeat create. Smoke rows were deleted afterwards.
+- **UNVERIFIED:** a live browser pass of the halftone worker, tracker copy,
+  live verification, and real provider connection still requires a human or a
+  connected browser. Provider webhook delivery remains unverified without
+  provider accounts.
+
+## 2026-11-09 — Two-step onboarding and singleton welcome
+
+- Signup no longer creates a placeholder workspace. `createPersonalAccount`
+  creates only the user. The first workspace is created in `/onboarding` from
+  the name, photo, and website name the customer chooses.
+- `/onboarding` is now the two-step Tartly flow: **Workspace** (photo, name,
+  website/app name) → **Website** (domain or URL). It reuses the Tartly shell,
+  440px column, 12px/320ms directional step motion, and 70ms stagger.
+- A new account with no workspace membership is routed to `/onboarding` after
+  Google sign-in and by `/login`; members keep the URL they asked for
+  (`resolvePostSignInPath`). The app shell also redirects a workspace-less
+  session back to onboarding instead of rendering an empty dashboard.
+- Workspace photos are resized in the browser to a 256px WebP/JPEG data URL,
+  bounded by `WORKSPACE_LOGO_MAX_LENGTH`, and stored on the new
+  `workspace.logo_url` column (migration `20261109130000_workspace_logo`).
+  `POST /api/workspaces` and `PATCH /api/workspaces/:id` validate the value.
+- Completing onboarding navigates to `/app?welcome=1`. A single
+  `AppWelcomeOverlayGate` mounts the halftone **Welcome to Tartly** overlay over
+  the real dashboard, consumes the flag with `history.replaceState`, and fades
+  out. Reduced motion uses a shorter hold and no halftone animation.
+- Workspace creation defaults to the Starter plan so the 7-day trial can create
+  the first website; `createWorkspaceForUser` now records `planId` and
+  `logoUrl`.
+- Tests: registration now asserts no workspace side effect, `post-signin`
+  routing, workspace photo validation and PATCH, workspace-logo validation, and
+  the Google callback handoff.
+- **UNVERIFIED:** a live browser pass of the photo picker, step motion, and
+  welcome overlay still requires a human or connected browser.
+
+## 2026-11-09 — Local development without Docker
+
+- Added `scripts/local-db.sh` and `scripts/local-dev.sh` (`pnpm dev:local`,
+  `pnpm db:local`) to run a user-owned PostgreSQL cluster from `.local/pgdata`
+  on the port in `DATABASE_URL`. No Docker, ClickHouse, Kafka, or Redis is
+  required for the local analytics loop.
+- Added `scripts/local-smoke.mjs` (`pnpm smoke:local`): register → workspace →
+  website → `/api/send` → `/api/websites/:id/stats`. Verified locally:
+  `pageviews: 1, visitors: 1, visits: 1`.
+- Added `docs/LOCAL_DEVELOPMENT.md` with local and Neon modes, daily commands,
+  RAM notes, and troubleshooting. `.local/` is gitignored.
+- Current local run: PostgreSQL 18 on `127.0.0.1:5433`, Next.js 16.4.1 on
+  `:3000`, `/api/health/ready` returns `database: up`. Neon remains
+  **UNVERIFIED** because no Neon connection string is present in this
+  checkout; the documented switch is `DATABASE_URL` (pooled) +
+  `DATABASE_URL_UNPOOLED` (direct).
 
 ## 2026-11-07 — Pricing, trial, and landing update
 
@@ -1562,6 +1879,14 @@ feature is waiting on code.
 
 ## Changelog
 
+- 2026-11-10 — **Icon system replaced with Iconoir:** removed `lucide-react`
+  and the generated `src/components/svg` set (`src/assets` + `@svgr/cli` /
+  `build-icons`). All 102 icon names across 67 files now map to Iconoir
+  equivalents through the single barrel `src/components/icons.ts`. Custom
+  logo marks stay as brand assets in `public/brand`; payment-provider and
+  browser/OS logos stay as images. Inline sun/moon, back, copy, and check
+  glyphs were also replaced. Proof: `biome format`/`lint`, `tsc --noEmit`,
+  full test suite, and `pnpm build` green.
 - 2026-11-06 — **Landing page alternation (Talivia + DataFast references):**
   rebuilt `/` as alternating dark Talivia-style and light DataFast-style
   bands without copying claims, prices, or social proof. The dark opening

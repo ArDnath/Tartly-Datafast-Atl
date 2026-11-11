@@ -1,10 +1,11 @@
 'use client';
 
 import { Button } from '@talivia/react-zen';
-import { X } from 'lucide-react';
+
 import { useEffect, useState } from 'react';
 import { useApi } from '@/components/hooks/useApi';
 import { useMessages } from '@/components/hooks/useMessages';
+import { Xmark as X } from '@/components/icons';
 import { getItem, setItem } from '@/lib/storage';
 
 const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
@@ -97,7 +98,7 @@ export function UpdateNotice({ userId }: { userId: string }) {
         width: 'min(640px, calc(100vw - 24px))',
         padding: '10px 12px 10px 16px',
         borderRadius: 12,
-        background: '#202024',
+        background: 'var(--talivia-card-background)',
         boxShadow: '0 12px 32px #0008',
       }}
     >
@@ -138,11 +139,11 @@ export function UpdateNotice({ userId }: { userId: string }) {
           border: 0,
           borderRadius: 6,
           background: 'transparent',
-          color: '#b4b4b8',
+          color: 'var(--text-muted)',
           cursor: 'pointer',
         }}
       >
-        <X size={18} aria-hidden="true" />
+        <X width={18} height={18} aria-hidden="true" />
       </button>
     </div>
   );
