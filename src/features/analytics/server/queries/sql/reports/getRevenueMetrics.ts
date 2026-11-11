@@ -443,9 +443,11 @@ async function clickhouseQuery(
 }
 
 function toClickHouseStringArray(arr: string[]): string {
-  return arr.map(p => `'${p.replace(/'/g, "\\'")}'`).join(', ');
+  return arr.map(p => `'${p.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`).join(', ');
 }
 
 function toPostgresLikeClause(column: string, arr: string[]) {
-  return arr.map(val => `${column} ilike '%${val.replace(/'/g, "''")}%'`).join(' OR\n  ');
+  return arr
+    .map(val => `${column} ilike '%${val.replace(/\\/g, '\\\\').replace(/'/g, "''")}%'`)
+    .join(' OR\n  ');
 }

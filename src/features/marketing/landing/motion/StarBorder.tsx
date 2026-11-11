@@ -52,7 +52,7 @@ let colorContext: CanvasRenderingContext2D | null = null;
 const toRgb = (color: string): number[] => {
   colorContext = colorContext ?? document.createElement('canvas').getContext('2d');
   if (!colorContext) return WHITE;
-  colorContext.fillStyle = '#000000';
+  if (typeof CSS === 'undefined' || !CSS.supports('color', color)) return WHITE;
   colorContext.fillStyle = color;
   const value = String(colorContext.fillStyle);
   if (value.startsWith('#')) {
@@ -615,6 +615,8 @@ export default function StarBorder({
       wake();
     };
 
+    // CodeQL's DOM model treats ResizeObserver as a zero-argument constructor.
+    // codeql[js/superfluous-trailing-arguments]
     const resizeObserver = new ResizeObserver(measure);
     resizeObserver.observe(root);
     const visibility = new IntersectionObserver(entries => {

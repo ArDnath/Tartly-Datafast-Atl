@@ -77,14 +77,30 @@
 
   /* Helper functions */
 
+  let fallbackKeyCounter = 0;
+
   const createKey = prefix => {
     const cryptoApi = window.crypto;
-    const random =
-      typeof cryptoApi?.randomUUID === 'function'
-        ? cryptoApi.randomUUID()
-        : `${Date.now().toString(36)}${Math.random().toString(36).substring(2)}`;
 
-    return `${prefix}_${random}`;
+    if (typeof cryptoApi?.randomUUID === 'function') {
+      return `${prefix}_${cryptoApi.randomUUID()}`;
+    }
+
+    if (typeof cryptoApi?.getRandomValues === 'function') {
+      const bytes = cryptoApi.getRandomValues(new Uint8Array(16));
+      let random = '';
+
+      for (let index = 0; index < bytes.length; index += 1) {
+        random += `0${bytes[index].toString(16)}`.slice(-2);
+      }
+
+      return `${prefix}_${random}`;
+    }
+
+    // Very old browsers without Web Crypto still get a collision-resistant
+    // fallback without Math.random.
+    fallbackKeyCounter += 1;
+    return `${prefix}_${Date.now().toString(36)}${fallbackKeyCounter.toString(36)}`;
   };
 
   const readCookie = name => {

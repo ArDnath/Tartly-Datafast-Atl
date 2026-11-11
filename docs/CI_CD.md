@@ -131,6 +131,87 @@ The VPS must have Docker Engine with the Compose plugin, `git`, and outbound
 network access. The SSH key used by CI must be authorized for a non-root
 deploy user that can run `docker` and write to both directories.
 
+Current host baseline (verified 2026-11-11): Ubuntu 26.04.1 LTS, Docker Engine
+29.9.2, Compose v5.6.1, git 2.53.0, UFW active with only 22/80/443 open, SSH
+password authentication disabled, and `PermitRootLogin prohibit-password`.
+
+There are **two separate keys**. Do not reuse one for both jobs:
+
+1. **GitHub Actions → VPS**: the private key in the `DEPLOY_SSH_KEY`
+   environment secret. Its public key is in
+   `/home/deploy/.ssh/authorized_keys` on the VPS.
+2. **VPS → GitHub**: `/home/deploy/.ssh/id_ed25519_github`, registered as a
+   **read-only** repository deploy key. This key lets `deploy.sh` fetch
+   `origin/main`; it is never used by the GitHub runner.
+
+The GitHub Actions checkout uses the workflow `GITHUB_TOKEN`, so no third key is
+needed.
+
+### One-time Ubuntu host bootstrap
+
+Run as root on a fresh host, replacing `<owner>/<repo>` and the domain:
+
+```bash
+adduser --disabled-password --gecos '' deploy
+usermod -aG sudo,docker deploy
+install -d -m 700 -o deploy -g deploy /home/deploy/.ssh
+
+# 1. CI -> host. Append the public half of DEPLOY_SSH_KEY.
+install -m 600 -o deploy -g deploy /dev/null /home/deploy/.ssh/authorized_keys
+# ... append the public key, then:
+chown deploy:deploy /home/deploy/.ssh/authorized_keys
+
+# 2. Host -> GitHub. Register the .pub as a read-only deploy key.
+sudo -u deploy ssh-keygen -t ed25519 -N '' -C tartly-vps-deploy \
+  -f /home/deploy/.ssh/id_ed25519_github
+sudo -u deploy sh -c 'cat > ~/.ssh/config' <<'EOF'
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_ed25519_github
+  IdentitiesOnly yes
+EOF
+chmod 600 /home/deploy/.ssh/config
+
+# 3. Host clone and runtime secrets.
+sudo -u deploy git clone git@github.com:<owner>/<repo>.git /opt/tartly/app
+install -d -o deploy -g deploy /opt/tartly/runtime
+sudo -u deploy install -m 600 /dev/null /opt/tartly/runtime/.env
+```
+
+Install Docker Engine with the Compose plugin from Docker's official apt
+repository. Do not use a snap or a rootless-only install for this stack; the
+`deploy` user needs access to the Docker socket. Fill
+`/opt/tartly/runtime/.env` from `deploy/production/.env.example`; never commit
+it, print it, or place it inside the repository. `DATABASE_URL` is the pooled
+Neon host; `DATABASE_URL_UNPOOLED` is the direct host used by migrations.
+
+Verify the two directions before enabling `DEPLOY_ENABLED`:
+
+```bash
+# Host -> GitHub (must print the repository name, not a credential prompt)
+sudo -u deploy -H bash -lc \
+  'cd /opt/tartly/app && GIT_TERMINAL_PROMPT=0 git ls-remote --exit-code --heads origin main'
+
+# CI -> host key is authorized
+sudo -u deploy ssh-keygen -lf /home/deploy/.ssh/authorized_keys
+
+# Runtime secrets are private
+stat -c '%a %U:%G' /opt/tartly/runtime/.env   # 600 deploy:deploy
+
+# Docker is usable without sudo
+sudo -u deploy docker ps
+```
+
+Keep the host's BuildKit cache bounded. A busy host can accumulate tens of
+gigabytes of build cache and fail the next deploy on disk space:
+
+```bash
+docker system df
+docker builder prune -af --keep-storage 10GB
+docker image prune -f
+```
+
 ### Host repository access
 
 The host clone at `/opt/tartly/app` fetches over SSH with a **read-only deploy

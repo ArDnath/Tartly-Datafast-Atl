@@ -80,6 +80,8 @@ export function ChartTooltip({
     };
 
     updateSize();
+    // CodeQL's DOM model treats ResizeObserver as a zero-argument constructor.
+    // codeql[js/superfluous-trailing-arguments]
     const observer = new ResizeObserver(updateSize);
     observer.observe(element);
     window.addEventListener('resize', updateSize);

@@ -2,11 +2,25 @@ import { Row } from '@talivia/react-zen';
 import type { ReactNode } from 'react';
 
 function getIconName(type: 'browser' | 'country' | 'device' | 'os', value: string) {
-  const normalized = (value || 'unknown')
-    .trim()
-    .toLowerCase()
-    .replace(/\W+/g, '-')
-    .replace(/^-+|-+$/g, '');
+  const input = (value || 'unknown').trim().toLowerCase();
+  let normalized = '';
+  let pendingDash = false;
+
+  // Walk the string once instead of running a backtracking-prone regex over
+  // untrusted user-agent or geography values.
+  for (let index = 0; index < input.length; index += 1) {
+    const code = input.charCodeAt(index);
+    const isLetter = code >= 97 && code <= 122;
+    const isDigit = code >= 48 && code <= 57;
+
+    if (isLetter || isDigit) {
+      if (pendingDash && normalized) normalized += '-';
+      normalized += input[index];
+      pendingDash = false;
+    } else {
+      pendingDash = true;
+    }
+  }
 
   if (type !== 'os') {
     return normalized || 'unknown';

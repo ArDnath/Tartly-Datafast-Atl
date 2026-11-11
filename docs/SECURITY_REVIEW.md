@@ -11,7 +11,7 @@ credentials exist.
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | A01 Broken access control         | Central website/workspace authorization; tenant-scoped queries; static boundary tests; platform-admin allowlist                                  | `src/permissions/website.ts`, `src/lib/workspace-auth.ts`, `src/lib/tenant-boundaries.test.ts`, `src/permissions/website.workspace.test.ts`, `src/features/account/server/admin/**` |
 | A02 Cryptographic failures        | bcrypt password hashes; SHA-512 token-at-rest; AES-256-GCM provider credentials; HttpOnly/Secure/SameSite cookies; constant-time webhook compare | `src/lib/password.ts`, `src/lib/auth-session.ts`, `src/lib/crypto.ts`, `src/features/billing/lib/standard-webhook.ts`                                                               |
-| A03 Injection                     | Parameterized Prisma/raw SQL; Zod schemas; no string-built SQL; React escaping                                                                   | `src/lib/schema.ts`, `src/features/analytics/server/queries/sql/**`, all `parseRequest` call sites                                                                                  |
+| A03 Injection                     | Parameterized Prisma/raw SQL for request values; escaped constant analytics clauses; Zod schemas; React escaping                                 | `src/lib/schema.ts`, `src/features/analytics/server/queries/sql/**`, all `parseRequest` call sites                                                                                  |
 | A04 Insecure design               | Two billing contexts separated; entitlements from server records; no checkout-redirect activation; plan limits server-side                       | `docs/PLATFORM_BILLING.md`, `src/lib/entitlements.ts`, `src/lib/plans.ts`                                                                                                           |
 | A05 Security misconfiguration     | CSP, HSTS in production, nosniff, frame/referrer/permissions policy, no stack traces in production responses                                     | `next.config.ts`, `src/lib/response.ts`                                                                                                                                             |
 | A06 Vulnerable components         | `pnpm audit --prod`; CI fails on critical; overrides for patched transitive packages                                                             | this doc, `.github/workflows/ci.yml`, `package.json` `pnpm.overrides`                                                                                                               |
@@ -101,6 +101,33 @@ Command: `pnpm audit` on 2026-11-06.
 - CI runs `pnpm audit --prod --audit-level critical`; there are **0 critical**.
   The only remaining prod-path high is `@prisma/config > deepmerge-ts` (CLI
   transitive, patched only in a new major — not forced).
+
+### Re-audit 2026-11-11
+
+`pnpm audit --prod` reports **0 vulnerabilities**. The full (dev included)
+audit dropped from 8 findings to 1 accepted finding:
+
+- `tsup` 8.5.1 → 9.0.0 removes the `sucrase > glob@10` and
+  `glob > minimatch@9` chain. Both had fixes only in new majors; the build
+  tool upgrade is the supported fix.
+- `postcss-selector-parser` is pinned to 6.1.5 / 7.1.6 and `diff` to 4.0.4
+  through `pnpm.overrides`. These are same-major patch upgrades.
+- The remaining finding is `deepmerge@4.3.1` via
+  `@rollup/plugin-node-resolve` (test and recorder build only). Upstream has
+  no patched release (`patched: <0.0.0`), the plugin merges only trusted
+  build configuration, and the plugin is not present in the shipped Next.js
+  image or the tracker bundle. Accepted as a documented residual risk.
+- The container image now runs `apk upgrade` before adding `curl`, picking up
+  Alpine's `zlib 1.4-r0` (CVE-2026-4738 fix) instead of the base image's
+  1.3.2-r1.
+- CodeQL warnings fixed: ReDoS in `TypeIcon`, insecure randomness in the
+  tracker and local smoke script, duplicate character class, useless
+  assignments/conditionals, remote property injection in locale loading,
+  file-system race in the component bump script, and incomplete SQL escaping.
+  The four `ResizeObserver` "superfluous argument" findings are a CodeQL DOM
+  model false positive and are suppressed inline with `codeql[...]` comments.
+  The `document.cookie` finding is a test-only cookie-expiry fixture.
+  `pnpm gate` and the next CodeQL/Trivy scans verify the outcome.
 
 ## Secrets
 
