@@ -2,9 +2,9 @@
 
 - **Project:** Tartly (final brand; production domain tartly.in, confirmed 2026-11-06)
 - **Primary repository:** <https://github.com/ArDnath/Tartly-Datafast-Atl>
-  (`origin`; default branch `main`; currently private on GitHub Free, so the
-  checked-in `main` ruleset cannot be applied until the repository is public or
-  moved to a paid plan)
+  (`origin`; default branch `main`; public, protected by the active
+  `main-protection` ruleset checked in at
+  `.github/rulesets/main-protection.json`)
 - **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
   forked locally at `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-11
@@ -40,16 +40,15 @@
   pipeline starts PostgreSQL 17, runs format, lint, typecheck, coverage tests,
   a clean production dependency audit, `prisma migrate deploy`, the Phase 7
   analytics smoke, and `pnpm build`, then runs gitleaks, CodeQL, dependency
-  review, and Trivy filesystem/container scans. On the current private
-  repository, CodeQL, dependency review, and SARIF upload are skipped; the
-  `Security` job still runs gitleaks and both Trivy scans.
+  review, and Trivy filesystem/container scans. On the public repository,
+  CodeQL, dependency review, and SARIF upload all run; the `Verify` job also
+  publishes coverage in the run summary.
 - Production deploy: the last recorded successful deploy was run 42397381387
   for `04d7023`; `/api/health/live` and `/api/health/ready` returned 200 with
   `version: 04d7023`. Runs after that fail at `git fetch` because the host clone
   uses an HTTPS remote with no credentials; the fix is a read-only SSH deploy
   key (`docs/CI_CD.md` → Host repository access). The `production` environment
-  reviewer and the `main` ruleset are documented in `docs/CI_CD.md` but are not
-  active on a private repository on GitHub Free.
+  reviewer is not configured; the `main` ruleset is active.
 - Delivery history: six phase branches delivered through pull requests #1–#6;
   the next slices follow the same feature-branch → PR → merge loop.
 - Runtime smoke: the public docs routes return 200, and `/app/settings`,
@@ -106,17 +105,20 @@ shutdown or destructive action should be taken based on this tracker.
   read-only deploy-key fix. Documented in `docs/CI_CD.md` (Host repository
   access) and `docs/RUNBOOK.md`.
 - Corrected stale claims: CodeQL, dependency review, and SARIF upload are
-  skipped on the private repository on GitHub Free; the earlier "live deploy"
-  and "protected main" statements predate the current fetch failure and the
-  unapplied ruleset.
+  skipped only on a private repository without GitHub Code Security; the
+  repository is public, so all three now run. The earlier "live deploy"
+  statement predated the current fetch failure.
 - Verified: `pnpm gate` exit 0 — 202 test files passed / 1 gated skip, 933
   tests passed / 1 skipped, coverage 66.2% statements / 55.11% branches /
   63.5% functions / 66.61% lines, format/lint/typecheck/build green. Ruleset
   JSON valid; local Trivy baseline clean.
-- **Pending human action (external):** make the repository public or move to a
-  paid plan, then run `bash scripts/apply-branch-protection.sh`; add the VPS
-  read-only deploy key and switch `/opt/tartly/app` `origin` to SSH; set
-  `GHAS_ENABLED=true` after either eligibility change.
+- The repository was made public on 2026-11-11 and
+  `bash scripts/apply-branch-protection.sh` applied the `main` ruleset
+  (`main-protection`, id 27043347). A full-history gitleaks audit found 13
+  `generic-api-key` entries, all fake test fixtures in upstream test files (no
+  real credentials).
+- **Pending human action (external):** add the VPS read-only deploy key and
+  switch `/opt/tartly/app` `origin` to SSH, then re-run the deploy workflow.
 
 ## 2026-11-11 — PR queue recovery and launch experience delivery
 

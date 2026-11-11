@@ -60,14 +60,14 @@ extended and quality query packs, and a blocking Trivy
 filesystem/secret/misconfiguration scan. SARIF is uploaded to GitHub code
 scanning.
 
-These steps run at no cost on a public repository. On a private repository
-without GitHub Code Security (formerly GitHub Advanced Security), CodeQL,
-dependency review, and SARIF upload are skipped: make the repository public or
-purchase the add-on, then set the repository variable `GHAS_ENABLED=true`. The
-workflow keeps that condition so either change needs no code edit. The
-filesystem scan now blocks CRITICAL/HIGH findings with a fix available; the
-2026-11-11 local baseline (Trivy 0.70, same arguments) reported 0 findings, and
-the container image scan remains the release gate.
+These steps run at no cost on the public repository and execute on every
+change. If it becomes private again, GitHub Code Security (formerly GitHub
+Advanced Security) must be purchased and the repository variable
+`GHAS_ENABLED=true` set; otherwise CodeQL, dependency review, and SARIF upload
+are skipped. The workflow keeps that condition so no code edit is needed. The
+filesystem scan blocks CRITICAL/HIGH findings with a fix available; the
+2026-11-11 baseline (Trivy 0.70, same arguments) reported 0 findings locally and
+passed on CI, and the container image scan remains the release gate.
 
 `container` builds the production Docker image with the commit SHA as
 `BUILD_VERSION`, then scans the image with Trivy and fails on CRITICAL/HIGH
@@ -193,6 +193,9 @@ rollback follows `docs/BACKUP_AND_RECOVERY.md`.
 bash scripts/apply-branch-protection.sh
 ```
 
+The ruleset is active on the public repository (`main-protection`, id
+27043347).
+
 The ruleset requires a pull request, linear history, resolved conversations, an
 up-to-date branch, and these three check-run contexts:
 
@@ -208,7 +211,8 @@ conversations are the gate; raise the count when a second maintainer exists.
 
 Rulesets are included with public repositories. A private repository on GitHub
 Free returns HTTP 403 ("Upgrade to GitHub Pro or make this repository public")
-for both branch protection and rulesets.
+for both branch protection and rulesets; the repository is public, so this is
+not a constraint today.
 
 Status-check contexts are the job names, not `CI / <job>`: a ruleset matches the
 check run exactly, and a wrong string silently blocks every merge.
