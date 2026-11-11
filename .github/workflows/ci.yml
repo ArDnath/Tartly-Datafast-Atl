@@ -206,6 +206,18 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # The hosted runner has roughly 14 GB of local disk. BuildKit keeps the
+      # build cache on the runner even though cache-to also exports it to
+      # GitHub Actions, and Trivy then extracts the image layers into /tmp.
+      # Together they exhausted the disk and the scan failed with "no space
+      # left on device". The remote cache still makes the next build fast, so
+      # drop the local cache before scanning.
+      - name: Prune local build cache before scanning
+        run: |
+          df -h /
+          docker buildx prune --all --force
+          df -h /
+
       # Trivy's SARIF mode collects every severity by default, so a plain
       # `severity: CRITICAL` scan still exits 1 on medium findings. Keep the
       # blocking gate to CRITICAL/HIGH and upload the complete inventory in a
