@@ -108,8 +108,10 @@ human action. No launch claim is allowed without a stored result.
 - [x] CI: install, Prisma, lint, typecheck, coverage-enforced tests,
   PostgreSQL analytics smoke, high-severity production audit, production
   build (`docs/CI_CD.md`).
-- [x] Security CI: gitleaks history scan, CodeQL extended/quality queries,
-  dependency review, Trivy filesystem and container scans, SARIF upload.
+- [x] Security CI: gitleaks, CodeQL extended/quality queries, dependency
+  review, blocking Trivy filesystem and container scans, and SARIF upload. A
+  full-history gitleaks audit before the public flip found 13
+  `generic-api-key` entries, all fake test fixtures (no real credentials).
 - [x] Deployment pipeline with immutable SHA tag, direct-URL migrations,
   readiness gate, and automatic rollback (`deploy/production/deploy.sh`).
 - [x] Multi-stage Docker image, non-root user, health check, compose stack.

@@ -1,7 +1,10 @@
 # CI/CD and supply-chain security
 
-The repository has three workflows. Pull requests must pass CI and the security
-jobs before merge; `main` deploys only after the same checks pass.
+The repository has three workflows. The checked-in ruleset
+(`.github/rulesets/main-protection.json`) requires a pull request and the three
+CI jobs before a merge to `main`; apply it as described in
+[Merge gate](#merge-gate-branch-protection). A merge to `main` deploys only
+after the same checks pass.
 
 | Workflow                        | Trigger                                      | Purpose                                                                                                                                                                     |
 | ------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -52,19 +55,19 @@ pnpm exec vitest run --config vitest.phase7.config.ts \
 7. the gated PostgreSQL analytics smoke
 8. `pnpm build`
 
-`security` runs gitleaks over the full history, dependency review on pull
-requests, CodeQL with the extended and quality query packs, and Trivy
-filesystem/secret/misconfiguration scanning. SARIF is uploaded to GitHub code
+`security` runs gitleaks, dependency review on pull requests, CodeQL with the
+extended and quality query packs, and a blocking Trivy
+filesystem/secret/misconfiguration scan. SARIF is uploaded to GitHub code
 scanning.
 
-CodeQL, dependency review, and SARIF upload require GitHub Advanced Security
-on a private repository. This repository is private and GHAS is not purchased,
-so those steps are skipped and the secret scan plus both Trivy scans still run.
-After purchasing GHAS (or making the repository public), set the repository
-variable `GHAS_ENABLED=true` to re-enable them. Until then, CodeQL and
-dependency-review results are **UNVERIFIED** in CI; run `pnpm audit --prod`
-locally and run CodeQL before a release if the change touches authentication,
-authorization, or tenant isolation.
+These steps run at no cost on the public repository and execute on every
+change. If it becomes private again, GitHub Code Security (formerly GitHub
+Advanced Security) must be purchased and the repository variable
+`GHAS_ENABLED=true` set; otherwise CodeQL, dependency review, and SARIF upload
+are skipped. The workflow keeps that condition so no code edit is needed. The
+filesystem scan blocks CRITICAL/HIGH findings with a fix available; the
+2026-11-11 baseline (Trivy 0.70, same arguments) reported 0 findings locally and
+passed on CI, and the container image scan remains the release gate.
 
 `container` builds the production Docker image with the commit SHA as
 `BUILD_VERSION`, then scans the image with Trivy and fails on CRITICAL/HIGH
@@ -93,6 +96,29 @@ are read-only except `security-events: write` in the scanning jobs.
 The VPS must have Docker Engine with the Compose plugin, `git`, and outbound
 network access. The SSH key used by CI must be authorized for a non-root
 deploy user that can run `docker` and write to both directories.
+
+### Host repository access
+
+The host clone at `/opt/tartly/app` fetches over SSH with a **read-only deploy
+key**. It must not use an HTTPS remote with an embedded token: that fails with
+`fatal: could not read Username for 'https://github.com'` and previously broke
+every deploy.
+
+| Item              | Value                                                                                         |
+| ----------------- | --------------------------------------------------------------------------------------------- |
+| Key               | `~deploy/.ssh/id_ed25519_github` (ed25519, no passphrase)                                     |
+| SSH config        | `Host github.com` → `User git`, `IdentityFile ~/.ssh/id_ed25519_github`, `IdentitiesOnly yes` |
+| Remote            | `git@github.com:ArDnath/Tartly-Datafast-Atl.git`                                              |
+| GitHub permission | repository deploy key, write access **off**                                                   |
+
+Register the public key under **Settings → Deploy keys** with write access off.
+`deploy.sh` runs `git ls-remote` with `GIT_TERMINAL_PROMPT=0` before fetching, so
+a missing key fails in seconds with the exact fix instead of hanging on a
+credential prompt.
+
+Rotation: generate a new key as the deploy user, add it as a second read-only
+deploy key, point `~/.ssh/config` at it, confirm `git ls-remote origin main`,
+then delete the old key from GitHub.
 
 `deploy/production/deploy.sh`:
 
@@ -158,19 +184,43 @@ Rollback: re-run the deploy workflow with the previous known-good SHA. The
 script accepts only commits that are already on `origin/main`. Database
 rollback follows `docs/BACKUP_AND_RECOVERY.md`.
 
-## Branch protection
+## Merge gate (branch protection)
 
-`main` must require:
+`main` protection is defined by the repository ruleset
+`.github/rulesets/main-protection.json`. Apply or update it with:
 
-- pull request before merging, with at least one approval;
-- `CI / Verify (format, lint, types, tests, build)`;
-- `CI / Security (secrets, CodeQL, dependencies)`;
-- `CI / Container build and image scan`;
-- no force pushes and no deletions;
-- conversations resolved before merge.
+```bash
+bash scripts/apply-branch-protection.sh
+```
 
-The `production` environment should require a reviewer so a merge cannot deploy
-without an explicit approval.
+The ruleset is active on the public repository (`main-protection`, id
+27043347).
+
+The ruleset requires a pull request, linear history, resolved conversations, an
+up-to-date branch, and these three check-run contexts:
+
+- `Verify (format, lint, types, tests, build)`
+- `Security (secrets, CodeQL, dependencies)`
+- `Container build and image scan`
+
+Force pushes and branch deletion are blocked.
+
+The approval count is intentionally **0**: the project has one maintainer and
+GitHub does not allow self-approval. The required checks and resolved
+conversations are the gate; raise the count when a second maintainer exists.
+
+Rulesets are included with public repositories. A private repository on GitHub
+Free returns HTTP 403 ("Upgrade to GitHub Pro or make this repository public")
+for both branch protection and rulesets; the repository is public, so this is
+not a constraint today.
+
+Status-check contexts are the job names, not `CI / <job>`: a ruleset matches the
+check run exactly, and a wrong string silently blocks every merge.
+
+The `production` environment stores the deploy secrets and has no required
+reviewer by design: the deploy is already limited to `main` after green CI, and a
+solo maintainer cannot approve their own deployment. Add a reviewer when a
+second deployer exists.
 
 ## Dependency policy
 

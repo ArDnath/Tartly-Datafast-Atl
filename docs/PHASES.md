@@ -2,7 +2,9 @@
 
 - **Project:** Tartly (final brand; production domain tartly.in, confirmed 2026-11-06)
 - **Primary repository:** <https://github.com/ArDnath/Tartly-Datafast-Atl>
-  (public, `origin`; default branch `main`)
+  (`origin`; default branch `main`; public, protected by the active
+  `main-protection` ruleset checked in at
+  `.github/rulesets/main-protection.json`)
 - **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
   forked locally at `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Last updated:** 2026-11-11
@@ -34,17 +36,19 @@
   **889 tests passed / 1 skipped**, coverage **67.81% statements / 56.20%
   branches / 63.90% functions / 68.16% lines**, plus the explicit 48-assertion
   PostgreSQL analytics smoke and the recorded load probe.
-- GitHub CI: **green on `main`** (latest run 42396846690 for squash
-  `04d7023`). The three-job pipeline starts PostgreSQL 17, runs format, lint,
-  typecheck, coverage tests, a clean production dependency audit,
-  `prisma migrate deploy`, the Phase 7 analytics smoke, and `pnpm build`, then
-  runs gitleaks, CodeQL, dependency review, and Trivy filesystem/container
-  scans.
-- Production deploy: **live** at <https://tartly.in>. Deploy run 42397381387
-  succeeded for `04d7023`; `/api/health/live` and `/api/health/ready` return
-  200 with `version: 04d7023`, and `/`, `/pricing`, and `/docs` return 200.
-  The `production` environment now requires a reviewer, and `main` requires the
-  three CI checks, resolved conversations, and no force-push/deletion.
+- GitHub CI: **green on `main`** (run 43011857299 for `04c3d4e`). The three-job
+  pipeline starts PostgreSQL 17, runs format, lint, typecheck, coverage tests,
+  a clean production dependency audit, `prisma migrate deploy`, the Phase 7
+  analytics smoke, and `pnpm build`, then runs gitleaks, CodeQL, dependency
+  review, and Trivy filesystem/container scans. On the public repository,
+  CodeQL, dependency review, and SARIF upload all run; the `Verify` job also
+  publishes coverage in the run summary.
+- Production deploy: the last recorded successful deploy was run 42397381387
+  for `04d7023`; `/api/health/live` and `/api/health/ready` returned 200 with
+  `version: 04d7023`. Runs after that fail at `git fetch` because the host clone
+  uses an HTTPS remote with no credentials; the fix is a read-only SSH deploy
+  key (`docs/CI_CD.md` → Host repository access). The `production` environment
+  reviewer is not configured; the `main` ruleset is active.
 - Delivery history: six phase branches delivered through pull requests #1–#6;
   the next slices follow the same feature-branch → PR → merge loop.
 - Runtime smoke: the public docs routes return 200, and `/app/settings`,
@@ -80,6 +84,41 @@ code:
 
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
+
+## 2026-11-11 — CI merge gate, deploy access preflight, coverage summary
+
+- Checked in a `main` repository ruleset
+  (`.github/rulesets/main-protection.json`) and
+  `scripts/apply-branch-protection.sh`: required pull request, linear history,
+  resolved conversations, up-to-date branch, and the three CI job contexts;
+  force pushes and deletions blocked. The approval count is 0 because the
+  project has one maintainer and GitHub does not allow self-approval.
+- Made the Trivy filesystem/secret/misconfiguration scan blocking on
+  CRITICAL/HIGH (`exit-code: 1`, `limit-severities-for-sarif: true`). Local
+  baseline with the CI arguments (Trivy 0.70): 0 vulnerabilities, 0 secrets,
+  0 misconfigurations.
+- Added `scripts/coverage-summary.mjs` and a job-summary step so coverage is
+  visible in the run summary without downloading the artifact.
+- `deploy.sh` now sets `GIT_TERMINAL_PROMPT=0` and `BatchMode=yes` and runs a
+  `git ls-remote` preflight. The 2026-11-11 deploy failures were caused by an
+  HTTPS host remote with no credentials; the failure now prints the exact
+  read-only deploy-key fix. Documented in `docs/CI_CD.md` (Host repository
+  access) and `docs/RUNBOOK.md`.
+- Corrected stale claims: CodeQL, dependency review, and SARIF upload are
+  skipped only on a private repository without GitHub Code Security; the
+  repository is public, so all three now run. The earlier "live deploy"
+  statement predated the current fetch failure.
+- Verified: `pnpm gate` exit 0 — 202 test files passed / 1 gated skip, 933
+  tests passed / 1 skipped, coverage 66.2% statements / 55.11% branches /
+  63.5% functions / 66.61% lines, format/lint/typecheck/build green. Ruleset
+  JSON valid; local Trivy baseline clean.
+- The repository was made public on 2026-11-11 and
+  `bash scripts/apply-branch-protection.sh` applied the `main` ruleset
+  (`main-protection`, id 27043347). A full-history gitleaks audit found 13
+  `generic-api-key` entries, all fake test fixtures in upstream test files (no
+  real credentials).
+- **Pending human action (external):** add the VPS read-only deploy key and
+  switch `/opt/tartly/app` `origin` to SSH, then re-run the deploy workflow.
 
 ## 2026-11-11 — PR queue recovery and launch experience delivery
 

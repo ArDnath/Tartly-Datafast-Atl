@@ -29,6 +29,22 @@ After either path:
 If all five deploy values are missing, the job skips when `DEPLOY_ENABLED` is
 not `true`; it never attempts an unauthenticated or unpinned-host deploy.
 
+### Deploy fails at "fetching origin/main"
+
+`fatal: could not read Username for 'https://github.com'` means the host clone
+uses an HTTPS remote with no credential helper. Do not put a token in the URL.
+
+```bash
+sudo -u deploy git -C /opt/tartly/app remote set-url origin \
+  git@github.com:ArDnath/Tartly-Datafast-Atl.git
+sudo -u deploy git -C /opt/tartly/app config remote.origin.fetch \
+  '+refs/heads/*:refs/remotes/origin/*'
+sudo -u deploy env GIT_TERMINAL_PROMPT=0 git -C /opt/tartly/app ls-remote origin main
+```
+
+Then re-run the deploy workflow for the same SHA. Key creation and the read-only
+deploy-key setup are in `docs/CI_CD.md` → Host repository access.
+
 ## 2. Roll back
 
 1. Redeploy the previous known-good commit SHA:

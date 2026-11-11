@@ -87,6 +87,12 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      # The numbers land in the run summary next to the job result, so a
+      # reviewer sees coverage without downloading the artifact.
+      - name: Summarize coverage
+        if: always() && hashFiles('coverage/coverage-summary.json') != ''
+        run: node scripts/coverage-summary.mjs >> "$GITHUB_STEP_SUMMARY"
+
       - name: Production dependency audit
         run: pnpm audit --prod --audit-level high
 
@@ -127,13 +133,12 @@ jobs:
           GITLEAKS_ENABLE_COMMENTS: "false"
           GITLEAKS_ENABLE_SUMMARY: "true"
 
-      # CodeQL, dependency review, and SARIF upload need GitHub Advanced
-      # Security on a private repository. This repository is private and GHAS
-      # is not purchased, so those steps fail with "Code scanning is not
-      # enabled". Skip them rather than break every PR; set the repository
-      # variable GHAS_ENABLED=true after purchasing GHAS (or making the
-      # repository public) to turn them back on. The secret scan and both Trivy
-      # scans below still run either way.
+      # CodeQL, dependency review, and SARIF upload are available on public
+      # repositories at no cost. The condition keeps the workflow valid if the
+      # repository is ever made private again: GitHub Code Security (formerly
+      # GitHub Advanced Security) must then be purchased and the repository
+      # variable GHAS_ENABLED set to `true`. The secret scan and both Trivy
+      # scans below run regardless.
       - name: Initialize CodeQL
         if: vars.GHAS_ENABLED == 'true' || github.event.repository.private != true
         uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
@@ -148,6 +153,11 @@ jobs:
         with:
           category: /language:javascript-typescript
 
+      # Blocking gate for source, dependency and configuration findings. The
+      # scan reports CRITICAL/HIGH with a fix available; the baseline run on
+      # 2026-11-11 (Trivy 0.70, same arguments) was clean. SARIF mode collects
+      # every severity by default, so the limit flag keeps the exit code tied to
+      # the configured severities.
       - name: Filesystem and configuration scan (Trivy)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
@@ -156,10 +166,11 @@ jobs:
           scanners: vuln,secret,misconfig
           severity: CRITICAL,HIGH
           ignore-unfixed: true
+          limit-severities-for-sarif: "true"
           skip-dirs: node_modules,.next,coverage,generated,public/script.js,public/recorder.js
           format: sarif
           output: trivy-results.sarif
-          exit-code: "0"
+          exit-code: "1"
 
       - name: Upload Trivy SARIF
         if: always() && hashFiles('trivy-results.sarif') != '' && (vars.GHAS_ENABLED == 'true' || github.event.repository.private != true)
