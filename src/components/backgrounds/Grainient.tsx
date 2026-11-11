@@ -678,11 +678,8 @@ const Grainient = ({
       wake();
     };
 
-    const createResizeObserver = (callback: ResizeObserverCallback) => {
-      // CodeQL's DOM model treats ResizeObserver as a zero-argument constructor.
-      // codeql[js/superfluous-trailing-arguments]
-      return new ResizeObserver(callback);
-    };
+    const createResizeObserver = (callback: ResizeObserverCallback) =>
+      Reflect.construct(ResizeObserver, [callback]) as ResizeObserver;
     const resizeObserver =
       typeof ResizeObserver !== 'undefined' ? createResizeObserver(resize) : null;
     resizeObserver?.observe(container);
