@@ -68,6 +68,15 @@ COPY --from=builder --chown=nextjs:nodejs /app/generated ./generated
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# TypeScript is build-only. Because Next declares it as an optional peer,
+# pnpm links it into the production tree, and from TypeScript 7 that includes
+# a native Go compiler binary. Drop the compiler so the shipped image carries
+# no build tooling and no Go standard-library advisories.
+RUN rm -rf \
+    ./node_modules/typescript \
+    ./node_modules/.pnpm/typescript@* \
+    ./node_modules/.pnpm/@typescript+*
+
 USER nextjs
 
 EXPOSE 3000
