@@ -7,24 +7,31 @@ secrets into a ticket or chat.
 ## 1. Deploy
 
 Automatic path: merge a green PR to `main`. The `CI` workflow must pass, then
-`Deploy production` runs `deploy/production/deploy.sh` for the exact merged SHA
-after the `production` environment approval. It builds an immutable image tagged
-with the commit SHA, runs `prisma migrate deploy`, restarts only the app
-container, and waits for `/api/health/ready`. See `docs/CI_CD.md` for the
+`Deploy production` starts automatically for the exact merged SHA. It builds an
+immutable image tagged with the commit SHA, runs `prisma migrate deploy`,
+restarts only the app container, waits for `/api/health/ready` to report the
+exact new SHA, and runs the public smoke checks. See `docs/CI_CD.md` for the
 one-time host and secret setup.
+
+An automatic deploy is refused if a newer commit reached `main` before it
+started. The newest deploy wins; the stale run fails without touching the host.
 
 Manual path (same script, same guarantees):
 
 ```bash
+gh workflow run deploy.yml
 gh workflow run deploy.yml -f sha=<40-char-main-sha>
 ```
 
 After either path:
 
-1. Confirm `/api/health/live` and `/api/health/ready` return 200.
-2. Sign in, open one dashboard, and confirm one event arrives from a test
+1. Confirm `/api/health/live` and `/api/health/ready` return 200 and the
+   deployed `version` equals the merged SHA.
+2. Confirm `/`, `/pricing`, `/docs`, `/login`, `/robots.txt`, and
+   `/sitemap.xml` return 200 (the workflow does this automatically).
+3. Sign in, open one dashboard, and confirm one event arrives from a test
    website.
-3. Keep the previous commit SHA for rollback.
+4. Keep the previous commit SHA for rollback.
 
 If all five deploy values are missing, the job skips when `DEPLOY_ENABLED` is
 not `true`; it never attempts an unauthenticated or unpinned-host deploy.
@@ -50,15 +57,21 @@ deploy-key setup are in `docs/CI_CD.md` → Host repository access.
 1. Redeploy the previous known-good commit SHA:
 
    ```bash
-   gh workflow run deploy.yml -f sha=<previous-40-char-main-sha>
+   gh workflow run deploy.yml -f sha=<previous-40-char-main-sha> -f allow_previous=true
    ```
-2. `deploy.sh` redeploys that SHA automatically when readiness fails during a
-   deploy. A manual rollback must use a SHA that is already on `origin/main`.
-3. Do not reverse a Prisma migration automatically. If the bad deploy included
+
+2. `allow_previous=true` is required because the target is no longer the
+   current `main` head. Without it the workflow refuses before contacting the
+   host.
+3. `deploy.sh` redeploys the previous SHA automatically when readiness fails
+   during a deploy. A manual rollback must use a SHA that is already on
+   `origin/main`.
+4. Do not reverse a Prisma migration automatically. If the bad deploy included
    a migration, restore the pre-deploy Neon branch or ship a corrective forward
    migration.
-4. Confirm readiness and the smoke checks above.
-5. Record the incident and SHAs in `docs/PHASES.md`.
+5. Confirm readiness reports the rolled-back SHA and run the public smoke
+   checks.
+6. Record the incident and SHAs in `docs/PHASES.md`.
 
 ## 3. Readiness fails (database down)
 

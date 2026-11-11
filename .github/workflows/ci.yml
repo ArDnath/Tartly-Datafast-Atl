@@ -75,6 +75,11 @@ jobs:
       - name: Typecheck
         run: pnpm exec tsc --noEmit
 
+      # The deploy contract is code too: the script must parse, the smoke
+      # harness must run, and a stale/invalid target must never reach the host.
+      - name: Validate deployment scripts and smoke harness
+        run: pnpm gate:deploy
+
       - name: Test with coverage
         run: pnpm test:coverage
 

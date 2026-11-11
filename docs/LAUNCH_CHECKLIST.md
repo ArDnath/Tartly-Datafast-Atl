@@ -112,8 +112,10 @@ human action. No launch claim is allowed without a stored result.
   review, blocking Trivy filesystem and container scans, and SARIF upload. A
   full-history gitleaks audit before the public flip found 13
   `generic-api-key` entries, all fake test fixtures (no real credentials).
-- [x] Deployment pipeline with immutable SHA tag, direct-URL migrations,
-  readiness gate, and automatic rollback (`deploy/production/deploy.sh`).
+- [x] Deployment pipeline with current-`main` enforcement, immutable SHA tag,
+  direct-URL migrations, version-checked readiness, public smoke checks, and
+  automatic rollback (`deploy/production/deploy.sh`,
+  `scripts/deploy-smoke.mjs`).
 - [x] Multi-stage Docker image, non-root user, health check, compose stack.
 - [x] Environment reference and Neon branching guide.
 - [x] Runbook, backup/recovery, secrets rotation.
@@ -125,8 +127,9 @@ human action. No launch claim is allowed without a stored result.
   environment secrets/variables, and deploy run 42397381387 for
   `04d7023`. `/api/health/live` and `/api/health/ready` return 200 with the
   deployed version; `/api/health/ready` reports `database: up`.
-- [x] Production environment requires a reviewer; `main` requires the Verify,
-  Security, and Container checks, resolved conversations, and rejects
+- [x] Production environment restricts deployments to `main` and has no
+  reviewer gate, so a green merge deploys automatically; `main` requires the
+  Verify, Security, and Container checks, resolved conversations, and rejects
   force-pushes and branch deletion (`docs/CI_CD.md`).
 
 ## Go-to-market

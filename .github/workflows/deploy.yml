@@ -1,8 +1,9 @@
 name: Deploy production
 
-# Runs only after CI succeeds for a push to main. It is intentionally
+# Runs automatically after CI succeeds for a push to main. It is intentionally
 # disabled until the operator creates the production environment and the
 # deployment secrets, then sets the repository variable DEPLOY_ENABLED=true.
+# The production environment has no reviewer gate: a green merge deploys.
 on:
   workflow_run:
     workflows: [CI]
@@ -14,11 +15,19 @@ on:
         description: Commit SHA on main to deploy (defaults to the current main head)
         required: false
         type: string
+      allow_previous:
+        description: Allow a commit older than the current main head (rollback only)
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
+  # Never run two production deploys at once, and never cancel one in flight.
+  # The head check below makes a stale automatic deploy fail instead of
+  # overwriting a newer release.
   group: deploy-production
   cancel-in-progress: false
 
@@ -33,7 +42,8 @@ jobs:
       vars.DEPLOY_ENABLED == 'true' &&
       (github.event_name == 'workflow_dispatch' ||
        (github.event.workflow_run.conclusion == 'success' &&
-        github.event.workflow_run.event == 'push'))
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'main'))
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment:
@@ -42,10 +52,56 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Checkout the exact commit that passed CI
+      # Resolve and validate the target before checking out. Automatic deploys
+      # must still be the current main head; otherwise an older approval could
+      # roll production backwards after a newer deploy. A manual rollback opts
+      # in explicitly and the host still requires the commit to be on main.
+      - name: Resolve and validate target commit
+        id: target
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_SHA: ${{ github.event.workflow_run.head_sha || inputs.sha || '' }}
+          ALLOW_PREVIOUS: ${{ inputs.allow_previous }}
+        run: |
+          set -euo pipefail
+          main_sha=$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)
+          target="${REQUESTED_SHA:-$main_sha}"
+
+          case "$target" in
+            (*[!0-9a-f]*|'') echo "::error::Invalid commit SHA: $target"; exit 1 ;;
+          esac
+          if [ "${#target}" -ne 40 ]; then
+            echo "::error::Commit SHA must be 40 lowercase hex characters"
+            exit 1
+          fi
+
+          gh api "repos/${GITHUB_REPOSITORY}/commits/$target" --jq .sha >/dev/null
+
+          allow_previous="${ALLOW_PREVIOUS:-false}"
+          if [ "$allow_previous" != "true" ] && [ "$target" != "$main_sha" ]; then
+            echo "::error::Refusing to deploy $target because main is $main_sha. Use workflow_dispatch with allow_previous=true only for a rollback."
+            exit 1
+          fi
+
+          echo "sha=$target" >> "$GITHUB_OUTPUT"
+          echo "TARGET_SHA=$target" >> "$GITHUB_ENV"
+          echo "ALLOW_NON_HEAD=$([ "$allow_previous" = "true" ] && echo 1 || echo 0)" >> "$GITHUB_ENV"
+
+          {
+            echo "### Deploy target"
+            echo
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Target commit | \`$target\` |"
+            echo "| Current main | \`$main_sha\` |"
+            echo "| Rollback mode | $allow_previous |"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Checkout the validated commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.workflow_run.head_sha || inputs.sha || github.sha }}
+          ref: ${{ steps.target.outputs.sha }}
           persist-credentials: false
 
       - name: Validate deployment configuration
@@ -55,10 +111,11 @@ jobs:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
           APP_URL: ${{ vars.APP_URL }}
+          TARGET_SHA: ${{ env.TARGET_SHA }}
         run: |
           set -euo pipefail
           missing=0
-          for name in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS APP_URL; do
+          for name in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS APP_URL TARGET_SHA; do
             if [ -z "${!name:-}" ]; then
               echo "::error::Missing required deployment value: $name"
               missing=1
@@ -83,7 +140,8 @@ jobs:
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          TARGET_SHA: ${{ github.event.workflow_run.head_sha || inputs.sha || github.sha }}
+          TARGET_SHA: ${{ env.TARGET_SHA }}
+          ALLOW_NON_HEAD: ${{ env.ALLOW_NON_HEAD }}
           APP_URL: ${{ vars.APP_URL }}
           RUNNER_TEMP: ${{ runner.temp }}
         run: |
@@ -96,15 +154,34 @@ jobs:
             -o IdentitiesOnly=yes \
             -o StrictHostKeyChecking=yes \
             -o ServerAliveInterval=30 \
+            -o ConnectTimeout=20 \
             "$DEPLOY_USER@$DEPLOY_HOST" \
-            "APP_DIR='$APP_DIR' RUNTIME_DIR='$RUNTIME_DIR' APP_URL='$APP_URL' bash -s -- '$TARGET_SHA'" \
+            "APP_DIR='$APP_DIR' RUNTIME_DIR='$RUNTIME_DIR' APP_URL='$APP_URL' ALLOW_NON_HEAD='$ALLOW_NON_HEAD' bash -s -- '$TARGET_SHA'" \
             < deploy/production/deploy.sh
 
-      - name: External readiness check
+      # Readiness and a 200 are not enough. Verify the public routes and the
+      # exact running BUILD_VERSION that the deploy script just started.
+      - name: Post-deploy smoke
+        timeout-minutes: 5
         env:
+          DEPLOY_URL: ${{ vars.APP_URL }}
+          EXPECTED_VERSION: ${{ env.TARGET_SHA }}
+        run: node scripts/deploy-smoke.mjs
+
+      - name: Write deployment summary
+        if: always()
+        env:
+          TARGET_SHA: ${{ env.TARGET_SHA }}
           APP_URL: ${{ vars.APP_URL }}
         run: |
-          set -euo pipefail
-          curl --fail --silent --show-error \
-            --retry 12 --retry-delay 5 --retry-connrefused \
-            --max-time 10 "$APP_URL/api/health/ready"
+          {
+            echo "### Production deployment"
+            echo
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Status | ${{ job.status }} |"
+            echo "| Commit | \`${TARGET_SHA:-unknown}\` |"
+            echo "| URL | ${APP_URL:-unknown} |"
+            echo "| Run | [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"

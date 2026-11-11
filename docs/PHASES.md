@@ -22,7 +22,13 @@
   (`.opencode/skills/production-backend-readiness/SKILL.md`,
   `.opencode/skills/high-scale-low-cost-deployment/SKILL.md`) are binding.
   `docs/ENGINEERING_STANDARDS.md` defines the per-feature checklist and
-  `pnpm gate` enforces format, lint, typecheck, tests, and the production build.
+  `pnpm gate` enforces format, lint, typecheck, tests, the deploy-script/smoke
+  checks, and the production build.
+- **Delivery enforcement:** `main` requires the three CI checks through the
+  active `main-protection` ruleset. Production deploys only the current `main`
+  head automatically after CI (no approval click), verify the running
+  `BUILD_VERSION`, run public smoke checks, and roll back on failure. See
+  `docs/CI_CD.md` → Deployment invariants.
 
 ## Overall progress
 
@@ -46,9 +52,10 @@
 - Production deploy: the last successful recorded deploy was run 42397381387
   for `04d7023`. The 2026-11-11 failures were caused by an HTTPS clone of a
   private repository; the repository is now public, so the host can fetch
-  anonymously, and the deploy run waits for the required `production`
-  environment approval. The environment also restricts deployments to `main`;
-  the `main` ruleset is active.
+  anonymously. The stale waiting run was cancelled and the `production`
+  environment no longer requires a reviewer, so a green merge to `main` deploys
+  automatically. The environment still restricts deployments to `main`; the
+  `main` ruleset is active.
 - Delivery history: six phase branches delivered through pull requests #1–#6;
   the next slices follow the same feature-branch → PR → merge loop.
 - Runtime smoke: the public docs routes return 200, and `/app/settings`,
@@ -84,6 +91,43 @@ code:
 
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
+
+## 2026-11-11 — CD enforcement: current-head deploy, exact-SHA readiness, public smoke
+
+- Closed the deploy-ordering gap: an automatic deploy now requires the target
+  to equal the current `origin/main` head in both the workflow and
+  `deploy/production/deploy.sh`. If a newer merge lands while an older deploy is
+  queued, the older run fails instead of rolling production back. A manual
+  rollback must opt in with
+  `gh workflow run deploy.yml -f sha=<sha> -f allow_previous=true`.
+- `/api/health/ready` is no longer trusted on status alone. The host deploy
+  requires `ok: true`, `database: "up"`, and `version` equal to the target SHA,
+  and does the same check after an automatic rollback. The previous local image
+  is reused when present.
+- Added `scripts/deploy-smoke.mjs` and six Node tests. After deploy, CI checks
+  `/api/health/live`, `/api/health/ready`, `/`, `/pricing`, `/docs`, `/login`,
+  `/robots.txt`, and `/sitemap.xml` without following redirects. Any non-200,
+  stale version, or down database fails the deploy job.
+- `pnpm gate` now parses `deploy.sh`,
+  `scripts/apply-branch-protection.sh`, and the smoke script, then runs the
+  smoke-harness tests. CI runs the same `pnpm gate:deploy` step.
+- Build or migration failure leaves the running app untouched and restores the
+  checkout to the SHA that is actually serving traffic. The successful SHA is
+  recorded in `$RUNTIME_DIR/last-deploy`; migration failures still require a
+  forward fix or a Neon restore.
+- Docs: `docs/CI_CD.md` records the seven deployment invariants;
+  `docs/RUNBOOK.md` documents the new current-head and rollback behaviour.
+- The `production` environment's required reviewer was removed, so a green
+  merge to `main` starts the deploy automatically. The environment still
+  restricts deployments to `main`. The stale waiting run for the previous head
+  was cancelled.
+- Verified: `pnpm gate` exit 0 on 2026-11-11 — 203 test files passed /
+  1 gated skip, 936 tests passed / 1 skipped, coverage 66.22% statements /
+  55.12% branches / 63.58% functions / 66.62% lines, deploy-script parsing and
+  the 6 deploy-smoke tests passed, production build green. The live smoke
+  harness also passed against the current production version
+  (`https://tartly.in`, `version: 87a7167d…`, all eight endpoints 200).
+  End-to-end deploy verification continues in the merged run.
 
 ## 2026-11-11 — CodeQL error remediation and merge-gate rollout
 
@@ -134,9 +178,10 @@ shutdown or destructive action should be taken based on this tracker.
   (`main-protection`, id 27043347). A full-history gitleaks audit found 13
   `generic-api-key` entries, all fake test fixtures in upstream test files (no
   real credentials).
-- **Pending human action (external):** approve the waiting production
-  deployment. A read-only VPS deploy key remains recommended so the host does
-  not depend on anonymous public fetches.
+- **Resolved:** the waiting production deployment was cancelled and the
+  required reviewer was removed, so the next green merge deploys automatically.
+  A read-only VPS deploy key remains recommended so the host does not depend on
+  anonymous public fetches.
 
 ## 2026-11-11 — PR queue recovery and launch experience delivery
 

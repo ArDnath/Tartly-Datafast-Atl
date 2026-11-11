@@ -5,6 +5,10 @@
 # Run from the CI deploy job (preferred) or by an operator:
 #   bash deploy.sh <40-char-main-commit-sha>
 #
+# Automatic deploys must target the current origin/main head. A deliberate
+# rollback to an older commit sets ALLOW_NON_HEAD=1 and still requires the
+# commit to be an ancestor of origin/main.
+#
 # Required on the host:
 #   /opt/tartly/app/.git            clone of this repository
 #   /opt/tartly/runtime/.env        production secrets, mode 600
@@ -12,13 +16,15 @@
 # The script builds an immutable image tag from the commit SHA, copies the
 # committed compose/Caddy configuration into the runtime directory, applies
 # Prisma migrations with the direct URL, restarts only the app, and verifies
-# readiness. If readiness still fails it redeploys the previous commit. It
-# never prints .env contents and never reverses a migration automatically.
+# readiness plus the exact running BUILD_VERSION. If readiness still fails it
+# redeploys the previous commit. It never prints .env contents and never
+# reverses a migration automatically.
 
 set -Eeuo pipefail
 umask 022
 
 TARGET_SHA="${1:-}"
+ALLOW_NON_HEAD="${ALLOW_NON_HEAD:-0}"
 APP_DIR="${APP_DIR:-/opt/tartly/app}"
 RUNTIME_DIR="${RUNTIME_DIR:-/opt/tartly/runtime}"
 APP_URL="${APP_URL:-}"
@@ -50,15 +56,33 @@ read_env_value() {
   printf '%s' "$line"
 }
 
+read_health_version() {
+  local body
+  body=$(curl --fail --silent --max-time 10 "$HEALTH_URL" 2>/dev/null) || return 1
+  printf '%s' "$body" |
+    sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' |
+    head -n 1
+}
+
 health_ok() {
-  curl --fail --silent --show-error --max-time 10 "$HEALTH_URL" >/dev/null
+  # A 200 is not enough: the old container can still answer while the new one
+  # is starting. Require the exact SHA that this deploy built.
+  local expected="$1"
+  local body
+
+  body=$(curl --fail --silent --max-time 10 "$HEALTH_URL" 2>/dev/null) || return 1
+  printf '%s' "$body" | grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' || return 1
+  printf '%s' "$body" | grep -Eq '"database"[[:space:]]*:[[:space:]]*"up"' || return 1
+  printf '%s' "$body" | grep -Eq '"version"[[:space:]]*:[[:space:]]*"'"$expected"'"' || return 1
 }
 
 wait_for_health() {
+  local expected="$1"
   local attempt
+
   for attempt in $(seq 1 "$HEALTH_MAX_ATTEMPTS"); do
-    if health_ok; then
-      log "readiness passed (attempt $attempt)"
+    if health_ok "$expected"; then
+      log "readiness passed for $expected (attempt $attempt)"
       return 0
     fi
     sleep "$HEALTH_SLEEP_SECONDS"
@@ -75,13 +99,29 @@ sync_runtime_config() {
 rollback() {
   log "readiness failed; rolling back to $PREVIOUS_SHA"
   cd "$APP_DIR"
+  if ! git cat-file -e "${PREVIOUS_SHA}^{commit}" 2>/dev/null; then
+    log "ERROR: previous commit $PREVIOUS_SHA is not present in the host clone"
+    return 1
+  fi
   git reset --hard "$PREVIOUS_SHA" >/dev/null
   sync_runtime_config
   export BUILD_VERSION="$PREVIOUS_SHA"
   cd "$RUNTIME_DIR"
 
-  if "${COMPOSE[@]}" build --pull app </dev/null && "${COMPOSE[@]}" up -d --no-deps app </dev/null; then
-    if wait_for_health; then
+  # The previous image normally still exists locally. Reuse it so a rollback
+  # does not depend on a fresh build or registry availability.
+  if ! docker image inspect "tartly-app:$PREVIOUS_SHA" >/dev/null 2>&1; then
+    log "previous image is absent; rebuilding $PREVIOUS_SHA"
+    if ! "${COMPOSE[@]}" build --pull app </dev/null; then
+      log "ERROR: rollback image build failed; operator attention required"
+      return 1
+    fi
+  fi
+
+  if "${COMPOSE[@]}" up -d --no-deps --no-build app </dev/null; then
+    if wait_for_health "$PREVIOUS_SHA"; then
+      printf '%s\n' "$PREVIOUS_SHA" > "$RUNTIME_DIR/last-deploy"
+      DEPLOY_SUCCEEDED=1
       log "rollback to $PREVIOUS_SHA is healthy"
       return 0
     fi
@@ -96,8 +136,40 @@ rollback() {
 [ -d "$APP_DIR/.git" ] || die "missing git clone at $APP_DIR"
 [ -f "$RUNTIME_DIR/.env" ] || die "missing production env at $RUNTIME_DIR/.env"
 
+# The workflow serializes deploys, but an operator can also run this script
+# directly. Hold a host-side lock so two checkouts can never race the same
+# compose project and database migration.
+exec 9>"$RUNTIME_DIR/deploy.lock"
+flock -n 9 || die "another deploy is already running for $RUNTIME_DIR"
+
 cd "$APP_DIR"
+
+TARTLY_DOMAIN=$(read_env_value TARTLY_DOMAIN)
+HEALTH_URL="${APP_URL:-https://${TARTLY_DOMAIN}}"
+HEALTH_URL="${HEALTH_URL%/}/api/health/ready"
+[ -n "$TARTLY_DOMAIN" ] || [ -n "$APP_URL" ] || die "TARTLY_DOMAIN or APP_URL is required"
+
+# The running build, not the git checkout, is the rollback source of truth.
+# A previous failed deploy may have left the checkout ahead of the running app.
 PREVIOUS_SHA=$(git rev-parse HEAD)
+RUNNING_VERSION=$(read_health_version || true)
+LAST_DEPLOY_SHA=$(cat "$RUNTIME_DIR/last-deploy" 2>/dev/null || true)
+if [[ "$RUNNING_VERSION" =~ ^[0-9a-f]{40}$ ]]; then
+  PREVIOUS_SHA="$RUNNING_VERSION"
+elif [[ "$LAST_DEPLOY_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+  PREVIOUS_SHA="$LAST_DEPLOY_SHA"
+fi
+
+DEPLOY_SUCCEEDED=0
+restore_checkout() {
+  local status=$?
+  if [ "$status" -ne 0 ] && [ "$DEPLOY_SUCCEEDED" -ne 1 ]; then
+    log "deploy did not complete; restoring checkout to $PREVIOUS_SHA"
+    git -C "$APP_DIR" reset --hard "$PREVIOUS_SHA" >/dev/null 2>&1 || true
+    sync_runtime_config || true
+  fi
+}
+trap restore_checkout EXIT
 
 # Never wait on a credential prompt. The host reads the repository through a
 # read-only SSH deploy key configured in the deploy user's ~/.ssh/config. An
@@ -127,6 +199,14 @@ git fetch --prune origin '+refs/heads/main:refs/remotes/origin/main'
 git cat-file -e "${TARGET_SHA}^{commit}" 2>/dev/null || die "target commit is not present"
 git merge-base --is-ancestor "$TARGET_SHA" origin/main || die "target commit is not on origin/main"
 
+MAIN_SHA=$(git rev-parse origin/main)
+if [ "$ALLOW_NON_HEAD" != "1" ]; then
+  [ "$TARGET_SHA" = "$MAIN_SHA" ] ||
+    die "target $TARGET_SHA is not the current origin/main head ($MAIN_SHA); automatic deploys must be current. Use ALLOW_NON_HEAD=1 only for a deliberate rollback"
+else
+  log "non-head deploy explicitly allowed (rollback mode)"
+fi
+
 # Move the checkout before reading any configuration from it. Untracked runtime
 # files are left alone, and the production .env is outside the repository.
 git checkout --force -B main "$TARGET_SHA" >/dev/null
@@ -135,11 +215,6 @@ git checkout --force -B main "$TARGET_SHA" >/dev/null
 # container user must be able to read every committed file.
 chmod -R u+rwX,go+rX "$APP_DIR"
 
-TARTLY_DOMAIN=$(read_env_value TARTLY_DOMAIN)
-HEALTH_URL="${APP_URL:-https://${TARTLY_DOMAIN}}"
-HEALTH_URL="${HEALTH_URL%/}/api/health/ready"
-[ -n "$TARTLY_DOMAIN" ] || [ -n "$APP_URL" ] || die "TARTLY_DOMAIN or APP_URL is required"
-
 sync_runtime_config
 cd "$RUNTIME_DIR"
 
@@ -147,18 +222,25 @@ export BUILD_VERSION="$TARGET_SHA"
 COMPOSE=(docker compose --env-file .env -f docker-compose.yml)
 
 log "building image tartly-app:$TARGET_SHA"
-"${COMPOSE[@]}" build --pull app </dev/null
+"${COMPOSE[@]}" build --pull app </dev/null ||
+  die "image build failed; the running app was not changed"
 
 log "applying database migrations"
-"${COMPOSE[@]}" --profile tools run --rm -T migrate </dev/null
+"${COMPOSE[@]}" --profile tools run --rm -T migrate </dev/null ||
+  die "migration failed; the running app was not restarted (previous: $PREVIOUS_SHA)"
 
 log "starting app"
-"${COMPOSE[@]}" up -d --no-deps app </dev/null
+"${COMPOSE[@]}" up -d --no-deps app </dev/null || {
+  rollback || true
+  die "starting $TARGET_SHA failed"
+}
 
-if ! wait_for_health; then
+if ! wait_for_health "$TARGET_SHA"; then
   rollback || true
   die "deployment of $TARGET_SHA failed readiness"
 fi
 
+printf '%s\n' "$TARGET_SHA" > "$RUNTIME_DIR/last-deploy"
+DEPLOY_SUCCEEDED=1
 log "deployed $TARGET_SHA successfully"
 log "previous healthy commit was $PREVIOUS_SHA"

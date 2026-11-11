@@ -23,7 +23,8 @@ For every feature, bug fix, or phase slice:
 4. **Branch** from `main` as `feature/<phase>-<slug>`.
 5. **Build** code and tests together.
 6. **Tick the gate** in the PR description while working, not afterwards.
-7. **Run** `pnpm gate` locally. Fix everything; never merge red.
+7. **Run** `pnpm gate` locally (format, lint, typecheck, tests, deploy-script
+   and smoke checks, production build). Fix everything; never merge red.
 8. **Push**, open a PR, wait for CI, squash/merge, delete the branch.
 9. **Update** `docs/PHASES.md` (status, proof, caveats, next step).
 10. **Repeat** the loop until the phase is complete and the next phase begins.
