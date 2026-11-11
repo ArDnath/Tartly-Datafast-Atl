@@ -341,6 +341,108 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /api/billing:
+    get:
+      tags: [Billing]
+      summary: Read platform billing state for a workspace
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceIdQuery"
+      responses:
+        "200":
+          description: Plan, subscription, invoices, and available products.
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/billing/access:
+    get:
+      tags: [Billing]
+      summary: Read the compact trial and paywall state for the app shell
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceIdQuery"
+      responses:
+        "200":
+          description: Paid access, trial countdown, and available products.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingAccess"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/billing/checkout:
+    post:
+      tags: [Billing]
+      summary: Create a hosted Dodo Payments checkout for a plan and traffic tier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingCheckoutInput"
+      responses:
+        "200":
+          description: Hosted checkout URL. The plan activates only after the verified webhook.
+        "400":
+          description: Unknown plan, interval, or traffic tier without an exact price.
+        "403":
+          description: Caller is not the workspace owner.
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          description: Billing is not configured or the provider is unavailable.
+
+  /api/billing/portal:
+    post:
+      tags: [Billing]
+      summary: Create a Dodo customer portal session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkspaceInput"
+      responses:
+        "200":
+          description: Hosted customer portal URL.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "503":
+          description: Billing is not configured or the provider is unavailable.
+
+  /api/billing/cancel:
+    post:
+      tags: [Billing]
+      summary: Schedule cancellation at the end of the paid period
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkspaceInput"
+      responses:
+        "200":
+          description: Cancellation scheduled. Access remains until the period end.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/billing/change-plan:
+    post:
+      tags: [Billing]
+      summary: Request an immediate prorated plan or traffic-tier change
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingChangePlanInput"
+      responses:
+        "200":
+          description: Change requested. Local state waits for the verified webhook.
+        "400":
+          description: No active subscription or no exact product for the tier.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /api/billing/webhook/dodo:
     post:
       tags: [Billing]
@@ -379,6 +481,11 @@ components:
       in: path
       required: true
       schema: { type: string, format: uuid }
+    WorkspaceIdQuery:
+      name: workspaceId
+      in: query
+      required: true
+      schema: { type: string, format: uuid }
   schemas:
     User:
       type: object
@@ -396,6 +503,67 @@ components:
       properties:
         suspended: { type: boolean }
         reason: { type: string, maxLength: 500 }
+    WorkspaceInput:
+      type: object
+      required: [workspaceId]
+      properties:
+        workspaceId: { type: string, format: uuid }
+    BillingProductAvailability:
+      type: object
+      required: [planId, interval]
+      properties:
+        planId: { type: string, enum: [starter, pro] }
+        interval: { type: string, enum: [monthly, annual] }
+        tierIndex:
+          type: integer
+          minimum: 0
+          maximum: 7
+          description: Exact traffic tier. Omit for the plan's base default-tier product.
+    BillingAccess:
+      type: object
+      required: [workspaceId, configured, paid, trial, requiresPayment, availableProducts, role]
+      properties:
+        workspaceId: { type: string, format: uuid }
+        role: { type: string, enum: [OWNER, ADMIN, MEMBER, VIEWER] }
+        planId: { type: string, nullable: true }
+        subscriptionStatus: { type: string }
+        configured: { type: boolean }
+        paid: { type: boolean }
+        requiresPayment: { type: boolean }
+        trial:
+          type: object
+          required: [active, endsAt, daysRemaining]
+          properties:
+            active: { type: boolean }
+            endsAt: { type: string, format: date-time, nullable: true }
+            daysRemaining: { type: integer, minimum: 0 }
+        availableProducts:
+          type: array
+          items:
+            $ref: "#/components/schemas/BillingProductAvailability"
+    BillingCheckoutInput:
+      type: object
+      required: [workspaceId, planId]
+      properties:
+        workspaceId: { type: string, format: uuid }
+        planId: { type: string, enum: [starter, pro] }
+        interval: { type: string, enum: [monthly, annual], default: monthly }
+        tierIndex:
+          type: integer
+          minimum: 0
+          maximum: 7
+          default: 3
+          description: Exact traffic tier shown on the pricing slider.
+    BillingChangePlanInput:
+      type: object
+      required: [workspaceId, planId]
+      properties:
+        workspaceId: { type: string, format: uuid }
+        planId: { type: string, enum: [starter, pro] }
+        tierIndex:
+          type: integer
+          minimum: 0
+          maximum: 7
     Error:
       type: object
       required: [error]
@@ -416,6 +584,12 @@ components:
             $ref: "#/components/schemas/Error"
     Forbidden:
       description: Authenticated but not allowed.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Resource not found or not visible to this caller.
       content:
         application/json:
           schema:

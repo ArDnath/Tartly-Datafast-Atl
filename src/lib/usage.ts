@@ -7,6 +7,8 @@ import {
   getFreeTrialState,
   getPlan,
   getPlanOrNull,
+  getTrialDaysRemaining,
+  resolvePlanForTrafficTier,
   type Plan,
   SETUP_EVENT_ALLOWANCE,
 } from '@/lib/plans';
@@ -52,11 +54,14 @@ export interface WorkspaceUsageSnapshot {
   workspaceId: string;
   planId: string | null;
   plan: Plan;
+  trafficTierIndex: number | null;
   subscriptionStatus: string;
   /** True only when the provider confirms paid access. */
   active: boolean;
   /** True while the workspace is inside its 7-day free trial. */
   trial: boolean;
+  trialEndsAt: Date | null;
+  trialDaysRemaining: number;
   /** True when paid access is inactive; only trial limits are available. */
   setup: boolean;
   periodStart: Date;
@@ -454,6 +459,7 @@ export async function getWorkspaceUsage(
         platformSubscription: {
           select: {
             planId: true,
+            trafficTierIndex: true,
             lifecycleStatus: true,
             cancelAtPeriodEnd: true,
             currentPeriodEnd: true,
@@ -493,7 +499,11 @@ export async function getWorkspaceUsage(
   }
 
   const planId = workspace.platformSubscription?.planId ?? workspace.planId;
-  const plan = getPlanOrNull(planId) || getPlan('starter');
+  const trafficTierIndex = workspace.platformSubscription?.trafficTierIndex ?? null;
+  const plan = resolvePlanForTrafficTier(
+    getPlanOrNull(planId) || getPlan('starter'),
+    trafficTierIndex,
+  );
   const subscriptionStatus =
     workspace.platformSubscription?.lifecycleStatus ?? workspace.subscriptionStatus;
   const active = workspace.platformSubscription
@@ -507,16 +517,19 @@ export async function getWorkspaceUsage(
       )
     : workspace.subscriptionStatus === 'active' || workspace.subscriptionStatus === 'trialing';
   const freeTrial = getFreeTrialState(workspace.createdAt, now);
-  const trial = active || freeTrial.active;
-  const trialEventAllowance = freeTrial.active ? FREE_TRIAL_EVENTS : 0;
+  const trial = !active && freeTrial.active;
+  const trialEventAllowance = trial ? FREE_TRIAL_EVENTS : 0;
 
   return {
     workspaceId: workspace.id,
     planId,
     plan,
+    trafficTierIndex,
     subscriptionStatus,
     active,
     trial,
+    trialEndsAt: trial ? freeTrial.endsAt : null,
+    trialDaysRemaining: trial ? getTrialDaysRemaining(freeTrial.endsAt, now) : 0,
     setup: !active,
     periodStart,
     periodEnd,
@@ -533,11 +546,11 @@ export async function getWorkspaceUsage(
     ),
     websites: {
       used: websiteCount,
-      limit: active ? plan.websiteLimit : freeTrial.active ? FREE_TRIAL_WEBSITES : 0,
+      limit: active ? plan.websiteLimit : trial ? FREE_TRIAL_WEBSITES : 0,
     },
     members: {
       used: memberCount + pendingInvites,
-      limit: active ? plan.memberLimit : freeTrial.active ? FREE_TRIAL_MEMBERS : 0,
+      limit: active ? plan.memberLimit : trial ? FREE_TRIAL_MEMBERS : 0,
     },
   };
 }

@@ -12,9 +12,11 @@ import {
   getPlanOrNull,
   getTrafficEvents,
   getTrafficPriceCents,
+  getTrialDaysRemaining,
   isPlanId,
   PLANS,
   planHasFeature,
+  resolvePlanForTrafficTier,
   TRAFFIC_TIERS,
 } from './plans';
 
@@ -99,5 +101,26 @@ describe('plans', () => {
     expect(getFreeTrialState(createdAt, new Date('2026-11-13T23:59:59.000Z')).active).toBe(true);
     expect(getFreeTrialState(createdAt, new Date('2026-11-14T00:00:00.000Z')).active).toBe(false);
     expect(getFreeTrialState(null).active).toBe(false);
+  });
+
+  test('resolves purchased traffic tiers into the effective plan limits', () => {
+    const low = resolvePlanForTrafficTier('starter', 0);
+    const high = resolvePlanForTrafficTier('pro', 6);
+
+    expect(low.eventsPerMonth).toBe(10_000);
+    expect(low.monthlyPriceCents).toBe(599);
+    expect(high.eventsPerMonth).toBe(10_000_000);
+    expect(high.monthlyPriceCents).toBe(4799);
+    expect(high.websiteLimit).toBe(50);
+    expect(resolvePlanForTrafficTier('starter', null)).toEqual(getPlan('starter'));
+  });
+
+  test('counts trial days up so the final day reads as one day left', () => {
+    const now = new Date('2026-11-07T12:00:00.000Z');
+
+    expect(getTrialDaysRemaining(new Date('2026-11-14T12:00:00.000Z'), now)).toBe(7);
+    expect(getTrialDaysRemaining(new Date('2026-11-08T00:00:00.000Z'), now)).toBe(1);
+    expect(getTrialDaysRemaining(new Date('2026-11-07T11:59:59.000Z'), now)).toBe(0);
+    expect(getTrialDaysRemaining(null, now)).toBe(0);
   });
 });

@@ -134,6 +134,8 @@ export const FREE_TRIAL_EVENTS = 2_000;
 export const FREE_TRIAL_WEBSITES = 1;
 export const FREE_TRIAL_MEMBERS = 1;
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 /**
  * Legacy name kept for the ingestion path. The setup allowance is now the
  * 7-day trial allowance, so there is one number to change.
@@ -208,9 +210,50 @@ export function getFreeTrialState(
     return { active: false, endsAt: null };
   }
 
-  const endsAt = new Date(workspaceCreatedAt.getTime() + FREE_TRIAL_DAYS * 24 * 60 * 60 * 1000);
+  const endsAt = new Date(workspaceCreatedAt.getTime() + FREE_TRIAL_DAYS * DAY_MS);
 
   return { active: now.getTime() < endsAt.getTime(), endsAt };
+}
+
+/** Whole days left in the trial, rounded up so the final day reads as 1. */
+export function getTrialDaysRemaining(
+  endsAt: Date | string | null | undefined,
+  now: Date = new Date(),
+): number {
+  if (!endsAt) {
+    return 0;
+  }
+
+  const end = endsAt instanceof Date ? endsAt : new Date(endsAt);
+
+  if (!Number.isFinite(end.getTime())) {
+    return 0;
+  }
+
+  return Math.max(0, Math.ceil((end.getTime() - now.getTime()) / DAY_MS));
+}
+
+/**
+ * Resolve the plan the workspace actually bought. The public price list has
+ * traffic tiers; the provider product records which tier was purchased, so
+ * entitlement checks must use that tier rather than the default allowance.
+ */
+export function resolvePlanForTrafficTier(
+  plan: Plan | PlanId,
+  tierIndex: number | null | undefined,
+): Plan {
+  const resolved = typeof plan === 'string' ? getPlan(plan) : plan;
+
+  if (tierIndex === null || tierIndex === undefined || !Number.isInteger(tierIndex)) {
+    return resolved;
+  }
+
+  return {
+    ...resolved,
+    monthlyPriceCents: getTrafficPriceCents(resolved.id, tierIndex),
+    annualPriceCents: getTrafficAnnualCents(resolved.id, tierIndex),
+    eventsPerMonth: getTrafficEvents(resolved.id, tierIndex),
+  };
 }
 
 export function isPlanId(value: unknown): value is PlanId {

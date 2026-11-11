@@ -23,6 +23,12 @@ describe('OpenAPI contract', () => {
       '/api/admin/audit:',
       '/api/admin/users/{userId}/suspension:',
       '/api/admin/workspaces/{workspaceId}/suspension:',
+      '/api/billing:',
+      '/api/billing/access:',
+      '/api/billing/checkout:',
+      '/api/billing/portal:',
+      '/api/billing/cancel:',
+      '/api/billing/change-plan:',
       '/api/billing/webhook/dodo:',
     ]) {
       expect(spec).toContain(path);

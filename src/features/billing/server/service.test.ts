@@ -68,7 +68,12 @@ function subscriptionPayload(overrides: Record<string, unknown> = {}) {
       next_billing_date: '2026-12-05T00:00:00Z',
       created_at: '2026-11-05T00:00:00Z',
       cancel_at_next_billing_date: false,
-      metadata: { workspaceId: 'workspace-1', planId: 'pro', interval: 'monthly' },
+      metadata: {
+        workspaceId: 'workspace-1',
+        planId: 'pro',
+        interval: 'monthly',
+        tierIndex: 6,
+      },
       ...overrides,
     },
   };
@@ -106,6 +111,7 @@ describe('platform billing webhook reducer', () => {
         where: { workspaceId: 'workspace-1' },
         create: expect.objectContaining({
           planId: 'pro',
+          trafficTierIndex: 6,
           lifecycleStatus: 'ACTIVE',
           providerSubscriptionId: 'sub_1',
         }),
