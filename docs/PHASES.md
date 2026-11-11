@@ -81,6 +81,30 @@ code:
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
 
+## 2026-11-11 — PR queue recovery and launch experience delivery
+
+- Cleared the open PR queue with squash merges after CI: #35
+  (`@rollup/plugin-alias` 6.0.1), #31 (Google-only sign-in), #26
+  (`serialize-error` 13.1.0), #38 (container scan disk fix), #36
+  (`babel-plugin-react-compiler` rc.3), #37 (TypeScript 7), and #33 (runtime
+  minor/patch group). Stale dependabot branches were rebased onto `main` so
+  their effective diff stayed limited to `package.json` and `pnpm-lock.yaml`.
+- Root cause of the failing container job: the ~14 GB hosted runner exhausted
+  its disk because BuildKit kept the local build cache while Trivy extracted
+  the image layers into `/tmp`. #38 prunes the local build cache after the
+  build and before the scans; the exported GitHub Actions cache is unchanged.
+- TypeScript 7 required the test `IntersectionObserver` mock to implement the
+  full interface, including `scrollMargin` (`src/test/setup.ts`). No other
+  source file needed migration.
+- `feature/launch-experience` was rebased onto the new `main` (the Google OAuth
+  commits were dropped because #31 already carried them) and delivered as a PR
+  with the activation onboarding, quiet app shell, light/dark toggle, landing
+  motion, and revenue charts.
+- Evidence: `pnpm gate` green on the rebased launch branch and on every
+  non-dependabot change; GitHub CI green on each merged PR.
+- **UNVERIFIED:** live Google consent, provider credentials, and the VPS
+  browser walkthrough remain human actions (see the section below).
+
 ## 2026-11-11 — VPS preview deployment of the launch branch
 
 - Deployed `feature/launch-experience` (`87a7167`) to the existing single-VPS
