@@ -22,7 +22,13 @@
   (`.opencode/skills/production-backend-readiness/SKILL.md`,
   `.opencode/skills/high-scale-low-cost-deployment/SKILL.md`) are binding.
   `docs/ENGINEERING_STANDARDS.md` defines the per-feature checklist and
-  `pnpm gate` enforces format, lint, typecheck, tests, and the production build.
+  `pnpm gate` enforces format, lint, typecheck, tests, the deploy-script/smoke
+  checks, and the production build.
+- **Delivery enforcement:** `main` requires the three CI checks through the
+  active `main-protection` ruleset. Production deploys only the current `main`
+  head, require environment approval without admin bypass, verify the running
+  `BUILD_VERSION`, run public smoke checks, and roll back on failure. See
+  `docs/CI_CD.md` → Deployment invariants.
 
 ## Overall progress
 
@@ -84,6 +90,42 @@ code:
 
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
+
+## 2026-11-11 — CD enforcement: current-head deploy, exact-SHA readiness, public smoke
+
+- Closed the deploy-ordering gap: an automatic deploy now requires the target
+  to equal the current `origin/main` head in both the workflow and
+  `deploy/production/deploy.sh`. If a newer merge lands while an older approval
+  is pending, approving the older run fails instead of rolling production back.
+  A manual rollback must opt in with
+  `gh workflow run deploy.yml -f sha=<sha> -f allow_previous=true`.
+- `/api/health/ready` is no longer trusted on status alone. The host deploy
+  requires `ok: true`, `database: "up"`, and `version` equal to the target SHA,
+  and does the same check after an automatic rollback. The previous local image
+  is reused when present.
+- Added `scripts/deploy-smoke.mjs` and six Node tests. After deploy, CI checks
+  `/api/health/live`, `/api/health/ready`, `/`, `/pricing`, `/docs`, `/login`,
+  `/robots.txt`, and `/sitemap.xml` without following redirects. Any non-200,
+  stale version, or down database fails the deploy job.
+- `pnpm gate` now parses `deploy.sh`,
+  `scripts/apply-branch-protection.sh`, and the smoke script, then runs the
+  smoke-harness tests. CI runs the same `pnpm gate:deploy` step.
+- Build or migration failure leaves the running app untouched and restores the
+  checkout to the SHA that is actually serving traffic. The successful SHA is
+  recorded in `$RUNTIME_DIR/last-deploy`; migration failures still require a
+  forward fix or a Neon restore.
+- Docs: `docs/CI_CD.md` records the seven deployment invariants;
+  `docs/RUNBOOK.md` documents the new current-head and rollback behaviour.
+- Verified: `pnpm gate` exit 0 on 2026-11-11 — 203 test files passed /
+  1 gated skip, 936 tests passed / 1 skipped, coverage 66.22% statements /
+  55.12% branches / 63.58% functions / 66.62% lines, deploy-script parsing and
+  the 6 deploy-smoke tests passed, production build green. The live smoke
+  harness also passed against the current production version
+  (`https://tartly.in`, `version: 87a7167d…`, all eight endpoints 200).
+  **UNVERIFIED:** a live end-to-end deploy of this change, because the
+  `production` environment requires the owner's approval. Human action:
+  approve the newest `Deploy production` run after CI passes and confirm
+  `/api/health/ready` reports that SHA.
 
 ## 2026-11-11 — CodeQL error remediation and merge-gate rollout
 

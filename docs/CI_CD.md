@@ -9,7 +9,7 @@ after the same checks pass.
 | Workflow                        | Trigger                                      | Purpose                                                                                                                                                                     |
 | ------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `.github/workflows/ci.yml`      | pull request, push to `main`, manual         | format, lint, typecheck, coverage, PostgreSQL integration smoke, production build, dependency audit, CodeQL, secret scan, dependency review, container build and image scan |
-| `.github/workflows/deploy.yml`  | after CI succeeds on `main`, manual dispatch | migration, image build, app restart, readiness check, automatic rollback                                                                                                    |
+| `.github/workflows/deploy.yml`  | after CI succeeds on `main`, manual dispatch | current-main check, migration, image build, app restart, version-checked readiness, public smoke, automatic rollback                                                        |
 | `.github/workflows/release.yml` | version tag `v*`                             | validates that the tag matches `package.json`, is on `main`, and still builds                                                                                               |
 
 ## Local gate
@@ -19,8 +19,9 @@ pnpm gate
 ```
 
 `pnpm gate` is the same contract used by CI: Biome format, Biome lint,
-`tsc --noEmit`, the full Vitest suite with coverage, and the production build.
-Coverage floors live in `vitest.config.ts`:
+`tsc --noEmit`, the full Vitest suite with coverage, deploy-script parsing plus
+the post-deploy smoke-harness tests, and the production build. Coverage floors
+live in `vitest.config.ts`:
 
 | Metric     | Floor | Baseline on 2026-11-07 |
 | ---------- | ----- | ---------------------- |
@@ -49,11 +50,13 @@ pnpm exec vitest run --config vitest.phase7.config.ts \
 1. `pnpm install --frozen-lockfile`
 2. `pnpm build-db`
 3. format, lint, typecheck
-4. `pnpm test:coverage`, with the report uploaded as an artifact
-5. `pnpm audit --prod --audit-level high`
-6. `prisma migrate deploy` against the CI database
-7. the gated PostgreSQL analytics smoke
-8. `pnpm build`
+4. `pnpm gate:deploy` — parses the deploy scripts and runs the post-deploy
+   smoke-harness tests
+5. `pnpm test:coverage`, with the report uploaded as an artifact
+6. `pnpm audit --prod --audit-level high`
+7. `prisma migrate deploy` against the CI database
+8. the gated PostgreSQL analytics smoke
+9. `pnpm build`
 
 `security` runs gitleaks, dependency review on pull requests, CodeQL with the
 extended and quality query packs, and a blocking Trivy
@@ -83,6 +86,38 @@ All third-party actions are pinned to full commit SHAs. Workflow permissions
 are read-only except `security-events: write` in the scanning jobs.
 
 ## Production deployment
+
+### Deployment invariants
+
+The deploy workflow enforces all of these on every release:
+
+1. **CI passed on `main`.** The `workflow_run` job only starts after a
+   successful `CI` run whose event is a push to `main`.
+2. **The target is still current.** Automatic deploys must equal the current
+   `origin/main` head. If a newer merge lands while an older approval is
+   pending, approving the older run fails instead of rolling production
+   backwards. A deliberate rollback opts in with
+   `workflow_dispatch -f allow_previous=true`.
+3. **The host target is on `main`.** `deploy.sh` independently requires the
+   target to be an ancestor of `origin/main`; rollback mode still cannot deploy
+   an unmerged commit.
+4. **The exact build is running.** Readiness additionally requires
+   `/api/health/ready` to report `version` equal to the deployed commit SHA and
+   `database: "up"`. A 200 from an old container is not a successful deploy.
+5. **The public surface answers.** `scripts/deploy-smoke.mjs` checks
+   `/api/health/live`, `/api/health/ready`, `/`, `/pricing`, `/docs`, `/login`,
+   `/robots.txt`, and `/sitemap.xml`, without following redirects.
+6. **The previous build is the rollback source.** The script reads the running
+   version before changing the checkout, reuses the previous local image, and
+   records the successful SHA in `$RUNTIME_DIR/last-deploy`. A failed build or
+   migration leaves the old container running and restores the checkout.
+7. **One deploy at a time.** The `deploy-production` concurrency group never
+   cancels an in-flight deploy, and `deploy.sh` holds a host-side `flock` so an
+   operator cannot race the same compose project and migration.
+
+The control is enforced in `.github/workflows/deploy.yml` and
+`deploy/production/deploy.sh`; `pnpm gate` also parses the scripts and runs the
+smoke-harness tests.
 
 ### One-time host layout
 
@@ -123,17 +158,23 @@ then delete the old key from GitHub.
 `deploy/production/deploy.sh`:
 
 1. fetches `origin/main` and refuses any commit that is not on `origin/main`;
-2. resets the checkout to the exact SHA that passed CI;
-3. copies the committed compose file and Caddyfile into the runtime directory;
-4. builds `tartly-app:<sha>` with `BUILD_VERSION=<sha>`;
-5. runs `prisma migrate deploy` through the one-shot `migrate` service using
+2. requires the target to equal the current `origin/main` head unless
+   `ALLOW_NON_HEAD=1` is set for an explicit rollback;
+3. resets the checkout to the exact SHA that passed CI;
+4. copies the committed compose file and Caddyfile into the runtime directory;
+5. builds `tartly-app:<sha>` with `BUILD_VERSION=<sha>`;
+6. runs `prisma migrate deploy` through the one-shot `migrate` service using
    `DATABASE_URL_UNPOOLED` (the direct Neon host);
-6. restarts only the app container, leaving Caddy and TLS state intact;
-7. polls `https://<domain>/api/health/ready` for up to two minutes;
-8. on failure, redeploys the previous SHA and verifies it again.
+7. restarts only the app container, leaving Caddy and TLS state intact;
+8. polls `https://<domain>/api/health/ready` for up to two minutes and requires
+   `ok: true`, `database: "up"`, and `version: "<sha>"`;
+9. on failure, redeploys the previous SHA and verifies it again;
+10. records the healthy SHA in `$RUNTIME_DIR/last-deploy`.
 
-Migrations are never reversed automatically. A bad migration is fixed with a
-forward migration or a Neon branch restore.
+If the image build or migration fails, the running app is not restarted and the
+checkout is restored to the running SHA. Migrations are never reversed
+automatically. A bad migration is fixed with a forward migration or a Neon
+branch restore.
 
 ### Required repository configuration
 
@@ -174,15 +215,28 @@ provider console out of band. Never disable host-key checking.
 
 ### Manual deploy and rollback
 
-Manual deploy from an allowed ref:
+Manual deploy of the current `main` head:
+
+```bash
+gh workflow run deploy.yml
+```
+
+Manual deploy of a specific commit on `main`:
 
 ```bash
 gh workflow run deploy.yml -f sha=<40-char-main-sha>
 ```
 
-Rollback: re-run the deploy workflow with the previous known-good SHA. The
-script accepts only commits that are already on `origin/main`. Database
-rollback follows `docs/BACKUP_AND_RECOVERY.md`.
+Rollback to a previous known-good commit on `main`:
+
+```bash
+gh workflow run deploy.yml -f sha=<previous-40-char-main-sha> -f allow_previous=true
+```
+
+Without `allow_previous=true`, a SHA that is not the current `main` head is
+rejected before the host is contacted. The script accepts only commits that are
+already on `origin/main`. Database rollback follows
+`docs/BACKUP_AND_RECOVERY.md`.
 
 ## Merge gate (branch protection)
 
@@ -220,8 +274,9 @@ check run exactly, and a wrong string silently blocks every merge.
 The `production` environment requires the repository owner as a reviewer and
 restricts deployments to protected branches (`main`). `prevent_self_review` is
 false, so a solo maintainer can approve their own deployment; enable
-self-review prevention when a second deployer exists. The deploy job also runs
-only after a successful `main` CI.
+self-review prevention when a second deployer exists. **Admin bypass must be
+off** so the reviewer rule applies even to the repository owner. The deploy job
+also runs only after a successful `main` CI.
 
 ## Dependency policy
 
