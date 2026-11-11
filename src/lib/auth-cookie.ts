@@ -12,7 +12,7 @@ export const SESSION_COOKIE = 'rl_session';
 /** 30 days. Short enough to limit a stolen-cookie window, long enough to stay signed in. */
 export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 
-export function getSessionTokenFromRequest(request: Request): string | undefined {
+export function getCookieFromRequest(request: Request, cookieName: string): string | undefined {
   const header = request.headers.get('cookie');
 
   if (!header) {
@@ -28,12 +28,16 @@ export function getSessionTokenFromRequest(request: Request): string | undefined
 
     const name = part.slice(0, separator).trim();
 
-    if (name === SESSION_COOKIE) {
+    if (name === cookieName) {
       return decodeURIComponent(part.slice(separator + 1).trim());
     }
   }
 
   return undefined;
+}
+
+export function getSessionTokenFromRequest(request: Request): string | undefined {
+  return getCookieFromRequest(request, SESSION_COOKIE);
 }
 
 export function serializeSessionCookie(token: string, expiresAt: Date) {
@@ -45,7 +49,7 @@ export function serializeSessionCookie(token: string, expiresAt: Date) {
     'HttpOnly',
     'SameSite=Lax',
     `Max-Age=${maxAge}`,
-    ...(isSecureCookie() ? ['Secure'] : []),
+    ...(shouldUseSecureCookie() ? ['Secure'] : []),
   ]);
 }
 
@@ -56,7 +60,7 @@ export function clearSessionCookie() {
     'HttpOnly',
     'SameSite=Lax',
     'Max-Age=0',
-    ...(isSecureCookie() ? ['Secure'] : []),
+    ...(shouldUseSecureCookie() ? ['Secure'] : []),
   ]);
 }
 
@@ -64,7 +68,7 @@ function serializeCookie(parts: string[]) {
   return parts.join('; ');
 }
 
-function isSecureCookie() {
+export function shouldUseSecureCookie() {
   if (process.env.COOKIE_SECURE === 'false') {
     return false;
   }

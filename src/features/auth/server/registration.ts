@@ -28,6 +28,17 @@ export interface RegisteredAccount {
   };
 }
 
+export interface PersonalAccountInput {
+  username: string;
+  /** Present for password accounts. Google accounts store null. */
+  password?: string | null;
+  googleId?: string | null;
+  displayName?: string | null;
+  emailVerifiedAt?: Date | null;
+  workspaceName?: string;
+  planId?: string;
+}
+
 /**
  * Create the account, its personal workspace, OWNER membership, and initial
  * plan selection in one transaction. A failure at any point leaves no orphan
@@ -37,27 +48,19 @@ export interface RegisteredAccount {
  * (Phase 5). The workspace starts its 7-day free trial: trial limits apply and
  * paid entitlements do not.
  */
-export async function registerAccount({
+export async function createPersonalAccount({
   username,
-  password,
+  password = null,
+  googleId = null,
+  displayName = null,
+  emailVerifiedAt = null,
   workspaceName,
   planId = 'starter',
-}: {
-  username: string;
-  password: string;
-  workspaceName?: string;
-  planId?: string;
-}): Promise<RegisteredAccount> {
+}: PersonalAccountInput): Promise<RegisteredAccount> {
   const normalized = normalizeUsername(username);
 
   if (!normalized) {
     throw new RegistrationError('invalid-username', 'An email address is required.');
-  }
-
-  const existing = await getUserByUsername(normalized, { showDeleted: true });
-
-  if (existing) {
-    throw new RegistrationError('username-taken', 'An account with that email already exists.');
   }
 
   const userId = uuid();
@@ -72,7 +75,10 @@ export async function registerAccount({
         data: {
           id: userId,
           username: normalized,
-          password: hashPassword(password),
+          password: password === null ? null : hashPassword(password),
+          googleId,
+          displayName: displayName?.slice(0, 255) || null,
+          emailVerifiedAt,
           role: ROLES.user,
         },
         select: {
@@ -118,4 +124,30 @@ export async function registerAccount({
   }
 
   return account as RegisteredAccount;
+}
+
+export async function registerAccount({
+  username,
+  password,
+  workspaceName,
+  planId = 'starter',
+}: {
+  username: string;
+  password: string;
+  workspaceName?: string;
+  planId?: string;
+}): Promise<RegisteredAccount> {
+  const normalized = normalizeUsername(username);
+
+  if (!normalized) {
+    throw new RegistrationError('invalid-username', 'An email address is required.');
+  }
+
+  const existing = await getUserByUsername(normalized, { showDeleted: true });
+
+  if (existing) {
+    throw new RegistrationError('username-taken', 'An account with that email already exists.');
+  }
+
+  return createPersonalAccount({ username: normalized, password, workspaceName, planId });
 }

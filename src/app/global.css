@@ -421,8 +421,34 @@ html {
   background: var(--talivia-app-background) !important;
 }
 
+.talivia-auth-centered {
+  padding: 32px 20px;
+}
+
 .talivia-auth-form {
-  width: min(380px, calc(100vw - 40px));
+  width: min(400px, calc(100vw - 40px));
+}
+
+.talivia-auth-panel {
+  width: min(400px, calc(100vw - 40px));
+  text-align: center;
+}
+
+.talivia-auth-lockup {
+  justify-content: center;
+  gap: 14px;
+}
+
+.talivia-auth-error {
+  width: 100%;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--talivia-danger, #f87171) 38%, transparent);
+  border-radius: var(--talivia-control-radius);
+  background: color-mix(in srgb, var(--talivia-danger, #f87171) 10%, transparent);
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .talivia-auth-email-form {
@@ -557,6 +583,43 @@ html {
   inset: 0;
   opacity: 0;
   pointer-events: none;
+}
+
+.talivia-auth-google-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 50px !important;
+  padding: 0 20px;
+  border: 1px solid #dadce0 !important;
+  background: #ffffff !important;
+  color: #1f1f1f !important;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.talivia-auth-google-button:hover {
+  border-color: #c7cacd !important;
+  background: #f8f9fa !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+.talivia-auth-google-button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+.talivia-auth-google-button svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
 }
 
 .talivia-app-shell input:not([type="checkbox"]):not([type="radio"]),
