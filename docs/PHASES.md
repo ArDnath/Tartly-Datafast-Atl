@@ -89,13 +89,21 @@ shutdown or destructive action should be taken based on this tracker.
   (`babel-plugin-react-compiler` rc.3), #37 (TypeScript 7), and #33 (runtime
   minor/patch group). Stale dependabot branches were rebased onto `main` so
   their effective diff stayed limited to `package.json` and `pnpm-lock.yaml`.
-- Root cause of the failing container job: the ~14 GB hosted runner exhausted
-  its disk because BuildKit kept the local build cache while Trivy extracted
-  the image layers into `/tmp`. #38 prunes the local build cache after the
-  build and before the scans; the exported GitHub Actions cache is unchanged.
+- Root cause of the failing container job: the hosted runner reported a 72 GB
+  root disk with 68 GB already used, and BuildKit's local cache plus Trivy's
+  image export into `/tmp` exhausted the remaining space. #38 prunes the local
+  build cache after the build and before the scans. That was enough for most
+  images; #40 additionally removes the preinstalled toolchains the job never
+  uses (dotnet, Android SDK, GHC, hosted tool cache, Swift) because the
+  TypeScript 7 image needed more headroom.
 - TypeScript 7 required the test `IntersectionObserver` mock to implement the
   full interface, including `scrollMargin` (`src/test/setup.ts`). No other
-  source file needed migration.
+  source file needed migration. It also exposed a shipping bug: because Next
+  declares TypeScript as an optional peer, pnpm linked TypeScript 7's native
+  Go compiler into the production tree, and Trivy blocked the image on 15 Go
+  standard-library findings. The Dockerfile now removes the build-only
+  compiler after copying the production tree; the same local Trivy scan then
+  reported 0 CRITICAL/HIGH findings.
 - `feature/launch-experience` was rebased onto the new `main` (the Google OAuth
   commits were dropped because #31 already carried them) and delivered as a PR
   with the activation onboarding, quiet app shell, light/dark toggle, landing
