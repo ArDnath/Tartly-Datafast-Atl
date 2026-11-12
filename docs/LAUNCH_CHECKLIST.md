@@ -60,8 +60,9 @@ human action. No launch claim is allowed without a stored result.
   use) with a lawyer-review notice.
 - [ ] Lawyer review of every legal page.
   **UNVERIFIED**: requires qualified counsel.
-- [ ] Confirm subprocessor list (Neon, host, Resend, Dodo, error tracker,
-  optional Redis/ClickHouse) against the actual production deployment.
+- [ ] Confirm subprocessor list (VPS host, Resend, Dodo, error tracker) against
+  the actual production deployment. PostgreSQL, Redis, ClickHouse, and Kafka
+  are self-hosted.
   **UNVERIFIED**: depends on the final hosts.
 
 ## Abuse and operations
@@ -76,8 +77,9 @@ human action. No launch claim is allowed without a stored result.
 - [ ] Live Resend delivery from a verified domain.
   **UNVERIFIED**: needs `RESEND_API_KEY` and DNS records.
 - [x] Backup/restore and secret-rotation procedures documented.
-- [ ] Neon production branch migration and point-in-time restore rehearsal.
-  **UNVERIFIED**: needs the production Neon project.
+- [ ] Self-hosted PostgreSQL and ClickHouse restore rehearsal, plus an
+  encrypted off-host copy of `/opt/tartly/backups`.
+  **UNVERIFIED**: the backup directory is currently on the same VPS.
 - [x] Audit log writes verified for suspension/unsuspension; other actions are code-reviewed and grep-verified (`docs/LIVE_SMOKE.md`).
 - [x] Verification/reset token lifecycle exercised through the real routes and the local outbox.
 - [ ] Live Resend delivery and inbox links remain **UNVERIFIED**.
@@ -117,7 +119,7 @@ human action. No launch claim is allowed without a stored result.
   automatic rollback (`deploy/production/deploy.sh`,
   `scripts/deploy-smoke.mjs`).
 - [x] Multi-stage Docker image, non-root user, health check, compose stack.
-- [x] Environment reference and Neon branching guide.
+- [x] Environment reference, production Compose stack, and backup guide.
 - [x] Runbook, backup/recovery, secrets rotation.
 - [x] Hosting account, domain/DNS, TLS, custom tracker domain.
   Evidence: `https://tartly.in` serves HTTP/2 with a valid certificate;

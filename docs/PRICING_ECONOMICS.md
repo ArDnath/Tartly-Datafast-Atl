@@ -81,6 +81,16 @@ DataFast tier where a public comparison exists.
 
 ## 3. Cost assumptions
 
+> **Architecture note (2026-11-12).** Production is now a self-hosted Docker
+> stack on one VPS (2 vCPU / 8 GB RAM / 100 GB disk). The Neon compute and
+> storage lines below are retained as a **managed-Postgres alternative**, not
+> the current bill. The deployed fixed cost is the VPS invoice plus
+> Resend/domain; there is no per-GB database invoice. The hard constraint is
+> the 100 GB disk: the 100-customer model already needs ~411 GB of event and
+> replay storage, so self-hosting at that scale requires a larger attached
+> volume, ClickHouse tiering, and a tested retention window. Measure the disk
+> and backup growth before selling beyond the launch cohort.
+
 | Cost             | Assumption                                                                                                                  | Source                                          |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
 | App hosting      | Vercel Pro **$20/mo** including $20 usage credit; overage possible                                                          | <https://vercel.com/pricing> (2026-11-04)       |

@@ -1,20 +1,183 @@
 # Tartly production stack on a single VPS.
 #
-# Runtime layout (operator-managed, outside git):
-#   /opt/tartly/app      <- clone of this repository
-#   /opt/tartly/runtime/.env          <- real secrets (chmod 600, gitignored)
-#   /opt/tartly/runtime/docker-compose.yml + Caddyfile  <- copied from deploy/production
+# Everything runs on the host. There is no managed database and no Neon
+# dependency: PostgreSQL, Redis, ClickHouse, and Kafka are containers with
+# persistent volumes and memory limits sized for a 2 vCPU / 8 GB host.
 #
-# Start:
-#   docker compose -f deploy/production/docker-compose.yml up -d --build
-# Migrate (before first start and on releases that add migrations):
-#   docker compose -f deploy/production/docker-compose.yml run --rm app \
-#     pnpm exec prisma migrate deploy
+# Runtime layout (operator-managed, outside git):
+#   /opt/tartly/app                  <- clone of this repository
+#   /opt/tartly/runtime/.env         <- real secrets (chmod 600, gitignored)
+#   /opt/tartly/runtime/docker-compose.yml + Caddyfile + clickhouse/
+#   /opt/tartly/backups              <- pg_dump + ClickHouse BACKUP output
+#
+# Start (deploy.sh does this in order):
+#   docker compose --env-file .env up -d --wait postgres redis clickhouse kafka
+#   docker compose --env-file .env --profile tools run --rm migrate
+#   docker compose --env-file .env --profile tools run --rm clickhouse-migrate
+#   docker compose --env-file .env up -d --no-deps app
+#   docker compose --env-file .env --profile streaming up -d --no-deps worker
+#
 # Verify:
 #   curl -fsS https://tartly.in/api/health/live
 #   curl -fsS https://tartly.in/api/health/ready
----
+#
+# Do not set a fixed `name:`. The live project is named after the runtime
+# directory (`runtime`), so adding a fixed name would create a second Caddy
+# container and conflict on ports 80/443 during the cutover.
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "5"
+
 services:
+  # Primary relational store: users, workspaces, memberships, websites,
+  # billing, usage, audit, and (until a dedicated event store is required) the
+  # attribution mirror. Ports are never published; only compose services can
+  # reach it.
+  postgres:
+    image: postgres:17-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tartly}
+      POSTGRES_USER: ${POSTGRES_USER:-tartly}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      TZ: UTC
+      PGTZ: UTC
+    command:
+      - postgres
+      - -c
+      - shared_buffers=512MB
+      - -c
+      - effective_cache_size=1536MB
+      - -c
+      - maintenance_work_mem=128MB
+      - -c
+      - work_mem=8MB
+      - -c
+      - max_connections=100
+      - -c
+      - wal_compression=on
+      - -c
+      - checkpoint_completion_target=0.9
+      - -c
+      - random_page_cost=1.1
+      - -c
+      - timezone=UTC
+      - -c
+      - log_min_duration_statement=1000
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    mem_limit: 1g
+    logging: *default-logging
+
+  # Cache and collector helper. Sessions and login rate limits remain durable
+  # in PostgreSQL, so losing Redis never disables authentication.
+  redis:
+    image: redis:7.4-alpine
+    restart: always
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
+    command:
+      - sh
+      - -c
+      - >-
+        exec redis-server
+        --requirepass "$${REDIS_PASSWORD}"
+        --appendonly yes
+        --appendfsync everysec
+        --maxmemory 256mb
+        --maxmemory-policy allkeys-lru
+        --save 900 1
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", 'redis-cli --no-auth-warning -a "$${REDIS_PASSWORD}" ping | grep -q PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    mem_limit: 320m
+    logging: *default-logging
+
+  # Analytics event store. The app writes directly to ClickHouse when Kafka is
+  # unavailable (see src/lib/kafka.ts fallback); the worker mirrors Kafka
+  # messages in the normal path.
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.3
+    restart: always
+    environment:
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB:-talivia}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-talivia}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?Set CLICKHOUSE_PASSWORD in .env}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./clickhouse/low-memory.xml:/etc/clickhouse-server/config.d/low-memory.xml:ro
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'clickhouse-client --user "$${CLICKHOUSE_USER}" --password "$${CLICKHOUSE_PASSWORD}" --query "SELECT 1" >/dev/null',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 30s
+    mem_limit: 2g
+    logging: *default-logging
+
+  # Single-node KRaft broker. No ZooKeeper. Not published to the host; only
+  # compose services can reach kafka:9092.
+  kafka:
+    image: apache/kafka:3.9.1
+    restart: always
+    environment:
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_RETENTION_BYTES: 2147483648
+      KAFKA_HEAP_OPTS: "-Xms256m -Xmx512m"
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_NUM_PARTITIONS: 1
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1",
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+    mem_limit: 1g
+    logging: *default-logging
+
   app:
     image: tartly-app:${BUILD_VERSION:-local}
     build:
@@ -29,15 +192,50 @@ services:
     restart: always
     expose:
       - "3000"
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
-        max-file: "5"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    logging: *default-logging
+    mem_limit: 1g
 
-  # One-shot release step. `prisma migrate deploy` must use the direct Neon
-  # host, while the running app uses the pooled host. The profile keeps this
-  # service out of `up`.
+  # Kafka -> ClickHouse bridge. Enabled by deploy.sh with the `streaming`
+  # profile only when KAFKA_BROKER and CLICKHOUSE_URL are configured.
+  worker:
+    image: tartly-app:${BUILD_VERSION:-local}
+    profiles: ["streaming"]
+    command: ["node", "scripts/kafka-clickhouse-consumer.mjs"]
+    env_file:
+      - .env
+    environment:
+      BUILD_VERSION: ${BUILD_VERSION:-local}
+    init: true
+    restart: always
+    depends_on:
+      kafka:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "test -f /app/scripts/.worker-heartbeat && [ $$(( $$(date +%s) - $$(stat -c %Y /app/scripts/.worker-heartbeat) )) -lt 60 ]",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging: *default-logging
+    mem_limit: 512m
+
+  # One-shot release step. Prisma migrations use DATABASE_URL_UNPOOLED, which
+  # is the direct container host (there is no pooler on this host).
   migrate:
     image: tartly-app:${BUILD_VERSION:-local}
     profiles: ["tools"]
@@ -47,6 +245,24 @@ services:
       DATABASE_URL: ${DATABASE_URL_UNPOOLED}
     command: ["./node_modules/.bin/prisma", "migrate", "deploy"]
     init: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    logging: *default-logging
+
+  # One-shot ClickHouse schema and migration runner. The app image carries the
+  # committed db/clickhouse directory.
+  clickhouse-migrate:
+    image: tartly-app:${BUILD_VERSION:-local}
+    profiles: ["tools"]
+    env_file:
+      - .env
+    command: ["node", "scripts/clickhouse-migrate.mjs"]
+    init: true
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    logging: *default-logging
 
   caddy:
     image: caddy:2-alpine
@@ -64,12 +280,13 @@ services:
       - caddy_config:/config
     depends_on:
       - app
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
-        max-file: "5"
+    mem_limit: 256m
+    logging: *default-logging
 
 volumes:
+  postgres_data:
+  redis_data:
+  clickhouse_data:
+  kafka_data:
   caddy_data:
   caddy_config:

@@ -144,8 +144,8 @@ audit dropped from 8 findings to 1 accepted finding:
 - Live provider webhooks for Stripe/Dodo/Lemon Squeezy/Polar/Yolfi: needs
   provider accounts.
 - Real browser recorder/masking walkthrough.
-- Neon production branch migration, point-in-time restore rehearsal, and
-  production load test.
+- Self-hosted PostgreSQL/ClickHouse restore rehearsal, encrypted off-host
+  backup copy, and production load test.
 - Lawyer review of legal drafts.
 
 All are labelled **UNVERIFIED** in `docs/PHASES.md` with the exact human action.

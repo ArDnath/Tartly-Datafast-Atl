@@ -62,7 +62,9 @@ last click is not necessarily the channel that created demand.
 
 - 1 KB average event and 0.5 MB average replay session (measure).
 - Dodo US card fee; international cards add roughly 3 points (verify).
-- Hosting and Neon costs at 100/500/1,000/5,000 customers (verify with bills).
+- Hosting, backup, and database costs at 100/500/1,000/5,000 customers (verify
+  with bills). Production is self-hosted, so the database line is VPS capacity,
+  not a managed-database invoice.
 - 25% activation to first attributed payment (measure).
 - Support load of 0.2 tickets per paying workspace per month (measure).
 

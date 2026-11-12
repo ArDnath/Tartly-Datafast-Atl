@@ -1,5 +1,10 @@
 # Neon Branching and Migration Promotion
 
+> **Superseded 2026-11-12.** Production no longer uses Neon. The self-hosted
+> Docker stack in `deploy/production/docker-compose.yml` runs PostgreSQL,
+> Redis, ClickHouse, and Kafka on the VPS. This document is retained only as
+> historical reference for an optional managed-Postgres setup.
+
 Tartly uses Neon PostgreSQL as the primary relational database. This
 document defines the branch model, connection strings, and how migrations move
 from development to production.

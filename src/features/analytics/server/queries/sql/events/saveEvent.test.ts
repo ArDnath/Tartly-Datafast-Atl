@@ -1,10 +1,14 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 
-const { insert, create, saveEventData } = vi.hoisted(() => ({
-  insert: vi.fn(),
-  create: vi.fn(),
-  saveEventData: vi.fn(),
-}));
+const { insert, create, saveEventData, kafka } = vi.hoisted(() => {
+  const sendMessage = vi.fn();
+  return {
+    insert: vi.fn(),
+    create: vi.fn(),
+    saveEventData: vi.fn(),
+    kafka: { enabled: false, sendMessage },
+  };
+});
 
 vi.mock('@/lib/clickhouse', () => ({
   default: {
@@ -19,10 +23,7 @@ vi.mock('@/lib/crypto', () => ({
 }));
 
 vi.mock('@/lib/kafka', () => ({
-  default: {
-    enabled: false,
-    sendMessage: vi.fn(),
-  },
+  default: kafka,
 }));
 
 vi.mock('@/lib/prisma', () => ({
@@ -40,6 +41,7 @@ const { saveEvent } = await import('./saveEvent');
 
 beforeEach(() => {
   vi.clearAllMocks();
+  kafka.enabled = false;
 });
 
 test('mirrors ClickHouse events into PostgreSQL with the same event id', async () => {
@@ -79,4 +81,28 @@ test('mirrors ClickHouse events into PostgreSQL with the same event id', async (
     ]),
   );
   expect(saveEventData).toHaveBeenCalledTimes(1);
+});
+
+test('writes directly to ClickHouse when the Kafka publish fails', async () => {
+  kafka.enabled = true;
+  kafka.sendMessage.mockResolvedValue(null);
+
+  await saveEvent({
+    websiteId: '22222222-2222-4222-8222-222222222222',
+    visitorId: '33333333-3333-4333-8333-333333333333',
+    sessionId: '44444444-4444-4444-8444-444444444444',
+    eventType: 1,
+    urlPath: '/pricing',
+  });
+
+  expect(kafka.sendMessage).toHaveBeenCalledWith(
+    'event',
+    expect.objectContaining({ event_id: '11111111-1111-4111-8111-111111111111' }),
+  );
+  expect(insert).toHaveBeenCalledWith(
+    'website_event',
+    expect.arrayContaining([
+      expect.objectContaining({ event_id: '11111111-1111-4111-8111-111111111111' }),
+    ]),
+  );
 });

@@ -15,10 +15,14 @@
   (one website) and must subscribe before ingestion or paid features unlock.
   A real local ingestion run (10,000 events, 50 concurrent clients, 157 req/s,
   p95 412 ms, 0 errors) is recorded in `docs/LOAD_TEST.md`, and the run exposed
-  and fixed a deleted-workspace session leak. The remaining work is external
-  verification: live Dodo/Resend/provider credentials, a real browser
-  walkthrough, a Neon production restore rehearsal, hosting/DNS, and lawyer
-  review. All are labelled **UNVERIFIED** with the exact human action. The
+  and fixed a deleted-workspace session leak. Production is now a self-hosted
+  single-VPS Docker stack: PostgreSQL, Redis, ClickHouse, and Kafka run on the
+  host with persistent volumes, a Kafka-to-ClickHouse worker, and daily
+  backups. There is no Neon production dependency. The remaining work is
+  external verification: live Dodo/Resend/provider credentials, a real browser
+  walkthrough, a self-hosted restore rehearsal with an encrypted off-host
+  backup copy, a deployed streaming-path load test, and lawyer review. All are
+  labelled **UNVERIFIED** with the exact human action. The
   source restructure remains enforced: `src/app` is routing only, every domain
   owns its UI/hooks/lib/server/queries, and `src/lib`/`src/queries` are
   allowlisted shared kernels.
@@ -122,6 +126,44 @@ shutdown or destructive action should be taken based on this tracker.
   consent, and a signed-in browser walkthrough of the paywall. Those require
   the provider credentials and human actions listed in
   `docs/PLATFORM_BILLING.md` and `docs/GOOGLE_OAUTH.md`.
+
+## 2026-11-12 — Self-hosted production stack (PostgreSQL, Redis, ClickHouse, Kafka)
+
+- Replaced the Neon-only production topology with a single-VPS Compose stack:
+  `postgres:17-alpine`, `redis:7.4-alpine`,
+  `clickhouse/clickhouse-server:25.3`, and `apache/kafka:3.9.1` (KRaft,
+  one broker), all with persistent volumes and memory caps sized for the 8 GB
+  host. Only Caddy publishes 80/443.
+- Added `scripts/kafka-clickhouse-consumer.mjs`, the missing Kafka consumer
+  that writes `event`, `event_data`, `session_data`, and `session_replay` to
+  ClickHouse. It commits offsets after a successful insert, logs and skips
+  poison JSON, and exposes a heartbeat health check.
+- Kafka publishing is now fail-safe: `sendMessage` returns `null` on failure
+  and every caller writes directly to ClickHouse instead, so a broker outage
+  does not silently drop analytics events. The unit test covers the fallback.
+- Added `scripts/clickhouse-migrate.mjs` (plain Node, runs in the production
+  image) and copied `db/clickhouse` into the runtime image.
+- `deploy.sh` now starts and health-checks PostgreSQL/Redis/ClickHouse/Kafka,
+  takes a pre-deploy PostgreSQL dump, applies both migration sets, restarts
+  the app and worker, and verifies the exact running SHA.
+- Added `deploy/production/backup.sh`: compressed `pg_dump`, native ClickHouse
+  `BACKUP ... TO Disk('backups', ...)`, an encrypted-at-rest `.env` copy, and
+  14-day retention. The documented cron runs every six hours.
+- Added `deploy/production/.env.example` and updated operation docs
+  (`CI_CD`, `ENVIRONMENT`, `RUNBOOK`, `BACKUP_AND_RECOVERY`,
+  `SECRETS_ROTATION`, `README`). Neon branching is marked superseded.
+- Verified locally: `pnpm gate` exit 0 on 2026-11-12 — 213 test files passed /
+  1 gated skip, 967 tests passed / 1 skipped, coverage 66.78% statements /
+  55.98% branches / 64.02% functions / 67.23% lines, deploy checks passed, and
+  the production build was green. Compose config renders for all profiles; the
+  infra stack (PostgreSQL, Redis, ClickHouse, Kafka) reached healthy on the VPS
+  test project; ClickHouse migrations initialized all tables and the 12-file
+  ledger; the worker consumed one message on each of the four topics into
+  ClickHouse; native ClickHouse backup created and listed a backup.
+- **UNVERIFIED:** the production cutover evidence (data copy from Neon,
+  running worker, Google OAuth consent, Dodo product/webhook setup, restore
+  rehearsal, off-host backup copy, streaming load test) is recorded in the
+  entry below once run.
 
 ## 2026-11-12 — Remove the 7-day free trial (owner request)
 

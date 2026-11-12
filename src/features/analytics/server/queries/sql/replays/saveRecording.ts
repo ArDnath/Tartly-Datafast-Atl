@@ -71,7 +71,9 @@ async function clickhouseQuery({
   };
 
   if (kafka.enabled) {
-    return sendMessage('session_replay', message);
+    const sent = await sendMessage('session_replay', message);
+
+    if (sent) return sent;
   }
 
   return insert('session_replay', [message]);

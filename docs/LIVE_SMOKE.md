@@ -61,4 +61,4 @@ applies.
 - Dodo checkout, portal, plan change, and webhook delivery.
 - Stripe/Dodo/Lemon Squeezy/Polar/Yolfi live webhooks.
 - Browser layout, onboarding motion, and replay recording/masking.
-- Neon production restore and deployed load test.
+- Self-hosted PostgreSQL/ClickHouse restore and deployed load test.

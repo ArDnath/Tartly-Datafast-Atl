@@ -119,7 +119,7 @@ re-checks membership. Clearing the cookie shows all accessible workspaces.
   production copy is verified.
 - PostgreSQL row-level security is not enabled. Application-level checks plus
   the static route-boundary test are the current defence. RLS was evaluated and
-  deferred: every Neon pooled query would need a transaction-scoped
+  deferred: every pooled query would need a transaction-scoped
   `SET LOCAL app.workspace_id` plus a policy on ~39 tables, and a missed
   `SET LOCAL` silently returns zero rows or leaks depending on policy. Revisit
   before enterprise sales, not before launch.

@@ -10,8 +10,12 @@ in an API response and the structured logger redacts secret-like keys.
 | ---------------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | `APP_SECRET`                             | signs tokens, derives visitor IDs, encrypts analytics-provider credentials | invalidates sessions and requires provider-secret re-encryption |
 | `APP_SECRET_PREVIOUS`                    | temporary read-only rotation key                                           | remove after rotation                                           |
-| `DATABASE_URL` / `DATABASE_URL_UNPOOLED` | runtime / migrations                                                       | brief connection errors; use Neon credential rotation           |
+| `DATABASE_URL` / `DATABASE_URL_UNPOOLED` | runtime / migrations                                                       | brief connection errors; rotate the PostgreSQL role             |
 | `DATABASE_REPLICA_URL`                   | analytics reads                                                            | read path falls back to primary                                 |
+| `POSTGRES_PASSWORD`                      | the production PostgreSQL container                                        | must match both database URLs; recreation required              |
+| `REDIS_PASSWORD`                         | the production Redis container                                             | cache misses; sessions remain in PostgreSQL                     |
+| `CLICKHOUSE_PASSWORD`                    | the production ClickHouse user                                             | analytics reads fail until the URL is updated                   |
+| `KAFKA_URL` / `KAFKA_BROKER`             | Kafka transport and worker                                                 | direct-insert fallback while the broker is being rotated        |
 | `RESEND_API_KEY`                         | verification/reset/invite/usage email                                      | email delivery stops until updated                              |
 | `ERROR_TRACKING_WEBHOOK`                 | optional error collector                                                   | observability only                                              |
 | `PLATFORM_ADMIN_EMAILS`                  | platform-operator allowlist                                                | access boundary; change deliberately                            |
@@ -20,8 +24,8 @@ in an API response and the structured logger redacts secret-like keys.
 | `DODO_*_PRODUCT_ID`                      | plan mapping                                                               | checkout fails closed for unknown products                      |
 | Provider connection secrets              | customer revenue integrations (context B)                                  | encrypted per website; rotate per provider                      |
 | Website API keys                         | CLI/MCP/developer reads                                                    | hashed at rest; revoke and reissue                              |
-| `REDIS_URL`                              | optional cache                                                             | cache misses, rate limits unaffected                            |
-| `CLICKHOUSE_URL` / `KAFKA_*`             | optional scale tier                                                        | analytics query path falls back or fails                        |
+| `REDIS_URL`                              | cache and collector helpers                                                | cache misses, rate limits unaffected                            |
+| `CLICKHOUSE_URL` / `KAFKA_*`             | production analytics store and transport                                   | analytics reads fail until updated; direct-insert fallback      |
 
 `STRIPE_WEBHOOK_SECRET`, `LEMONSQUEEZY_WEBHOOK_SECRET`, and
 `POLAR_WEBHOOK_SECRET` are legacy fallbacks only. Normal connections store a
@@ -66,14 +70,44 @@ in step 5 passes.
 
 ## Rotating database credentials
 
-1. Create a new role/password in Neon or the database host.
-2. Update `DATABASE_URL` and `DATABASE_URL_UNPOOLED` in the secret manager.
-3. Deploy to one instance first; watch `/api/health/ready`.
-4. Roll out to all instances.
-5. Revoke the old credential after the new one is stable.
+PostgreSQL runs in the `postgres` container. The password is set at database
+initialization; changing `POSTGRES_PASSWORD` alone does not change the role's
+password.
 
-Migrations use the direct URL; application traffic must use the pooled URL.
-Never run `prisma migrate` through PgBouncer.
+1. Generate a new password (`openssl rand -hex 32`).
+2. Change the role inside PostgreSQL:
+
+   ```bash
+   cd /opt/tartly/runtime
+   docker compose --env-file .env exec -T postgres \
+     psql -U tartly -d tartly -c "alter role tartly with password '<new>';"
+   ```
+
+3. Update `POSTGRES_PASSWORD`, `DATABASE_URL`, and `DATABASE_URL_UNPOOLED` in
+   `/opt/tartly/runtime/.env` to the same value.
+4. Restart the app and worker and watch `/api/health/ready`.
+5. Revoke the old credential by rotating again if it may have leaked; the
+   superuser in this single-role setup is the application role, so keep the
+   `.env` mode 600 and the backup directory mode 700.
+
+`DATABASE_URL_UNPOOLED` uses the same internal host; there is no pooler. It is
+kept separate so `prisma migrate` and the CLI never depend on runtime pooling
+settings.
+
+## Rotating Redis or ClickHouse credentials
+
+1. Generate a new password.
+2. Update the matching `*_PASSWORD` key and URL in `.env`.
+3. Recreate the service and the app:
+
+   ```bash
+   docker compose --env-file .env up -d --force-recreate redis clickhouse
+   docker compose --env-file .env up -d --no-deps app worker
+   ```
+
+4. Confirm `/api/health/ready` and the worker heartbeat. A Redis password
+   change only causes cache misses. A ClickHouse password change breaks
+   analytics reads until the app restarts with the new URL.
 
 ## Rotating a provider secret
 

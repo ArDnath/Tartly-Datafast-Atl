@@ -8,6 +8,11 @@
 
 > Verified against the actual source. The README claims are only repeated here
 > where the code confirms them.
+>
+> **Architecture update 2026-11-12:** production is now self-hosted on one VPS
+> (PostgreSQL, Redis, ClickHouse, and Kafka in Docker). The Neon cost and
+> architecture recommendations below are historical; see
+> `deploy/production/docker-compose.yml` and `docs/BACKUP_AND_RECOVERY.md`.
 
 ---
 

@@ -1,16 +1,24 @@
-/* eslint-disable no-console */
+#!/usr/bin/env node
+/**
+ * Apply the committed ClickHouse schema and migrations.
+ *
+ * This is a plain Node script so the production image (which intentionally
+ * excludes tsx and the rest of the build toolchain) can run it as a one-shot
+ * compose service. Local development uses the same script through
+ * `pnpm update-db-clickhouse`.
+ */
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { type ClickHouseClient, createClient } from '@clickhouse/client';
+import { createClient } from '@clickhouse/client';
 import 'dotenv/config';
 
 const migrationsDirectory = join(process.cwd(), 'db/clickhouse/migrations');
 const schemaPath = join(process.cwd(), 'db/clickhouse/schema.sql');
 
-function splitStatements(sql: string) {
-  const statements: string[] = [];
+function splitStatements(sql) {
+  const statements = [];
   let current = '';
-  let quote: "'" | '"' | '`' | null = null;
+  let quote = null;
 
   for (let index = 0; index < sql.length; index++) {
     const character = sql[index];
@@ -46,13 +54,13 @@ function splitStatements(sql: string) {
   return statements;
 }
 
-async function executeScript(client: ClickHouseClient, sql: string) {
+async function executeScript(client, sql) {
   for (const query of splitStatements(sql)) {
     await client.command({ query });
   }
 }
 
-async function recordMigration(client: ClickHouseClient, name: string) {
+async function recordMigration(client, name) {
   await client.insert({
     table: 'schema_migration',
     values: [{ name }],
@@ -85,7 +93,7 @@ async function main() {
       query: 'SELECT name FROM schema_migration FINAL',
       format: 'JSONEachRow',
     });
-    const appliedRows = (await appliedResult.json()) as { name: string }[];
+    const appliedRows = await appliedResult.json();
     const applied = new Set(appliedRows.map(row => row.name));
 
     // Older installations predate the migration ledger. Establish a baseline
@@ -96,9 +104,7 @@ async function main() {
           WHERE database = currentDatabase() AND table = 'website_event'`,
         format: 'JSONEachRow',
       });
-      const columns = new Set(
-        ((await columnsResult.json()) as { name: string }[]).map(row => row.name),
-      );
+      const columns = new Set((await columnsResult.json()).map(row => row.name));
 
       if (!columns.size) {
         await executeScript(client, await readFile(schemaPath, 'utf8'));

@@ -8,10 +8,12 @@ secrets into a ticket or chat.
 
 Automatic path: merge a green PR to `main`. The `CI` workflow must pass, then
 `Deploy production` starts automatically for the exact merged SHA. It builds an
-immutable image tagged with the commit SHA, runs `prisma migrate deploy`,
-restarts only the app container, waits for `/api/health/ready` to report the
-exact new SHA, and runs the public smoke checks. See `docs/CI_CD.md` for the
-one-time host and secret setup.
+immutable image tagged with the commit SHA, starts and health-checks
+PostgreSQL/Redis/ClickHouse/Kafka, takes a pre-deploy PostgreSQL dump, runs the
+Prisma and ClickHouse migrations, restarts the app and the Kafka-to-ClickHouse
+worker, waits for `/api/health/ready` to report the exact new SHA, and runs the
+public smoke checks. See `docs/CI_CD.md` for the one-time host and secret setup
+and `docs/BACKUP_AND_RECOVERY.md` for the restore path.
 
 An automatic deploy is refused if a newer commit reached `main` before it
 started. The newest deploy wins; the stale run fails without touching the host.
@@ -67,8 +69,9 @@ deploy-key setup are in `docs/CI_CD.md` → Host repository access.
    during a deploy. A manual rollback must use a SHA that is already on
    `origin/main`.
 4. Do not reverse a Prisma migration automatically. If the bad deploy included
-   a migration, restore the pre-deploy Neon branch or ship a corrective forward
-   migration.
+   a migration, ship a corrective forward migration. If data is damaged, use
+   the pre-deploy dump in `/opt/tartly/backups/postgres` (see
+   `docs/BACKUP_AND_RECOVERY.md`).
 5. Confirm readiness reports the rolled-back SHA and run the public smoke
    checks.
 6. Record the incident and SHAs in `docs/PHASES.md`.
@@ -76,17 +79,26 @@ deploy-key setup are in `docs/CI_CD.md` → Host repository access.
 ## 3. Readiness fails (database down)
 
 - `/api/health/ready` returns 503 and `database: "down"`.
-- Check the Neon project status and connection limits first.
-- Check the pooled vs direct URL: runtime must use the pooled host; migrations
-  must use the direct host.
-- If the pool is exhausted, reduce app concurrency or raise the pool limit; do
-  not point the app at the migration URL.
+- Check the PostgreSQL container first:
+
+  ```bash
+  cd /opt/tartly/runtime
+  docker compose --env-file .env ps postgres
+  docker compose --env-file .env logs --tail=100 postgres
+  docker stats --no-stream
+  ```
+
+- Confirm the disk is not full (`df -h /`) and the container is not OOM-killed
+  (`docker inspect --format '{{.State.OOMKilled}}' runtime-postgres-1`).
+- Check that the password in `DATABASE_URL` still matches
+  `POSTGRES_PASSWORD`; changing one without recreating the database breaks
+  authentication.
 - The app logs a generic failure; detailed driver errors must not be exposed.
 
 ## 4. Event ingestion spike or abuse
 
-Symptoms: event volume far above plan, one IP/domain dominating, Redis/DB
-latency, 429s, or usage-limit emails firing early.
+Symptoms: event volume far above plan, one IP/domain dominating, Redis/DB/
+ClickHouse latency, 429s, or usage-limit emails firing early.
 
 1. Confirm the spike is real and tied to one website/IP:
 
@@ -143,8 +155,8 @@ latency, 429s, or usage-limit emails firing early.
 ## 9. Restore
 
 Follow `docs/BACKUP_AND_RECOVERY.md`. A restore is not complete until the app
-signs in, reads a dashboard, and ingests one event against the restored
-database.
+signs in, reads a dashboard, and ingests one event against both the restored
+PostgreSQL database and ClickHouse (when enabled).
 
 ## 10. Health endpoints
 
@@ -172,3 +184,52 @@ Use `live` for container restarts and `ready` for load-balancer traffic.
 - Usage-limit notices sent once per workspace per period.
 - Retention job ran at 03:30 UTC; usage notices at 04:00 UTC.
 - No unexpected growth in `audit_event`, `billing_event`, or replay storage.
+- The newest PostgreSQL and ClickHouse backups exist and are non-zero.
+- The worker heartbeat is healthy and consumer lag is bounded.
+
+## 13. Kafka -> ClickHouse worker
+
+```bash
+cd /opt/tartly/runtime
+docker compose --env-file .env --profile streaming ps worker
+docker compose --env-file .env --profile streaming logs --tail=100 worker
+```
+
+- `healthy` means the worker wrote `/app/scripts/.worker-heartbeat` in the
+  last 60 seconds. It does **not** prove there is no consumer lag; check the
+  Kafka consumer group when ingestion looks stale.
+- If the worker is down, the app still writes events to Kafka (so PostgreSQL
+  attribution keeps working), but ClickHouse-backed dashboards stay stale.
+  Restart it with:
+  `docker compose --env-file .env --profile streaming up -d --no-deps worker`.
+- If Kafka itself is down, the app falls back to direct ClickHouse inserts.
+  Restart Kafka and confirm the worker reconnects.
+- A poison message is logged and skipped; it never blocks a partition.
+
+## 14. ClickHouse
+
+```bash
+cd /opt/tartly/runtime
+docker compose --env-file .env ps clickhouse
+docker compose --env-file .env exec -T clickhouse clickhouse-client \
+  --user talivia --password "$CLICKHOUSE_PASSWORD" --query "SELECT 1"
+```
+
+- The container is capped at 2 GB and ClickHouse is capped at 1.5 GB. If the
+  kernel OOM-kills it, reduce concurrent analytics use or move ClickHouse to a
+  larger host; do not raise the cap without checking total host memory.
+- Schema changes are applied by the one-shot `clickhouse-migrate` service on
+  every deploy. A failed migration stops the deploy before the app restarts.
+- Native backups live in `/opt/tartly/backups/clickhouse`.
+
+## 15. Backup verification
+
+Once a week, confirm the newest files and sizes:
+
+```bash
+find /opt/tartly/backups/postgres -name '*.dump' -printf '%TY-%Tm-%Td %s %p\n' | sort | tail -3
+find /opt/tartly/backups/clickhouse -maxdepth 1 -mindepth 1 -type d -printf '%TY-%Tm-%Td %p\n' | sort | tail -3
+```
+
+A backup job that writes 0 bytes is a failure, not a backup. Record the result
+and the last restore rehearsal date in `docs/PHASES.md`.

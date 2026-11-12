@@ -39,8 +39,9 @@ with p50 96 ms / p95 140 ms / p99 558 ms. The larger run is the recorded result.
 - 1M RPS, distributed load, or multi-region behaviour.
 - A sustained 30–60 minute soak (memory leaks, GC, socket exhaustion).
 - Replay/recording ingestion, which is heavier and separately metered.
-- Neon network latency; this run used a local PostgreSQL.
-- Behaviour with Redis/ClickHouse enabled.
+- Managed-database network latency; this run used a local PostgreSQL.
+- The production Redis/ClickHouse/Kafka path. This run used PostgreSQL only;
+  the deployed streaming path is **UNVERIFIED** under load.
 
 ## Bug found and fixed by this probe
 

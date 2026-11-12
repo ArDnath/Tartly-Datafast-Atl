@@ -4,10 +4,14 @@ This document is complete enough to bring a new developer from a clean
 checkout to a running app. It covers local, preview, and production.
 
 - App: Next.js 16 / React 19 / Prisma 7 (see `package.json`).
-- Database: PostgreSQL 17 locally; **Neon PostgreSQL** in preview/production.
+- Database: PostgreSQL 17 locally and in production. Production runs its own
+  PostgreSQL container on the VPS; there is no Neon dependency.
+- Cache and analytics store: Redis, ClickHouse, and Kafka run as containers in
+  production. Locally they are optional.
 - Package manager: **pnpm 10** (`pnpm-lock.yaml`). Do not use npm/yarn.
-- In this fork, analytics events and replay payloads are stored in PostgreSQL
-  unless `CLICKHOUSE_URL` is set. See `docs/SAAS_CONVERSION_AUDIT.md` §3.
+- When `CLICKHOUSE_URL` is set, analytics queries read ClickHouse and events
+  are mirrored to PostgreSQL for attribution. See
+  `docs/SAAS_CONVERSION_AUDIT.md` §3 and `deploy/production/docker-compose.yml`.
 
 ---
 
@@ -15,9 +19,10 @@ checkout to a running app. It covers local, preview, and production.
 
 - Node.js 22.12+ or 24.x (`engines` in `package.json`).
 - pnpm 10.10+ (`corepack enable` can provide it).
-- PostgreSQL 17 (local Docker or Neon).
-- Optional: Redis (website/session caching and collector helpers), ClickHouse +
-  Kafka (large event volumes), S3-compatible storage.
+- PostgreSQL 17 (local Docker or the production Compose stack).
+- Optional locally: Redis (website/session caching and collector helpers),
+  ClickHouse + Kafka (event store and transport), S3-compatible storage. All
+  four are provisioned by `deploy/production/docker-compose.yml`.
 
 ---
 
@@ -26,11 +31,16 @@ checkout to a running app. It covers local, preview, and production.
 Copy `.env.example` to `.env`. The canonical list lives there with comments.
 The minimum to boot:
 
-| Variable                | Required           | Purpose                                                                                 |
-| ----------------------- | ------------------ | --------------------------------------------------------------------------------------- |
-| `DATABASE_URL`          | yes                | Runtime connection. On Neon: **pooled** host.                                           |
-| `DATABASE_URL_UNPOOLED` | production/preview | **Direct** host for `prisma migrate` and the CLI. Falls back to `DATABASE_URL` locally. |
-| `APP_SECRET`            | yes                | Signs auth tokens, encrypts provider credentials. At least 32 bytes.                    |
+| Variable                   | Required   | Purpose                                                                                  |
+| -------------------------- | ---------- | ---------------------------------------------------------------------------------------- |
+| `DATABASE_URL`             | yes        | Runtime PostgreSQL connection. In production: `postgres:5432`.                           |
+| `DATABASE_URL_UNPOOLED`    | production | Direct connection for `prisma migrate` and the CLI. The Docker stack uses the same host. |
+| `APP_SECRET`               | yes        | Signs auth tokens, encrypts provider credentials. At least 32 bytes.                     |
+| `POSTGRES_PASSWORD`        | production | Password for the PostgreSQL container; must match both database URLs.                    |
+| `REDIS_PASSWORD`           | production | Password for Redis; must match `REDIS_URL`.                                              |
+| `CLICKHOUSE_PASSWORD`      | production | Password for the ClickHouse user; must match `CLICKHOUSE_URL`.                           |
+| `CLICKHOUSE_URL`           | production | Enables ClickHouse analytics. The stack migrates the schema before the app starts.       |
+| `KAFKA_URL`/`KAFKA_BROKER` | production | Enables Kafka transport and the Kafka-to-ClickHouse worker.                              |
 
 Generate the secret:
 
@@ -44,9 +54,11 @@ with a re-encryption plan.
 
 Optional groups (see `.env.example`):
 
-- Redis: `REDIS_URL`.
+- Redis: `REDIS_URL`. Production also sets `REDIS_PASSWORD`.
 - ClickHouse/Kafka: `CLICKHOUSE_URL`, `KAFKA_URL`, `KAFKA_BROKER`,
-  `KAFKA_SASL_MECHANISM`.
+  `KAFKA_SASL_MECHANISM`. Production also sets `CLICKHOUSE_PASSWORD`.
+- Self-hosted production passwords: `POSTGRES_PASSWORD`, `REDIS_PASSWORD`,
+  `CLICKHOUSE_PASSWORD`. Compose reads these; the URLs read the same values.
 - Analytics provider fallback secrets: `STRIPE_WEBHOOK_SECRET`,
   `LEMONSQUEEZY_WEBHOOK_SECRET`, `POLAR_WEBHOOK_SECRET`.
 - Platform billing (context A): `DODO_PAYMENTS_API_KEY`,
@@ -108,14 +120,15 @@ SameSite=Lax cookie (`rl_session`). Password changes and resets revoke every
 session. Login, signup, password-reset, and resend endpoints are rate limited in
 PostgreSQL, so Redis is not required for brute-force protection.
 
-### Option B — Neon development branch
+### Option B — remote PostgreSQL for local development (optional)
 
-Use the `development` branch connection strings (see
-`docs/NEON_BRANCHING.md`):
+A developer may use any remote PostgreSQL 17+ database for local development.
+This is not the production architecture; production runs its own PostgreSQL
+container on the VPS.
 
 ```dotenv
-DATABASE_URL=postgresql://...-pooler.../tartly?sslmode=require
-DATABASE_URL_UNPOOLED=postgresql://...direct.../tartly?sslmode=require
+DATABASE_URL=postgresql://user:password@host:5432/database
+DATABASE_URL_UNPOOLED=postgresql://user:password@host:5432/database
 ```
 
 Then:
@@ -126,7 +139,7 @@ pnpm exec prisma migrate deploy
 pnpm dev
 ```
 
-Never point a local `.env` at the production branch.
+Never point a local `.env` at the production database.
 
 ### Install note
 
@@ -153,8 +166,9 @@ pnpm exec prisma studio            # inspect data
 
 `prisma.config.ts` selects `DATABASE_URL_UNPOOLED` first and falls back to
 `DATABASE_URL`. The runtime Prisma client (`src/lib/prisma.ts`) always uses
-`DATABASE_URL` (pooled). This split is deliberate: migrations need a direct
-session; serverless runtime needs pooling.
+`DATABASE_URL`. This split is deliberate: migrations need a direct session,
+while runtime traffic may go through a pooler. The production Docker stack uses
+the internal PostgreSQL service for both values.
 
 ---
 
@@ -186,35 +200,54 @@ pnpm build
 
 ### Production variables
 
-Set these in the host's secret manager, not in the repository:
+The production runtime is the self-hosted Compose stack in
+`deploy/production/docker-compose.yml`. Set these in
+`/opt/tartly/runtime/.env` (mode 600), not in the repository:
 
-- `DATABASE_URL` (pooled), `DATABASE_URL_UNPOOLED` (direct, for deploy jobs).
-- `APP_SECRET` (32+ random bytes).
-- `REDIS_URL` if using multiple instances (sessions, rate limits, cache).
-- Provider/platform keys when those phases ship.
+- `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `CLICKHOUSE_PASSWORD` (32+ random
+  bytes each). Generate with `openssl rand -hex 32`.
+- `DATABASE_URL` and `DATABASE_URL_UNPOOLED` pointing at
+  `postgres:5432`, with the same PostgreSQL password.
+- `REDIS_URL` pointing at `redis:6379`, with the same Redis password.
+- `CLICKHOUSE_URL` pointing at `clickhouse:8123/talivia` (leave it empty to
+  keep analytics in PostgreSQL).
+- `KAFKA_URL` and `KAFKA_BROKER` pointing at `kafka:9092` (leave them empty to
+  write directly to ClickHouse).
+- `APP_SECRET` (32+ random bytes; never rotate casually).
+- Google OAuth, Resend, and Dodo platform-billing credentials.
+- `APP_URL`, `TARTLY_DOMAIN`, `ACME_EMAIL`, `TARTLY_APP_DIR`.
+
+The complete template is `deploy/production/.env.example`.
 
 ### Deployment notes
 
+- `deploy.sh` builds `tartly-app:<sha>`, starts the data services, backs up
+  PostgreSQL, applies Prisma and ClickHouse migrations, restarts the app and
+  worker, and verifies the exact running SHA. See `docs/CI_CD.md`.
 - Use `output: 'standalone'` (already configured) if running containers.
 - The tracker and recorder are served from `public/script.js` and
   `public/recorder.js`; allow cross-origin access to `/script.js`.
 - Provider webhook URLs are derived from the incoming request origin. Behind a
   proxy, forward `Host` and `X-Forwarded-Proto`.
-- Do not run preview deployments against the production database. Use a Neon
-  preview branch (see `docs/NEON_BRANCHING.md`).
+- Do not run preview deployments against the production database. Use a copy
+  restored from `docs/BACKUP_AND_RECOVERY.md`.
+- The daily backup cron writes to `/opt/tartly/backups`; copy that directory
+  off-host with encryption. See `docs/BACKUP_AND_RECOVERY.md`.
 
 ---
 
 ## 7. Troubleshooting
 
-| Symptom                             | Cause                                        | Fix                                                                         |
-| ----------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------- |
-| `APP_SECRET must be ...`            | missing/short/placeholder                    | `openssl rand -hex 32`, restart                                             |
-| `Can't reach database server`       | wrong host/port, Neon compute suspended      | check `DATABASE_URL`; the app retries reads on cold start                   |
-| `prepared statement already exists` | transaction pooling without `pgbouncer=true` | use the Neon **pooled** string for runtime and direct for migrations        |
-| Migrations hang in production       | migration job used the pooled host           | set `DATABASE_URL_UNPOOLED`                                                 |
-| `sharp` install error               | source build attempted                       | ignored via `pnpm.ignoredBuiltDependencies`; `pnpm rebuild sharp` if needed |
-| Events not arriving                 | ad blocker/CSP/wrong domain                  | see onboarding troubleshooting (Phase 8)                                    |
+| Symptom                            | Cause                                           | Fix                                                                                                  |
+| ---------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `APP_SECRET must be ...`           | missing/short/placeholder                       | `openssl rand -hex 32`, restart                                                                      |
+| `Can't reach database server`      | PostgreSQL container down or wrong URL          | `docker compose ps postgres`; check logs and `DATABASE_URL`                                          |
+| Verified password authentication   | URL password does not match `POSTGRES_PASSWORD` | update both values in `.env` and recreate `postgres`; never change the DB password in place          |
+| Migrations hang in production      | `DATABASE_URL_UNPOOLED` is missing/wrong        | set it to the internal `postgres` URL                                                                |
+| ClickHouse health stays `starting` | user-level setting in `config.d` or OOM         | check `clickhouse-server.err.log`; only server-level settings belong in `config.d`                   |
+| Events missing from ClickHouse     | worker down while Kafka is enabled              | `docker compose --profile streaming ps worker`; inspect logs; events fall back only on Kafka failure |
+| `sharp` install error              | source build attempted                          | ignored via `pnpm.ignoredBuiltDependencies`; `pnpm rebuild sharp` if needed                          |
+| Events not arriving                | ad blocker/CSP/wrong domain                     | see onboarding troubleshooting (Phase 8)                                                             |
 
 ---
 

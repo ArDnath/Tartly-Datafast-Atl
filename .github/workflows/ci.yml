@@ -80,6 +80,16 @@ jobs:
       - name: Validate deployment scripts and smoke harness
         run: pnpm gate:deploy
 
+      # Rendering the full production stack catches a broken service,
+      # healthcheck, profile, or required variable before a merge can deploy it.
+      - name: Validate production compose stack
+        run: |
+          cp deploy/production/.env.example deploy/production/.env
+          trap 'rm -f deploy/production/.env' EXIT
+          docker compose -f deploy/production/docker-compose.yml \
+            --env-file deploy/production/.env \
+            --profile streaming --profile tools config >/dev/null
+
       - name: Test with coverage
         run: pnpm test:coverage
 

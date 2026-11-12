@@ -57,3 +57,6 @@ yarn-error.log*
 
 # Local, user-owned PostgreSQL cluster and runtime files (no Docker needed)
 .local/
+
+# Production worker health heartbeat (local runs)
+scripts/.worker-heartbeat
