@@ -4,17 +4,18 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useEffect, useState } from 'react';
 import { BrandMark } from '@/components/brand/BrandMark';
-import { useApi } from '@/components/hooks';
+import { useApi, useModified } from '@/components/hooks';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
-import { BRAND } from '@/lib/brand';
+import { sanitizeOnboardingNextPath } from '@/features/onboarding/lib/next-path';
 import {
   getStepIndex,
   type OnboardingStep,
   resolveOnboardingStep,
 } from '@/features/onboarding/lib/steps';
-import { sanitizeOnboardingNextPath } from '@/features/onboarding/lib/next-path';
 import { normalizeWebsiteDomain } from '@/features/onboarding/lib/website-domain';
+import { useActiveWorkspace } from '@/features/workspaces/hooks/useActiveWorkspace';
+import { BRAND } from '@/lib/brand';
 import { BackGlyph, Spinner } from './components/OnboardingControls';
 import styles from './Onboarding.module.css';
 import { PaymentStep } from './steps/PaymentStep';
@@ -61,14 +62,23 @@ interface OnboardingWebsiteResponse {
 export function OnboardingFlow({
   initialWebsite,
   nextPath,
+  mode = 'first-run',
+  onFinished,
 }: {
   initialWebsite?: string;
   nextPath?: string;
+  /** `add-website` reuses this exact flow from the signed-in app. */
+  mode?: 'first-run' | 'add-website';
+  onFinished?: (websiteId: string) => void;
 } = {}) {
   const router = useRouter();
   const { get: apiGet, post: apiPost } = useApi();
+  const { touch } = useModified();
   const { user, setUser, isLoading: authLoading } = useLoginQuery();
+  const { activeWorkspace, workspaces, isLoading: workspacesLoading } = useActiveWorkspace();
   const userId = user?.id;
+  const isAddMode = mode === 'add-website';
+  const pageClassName = `${styles.page}${isAddMode ? ` ${styles.embedded}` : ''}`;
 
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -82,6 +92,10 @@ export function OnboardingFlow({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (isAddMode) {
+      return;
+    }
+
     if (authLoading) {
       return;
     }
@@ -202,7 +216,50 @@ export function OnboardingFlow({
     return () => {
       cancelled = true;
     };
-  }, [apiGet, authLoading, router, userId]);
+  }, [apiGet, authLoading, isAddMode, router, userId]);
+
+  useEffect(() => {
+    if (!isAddMode || authLoading) {
+      return;
+    }
+
+    if (!userId) {
+      router.replace(`/login?returnUrl=${encodeURIComponent('/app/new')}`);
+      return;
+    }
+
+    if (workspacesLoading || ready) {
+      return;
+    }
+
+    const target =
+      activeWorkspace || workspaces.find(item => item.role === 'OWNER') || workspaces[0] || null;
+
+    if (!target) {
+      setLoadError('Open a workspace before adding a website.');
+      setReady(true);
+      return;
+    }
+
+    if (target.role !== 'OWNER' && target.role !== 'ADMIN') {
+      setLoadError('Only workspace owners and admins can add a website.');
+      setReady(true);
+      return;
+    }
+
+    setWorkspace(target);
+    setStep('website');
+    setReady(true);
+  }, [
+    activeWorkspace,
+    authLoading,
+    isAddMode,
+    ready,
+    router,
+    userId,
+    workspaces,
+    workspacesLoading,
+  ]);
 
   function go(next: OnboardingStep, nextDirection: Direction = 'forward') {
     setError(null);
@@ -225,7 +282,22 @@ export function OnboardingFlow({
     setBusy(true);
 
     try {
-      if (website) {
+      if (isAddMode && !website) {
+        if (!workspace) {
+          setError('Open a workspace before adding a website.');
+          return;
+        }
+
+        const created = (await apiPost('/websites', {
+          domain: normalized,
+          name: normalized,
+          workspaceId: workspace.id,
+        })) as WebsiteSummary;
+
+        setWebsite(created);
+        setDomain(normalized);
+        touch('websites');
+      } else if (website) {
         const nextWebsite =
           website.domain === normalized
             ? website
@@ -269,6 +341,21 @@ export function OnboardingFlow({
       return;
     }
 
+    if (isAddMode) {
+      if (!website) {
+        setError('Create the website before finishing setup.');
+        return;
+      }
+
+      if (onFinished) {
+        onFinished(website.id);
+      } else {
+        router.replace(`/app/${website.id}`);
+      }
+
+      return;
+    }
+
     setError(null);
     setBusy(true);
 
@@ -294,7 +381,7 @@ export function OnboardingFlow({
 
   if (authLoading || !ready) {
     return (
-      <main className={styles.page} aria-label={`${BRAND.name} setup`}>
+      <main className={pageClassName} aria-label={`${BRAND.name} setup`}>
         <ThemeToggle floating />
         <div className={styles.loading}>
           <BrandMark size={48} />
@@ -307,7 +394,7 @@ export function OnboardingFlow({
 
   if (loadError) {
     return (
-      <main className={styles.page} aria-label={`${BRAND.name} setup`}>
+      <main className={pageClassName} aria-label={`${BRAND.name} setup`}>
         <ThemeToggle floating />
         <div className={styles.loading}>
           <BrandMark size={48} />
@@ -329,15 +416,17 @@ export function OnboardingFlow({
   const isFirstStep = currentIndex === 0;
 
   return (
-    <main className={styles.page} aria-label={`${BRAND.name} setup`}>
+    <main className={pageClassName} aria-label={`${BRAND.name} setup`}>
       <header className={styles.header}>
         <button
           type="button"
           className={styles.backButton}
-          aria-label="Go back"
-          disabled={isFirstStep || busy}
+          aria-label={isFirstStep && isAddMode ? 'Back to websites' : 'Go back'}
+          disabled={(isFirstStep && !isAddMode) || busy}
           onClick={() => {
-            if (step === 'tracker') {
+            if (isFirstStep && isAddMode) {
+              router.push('/app');
+            } else if (step === 'tracker') {
               go('website', 'backward');
             } else if (step === 'payments') {
               go('tracker', 'backward');
@@ -395,8 +484,8 @@ export function OnboardingFlow({
       </div>
 
       <footer className={styles.footer}>
-        <Link className={styles.signOut} href="/logout">
-          Sign out
+        <Link className={styles.signOut} href={isAddMode ? '/app' : '/logout'}>
+          {isAddMode ? 'Cancel' : 'Sign out'}
         </Link>
       </footer>
     </main>

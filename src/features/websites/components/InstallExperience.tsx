@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { type ReactNode, useMemo, useState } from 'react';
 import type { PreflightResponse } from '@/features/analytics/lib/preflight-types';
 import {
+  buildAgentPrompt,
   FIRST_PARTY_GUIDES,
   getFirstPartyGuideForHost,
   getInstallGuide,
   getInstallSnippet,
+  getStandardGuideForHost,
   type InstallGuide,
   type InstallMode,
   STANDARD_GUIDES,
@@ -72,8 +74,9 @@ export function InstallExperience({
 }: InstallExperienceProps) {
   const { data: preflight, loading, check } = useInstallPreflight(websiteId);
   const [manualMode, setManualMode] = useState<InstallMode | null>(null);
-  const [standardGuideSlug, setStandardGuideSlug] = useState('html');
+  const [manualStandardGuideSlug, setManualStandardGuideSlug] = useState<string | null>(null);
   const [firstPartyGuideSlug, setFirstPartyGuideSlug] = useState<string | null>(null);
+  const [installMethod, setInstallMethod] = useState<'manual' | 'agent'>('manual');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [copyError, setCopyError] = useState<string | null>(null);
 
@@ -87,7 +90,15 @@ export function InstallExperience({
   const firstPartyGuide =
     getInstallGuide(firstPartyGuideSlug || getFirstPartyGuideForHost(detectedHost.id).slug) ??
     getFirstPartyGuideForHost(detectedHost.id);
-  const standardGuide = getInstallGuide(standardGuideSlug) ?? STANDARD_GUIDES[3];
+  const detectedStandardGuide = getStandardGuideForHost(detectedHost.id);
+  // Settings keeps the canonical plain-HTML snippet; onboarding selects the
+  // detected framework so the first install is actually framework-specific.
+  const defaultStandardGuide =
+    variant === 'onboarding'
+      ? detectedStandardGuide
+      : getInstallGuide('html') || detectedStandardGuide;
+  const standardGuide =
+    (manualStandardGuideSlug && getInstallGuide(manualStandardGuideSlug)) || defaultStandardGuide;
   const guide: InstallGuide = mode === 'first-party' ? firstPartyGuide : standardGuide;
 
   const installContext = {
@@ -129,6 +140,14 @@ export function InstallExperience({
       ...suggestedHeaders,
     ].join('\n');
   }, [detectedHost.confidence, detectedHost.label, missingDirectives, mode, preflight, websiteUrl]);
+
+  const agentPrompt = buildAgentPrompt({
+    guide,
+    context: installContext,
+    websiteUrl,
+    detectedHost: detectedHost.label,
+    policy: preflight?.csp,
+  });
 
   async function copy(key: string, value: string) {
     setCopyError(null);
@@ -338,7 +357,7 @@ export function InstallExperience({
                 if (mode === 'first-party') {
                   setFirstPartyGuideSlug(item.slug);
                 } else {
-                  setStandardGuideSlug(item.slug);
+                  setManualStandardGuideSlug(item.slug);
                 }
               }}
             >
@@ -348,31 +367,88 @@ export function InstallExperience({
         })}
       </div>
 
+      <div className={styles.methodSwitch} role="group" aria-label="Install method">
+        <button
+          type="button"
+          className={`${styles.methodButton} ${
+            installMethod === 'manual' ? styles.methodButtonActive : ''
+          }`}
+          aria-pressed={installMethod === 'manual'}
+          onClick={() => setInstallMethod('manual')}
+        >
+          Copy the code
+        </button>
+        <button
+          type="button"
+          className={`${styles.methodButton} ${
+            installMethod === 'agent' ? styles.methodButtonActive : ''
+          }`}
+          aria-pressed={installMethod === 'agent'}
+          onClick={() => setInstallMethod('agent')}
+        >
+          Use an AI agent
+        </button>
+      </div>
+
       <div id="install-panel" role="tabpanel" aria-labelledby={`install-tab-${guide.slug}`}>
-        {mode === 'first-party' &&
-          guide.firstParty?.files.map(file =>
-            renderCodeBlock({
-              key: `file-${file.path}`,
-              label: file.label,
-              path: file.path,
-              code: file.code,
-              language: file.language,
-            }),
-          )}
+        {installMethod === 'agent' ? (
+          <section className={styles.agentPanel} aria-label="AI agent prompt">
+            <div className={styles.codeHeader}>
+              <div className={styles.codeHeading}>
+                <span className={styles.codeLabel}>AI agent prompt</span>
+                <span className={styles.codePath}>
+                  Paste into Cursor, Claude Code, Codex, or any coding agent
+                </span>
+              </div>
+              <span className={styles.codeLanguage}>text</span>
+            </div>
+            <pre className={`${styles.codeBlock} ${styles.agentPrompt}`}>
+              <code>{agentPrompt}</code>
+            </pre>
+            <div className={styles.codeFooter}>
+              <button
+                type="button"
+                className={styles.copyButton}
+                onClick={() => void copy('agent-prompt', agentPrompt)}
+              >
+                {copiedKey === 'agent-prompt' ? 'Copied' : 'Copy agent prompt'}
+              </button>
+              <span className={styles.copyFeedback} aria-live="polite">
+                {copiedKey === 'agent-prompt' ? 'Agent prompt copied' : ''}
+              </span>
+            </div>
+          </section>
+        ) : (
+          <>
+            {mode === 'first-party' &&
+              guide.firstParty?.files.map(file =>
+                renderCodeBlock({
+                  key: `file-${file.path}`,
+                  label: file.label,
+                  path: file.path,
+                  code: file.code,
+                  language: file.language,
+                }),
+              )}
 
-        {renderCodeBlock({
-          key: 'snippet',
-          label: 'Snippet',
-          path: mode === 'first-party' ? guide.firstParty?.snippetPath || 'Shared layout' : '',
-          code,
-          language: mode === 'first-party' ? 'html' : guide.language,
-        })}
+            {renderCodeBlock({
+              key: 'snippet',
+              label: 'Snippet',
+              path:
+                mode === 'first-party'
+                  ? guide.firstParty?.snippetPath || 'Shared layout'
+                  : guide.filePath,
+              code,
+              language: mode === 'first-party' ? 'html' : guide.language,
+            })}
 
-        {mode === 'first-party' && guide.firstParty && (
-          <ul className={styles.guideNotes}>
-            <li>{guide.firstParty.policyNote}</li>
-            <li>{guide.firstParty.cookiesNote}</li>
-          </ul>
+            {mode === 'first-party' && guide.firstParty && (
+              <ul className={styles.guideNotes}>
+                <li>{guide.firstParty.policyNote}</li>
+                <li>{guide.firstParty.cookiesNote}</li>
+              </ul>
+            )}
+          </>
         )}
 
         <Link className={styles.guideLink} href={`/docs/install#${guide.slug}`}>

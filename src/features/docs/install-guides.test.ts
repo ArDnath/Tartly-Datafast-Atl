@@ -1,10 +1,12 @@
 import { expect, test } from 'vitest';
 import {
+  buildAgentPrompt,
   FIRST_PARTY_BASE_PATH,
   FIRST_PARTY_GUIDES,
   getFirstPartyGuideForHost,
   getInstallGuide,
   getInstallSnippet,
+  getStandardGuideForHost,
   INSTALL_GUIDES,
   INSTALL_TROUBLESHOOTING,
   STANDARD_GUIDES,
@@ -197,4 +199,69 @@ test('the host map selects the matching first-party guide', () => {
   expect(getFirstPartyGuideForHost('netlify').slug).toBe('netlify-first-party');
   expect(getFirstPartyGuideForHost('cloudflare').slug).toBe('cloudflare-first-party');
   expect(getFirstPartyGuideForHost('unknown').slug).toBe('nextjs-first-party');
+});
+
+test('the detected host selects the matching standard guide', () => {
+  expect(getStandardGuideForHost('nextjs').slug).toBe('nextjs');
+  expect(getStandardGuideForHost('vercel').slug).toBe('html');
+  expect(getStandardGuideForHost('netlify').slug).toBe('html');
+  expect(getStandardGuideForHost('cloudflare').slug).toBe('html');
+  expect(getStandardGuideForHost('shopify').slug).toBe('other');
+  expect(getStandardGuideForHost('wordpress').slug).toBe('other');
+  expect(getStandardGuideForHost('unknown').slug).toBe('html');
+  expect(getStandardGuideForHost(null).slug).toBe('html');
+});
+
+test('every guide names the file a customer edits', () => {
+  for (const guide of INSTALL_GUIDES) {
+    expect(guide.filePath.length).toBeGreaterThan(0);
+  }
+});
+
+test('agent prompt includes the exact snippet, file, and CSP guardrail', () => {
+  const guide = getInstallGuide('nextjs');
+
+  if (!guide) {
+    throw new Error('Next.js guide missing');
+  }
+
+  const prompt = buildAgentPrompt({
+    guide,
+    context,
+    websiteUrl: 'https://example.com',
+    detectedHost: 'Next.js',
+  });
+
+  expect(prompt).toContain('# Install Tartly analytics');
+  expect(prompt).toContain('https://example.com');
+  expect(prompt).toContain(context.websiteId);
+  expect(prompt).toContain(guide.filePath);
+  expect(prompt).toContain('Do not remove, weaken, or disable any Content-Security-Policy');
+  expect(prompt).toContain('website ID');
+  expect(prompt).toContain('https://analytics.example.com/script.js');
+  expect(prompt).toContain('Do not place the script in <head>');
+  expect(prompt).toContain('Check now');
+  expect(prompt).not.toContain('{{');
+});
+
+test('first-party agent prompt includes every proxy file and no Tartly origin', () => {
+  const guide = getInstallGuide('nextjs-first-party');
+
+  if (!guide) {
+    throw new Error('Next.js first-party guide missing');
+  }
+
+  const prompt = buildAgentPrompt({
+    guide,
+    context: { ...context, mode: 'first-party' },
+    websiteUrl: 'https://example.com',
+    detectedHost: 'Next.js',
+    policy: { scriptBlocked: true, suggestedHeaders: ["script-src 'self' https://tartly.in"] },
+  });
+
+  expect(prompt).toContain('first-party proxy');
+  expect(prompt).toContain('app/%5Ftartly/[...path]/route.ts');
+  expect(prompt).toContain('src="/_tartly/script.js"');
+  expect(prompt).toContain('Do not apply that header change yourself');
+  expect(prompt).not.toContain('https://tartly.in/script.js');
 });

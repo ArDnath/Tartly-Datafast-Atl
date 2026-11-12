@@ -1,0 +1,134 @@
+.reminder {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 45;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: min(340px, calc(100vw - 40px));
+  padding: 14px 14px 14px 16px;
+  border: 1px solid var(--talivia-card-border);
+  border-radius: 14px;
+  background: var(--talivia-card-background);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.16);
+  color: var(--text-primary);
+  animation: reminder-in 220ms ease-out both;
+}
+
+.dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-top: 19px;
+  border-radius: 999px;
+  background: var(--accent-text);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-text) 16%, transparent);
+}
+
+.copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.body {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  margin-top: 9px;
+  padding: 0 10px;
+  border: 1px solid var(--talivia-card-border);
+  border-radius: 7px;
+  background: var(--surface-subtle);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+.action:hover {
+  border-color: var(--border-strong, var(--talivia-card-border));
+  background: var(--surface-subtle-hover);
+}
+
+.action:focus-visible,
+.close:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+
+.close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: -2px -2px 0 0;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.close:hover {
+  border-color: var(--talivia-card-border);
+  color: var(--text-primary);
+}
+
+@keyframes reminder-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .reminder {
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reminder {
+    animation: none;
+  }
+}

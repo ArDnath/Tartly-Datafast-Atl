@@ -170,8 +170,16 @@ pnpm smoke:local
 The smoke test uses the public HTTP API only:
 
 ```
-register → workspace → website → POST /api/send → GET /api/websites/:id/stats
+register → onboarding workspace + website → POST /api/send
+  → GET /api/websites/install-status → GET /api/websites/:id/stats
 ```
+
+The registration flow intentionally creates only the user; the first website
+comes from `POST /api/onboarding/website`, the same request the UI uses. Since
+there is no free tier, the smoke helper also marks its own local workspace as
+active so ingestion can be exercised without a Dodo subscription. It refuses to
+do this when either the app or the database is not local. Disable the helper
+with `SMOKE_ACTIVATE_WORKSPACE=0` if you want to test the unpaid rejection path.
 
 Expected output:
 
@@ -182,7 +190,7 @@ Expected output:
   "visitors": 1,
   "visits": 1
 }
-OK: ingestion and analytics query are working.
+OK: ingestion, analytics query, and install-status reminder are working.
 ```
 
 Each run creates a new account, and signup is rate-limited to 5 attempts per

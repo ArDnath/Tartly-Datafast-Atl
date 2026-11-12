@@ -37,6 +37,14 @@ pm2.yml
 .tool-versions
 .claude
 .agents
+.commandcode
+.devin
+.grok
+.junie
+.kimchi
+.kiro
+.windsurf
+.zencoder
 tmpclaude*
 CLAUDE.md
 nul
