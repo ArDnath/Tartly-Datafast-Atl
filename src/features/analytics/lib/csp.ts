@@ -180,15 +180,27 @@ export function extractMetaCsp(html: string | null | undefined): string[] {
   return policies;
 }
 
+const HTML_ENTITIES: Record<string, string> = {
+  '&quot;': '"',
+  '&#39;': "'",
+  '&#x27;': "'",
+  '&apos;': "'",
+  '&amp;': '&',
+  '&lt;': '<',
+  '&gt;': '>',
+};
+
 function decodeHtmlEntities(value: string) {
-  return value
-    .replace(/&quot;/gi, '"')
-    .replace(/&#0*39;/g, "'")
-    .replace(/&#x0*27;/gi, "'")
-    .replace(/&apos;/gi, "'")
-    .replace(/&amp;/gi, '&')
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>');
+  // Decode in one pass. Sequential replaces can double-unescape values such
+  // as `&amp;quot;` and are flagged by CodeQL (js/double-escaping).
+  return value.replace(/&(?:quot|#0*39|#x0*27|apos|amp|lt|gt);/gi, entity => {
+    const normalized = entity
+      .toLowerCase()
+      .replace(/^&#0+/, '&#')
+      .replace(/^&#x0+/, '&#x');
+
+    return HTML_ENTITIES[normalized] ?? entity;
+  });
 }
 
 function headerValues(headers: Record<string, string[]>, name: string) {

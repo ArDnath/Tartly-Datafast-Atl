@@ -133,6 +133,12 @@ test('meta CSP accepts single quotes and attribute reordering', () => {
   expect(extractMetaCsp(html)).toEqual(["script-src 'self'"]);
 });
 
+test('meta CSP entity decoding is single-pass and does not double-unescape', () => {
+  const html = `<meta http-equiv="Content-Security-Policy" content="script-src &amp;quot;self&amp;quot;">`;
+
+  expect(extractMetaCsp(html)).toEqual(['script-src &quot;self&quot;']);
+});
+
 test('script-src-elem overrides script-src for script elements', () => {
   const analysis = analyze(
     "script-src https://tartly.in; script-src-elem 'self'; connect-src https://tartly.in",
