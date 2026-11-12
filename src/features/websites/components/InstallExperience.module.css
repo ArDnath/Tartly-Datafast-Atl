@@ -1,0 +1,458 @@
+.root {
+  --ie-border: var(--rl-border, var(--border-default, rgba(120, 120, 130, 0.22)));
+  --ie-card: var(--rl-card, var(--talivia-card-background, #ffffff));
+  --ie-muted: var(--rl-muted-fg, var(--text-muted, #6b6b76));
+  --ie-fg: var(--rl-fg, var(--text-primary, #17171b));
+  --ie-blush: var(--rl-blush, var(--accent-text, #a94f76));
+  --ie-sunken: var(--surface-subtle, rgba(120, 120, 130, 0.06));
+  --ie-success: var(--status-success, #2dbf72);
+  --ie-danger: var(--rl-danger, var(--status-error-text, #bb3a3a));
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  color: var(--ie-fg);
+}
+
+.firstPartyCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--ie-blush) 38%, var(--ie-border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ie-blush) 7%, var(--ie-card));
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--ie-blush);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.cardBody {
+  margin: 0;
+  color: var(--ie-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.cardNote {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.note {
+  margin: 0;
+  color: var(--ie-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.noteStack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.checking {
+  margin: 0;
+  color: var(--ie-muted);
+  font-size: 11px;
+  font-style: italic;
+}
+
+.textAction {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ie-blush);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.textAction:hover {
+  color: var(--ie-fg);
+}
+
+.textAction:focus-visible,
+.copyButton:focus-visible,
+.secondaryButton:focus-visible,
+.statusAction:focus-visible,
+.tab:focus-visible {
+  outline: 2px solid var(--focus-ring-color, var(--ie-blush));
+  outline-offset: 2px;
+}
+
+.advanced {
+  width: 100%;
+  color: var(--ie-muted);
+  font-size: 11px;
+}
+
+.advanced summary {
+  cursor: pointer;
+}
+
+.advancedCode {
+  margin: 8px 0 0;
+  padding: 10px;
+  overflow: auto;
+  border: 1px solid var(--ie-border);
+  border-radius: 8px;
+  background: var(--ie-sunken);
+  color: var(--ie-fg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.installBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.detected {
+  margin: 0;
+  color: var(--ie-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 3px;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  flex: none;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ie-muted);
+  font: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+.tab:hover {
+  color: var(--ie-fg);
+}
+
+.tabActive {
+  border-color: var(--ie-border);
+  background: var(--ie-sunken);
+  color: var(--ie-fg);
+}
+
+.codeSection {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--ie-border);
+  border-radius: 10px;
+  background: var(--ie-card);
+}
+
+.codeSection + .codeSection {
+  margin-top: 10px;
+}
+
+.codeHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--ie-border);
+  background: var(--ie-sunken);
+}
+
+.codeHeading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.codeLabel {
+  color: var(--ie-fg);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.codePath {
+  overflow-wrap: anywhere;
+  color: var(--ie-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.codeLanguage {
+  flex: none;
+  color: var(--ie-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.codeBlock {
+  max-height: 230px;
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  color: var(--ie-fg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.codeFooter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-top: 1px solid var(--ie-border);
+}
+
+.copyButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--ie-border);
+  border-radius: 6px;
+  background: var(--ie-sunken);
+  color: var(--ie-fg);
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.copyButton:hover {
+  border-color: color-mix(in srgb, var(--ie-blush) 45%, var(--ie-border));
+  background: color-mix(in srgb, var(--ie-blush) 8%, var(--ie-sunken));
+}
+
+.copyFeedback {
+  color: var(--ie-muted);
+  font-size: 10px;
+}
+
+.guideNotes {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 10px 0 0;
+  padding: 0 0 0 16px;
+  color: var(--ie-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.guideLink {
+  align-self: flex-start;
+  margin-top: 8px;
+  color: var(--ie-blush);
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.guideLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tools {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toolActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--ie-border);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ie-fg);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.secondaryButton:hover:not(:disabled) {
+  border-color: var(--border-strong, var(--ie-border));
+  background: var(--ie-sunken);
+}
+
+.secondaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  margin: 0;
+  color: var(--ie-danger);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.statusCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--ie-border);
+  border-radius: 10px;
+  background: var(--ie-sunken);
+}
+
+.statusCard[data-installed="true"] {
+  border-color: color-mix(in srgb, var(--ie-success) 35%, var(--ie-border));
+  background: color-mix(in srgb, var(--ie-success) 6%, var(--ie-sunken));
+}
+
+.statusDot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: var(--ie-muted);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ie-muted) 14%, transparent);
+}
+
+.statusCard[data-installed="true"] .statusDot {
+  background: var(--ie-success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ie-success) 16%, transparent);
+}
+
+.statusCopy {
+  flex: 1;
+  min-width: 0;
+}
+
+.statusTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.statusDetail {
+  margin: 3px 0 0;
+  color: var(--ie-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.statusAction {
+  flex: none;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ie-blush);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.statusAction:hover {
+  background: var(--ie-sunken);
+}
+
+@media (max-width: 430px) {
+  .firstPartyCard {
+    padding: 13px;
+  }
+
+  .codeHeader {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .tools,
+  .toolActions {
+    width: 100%;
+  }
+
+  .secondaryButton {
+    flex: 1 1 auto;
+  }
+
+  .statusCard {
+    flex-wrap: wrap;
+  }
+
+  .statusAction {
+    margin-left: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab,
+  .copyButton,
+  .secondaryButton {
+    transition: none;
+  }
+}

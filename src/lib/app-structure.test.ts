@@ -124,6 +124,7 @@ const SHARED_LIB_MODULES = new Set([
   'reporting-currency.ts',
   'request.ts',
   'response.ts',
+  'safe-fetch.ts',
   'schema.ts',
   'share-redaction.ts',
   'share-sections.ts',
@@ -235,6 +236,7 @@ describe('application source layout', () => {
       'share/server/[slug]/handler.test.ts',
       'system/server/updates/handler.test.ts',
       'websites/server/[websiteId]/handler.test.ts',
+      'websites/server/[websiteId]/onboarding/preflight/handler.test.ts',
       'websites/server/[websiteId]/payment-provider-connections/handler.test.ts',
       'workspaces/server/[workspaceId]/handler.test.ts',
     ]) {

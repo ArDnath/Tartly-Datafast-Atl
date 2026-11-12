@@ -45,6 +45,9 @@ function DocsNav({ activeSlug, install }: { activeSlug?: string; install?: boole
       >
         Tracker install guides
       </Link>
+      <Link href="/docs/install#strict-security-policy" className={styles.sidebarLink}>
+        Strict security policy
+      </Link>
       <Link href="/docs/install#troubleshooting" className={styles.sidebarLink}>
         Troubleshooting
       </Link>
@@ -182,8 +185,9 @@ function InstallGuides() {
       <p className={styles.eyebrow}>Install</p>
       <h1 className={styles.title}>Install the tracker</h1>
       <p className={styles.lead}>
-        Pick the framework or site builder you deploy. Every guide generates the same script tag
-        from the same website ID, so you can switch guides without changing the data.
+        Pick the framework or site builder you deploy. Every guide uses the same website ID.
+        Standard guides load the hosted tracker; first-party guides proxy it from your own domain
+        when a strict security policy blocks third-party scripts.
       </p>
 
       <aside className={styles.callout} aria-label="Verification status">
@@ -192,6 +196,32 @@ function InstallGuides() {
         <strong>untested at runtime</strong>. Verify with the onboarding check, which reads the real
         event store.
       </aside>
+
+      <section id="strict-security-policy" aria-labelledby="strict-security-policy-title">
+        <h2 id="strict-security-policy-title" className={styles.sectionTitle}>
+          Strict security policy
+        </h2>
+        <p className={styles.body}>
+          If your site blocks third-party scripts, use the first-party install. The tracker and its
+          event endpoint are served from <code>/_tartly</code> on your own domain, so the policy you
+          already have allows them. You do not need to learn or edit your security policy, and the
+          proxy does not forward cookies or authorization headers.
+        </p>
+        <ul className={styles.links}>
+          <li>
+            <a href="#nextjs-first-party">Next.js App Router proxy</a>
+          </li>
+          <li>
+            <a href="#vercel-first-party">Vercel function and rewrite</a>
+          </li>
+          <li>
+            <a href="#netlify-first-party">Netlify edge function</a>
+          </li>
+          <li>
+            <a href="#cloudflare-first-party">Cloudflare Pages Function</a>
+          </li>
+        </ul>
+      </section>
 
       {INSTALL_GUIDES.map(guide => (
         <section key={guide.slug} id={guide.slug} aria-labelledby={`${guide.slug}-title`}>
@@ -210,20 +240,43 @@ function InstallGuides() {
             ))}
           </ol>
 
+          {guide.firstParty?.files.map(file => (
+            <div key={file.path} className={styles.codeBlock}>
+              <div className={styles.codeHeader}>
+                <span>{file.language}</span>
+                <span>{file.path}</span>
+              </div>
+              <pre>
+                <code>{file.code}</code>
+              </pre>
+            </div>
+          ))}
+
           <div className={styles.codeBlock}>
             <div className={styles.codeHeader}>
               <span>{guide.language}</span>
-              <span>{guide.title}</span>
+              <span>
+                {guide.mode === 'first-party'
+                  ? guide.firstParty?.snippetPath || 'Snippet'
+                  : guide.title}
+              </span>
             </div>
             <pre>
               <code>
                 {getInstallSnippet(guide, {
                   websiteId: 'YOUR_WEBSITE_ID',
                   domain: 'example.com',
+                  mode: guide.mode,
                 })}
               </code>
             </pre>
           </div>
+
+          {guide.firstParty && (
+            <p className={styles.recommended}>
+              {guide.firstParty.policyNote} {guide.firstParty.cookiesNote}
+            </p>
+          )}
 
           {guide.notes && (
             <ul className={styles.links}>
@@ -244,6 +297,11 @@ function InstallGuides() {
             <div key={item.title} className={styles.guideCard}>
               <h3>{item.title}</h3>
               <p>{item.detail}</p>
+              {item.href && (
+                <Link href={item.href} className={styles.secondary}>
+                  Read the first-party guide
+                </Link>
+              )}
             </div>
           ))}
         </div>
