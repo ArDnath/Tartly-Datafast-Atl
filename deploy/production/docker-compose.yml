@@ -225,7 +225,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "test -f /tmp/tartly-worker-heartbeat && [ $$(( $$(date +%s) - $$(stat -c %Y /tmp/tartly-worker-heartbeat) )) -lt 60 ]",
+          "test -f /app/scripts/.worker-heartbeat && [ $$(( $$(date +%s) - $$(stat -c %Y /app/scripts/.worker-heartbeat) )) -lt 60 ]",
         ]
       interval: 30s
       timeout: 5s

@@ -195,9 +195,9 @@ docker compose --env-file .env --profile streaming ps worker
 docker compose --env-file .env --profile streaming logs --tail=100 worker
 ```
 
-- `healthy` means the worker wrote `/tmp/tartly-worker-heartbeat` in the last
-  60 seconds. It does **not** prove there is no consumer lag; check the Kafka
-  consumer group when ingestion looks stale.
+- `healthy` means the worker wrote `/app/scripts/.worker-heartbeat` in the
+  last 60 seconds. It does **not** prove there is no consumer lag; check the
+  Kafka consumer group when ingestion looks stale.
 - If the worker is down, the app still writes events to Kafka (so PostgreSQL
   attribution keeps working), but ClickHouse-backed dashboards stay stale.
   Restart it with:

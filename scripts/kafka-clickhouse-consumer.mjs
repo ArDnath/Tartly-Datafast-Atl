@@ -17,10 +17,15 @@
  *   docker compose --env-file .env --profile streaming up -d --no-deps worker
  */
 import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { createClient } from '@clickhouse/client';
 import { Kafka, logLevel } from 'kafkajs';
 
-const HEARTBEAT_FILE = process.env.WORKER_HEARTBEAT_FILE || '/tmp/tartly-worker-heartbeat';
+// Keep the heartbeat outside the OS temp directory. The production image
+// copies scripts/ with the nextjs user as owner, and the Compose health check
+// reads this exact path.
+const HEARTBEAT_FILE =
+  process.env.WORKER_HEARTBEAT_FILE || join(process.cwd(), 'scripts', '.worker-heartbeat');
 
 const TOPIC_TABLE = {
   event: 'website_event',
