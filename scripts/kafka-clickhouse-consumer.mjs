@@ -122,6 +122,24 @@ async function main() {
   await consumer.connect();
   log('info', 'worker.connected', { groupId: GROUP_ID });
 
+  // Create the four topics before subscribing. A quiet production install may
+  // start the worker before the first event, so relying on producer auto-create
+  // would leave the consumer waiting on unknown topics.
+  const admin = kafka.admin();
+  await admin.connect();
+  try {
+    await admin.createTopics({
+      waitForLeaders: true,
+      topics: Object.keys(TOPIC_TABLE).map(topic => ({
+        topic,
+        numPartitions: 1,
+        replicationFactor: 1,
+      })),
+    });
+  } finally {
+    await admin.disconnect().catch(() => {});
+  }
+
   for (const topic of Object.keys(TOPIC_TABLE)) {
     await consumer.subscribe({ topic, fromBeginning: true });
   }
