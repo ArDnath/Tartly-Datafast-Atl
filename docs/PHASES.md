@@ -50,8 +50,8 @@
 - Build state at last check: **green** — `pnpm gate` (Biome format, Biome
   lint, `tsc --noEmit`, coverage-enforced tests, production build) passes.
   Latest local full run (2026-11-13): **217 test files passed / 1 skipped**,
-  **1041 tests passed / 1 skipped**, coverage **67.86% statements / 57.52%
-  branches / 65.34% functions / 68.27% lines**, plus the explicit 48-assertion
+  **1042 tests passed / 1 skipped**, coverage **67.84% statements / 57.47%
+  branches / 65.28% functions / 68.26% lines**, plus the explicit 48-assertion
   PostgreSQL analytics smoke and the recorded load probe.
 - GitHub CI: **green on `main`** (run 43066591765 for `619099b`). The three-job
   pipeline starts PostgreSQL 17, runs format, lint, typecheck, coverage tests,
@@ -153,12 +153,15 @@ shutdown or destructive action should be taken based on this tracker.
   IP/geo caveat, replay body limits, fallback, and an explicit
   no-100%-coverage statement).
 - Verified: `pnpm gate` exit 0 on 2026-11-13 — **217 test files
-  passed / 1 gated skip**, **1041 tests passed / 1 skipped**,
-  coverage **67.86% statements / 57.52% branches /
-  65.34% functions / 68.27% lines**, deploy checks passed, and the
+  passed / 1 gated skip**, **1042 tests passed / 1 skipped**,
+  coverage **67.84% statements / 57.47% branches /
+  65.28% functions / 68.26% lines**, deploy checks passed, and the
   production build was green. The targeted new/updated suites (CSP parser, safe
   fetch, host detection, install guides, preflight handler, onboarding step,
-  settings) passed 83 tests.
+  settings) passed 84 tests. The first CI run also exposed one CodeQL
+  `js/double-escaping` warning in the meta-CSP entity decoder; it was replaced
+  with a single-pass decoder plus a regression test, and the CodeQL check then
+  passed.
 - Manual read-only QA on 2026-11-13 against `https://www.ariyaman.in`:
   `safeFetch` returned HTTP 200 with
   `default-src 'self'; script-src 'self' ...; connect-src 'self' ...` and no
