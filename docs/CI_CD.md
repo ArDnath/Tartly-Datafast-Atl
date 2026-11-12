@@ -360,6 +360,10 @@ rejected before the host is contacted. The script accepts only commits that are
 already on `origin/main`. Database rollback follows
 `docs/BACKUP_AND_RECOVERY.md`.
 
+If you run Compose by hand on the host, export the deployed tag first:
+`export BUILD_VERSION=$(cat /opt/tartly/runtime/last-deploy)`. Read-only
+commands do not need it; `up`, `run`, and `build` do.
+
 ## Merge gate (branch protection)
 
 `main` protection is defined by the repository ruleset

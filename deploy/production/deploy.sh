@@ -61,6 +61,24 @@ env_is_set() {
   [ -n "$(read_env_value "$1")" ]
 }
 
+set_env_value() {
+  # Update one non-secret key in place without echoing the file. Manual compose
+  # commands read .env for the image tag, so it must follow the deployed SHA.
+  local key="$1"
+  local value="$2"
+  local tmp
+  tmp=$(mktemp "$RUNTIME_DIR/.env.XXXXXX")
+  awk -v key="$key" -v value="$value" '
+    BEGIN { found = 0 }
+    index($0, key "=") == 1 { print key "=" value; found = 1; next }
+    { print }
+    END { if (!found) print key "=" value }
+  ' "$RUNTIME_DIR/.env" > "$tmp"
+  chmod 600 "$tmp"
+  chown --reference="$RUNTIME_DIR/.env" "$tmp" 2>/dev/null || true
+  mv "$tmp" "$RUNTIME_DIR/.env"
+}
+
 read_health_version() {
   local body
   body=$(curl --fail --silent --max-time 10 "$HEALTH_URL" 2>/dev/null) || return 1
@@ -133,6 +151,7 @@ rollback() {
     fi
     if wait_for_health "$PREVIOUS_SHA"; then
       printf '%s\n' "$PREVIOUS_SHA" > "$RUNTIME_DIR/last-deploy"
+      set_env_value BUILD_VERSION "$PREVIOUS_SHA"
       DEPLOY_SUCCEEDED=1
       log "rollback to $PREVIOUS_SHA is healthy"
       return 0
@@ -288,6 +307,7 @@ if ! wait_for_health "$TARGET_SHA"; then
 fi
 
 printf '%s\n' "$TARGET_SHA" > "$RUNTIME_DIR/last-deploy"
+set_env_value BUILD_VERSION "$TARGET_SHA"
 DEPLOY_SUCCEEDED=1
 log "deployed $TARGET_SHA successfully"
 log "previous healthy commit was $PREVIOUS_SHA"

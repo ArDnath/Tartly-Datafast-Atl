@@ -127,28 +127,50 @@ Never upload the raw `.dump` or `.env` unencrypted.
 
 ## Restore ClickHouse
 
-ClickHouse backups are native `BACKUP` directories. Restore into an **empty**
-database; do not merge into a live table.
+ClickHouse backups are native `BACKUP` directories. `RESTORE DATABASE` creates
+the database, so the target must not already exist. On ClickHouse 25.3 a
+pre-created empty `talivia` database makes the restore fail; drop it first
+after confirming the backup is present.
 
-1. Copy the backup directory back into the ClickHouse container:
+1. Stop the app and worker so they cannot write during the restore:
 
    ```bash
-   docker cp /opt/tartly/backups/clickhouse/tartly-YYYYMMDDTHHMMSSZ \
-     "$(docker compose --env-file .env ps -q clickhouse):/var/lib/clickhouse/backups/"
+   cd /opt/tartly/runtime
+   docker compose --env-file .env stop app worker
    ```
 
-2. Restore:
+2. Copy the backup directory back into the ClickHouse container and make it
+   readable by the ClickHouse user:
+
+   ```bash
+   NAME=tartly-YYYYMMDDTHHMMSSZ
+   docker cp "/opt/tartly/backups/clickhouse/$NAME" \
+     "$(docker compose --env-file .env ps -q clickhouse):/var/lib/clickhouse/backups/"
+   docker compose --env-file .env exec -u root clickhouse \
+     chown -R clickhouse:clickhouse "/var/lib/clickhouse/backups/$NAME"
+   ```
+
+3. Drop the existing analytics database and restore:
 
    ```bash
    docker compose --env-file .env exec -T clickhouse clickhouse-client \
      --user talivia --password "$CLICKHOUSE_PASSWORD" \
-     --query "RESTORE DATABASE talivia FROM Disk('backups', 'tartly-YYYYMMDDTHHMMSSZ')"
+     --query "DROP DATABASE IF EXISTS talivia"
+
+   docker compose --env-file .env exec -T clickhouse clickhouse-client \
+     --user talivia --password "$CLICKHOUSE_PASSWORD" \
+     --query "RESTORE DATABASE talivia FROM Disk('backups', '$NAME')"
    ```
 
-   If the target is not empty, set `allow_non_empty_tables=1` only for a
-   deliberate repair, or restore into a temporary database and swap.
+   The restore must report `RESTORED`. If it does not, do not start the app.
 
-3. Verify table counts and run the application checks below.
+4. Verify table counts and run the application checks below. Then start the
+   app and worker:
+
+   ```bash
+   docker compose --env-file .env up -d --no-deps app
+   docker compose --env-file .env --profile streaming up -d --wait --no-deps worker
+   ```
 
 Events are also mirrored to PostgreSQL with the same `event_id` while
 ClickHouse is enabled, so a partial ClickHouse loss can be diagnosed against

@@ -165,6 +165,64 @@ shutdown or destructive action should be taken based on this tracker.
   rehearsal, off-host backup copy, streaming load test) is recorded in the
   entry below once run.
 
+## 2026-11-12 — Production cutover to the self-hosted stack (verified)
+
+- PR #48 merged as `efa37a1`; main CI run `43191189171` and deploy run
+  `43192987892` succeeded. `/api/health/ready` reports
+  `version: efa37a1b41d348dbfa8349231c518ae0de62ba6b`, `database: "up"`; the
+  eight-route deploy smoke passed.
+- The deploy started and health-checked PostgreSQL 17, Redis 7.4, ClickHouse
+  25.3, and Kafka 3.9.1 (KRaft) alongside the existing app and Caddy. All six
+  services and the new Kafka-to-ClickHouse worker are healthy. No data-service
+  port is published; only Caddy listens on 80/443.
+- The app container's runtime environment resolves to `postgres:5432`,
+  `redis:6379`, `clickhouse:8123`, and `kafka:9092`. A direct app-container
+  probe returned Redis `PONG` and ClickHouse `SELECT 1`.
+- Data migration: the final Neon dump (`neon-final-20261112T085249Z.dump`,
+  168 KB) was restored into the Docker PostgreSQL 17 database with zero
+  `pg_restore` errors. Counts match the source: 2 workspaces, 2 users, 0
+  websites, 0 events, 0 platform subscriptions, 14 Prisma migrations. The
+  Neon connection strings were removed from `/opt/tartly/runtime/.env`; the
+  runtime and the 6-hourly backup copy point only at the internal services.
+- ClickHouse: the one-shot migration service initialized all tables and the
+  12-file schema ledger. A synthetic `event` message produced to the production
+  Kafka topic was consumed by the worker and appeared in ClickHouse, then was
+  deleted; the four topics (`event`, `event_data`, `session_data`,
+  `session_replay`) exist. The worker heartbeat is healthy.
+- Google OAuth: `GET /api/auth/google` returns a redirect to
+  `accounts.google.com` with
+  `redirect_uri=https://tartly.in/api/auth/google/callback`; Google returned a
+  consent page without `redirect_uri_mismatch`. Completing consent and creating
+  a session remains **UNVERIFIED** because it needs a human browser.
+- Dodo: the test-mode setup script created all 32 products (every plan,
+  interval, and traffic tier) and the four default IDs plus
+  `DODO_PRODUCT_IDS_JSON` are in the runtime env. A signed
+  `test.cutover` delivery using the configured platform webhook secret was
+  accepted with HTTP 200 and `status: unsupported`; the test `billing_event`
+  row was deleted. Dodo dashboard webhook registration/delivery, a real
+  checkout, and the customer portal remain **UNVERIFIED**: the API key has
+  `subscriptions:write`, `products:write`, `customers:write`, and
+  `checkout_sessions:write`, but not `webhooks:read`/`webhooks:write`.
+- Backups: `deploy/production/backup.sh` produced a compressed PostgreSQL dump
+  (168 KB), a native ClickHouse backup, and an env copy. A restore rehearsal
+  into a disposable PostgreSQL 17 container restored
+  2 workspaces/2 users/14 migrations with zero errors. A ClickHouse restore
+  rehearsal into a disposable ClickHouse container restored the 12-table
+  schema and ledger after dropping the pre-created empty database. The
+  `/etc/cron.d/tartly` timer now runs the backup every six hours as `deploy`;
+  the old file referenced a removed `/opt/tartly/deploy` and was preserved at
+  `/root/tartly-cron.stale-20261112`.
+- Host housekeeping: removed old `tartly-app` images except the current and
+  previous rollback tags, removed unused images, and pruned build cache;
+  disk free space went from ~32 GB to ~61 GB after the cutover.
+- **UNVERIFIED / next human actions:** Dodo live/test checkout and webhook
+  delivery from the Dodo dashboard; Resend live delivery; a signed-in browser
+  walkthrough of onboarding, paywall, and analytics; an encrypted off-host
+  copy of `/opt/tartly/backups`; a deployed streaming-path load test; and
+  lawyer review. The production database is self-hosted; the final Neon dump is
+  retained in `/opt/tartly/backups/neon-final` only as a recovery artifact and
+  is not used at runtime.
+
 ## 2026-11-12 — Remove the 7-day free trial (owner request)
 
 - Removed the time-based trial from the single source of truth

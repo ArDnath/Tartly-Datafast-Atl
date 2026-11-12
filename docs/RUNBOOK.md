@@ -4,6 +4,12 @@ Short, concrete procedures for the on-call operator. Every command assumes the
 repository and production environment variables are available. Never paste
 secrets into a ticket or chat.
 
+> **Manual compose commands:** `deploy.sh` exports the target SHA as
+> `BUILD_VERSION`. Before manually starting or recreating a container, run
+> `export BUILD_VERSION=$(cat /opt/tartly/runtime/last-deploy)` so Compose uses
+> the image that is actually deployed. Read-only commands (`ps`, `logs`, `exec`,
+> `backup.sh`) do not need it.
+
 ## 1. Deploy
 
 Automatic path: merge a green PR to `main`. The `CI` workflow must pass, then
