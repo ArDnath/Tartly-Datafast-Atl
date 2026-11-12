@@ -95,6 +95,34 @@ code:
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
 
+## 2026-11-12 — Platform checkout merged; automatic VPS deploy verified
+
+- PR #46 (`feature/platform-checkout-paywall`, commits `2afb2b4` → `da48de5`
+  → `3dd27ef`) was squash-merged to `main` as
+  `cccbf1cd8d30d0b899da6fec200c7dc27b932786`.
+- CI run `43173928272` passed all three required checks on `main`: Verify
+  (format, lint, types, tests, build), Security (gitleaks, CodeQL, dependency
+  review), and Container build/image scan.
+- The deploy workflow started automatically from the CI `workflow_run` event
+  (no manual dispatch, no approval step): run `43175779419` deployed
+  `cccbf1c` in 10m28s, ran migrations, verified the exact-SHA readiness
+  payload, and passed the post-deploy smoke.
+- Independently verified from this checkout:
+  `GET https://tartly.in/api/health/ready` returned
+  `{"ok":true,"service":"tartly","database":"up","version":"cccbf1cd8d30d0b899da6fec200c7dc27b932786"}`;
+  `/api/health/live` returned 200; `scripts/deploy-smoke.mjs` passed all eight
+  public routes (`/api/health/live`, `/api/health/ready`, `/`, `/pricing`,
+  `/docs`, `/login`, `/robots.txt`, `/sitemap.xml`) against the exact version.
+- The earlier branch push also exposed that a manual `workflow_dispatch` of CI
+  scans full history and fails on the 13 known fake `generic-api-key` test
+  fixtures from upstream. Normal push/pull-request scans are range-limited and
+  remain green; the fixtures are test-only and documented in
+  `docs/SECURITY_REVIEW.md`.
+- **UNVERIFIED:** live Dodo checkout, webhook delivery, customer portal, Google
+  consent, and a signed-in browser walkthrough of the paywall. Those require
+  the provider credentials and human actions listed in
+  `docs/PLATFORM_BILLING.md` and `docs/GOOGLE_OAUTH.md`.
+
 ## 2026-11-12 — Remove the 7-day free trial (owner request)
 
 - Removed the time-based trial from the single source of truth
