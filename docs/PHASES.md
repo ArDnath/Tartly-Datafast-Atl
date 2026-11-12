@@ -153,6 +153,14 @@ shutdown or destructive action should be taken based on this tracker.
   - Targeted new/updated suites: install-guide prompt and framework mapping
     (17), add-website flow (6), auto-selected tracker guide and AI prompt (10),
     install reminder (6), and install-status handler (5) — 44 tests passed.
+- PR #52 (branch commit `75dc183`) was squash-merged to `main` as
+  `4b74b13b782d20a24234124be4be4cfd7c9ac183`. Main CI run `43312450693`
+  passed all three required checks: Verify 7m07s, Security 2m14s, Container
+  12m59s. Deploy run `43313763340` completed in 8m52s. Independently verified:
+  `/api/health/ready` returned the exact SHA with `database: "up"`; `/`,
+  `/pricing`, `/docs`, `/login`, `/robots.txt`, and `/sitemap.xml` returned
+  200; anonymous `GET /api/websites/install-status` returned 401 with the
+  shared error shape.
 - **UNVERIFIED:** a connected-browser visual pass of `/app/new`, the reminder,
   and the AI-prompt states at 1440 px and 390 px. No desktop browser is
   connected to this session. A real coding-agent run using the copied prompt
