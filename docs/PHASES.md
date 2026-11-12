@@ -7,9 +7,12 @@
   `.github/rulesets/main-protection.json`)
 - **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
   forked locally at `/home/ariyaman/Dev/fight/efforts/revenuelens`
-- **Last updated:** 2026-11-12
-- **Current phase:** Phases 10, 11, and 12 are implemented, and the
-  2026-11-12 platform-checkout slice now connects the landing pricing cards,
+- **Last updated:** 2026-11-13
+- **Current phase:** Phases 10, 11, and 12 are implemented. The 2026-11-13
+  first-party install slice adds strict-policy preflight and same-origin proxy
+  guides for Next.js, Vercel, Netlify, and Cloudflare Pages; the tracker and
+  ingestion are untouched. The 2026-11-12 platform-checkout slice connects the
+  landing pricing cards,
   the onboarding setup allowance, the `/app` paywall, and Dodo subscription
   management. The free trial was removed: a workspace finishes onboarding
   (one website) and must subscribe before ingestion or paid features unlock.
@@ -46,9 +49,9 @@
 - Overall percent (average of phases 0–12): **94%**
 - Build state at last check: **green** — `pnpm gate` (Biome format, Biome
   lint, `tsc --noEmit`, coverage-enforced tests, production build) passes.
-  Latest local full run (2026-11-12): **213 test files passed / 1 gated skip**,
-  **966 tests passed / 1 skipped**, coverage **66.79% statements / 55.97%
-  branches / 64.01% functions / 67.26% lines**, plus the explicit 48-assertion
+  Latest local full run (2026-11-13): **217 test files passed / 1 skipped**,
+  **1041 tests passed / 1 skipped**, coverage **67.86% statements / 57.52%
+  branches / 65.34% functions / 68.27% lines**, plus the explicit 48-assertion
   PostgreSQL analytics smoke and the recorded load probe.
 - GitHub CI: **green on `main`** (run 43066591765 for `619099b`). The three-job
   pipeline starts PostgreSQL 17, runs format, lint, typecheck, coverage tests,
@@ -98,6 +101,82 @@ code:
 
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
+
+## 2026-11-13 — First-party install for strict security policies
+
+- Added the first-party install path. The standard snippet is unchanged. When
+  an enforced CSP blocks `script-src` or `connect-src`, onboarding and website
+  settings recommend a same-origin proxy at `/_tartly`; report-only policies,
+  unreachable sites, timeouts, WAF challenges, missing domains, and localhost
+  keep the standard install.
+- Added `src/features/analytics/lib/csp.ts`: parses CSP and report-only headers
+  and meta CSP, intersects every enforced policy, resolves
+  `script-src-elem`/`script-src`/`default-src` and
+  `connect-src`/`default-src`, matches exact/wildcard/scheme/`*`/`'none'`
+  sources plus ports and paths, reports `'strict-dynamic'`, and builds a
+  suggested header that preserves every directive and source while appending
+  only `https://tartly.in`. Ambiguous input returns `unknown`, never a false
+  `blocked`.
+- Added `src/lib/safe-fetch.ts`: HTTPS-only in production, DNS pinning,
+  private/loopback/link-local/CGNAT/metadata rejection, credential/IP/port
+  rejection, same-host or `www`-variant redirects only, a 5-second timeout, a
+  256 KB HTML cap with a `</head>` stop, no cookies or authorization headers,
+  and the fixed `TartlyInstallCheck/1.0` user agent.
+- Added `GET /api/websites/:websiteId/onboarding/preflight` in
+  `src/features/websites/server/[websiteId]/onboarding/preflight/handler.ts`
+  behind a thin route. It uses `parseRequest`,
+  `requireWebsiteAccess(..., 'ADMIN')`, a workspace-scoped website lookup, and
+  a 10/minute/workspace limit. It fetches only the configured domain and
+  returns 200 for expected outcomes, 429 for the rate limit, and no 500 for
+  ordinary network failures. It also GET-checks `/_tartly/script.js` for a
+  JavaScript content type without posting an event.
+- Added host detection for Next.js, Vercel, Netlify, Cloudflare, Shopify, and
+  WordPress with confidence levels; Next.js wins over Vercel, and unknown is
+  returned rather than guessing.
+- Extended `src/features/docs/install-guides.ts` with `mode`, `basePath`, and
+  first-party guides for Next.js App Router, Vercel, Netlify, and Cloudflare
+  Pages. Every guide contains the standalone proxy, exact path, snippet,
+  no-policy-change sentence, cookie-stripping note, 1 MB/10 MB body limits,
+  path/method allowlists, 404/405/413/502 behaviour, and a 10-second upstream
+  timeout. The Next.js guide uses `app/%5Ftartly/...` because Next.js treats
+  `_`-prefixed folders as private; the URL-encoded underscore serves
+  `/_tartly/*`.
+- Extended onboarding and website settings with one shared install experience:
+  the standard snippet renders immediately, preflight runs once on mount and on
+  re-check, the first-party card auto-selects the detected host with a manual
+  override, the mode choice survives re-checks, copy feedback is accessible,
+  and the diagnostic copy includes the site, headers, missing directives,
+  suggested header, mode, and host. The 5-second event verification poll
+  remains the only poll, and "Tracker connected" still requires a real event.
+- Added the docs page "Strict security policy" section and
+  `docs/INSTALL_FIRST_PARTY.md` (architecture, security model, host examples,
+  IP/geo caveat, replay body limits, fallback, and an explicit
+  no-100%-coverage statement).
+- Verified: `pnpm gate` exit 0 on 2026-11-13 — **217 test files
+  passed / 1 gated skip**, **1041 tests passed / 1 skipped**,
+  coverage **67.86% statements / 57.52% branches /
+  65.34% functions / 68.27% lines**, deploy checks passed, and the
+  production build was green. The targeted new/updated suites (CSP parser, safe
+  fetch, host detection, install guides, preflight handler, onboarding step,
+  settings) passed 83 tests.
+- Manual read-only QA on 2026-11-13 against `https://www.ariyaman.in`:
+  `safeFetch` returned HTTP 200 with
+  `default-src 'self'; script-src 'self' ...; connect-src 'self' ...` and no
+  Tartly source. The analyzer returned `scriptBlocked: true`,
+  `connectBlocked: true`, `strictDynamic: false`, `unknown: false`, and a
+  first-party recommendation. `detectInstallHost` returned Next.js (high) from
+  `x-powered-by`/`/_next/`. `GET /_tartly/script.js` returned 404, so
+  `firstParty.installed` would be false. No events were sent.
+- **UNVERIFIED:** the full browser pass of a first-party proxy on a real
+  customer app. The proxy templates are unit-tested for path allowlists and
+  header stripping but have not been deployed. Human action: deploy the
+  Next.js, Vercel, Netlify, or Cloudflare Pages proxy to a test site, open it
+  once, and confirm `GET /api/websites/:id/onboarding/verify` reports the first
+  event. Visual QA at 390 px also needs a connected browser.
+- **N/A:** database migration, plan/pricing/entitlement changes, tracker or
+  ingestion changes, and a new UI/infrastructure dependency — this slice adds
+  a read-only preflight and install copy. Shopify App Proxy, the WordPress
+  plugin, and `npx tartly init` remain stretch items.
 
 ## 2026-11-12 — Platform checkout merged; automatic VPS deploy verified
 
