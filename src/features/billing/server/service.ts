@@ -86,14 +86,38 @@ function getMetadataWorkspaceId(value: unknown): string | null {
 function getProductPlan(
   config: BillingConfig | null,
   productId: string | null | undefined,
-): { planId: PlanId; interval: BillingInterval } | null {
+): { planId: PlanId; interval: BillingInterval; tierIndex: number | null } | null {
   if (!config) {
     return null;
   }
 
   const product = resolveBillingProduct(config, productId);
 
-  return product ? { planId: product.planId, interval: product.interval } : null;
+  return product
+    ? {
+        planId: product.planId,
+        interval: product.interval,
+        tierIndex: product.tierIndex ?? null,
+      }
+    : null;
+}
+
+function getMetadataTierIndex(metadata: unknown): number | null {
+  if (!metadata || typeof metadata !== 'object') {
+    return null;
+  }
+
+  const value = (metadata as Record<string, unknown>).tierIndex;
+
+  if (typeof value === 'number' && Number.isInteger(value) && value >= 0) {
+    return value;
+  }
+
+  if (typeof value === 'string' && /^\d+$/.test(value)) {
+    return Number(value);
+  }
+
+  return null;
 }
 
 async function resolveWorkspaceId({
@@ -224,6 +248,7 @@ function buildSubscriptionData({
   eventType,
   eventAt,
   existingPlanId,
+  existingTierIndex,
 }: {
   config: BillingConfig | null;
   workspaceId: string;
@@ -231,6 +256,7 @@ function buildSubscriptionData({
   eventType: string;
   eventAt: Date;
   existingPlanId?: string | null;
+  existingTierIndex?: number | null;
 }) {
   const productId = getString(snapshot.product_id);
   const productPlan = getProductPlan(config, productId);
@@ -247,6 +273,10 @@ function buildSubscriptionData({
   }
   const interval: BillingInterval =
     productPlan?.interval ?? (snapshot.metadata?.interval === 'annual' ? 'annual' : 'monthly');
+  const trafficTierIndex =
+    productPlan?.tierIndex ??
+    getMetadataTierIndex(snapshot.metadata) ??
+    (typeof existingTierIndex === 'number' ? existingTierIndex : null);
   const currentPeriodStart = parseProviderDate(snapshot.previous_billing_date);
   const currentPeriodEnd = parseProviderDate(snapshot.next_billing_date);
   const createdAt = parseProviderDate(snapshot.created_at);
@@ -268,6 +298,7 @@ function buildSubscriptionData({
     providerCustomerId: snapshot.customer.customer_id,
     planId,
     productId,
+    trafficTierIndex,
     interval,
     lifecycleStatus,
     providerStatus: snapshot.status,
@@ -301,7 +332,12 @@ async function applySubscriptionSnapshot({
 }): Promise<'processed' | 'ignored' | 'unsupported'> {
   const existing = await prisma.client.platformSubscription.findUnique({
     where: { workspaceId },
-    select: { lastEventAt: true, lastEventPriority: true, planId: true },
+    select: {
+      lastEventAt: true,
+      lastEventPriority: true,
+      planId: true,
+      trafficTierIndex: true,
+    },
   });
 
   if (
@@ -321,6 +357,7 @@ async function applySubscriptionSnapshot({
     eventType,
     eventAt,
     existingPlanId: existing?.planId,
+    existingTierIndex: existing?.trafficTierIndex,
   });
 
   if (!data) {
@@ -584,6 +621,7 @@ export interface WorkspaceBillingState {
   subscription: {
     planId: PlanId;
     interval: BillingInterval;
+    trafficTierIndex: number | null;
     lifecycleStatus: BillingLifecycleStatus;
     providerStatus: string;
     currency: string;
@@ -606,7 +644,7 @@ export interface WorkspaceBillingState {
   }>;
   customer: { email: string } | null;
   /** Non-secret availability so the UI does not offer a price that cannot be bought. */
-  availableProducts: Array<{ planId: PlanId; interval: BillingInterval }>;
+  availableProducts: Array<{ planId: PlanId; interval: BillingInterval; tierIndex?: number }>;
 }
 
 export async function getWorkspaceBillingState(
@@ -644,6 +682,7 @@ export async function getWorkspaceBillingState(
       ? {
           planId: isPlanId(subscription.planId) ? subscription.planId : 'starter',
           interval: subscription.interval === 'annual' ? 'annual' : 'monthly',
+          trafficTierIndex: subscription.trafficTierIndex,
           lifecycleStatus: subscription.lifecycleStatus as BillingLifecycleStatus,
           providerStatus: subscription.providerStatus,
           currency: subscription.currency,
@@ -674,7 +713,10 @@ export async function getWorkspaceBillingState(
     })),
     customer: customer ? { email: customer.email } : null,
     availableProducts:
-      config?.products.map(product => ({ planId: product.planId, interval: product.interval })) ??
-      [],
+      config?.products.map(product => ({
+        planId: product.planId,
+        interval: product.interval,
+        ...(product.tierIndex === undefined ? {} : { tierIndex: product.tierIndex }),
+      })) ?? [],
   };
 }

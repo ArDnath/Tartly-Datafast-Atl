@@ -13,7 +13,7 @@ import {
   TooltipTrigger,
 } from '@talivia/react-zen';
 import { useLocale, useMessages, useMobile } from '@/components/hooks';
-import { Globe, Settings, UserCircle } from '@/components/icons';
+import { CreditCard, Globe, Settings, UserCircle } from '@/components/icons';
 import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { languages } from '@/lib/lang';
 
@@ -66,6 +66,14 @@ export function UserButton({ showText = true, onClose }: UserButtonProps) {
       <Popover className="talivia-popover" placement="top start">
         <Column minWidth="200px">
           <Menu autoFocus="last" onAction={onClose}>
+            <MenuItem id="subscription" href="/app/settings/billing">
+              <Row alignItems="center" gap>
+                <Icon>
+                  <CreditCard />
+                </Icon>
+                <Text>Subscription</Text>
+              </Row>
+            </MenuItem>
             <MenuItem id="settings" href="/app/settings/preferences">
               <Row alignItems="center" gap>
                 <Icon>

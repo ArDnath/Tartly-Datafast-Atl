@@ -1,0 +1,547 @@
+.wrap {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: calc(100vh - 56px);
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 40px 20px 72px;
+  isolation: isolate;
+}
+
+.wrap::before,
+.wrap::after {
+  position: absolute;
+  z-index: -1;
+  border-radius: 999px;
+  content: "";
+  filter: blur(70px);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.wrap::before {
+  top: -120px;
+  left: 8%;
+  width: 420px;
+  height: 300px;
+  background: color-mix(in srgb, var(--accent-text) 16%, transparent);
+}
+
+.wrap::after {
+  right: 4%;
+  bottom: -140px;
+  width: 380px;
+  height: 320px;
+  background: color-mix(in srgb, var(--status-info-text) 10%, transparent);
+}
+
+.inner {
+  display: flex;
+  width: 100%;
+  max-width: 920px;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+
+.hero {
+  display: flex;
+  max-width: 680px;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid color-mix(in srgb, var(--accent-text) 32%, transparent);
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: color-mix(in srgb, var(--accent-text) 8%, transparent);
+  color: var(--accent-text);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.eyebrowDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent-text);
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.1rem);
+  font-weight: 730;
+  letter-spacing: -0.055em;
+  line-height: 1.02;
+}
+
+.subtitle {
+  max-width: 560px;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px;
+  border: 1px solid var(--talivia-card-border);
+  border-radius: 999px;
+  background: var(--talivia-card-background);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+}
+
+.control {
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 14px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.control[data-active="true"] {
+  background: var(--text-primary);
+  color: var(--talivia-app-background);
+}
+
+.control:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+
+.traffic {
+  display: flex;
+  width: min(100%, 620px);
+  flex-direction: column;
+  gap: 8px;
+  padding: 13px 16px;
+  border: 1px solid var(--talivia-card-border);
+  border-radius: 16px;
+  background: var(--talivia-card-background);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+
+.trafficHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.trafficLabel {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.trafficValue {
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.range {
+  width: 100%;
+  height: 4px;
+  margin: 2px 0 0;
+  appearance: none;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--accent-text) 0%,
+    var(--accent-text) var(--range-progress, 42%),
+    var(--talivia-card-border) var(--range-progress, 42%),
+    var(--talivia-card-border) 100%
+  );
+  cursor: pointer;
+}
+
+.range::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  appearance: none;
+  border: 2px solid var(--talivia-app-background);
+  border-radius: 999px;
+  background: var(--accent-text);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent-text) 40%, transparent);
+}
+
+.range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--talivia-app-background);
+  border-radius: 999px;
+  background: var(--accent-text);
+}
+
+.range:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 4px;
+}
+
+.rangeLabels {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-muted);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.grid {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  border: 1px solid color-mix(in srgb, var(--talivia-card-border) 90%, white 10%);
+  border-radius: 24px;
+  padding: 24px;
+  background: var(--talivia-card-background);
+  box-shadow:
+    0 24px 70px -30px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 color-mix(in srgb, white 28%, transparent);
+  backdrop-filter: blur(24px) saturate(155%);
+  -webkit-backdrop-filter: blur(24px) saturate(155%);
+  transition:
+    border-color 200ms ease,
+    transform 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.card::before {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    120% 70% at 50% -20%,
+    color-mix(in srgb, white 20%, transparent),
+    transparent 58%
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.cardHighlight {
+  border-color: color-mix(in srgb, var(--accent-text) 46%, transparent);
+  box-shadow:
+    0 30px 90px -34px color-mix(in srgb, var(--accent-text) 38%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 32%, transparent);
+  transform: translateY(-4px);
+}
+
+.badge {
+  position: absolute;
+  top: 0;
+  right: 22px;
+  transform: translateY(-50%);
+  border: 1px solid color-mix(in srgb, var(--accent-text) 40%, transparent);
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: var(--accent-text);
+  color: var(--talivia-app-background);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.planHead {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.planName {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 720;
+  letter-spacing: -0.03em;
+}
+
+.planTagline {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.priceBlock {
+  position: relative;
+  margin-top: 16px;
+  padding: 16px 0;
+  border-top: 1px solid var(--talivia-card-border);
+  border-bottom: 1px solid var(--talivia-card-border);
+}
+
+.price {
+  color: var(--text-primary);
+  font-size: clamp(2.1rem, 5vw, 2.8rem);
+  font-weight: 740;
+  letter-spacing: -0.055em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.period {
+  margin-left: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.priceNote {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.trafficNote {
+  margin: 6px 0 0;
+  color: var(--text-secondary, var(--text-muted));
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.cta {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  padding: 0 14px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.ctaPrimary {
+  background: var(--accent-text);
+  color: var(--talivia-app-background);
+}
+
+.ctaSecondary {
+  border-color: var(--talivia-card-border);
+  background: var(--talivia-card-background);
+  color: var(--text-primary);
+}
+
+.cta:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+  transform: none;
+}
+
+.cta:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+
+.features {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  border-bottom: 1px solid color-mix(in srgb, var(--talivia-card-border) 70%, transparent);
+  padding: 8px 0;
+  color: var(--text-primary);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.feature:last-child {
+  border-bottom: 0;
+}
+
+.check {
+  display: inline-flex;
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  border: 1px solid color-mix(in srgb, var(--accent-text) 46%, transparent);
+  border-radius: 5px;
+  color: var(--accent-text);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.notice {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  gap: 9px;
+  border: 1px solid color-mix(in srgb, var(--status-warning-text) 30%, transparent);
+  border-radius: 12px;
+  padding: 11px 14px;
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.alert {
+  width: 100%;
+  border: 1px solid var(--status-error);
+  border-radius: 12px;
+  padding: 11px 14px;
+  background: var(--status-error-bg);
+  color: var(--status-error-text);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.foot {
+  max-width: 560px;
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.foot a {
+  color: var(--accent-text);
+  text-underline-offset: 3px;
+}
+
+@supports (background: color-mix(in srgb, white 50%, transparent)) {
+  .controls {
+    background: color-mix(in srgb, var(--talivia-card-background) 55%, transparent);
+  }
+
+  .traffic {
+    background: color-mix(in srgb, var(--talivia-card-background) 48%, transparent);
+  }
+
+  .card {
+    background: linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--talivia-card-background) 82%, white 8%) 0%,
+      color-mix(in srgb, var(--talivia-card-background) 66%, transparent) 46%,
+      color-mix(in srgb, var(--talivia-card-background) 74%, transparent) 100%
+    );
+  }
+
+  .ctaSecondary {
+    background: color-mix(in srgb, var(--talivia-card-background) 70%, transparent);
+  }
+}
+
+@media (hover: hover) {
+  .card:hover {
+    border-color: color-mix(in srgb, var(--accent-text) 32%, var(--talivia-card-border));
+    transform: translateY(-2px);
+  }
+
+  .cardHighlight:hover {
+    transform: translateY(-6px);
+  }
+
+  .ctaPrimary:hover:not(:disabled),
+  .ctaSecondary:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+}
+
+@media (max-width: 760px) {
+  .wrap {
+    align-items: flex-start;
+    padding: 28px 14px 64px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cardHighlight {
+    transform: none;
+  }
+
+  .cardHighlight:hover {
+    transform: translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .cta,
+  .control {
+    transition: none;
+  }
+
+  .cardHighlight {
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .card,
+  .controls,
+  .traffic {
+    border-color: CanvasText;
+    background: Canvas;
+  }
+
+  .cardHighlight {
+    border-color: Highlight;
+  }
+}

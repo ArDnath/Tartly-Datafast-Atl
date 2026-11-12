@@ -1,5 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { parseRequest } from '@/lib/request';
+import { consumeRateLimit } from '@/lib/rate-limit';
 import { requireWorkspaceAccess } from '@/lib/workspace-auth';
 import { findBillingProduct, getBillingConfig } from '@/features/billing/server/provider';
 import { getDodoBillingProvider } from '@/features/billing/server/providers/dodo';
@@ -7,6 +8,10 @@ import { recordAuditEvent } from '@/queries/prisma';
 import { POST } from './handler';
 
 vi.mock('@/lib/request', () => ({ parseRequest: vi.fn() }));
+vi.mock('@/lib/rate-limit', () => ({
+  consumeRateLimit: vi.fn(),
+  rateLimitKey: (...parts: string[]) => parts.join(':'),
+}));
 vi.mock('@/lib/workspace-auth', () => ({ requireWorkspaceAccess: vi.fn() }));
 vi.mock('@/queries/prisma', () => ({ recordAuditEvent: vi.fn() }));
 vi.mock('@/features/billing/server/provider', () => ({
@@ -32,20 +37,27 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(parseRequest).mockResolvedValue({
     auth: { user: { id: 'user-1' } },
-    body: { workspaceId: 'workspace-1', planId: 'pro', interval: 'monthly' },
+    body: { workspaceId: 'workspace-1', planId: 'pro', interval: 'monthly', tierIndex: 3 },
   } as any);
+  vi.mocked(consumeRateLimit).mockResolvedValue({
+    allowed: true,
+    limit: 20,
+    remaining: 19,
+    retryAfterSeconds: 0,
+  });
   vi.mocked(requireWorkspaceAccess).mockResolvedValue({ role: 'OWNER' } as any);
   vi.mocked(getBillingConfig).mockReturnValue({
     providerName: 'dodo',
     environment: 'test_mode',
     apiKey: 'key',
     webhookSecret: 'secret',
-    products: [{ planId: 'pro', interval: 'monthly', productId: 'pdt_pro' }],
+    products: [{ planId: 'pro', interval: 'monthly', productId: 'pdt_pro', tierIndex: 3 }],
   });
   vi.mocked(findBillingProduct).mockReturnValue({
     planId: 'pro',
     interval: 'monthly',
     productId: 'pdt_pro',
+    tierIndex: 3,
   });
   vi.mocked(getDodoBillingProvider).mockReturnValue({ createCheckout } as any);
   createCheckout.mockResolvedValue({ url: 'https://checkout.example.com', sessionId: 'cs_1' });
@@ -84,10 +96,47 @@ test('returns a checkout URL without activating the plan', async () => {
       workspaceId: 'workspace-1',
       planId: 'pro',
       interval: 'monthly',
-      successUrl: 'https://app.example.com/app/settings/billing?checkout=success',
+      tierIndex: 3,
+      productId: 'pdt_pro',
+      successUrl: 'https://app.example.com/app?checkout=success',
+      cancelUrl: 'https://app.example.com/app?checkout=cancelled',
     }),
   );
   expect(recordAuditEvent).toHaveBeenCalledWith(
     expect.objectContaining({ eventType: 'billing.checkout.created' }),
   );
+});
+
+test('refuses a tier without an exact configured price instead of charging the default', async () => {
+  vi.mocked(parseRequest).mockResolvedValue({
+    auth: { user: { id: 'user-1' } },
+    body: { workspaceId: 'workspace-1', planId: 'pro', interval: 'monthly', tierIndex: 6 },
+  } as any);
+  vi.mocked(findBillingProduct).mockReturnValue(null);
+
+  const response = await POST(
+    new Request('https://app.example.com/api/billing/checkout', { method: 'POST' }),
+  );
+  const body = await response.json();
+
+  expect(response.status).toBe(400);
+  expect(body.error.code).toBe('billing-price-unavailable');
+  expect(createCheckout).not.toHaveBeenCalled();
+});
+
+test('rate limits repeated checkout session creation', async () => {
+  vi.mocked(consumeRateLimit).mockResolvedValue({
+    allowed: false,
+    limit: 20,
+    remaining: 0,
+    retryAfterSeconds: 60,
+  });
+
+  const response = await POST(
+    new Request('https://app.example.com/api/billing/checkout', { method: 'POST' }),
+  );
+
+  expect(response.status).toBe(429);
+  expect(response.headers.get('retry-after')).toBe('60');
+  expect(createCheckout).not.toHaveBeenCalled();
 });

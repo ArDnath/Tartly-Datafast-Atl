@@ -4,12 +4,10 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { BrandWordmark } from '@/components/brand/BrandMark';
 import { Check } from '@/components/icons';
+import { buildCheckoutPath } from '@/features/billing/lib/checkout-intent';
 import { BRAND } from '@/lib/brand';
 import {
   DEFAULT_TRAFFIC_TIER_INDEX,
-  FREE_TRIAL_DAYS,
-  FREE_TRIAL_EVENTS,
-  FREE_TRIAL_WEBSITES,
   formatTrafficEvents,
   formatUsd,
   getPlan,
@@ -88,11 +86,10 @@ export function PricingPage() {
       </header>
 
       <section className={styles.hero}>
-        <p className={styles.eyebrow}>Two plans. A {FREE_TRIAL_DAYS}-day free trial.</p>
+        <p className={styles.eyebrow}>Two plans. No free tier.</p>
         <h1 className={styles.title}>Revenue analytics that grows with your traffic.</h1>
         <p className={styles.subtitle}>
-          Start free with {FREE_TRIAL_EVENTS.toLocaleString('en-US')} events and{' '}
-          {FREE_TRIAL_WEBSITES} website. Move the traffic slider to see the event allowance and
+          Pick the plan that matches your traffic. Move the slider to see the event allowance and
           price for each plan. No per-seat surprises.
         </p>
 
@@ -153,11 +150,10 @@ export function PricingPage() {
 
         <div className={styles.trialNote}>
           <span>
-            <strong>{FREE_TRIAL_DAYS}-day free trial included.</strong>{' '}
-            {FREE_TRIAL_EVENTS.toLocaleString('en-US')} events and {FREE_TRIAL_WEBSITES} website, no
-            card required.
+            <strong>No free tier.</strong> Every plan starts when payment is confirmed. Cancel any
+            time.
           </span>
-          <Link href="/signup?trial=1">Start free trial →</Link>
+          <a href="#plans">Choose a plan →</a>
         </div>
       </section>
 
@@ -193,10 +189,14 @@ export function PricingPage() {
               </p>
 
               <Link
-                href={`/signup?plan=${plan.id}&events=${events}`}
+                href={buildCheckoutPath({
+                  planId: plan.id,
+                  interval: billing,
+                  tierIndex,
+                })}
                 className={plan.highlight ? styles.ctaPrimary : styles.ctaSecondary}
               >
-                Start {FREE_TRIAL_DAYS}-day free trial
+                Start with {plan.name}
               </Link>
 
               <ul className={styles.features}>
@@ -232,12 +232,11 @@ export function PricingPage() {
           </p>
         </div>
         <div>
-          <h2>How does the free trial work?</h2>
+          <h2>How does billing work?</h2>
           <p>
-            Every new workspace gets {FREE_TRIAL_DAYS} days with{' '}
-            {FREE_TRIAL_EVENTS.toLocaleString('en-US')} events and {FREE_TRIAL_WEBSITES} website. No
-            card is required and the trial does not renew. When it ends, pick the traffic tier that
-            fits and keep the reports you already built.
+            There is no free tier. Choose the traffic tier that fits and pay for the plan you
+            selected; access starts after the payment provider confirms the subscription. You can
+            cancel any time and keep access until the paid period ends.
           </p>
         </div>
       </section>
@@ -247,9 +246,9 @@ export function PricingPage() {
         <details>
           <summary>Do I need a credit card to start?</summary>
           <p>
-            No. The {FREE_TRIAL_DAYS}-day trial includes {FREE_TRIAL_EVENTS.toLocaleString('en-US')}{' '}
-            events and {FREE_TRIAL_WEBSITES} website. Add a payment method only when you choose
-            Starter or Pro.
+            Yes. There is no free tier, so a payment method is required before the workspace can
+            collect events. The first website can still be created before checkout so the plan is
+            ready to use as soon as payment is confirmed.
           </p>
         </details>
         <details>

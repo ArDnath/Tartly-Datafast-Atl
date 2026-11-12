@@ -1,13 +1,13 @@
 /**
- * The single source of truth for pricing, limits, and the free trial.
+ * The single source of truth for pricing and limits.
  *
- * Commercial model (owner-fixed, updated 2026-11-07):
- * - Two paid plans: Starter and Pro.
- * - A 7-day free trial with 2,000 events and 1 website. It is not a third plan
- *   and it never renews by itself.
+ * Commercial model (owner-fixed, updated 2026-11-12):
+ * - Two paid plans: Starter and Pro. There is no free trial and no free tier.
  * - Starter $7.99/mo at 100,000 events; Pro $14.99/mo at 1,000,000 events.
  * - Pro includes 50 websites. Starter includes 1.
  * - The traffic slider raises the included events and the price together.
+ * - An unpaid workspace may finish onboarding (one website, one member) and
+ *   then sees the paywall. Ingestion requires an active subscription.
  *
  * Any UI or API that needs a limit must read it from here. Do not hardcode
  * plan limits in components, routes, or webhook handlers.
@@ -52,8 +52,6 @@ export interface Plan {
   replayRetentionDays: number;
   /** Payment provider connections. `null` means unlimited. */
   paymentConnectionLimit: number | null;
-  /** Provider-confirmed trial length offered at checkout. */
-  trialDays: number;
   features: readonly PlanFeature[];
   /** Shown first in the pricing UI. */
   highlight?: boolean;
@@ -129,16 +127,14 @@ export const TRAFFIC_TIERS: readonly TrafficTier[] = [
 /** The owner-fixed price point: $7.99 Starter / $14.99 Pro. */
 export const DEFAULT_TRAFFIC_TIER_INDEX = 3;
 
-export const FREE_TRIAL_DAYS = 7;
-export const FREE_TRIAL_EVENTS = 2_000;
-export const FREE_TRIAL_WEBSITES = 1;
-export const FREE_TRIAL_MEMBERS = 1;
-
 /**
- * Legacy name kept for the ingestion path. The setup allowance is now the
- * 7-day trial allowance, so there is one number to change.
+ * Allowances that let a new workspace finish onboarding before payment.
+ * They are not a free plan: paid features and ingestion stay locked until a
+ * subscription is active. There is no time limit on them because there is no
+ * trial clock; the paywall appears as soon as the workspace enters the app.
  */
-export const SETUP_EVENT_ALLOWANCE = FREE_TRIAL_EVENTS;
+export const SETUP_WEBSITES = 1;
+export const SETUP_MEMBERS = 1;
 
 export const PLANS: readonly Plan[] = [
   {
@@ -157,7 +153,6 @@ export const PLANS: readonly Plan[] = [
     replaySessionsPerMonth: 0,
     replayRetentionDays: 0,
     paymentConnectionLimit: 1,
-    trialDays: FREE_TRIAL_DAYS,
     features: ['revenue_attribution', 'funnels', 'csv_export'],
   },
   {
@@ -176,7 +171,6 @@ export const PLANS: readonly Plan[] = [
     replaySessionsPerMonth: 2_000,
     replayRetentionDays: 30,
     paymentConnectionLimit: null,
-    trialDays: FREE_TRIAL_DAYS,
     features: [
       'revenue_attribution',
       'advanced_attribution',
@@ -195,22 +189,27 @@ export const PLANS: readonly Plan[] = [
 
 const PLAN_MAP = new Map<PlanId, Plan>(PLANS.map(plan => [plan.id, plan]));
 
-export interface FreeTrialState {
-  active: boolean;
-  endsAt: Date | null;
-}
+/**
+ * Resolve the plan the workspace actually bought. The public price list has
+ * traffic tiers; the provider product records which tier was purchased, so
+ * entitlement checks must use that tier rather than the default allowance.
+ */
+export function resolvePlanForTrafficTier(
+  plan: Plan | PlanId,
+  tierIndex: number | null | undefined,
+): Plan {
+  const resolved = typeof plan === 'string' ? getPlan(plan) : plan;
 
-export function getFreeTrialState(
-  workspaceCreatedAt: Date | null | undefined,
-  now: Date = new Date(),
-): FreeTrialState {
-  if (!workspaceCreatedAt) {
-    return { active: false, endsAt: null };
+  if (tierIndex === null || tierIndex === undefined || !Number.isInteger(tierIndex)) {
+    return resolved;
   }
 
-  const endsAt = new Date(workspaceCreatedAt.getTime() + FREE_TRIAL_DAYS * 24 * 60 * 60 * 1000);
-
-  return { active: now.getTime() < endsAt.getTime(), endsAt };
+  return {
+    ...resolved,
+    monthlyPriceCents: getTrafficPriceCents(resolved.id, tierIndex),
+    annualPriceCents: getTrafficAnnualCents(resolved.id, tierIndex),
+    eventsPerMonth: getTrafficEvents(resolved.id, tierIndex),
+  };
 }
 
 export function isPlanId(value: unknown): value is PlanId {

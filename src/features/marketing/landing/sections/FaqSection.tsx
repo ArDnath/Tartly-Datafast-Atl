@@ -1,13 +1,7 @@
 import Link from 'next/link';
 import { NavArrowDown as ChevronDownIcon } from '@/components/icons';
 import { BRAND } from '@/lib/brand';
-import {
-  FREE_TRIAL_DAYS,
-  FREE_TRIAL_EVENTS,
-  FREE_TRIAL_WEBSITES,
-  formatMonthlyPrice,
-  PLANS,
-} from '@/lib/plans';
+import { formatMonthlyPrice, PLANS } from '@/lib/plans';
 import { Reveal } from '../motion/Reveal';
 
 const starter = PLANS[0];
@@ -30,11 +24,12 @@ const FAQS = [
       'Stripe, Dodo Payments, Lemon Squeezy, Polar, and Yolfi, plus a manual payment API for custom checkout systems. Provider credentials are encrypted at rest.',
   },
   {
-    question: 'Is there a free trial?',
-    answer: `${FREE_TRIAL_DAYS} days, ${FREE_TRIAL_EVENTS.toLocaleString('en-US')} events, and ${FREE_TRIAL_WEBSITES} website. No credit card required.`,
+    question: 'Is there a free plan?',
+    answer:
+      'No. There are two paid plans, Starter and Pro, and no free tier or trial. Create your first website before checkout so the workspace is ready as soon as payment is confirmed.',
   },
   {
-    question: 'What does it cost after the trial?',
+    question: 'What does it cost?',
     answer: `Starter is ${formatMonthlyPrice(starter)} per month at the default traffic tier. Pro is ${formatMonthlyPrice(pro)} per month. Move the pricing slider to match your monthly traffic, or switch to yearly billing for two months free.`,
   },
   {

@@ -169,7 +169,7 @@ export async function createOnboardingWebsite(
   if (!entitlements?.plan) {
     throw new OnboardingError(
       'plan-required',
-      'Your trial is not available. Refresh the page or contact support.',
+      'This workspace is not available. Refresh the page or contact support.',
     );
   }
 

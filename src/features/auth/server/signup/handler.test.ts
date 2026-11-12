@@ -10,9 +10,7 @@ afterEach(() => {
 });
 
 test('sends signup straight to Google with the website in onboarding', () => {
-  const response = GET(
-    new Request('https://tartly.test/signup?website=https%3A%2F%2Fariyaman.in&trial=1'),
-  );
+  const response = GET(new Request('https://tartly.test/signup?website=https%3A%2F%2Fariyaman.in'));
   const location = new URL(response.headers.get('location') ?? '');
 
   expect(response.status).toBe(307);
@@ -25,7 +23,7 @@ test('sends signup straight to Google with the website in onboarding', () => {
 });
 
 test('defaults signup to onboarding when no website is provided', () => {
-  const response = GET(new Request('https://tartly.test/signup?trial=1'));
+  const response = GET(new Request('https://tartly.test/signup'));
   const location = new URL(response.headers.get('location') ?? '');
 
   expect(location.pathname).toBe('/api/auth/google');

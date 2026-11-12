@@ -73,27 +73,20 @@ remain valid because they are already keyed by an absolute timestamp.
   concurrency test needs a separate job.
 - Owner approval of the proposed event, retention, replay, and member limits.
 
-## Free trial
+## No free trial
 
-A workspace with no active paid subscription is inside its **7-day free trial**
-when less than 7 days have passed since `workspace.created_at`. The trial is
-capped at **2,000 billable events** and **1 website**
-(`FREE_TRIAL_DAYS`, `FREE_TRIAL_EVENTS`, `FREE_TRIAL_WEBSITES` in
-`src/lib/plans.ts`). The event counter is stored atomically in
-`workspace.setup_events_count` and does not reset:
+There is no free trial and no setup event allowance. A workspace with no active
+paid subscription:
 
-- replay is disabled;
-- the event limit is the trial allowance, not the Starter 100,000;
-- after 7 days or 2,000 accepted events, whichever comes first, billable
-  ingestion pauses;
-- at the trial cap the collector returns
-  `{ ok: false, reason: "trial_limit_reached" }`; after the trial it returns
-  `{ ok: false, reason: "subscription_required" }`;
-- the usage screen labels the meter "Free trial events";
-- usage-limit emails are skipped for trial-only workspaces to avoid claiming a
-  paid plan allowance.
+- has no billable event allowance and no replay allowance;
+- keeps the desktop/mobile setup allowances only: **one website and one
+  member**, so onboarding can create the tenant (`SETUP_WEBSITES`,
+  `SETUP_MEMBERS` in `src/lib/plans.ts`);
+- returns `{ ok: false, reason: "subscription_required" }` from the collector
+  for any billable event, before a session or event row is written;
+- shows the paywall in `/app` until the provider confirms payment.
 
-A provider-confirmed Stripe/Dodo subscription flips `active` to true and the
-normal plan allowance takes over. Checkout requests a 7-day provider trial
-(`trial_period_days`). A deleted or suspended workspace returns `403` before
-any session or event write.
+A provider-confirmed subscription flips `active` to true and the normal plan
+allowance takes over. Checkout does not request a provider trial
+(`trial_period_days` is absent). A deleted or suspended workspace returns
+`403` before any session or event write.

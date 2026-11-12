@@ -16,7 +16,8 @@ two signing secrets are different and are rejected across contexts.
 
 ## Provider references
 
-Fetched 2026-11-05:
+Fetched 2026-11-05; checkout fields re-verified against the installed
+`dodopayments` SDK on 2026-11-12:
 
 - Checkout sessions: <https://docs.dodopayments.com/api-reference/checkout-sessions/create>
 - Subscription update (cancel at next billing date): <https://docs.dodopayments.com/api-reference/subscriptions/patch-subscriptions>
@@ -26,8 +27,8 @@ Fetched 2026-11-05:
 - Subscription lifecycle and event list: <https://docs.dodopayments.com/developer-resources/subscription-integration-guide>
 - Subscription statuses: `pending`, `active`, `on_hold`, `paused`, `cancelled`, `failed`, `expired`, `past_due`.
 
-The implementation uses the installed `dodopayments` SDK (`2.42.2`) for outbound
-calls. Inbound signatures are verified locally in
+The implementation uses the installed `dodopayments` SDK for outbound calls.
+Inbound signatures are verified locally in
 `src/features/billing/lib/standard-webhook.ts` so a billing webhook cannot be
 accepted from the analytics integration by mistake.
 
@@ -39,37 +40,62 @@ accepted from the analytics integration by mistake.
 | `platform_subscription`       | One provider subscription per workspace, with lifecycle, period, cancellation, and provider status. |
 | `billing_event`               | Raw webhook bookkeeping keyed by the unique `webhook-id`.                                           |
 | `billing_invoice`             | Only invoices the provider actually issued.                                                         |
-| `billing_subscription_change` | Audit trail for requested plan changes.                                                             |
+| `billing_subscription_change` | Audit trail for requested plan and traffic-tier changes.                                            |
 
-Migration: `prisma/migrations/20261105150000_platform_billing`.
+Migrations: `20261105150000_platform_billing` and
+`20261112120000_platform_billing_traffic_tier` (the purchased traffic tier).
 
-## Flow
+## Paywall and checkout handoff
 
-1. Owner chooses a plan in **Settings → Plan and usage**.
-2. `POST /api/billing/checkout` creates a Dodo checkout session and returns the
-   hosted URL. **Nothing is activated by the redirect.**
-3. Dodo sends `subscription.active` (or another lifecycle event) to
-   `POST /api/billing/webhook/dodo` with `webhook-id`, `webhook-timestamp`, and
-   `webhook-signature`.
-4. The handler verifies the Standard Webhooks HMAC over
-   `${id}.${timestamp}.${rawBody}`, then processes the event.
-5. The reducer writes `platform_subscription`, mirrors plan/status onto the
-   workspace for legacy compatibility, and records the event ID.
-6. Entitlements read the subscription row through
-   `src/lib/entitlements.ts`. A workspace without a confirmed subscription gets
-   Starter setup limits but no paid feature.
+There is **no free trial**. A workspace is usable only with a confirmed paid
+subscription:
+
+1. A new workspace can finish onboarding and create its first website. The
+   setup allowance is one website and one member, so the tenant exists before
+   payment; ingestion and paid features stay locked.
+2. `/app` renders the paywall until paid access is confirmed: two glass plan
+   cards in the current light/dark theme, a monthly/yearly switch, and the same
+   traffic-tier slider as `/pricing`. The route guard is a UX guard; ingestion
+   and plan limits are also enforced server-side by entitlements.
+3. A pricing card or paywall card goes to `/checkout?plan=…&interval=…&tier=…`.
+   Signed-out visitors continue through Google. A new account finishes the
+   website onboarding first and then returns to the checkout intent.
+4. The owner completes payment on the hosted Dodo page. Dodo returns the
+   browser to `/app?checkout=success`; the app polls the read model and opens
+   only after the verified webhook writes paid access.
+5. **Plan and usage** in the account menu shows the subscription, invoices,
+   plan/tier changes, cancellation, and the Dodo customer portal.
+
+`/api/billing/checkout` creates a hosted session and returns its URL.
+**Nothing is activated by the redirect.** The provider webhook is the only
+writer of paid state.
+
+## Checkout behaviour
+
+- Dodo is asked for a paid subscription immediately. There is **no
+  provider-side trial and no platform trial**: charging starts at checkout and
+  access unlocks after the webhook confirms payment.
+- The checkout carries `workspaceId`, `planId`, `interval`, and `tierIndex` in
+  metadata. The webhook resolves the tenant from provider IDs first and uses
+  metadata only when no stored provider binding exists.
+- Every traffic tier has its own provider product. A non-default tier without
+  an exact product is refused (`billing-price-unavailable`) instead of
+  silently charging the default product. This keeps the displayed price and
+  the charged price identical.
+- `feature_flags.redirect_immediately` returns the customer to the app after
+  payment. The `trial_period_days` field is intentionally absent.
 
 ## Lifecycle mapping
 
-| Dodo status / event           | Local lifecycle | Paid access                                                     |
-| ----------------------------- | --------------- | --------------------------------------------------------------- |
-| `active`                      | `ACTIVE`        | yes                                                             |
-| `active` with a trial         | `TRIALING`      | yes                                                             |
-| `past_due`                    | `PAST_DUE`      | yes (provider grace)                                            |
-| `on_hold`, `paused`, `failed` | `SUSPENDED`     | no                                                              |
-| `cancelled`                   | `CANCELLED`     | only until `current_period_end` when cancellation was scheduled |
-| `expired`                     | `EXPIRED`       | no                                                              |
-| `pending`                     | `INCOMPLETE`    | no                                                              |
+| Dodo status / event            | Local lifecycle | Paid access                                                     |
+| ------------------------------ | --------------- | --------------------------------------------------------------- |
+| `active`                       | `ACTIVE`        | yes                                                             |
+| `active` with a provider trial | `TRIALING`      | yes (legacy/edge case; new checkouts do not request one)        |
+| `past_due`                     | `PAST_DUE`      | yes (provider grace)                                            |
+| `on_hold`, `paused`, `failed`  | `SUSPENDED`     | no                                                              |
+| `cancelled`                    | `CANCELLED`     | only until `current_period_end` when cancellation was scheduled |
+| `expired`                      | `EXPIRED`       | no                                                              |
+| `pending`                      | `INCOMPLETE`    | no                                                              |
 
 Cancel-at-period-end is a provider call plus a local flag. The subscription
 stays `ACTIVE`/`TRIALING` until the period ends, then the provider event moves
@@ -102,56 +128,81 @@ DODO_STARTER_PRODUCT_ID=
 DODO_PRO_PRODUCT_ID=
 ```
 
-Optional annual prices (two months free):
+Optional annual default-tier prices (two months free):
 
 ```
 DODO_STARTER_ANNUAL_PRODUCT_ID=
 DODO_PRO_ANNUAL_PRODUCT_ID=
 ```
 
-If the API key, webhook secret, or a monthly product ID is missing, the billing
-page reports that billing is not connected and checkout returns `503`. No
-charge is attempted.
+Optional exact traffic-tier products. Key format is
+`<plan>:<interval>:<tierIndex>`:
+
+```
+DODO_PRODUCT_IDS_JSON={"starter:monthly:3":"pdt_...","pro:monthly:3":"pdt_..."}
+```
+
+If the API key, webhook secret, or either plan's monthly product is missing,
+the billing page reports that billing is not connected and checkout returns
+`503`. No charge is attempted.
+
+## Setting up Dodo from zero
+
+**UNVERIFIED in this environment:** no Dodo credentials or product IDs exist in
+this checkout. The code and setup tooling are complete; the owner must run the
+steps below with a real Dodo account.
+
+1. Create a Dodo business in **test mode**, then create an API key.
+2. Register the webhook endpoint `https://<host>/api/billing/webhook/dodo`.
+   Subscribe it to `subscription.*`, `payment.succeeded`, and `payment.failed`.
+   Copy the signing secret into `DODO_PAYMENTS_WEBHOOK_SECRET`.
+3. Put the API key, webhook secret, and `DODO_PAYMENTS_ENVIRONMENT=test_mode`
+   in the runtime environment.
+4. Run:
+
+   ```bash
+   pnpm billing:setup-dodo            # dry run: prints all 32 products
+   pnpm billing:setup-dodo --apply    # creates missing products, reuses matches
+   ```
+
+   The script uses `src/lib/plans.ts`, so every slider position has a product
+   at the exact displayed amount. It prints `DODO_PRODUCT_IDS_JSON` and the
+   four default-tier environment values.
+5. Paste the printed values into the runtime environment and restart the app.
+   Do **not** commit them.
+6. Sign in as a workspace owner. Finish onboarding, then open `/app`; the
+   paywall should show. Choose a plan, complete test checkout with a Dodo test
+   card, and confirm the return to `/app?checkout=success` shows the
+   confirmation screen until the webhook lands.
+7. Replay the same webhook from the Dodo dashboard. Confirm `billing_event`
+   does not grow and the subscription is unchanged.
+8. Schedule cancellation from **Plan and usage** and confirm access remains
+   until `current_period_end`.
+9. Change plan and traffic tier from **Plan and usage**; confirm the local
+   state updates only after the provider webhook.
+10. Confirm the analytics revenue webhook
+    `/api/payments/dodo/<websiteId>/webhook` rejects the platform secret and
+    vice versa.
+11. When live mode is approved, repeat with `DODO_PAYMENTS_ENVIRONMENT=live_mode`
+    and `pnpm billing:setup-dodo --apply --yes-live`.
 
 ## API
 
-| Route                            | Role        | Behaviour                                                                                             |
-| -------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------- |
-| `GET /api/billing?workspaceId=`  | VIEWER      | Plan, lifecycle, period, cancellation flag, invoices, available products. No secrets or raw payloads. |
-| `POST /api/billing/checkout`     | OWNER       | Creates a hosted checkout; returns `{url}`.                                                           |
-| `POST /api/billing/portal`       | OWNER       | Creates a provider customer-portal link.                                                              |
-| `POST /api/billing/cancel`       | OWNER       | Schedules cancellation at period end.                                                                 |
-| `POST /api/billing/change-plan`  | OWNER       | Requests an immediate prorated plan change; local state waits for the webhook.                        |
-| `POST /api/billing/webhook/dodo` | signed only | Verifies and processes Dodo platform events.                                                          |
-
-## Manual test against Dodo test mode (not yet run)
-
-**UNVERIFIED:** no Dodo test keys exist in this environment. The unit and
-route-contract suites cover verification, idempotency, ordering, lifecycle, and
-checkout creation, but a live provider run still needs the human.
-
-Steps when keys are available:
-
-1. Create two monthly products in Dodo test mode and put their IDs plus a test
-   API key in `.env`.
-2. Create a webhook endpoint pointing at
-   `https://<host>/api/billing/webhook/dodo` and copy its signing secret.
-3. Sign in as a workspace owner, open `/app/settings/billing`, choose Starter,
-   and complete test checkout with a Dodo test card.
-4. Confirm the workspace stays unchanged until the webhook arrives, then shows
-   `Active`.
-5. Replay the same webhook from the Dodo dashboard; confirm
-   `billing_event` does not grow and the subscription is unchanged.
-6. Schedule cancellation and confirm access remains until
-   `current_period_end`.
-7. Confirm the analytics revenue webhook
-   `/api/payments/dodo/<websiteId>/webhook` rejects the platform secret and
-   vice versa.
+| Route                                  | Role        | Behaviour                                                                                             |
+| -------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------- |
+| `GET /api/billing?workspaceId=`        | VIEWER      | Plan, lifecycle, period, cancellation flag, invoices, available products. No secrets or raw payloads. |
+| `GET /api/billing/access?workspaceId=` | VIEWER      | Compact paid/paywall state for the app shell.                                                         |
+| `POST /api/billing/checkout`           | OWNER       | Creates a hosted checkout for a plan, interval, and traffic tier; returns `{url}`.                    |
+| `POST /api/billing/portal`             | OWNER       | Creates a provider customer-portal link.                                                              |
+| `POST /api/billing/cancel`             | OWNER       | Schedules cancellation at period end.                                                                 |
+| `POST /api/billing/change-plan`        | OWNER       | Requests an immediate prorated plan or tier change; local state waits for the webhook.                |
+| `POST /api/billing/webhook/dodo`       | signed only | Verifies and processes Dodo platform events.                                                          |
 
 ## Deliberate non-goals
 
-- Checkout asks Dodo for a 7-day trial (`subscription_data.trial_period_days`).
-  The trial still becomes active only after the provider confirms it.
 - No invoice is invented before the provider issues one.
 - No plan activation from a success redirect or client-side state.
 - No reuse of the customer's analytics payment connections for charging them.
+- No provider-side trial and no platform trial. Paid access starts only after
+  the provider confirms payment.
+- No third paid plan and no hardcoded plan limit in the paywall or checkout UI.

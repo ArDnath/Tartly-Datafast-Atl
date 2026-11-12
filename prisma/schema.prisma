@@ -79,6 +79,9 @@ model PlatformSubscription {
   providerCustomerId     String    @map("provider_customer_id") @db.VarChar(255)
   planId                 String    @map("plan_id") @db.VarChar(50)
   productId              String?   @map("product_id") @db.VarChar(255)
+  /// Purchased traffic tier. Null means the plan default (migration-safe for
+  /// subscriptions created before tier-specific products existed).
+  trafficTierIndex       Int?      @map("traffic_tier_index")
   interval               String    @default("monthly") @db.VarChar(20)
   lifecycleStatus        String    @map("lifecycle_status") @db.VarChar(50)
   providerStatus         String    @map("provider_status") @db.VarChar(50)

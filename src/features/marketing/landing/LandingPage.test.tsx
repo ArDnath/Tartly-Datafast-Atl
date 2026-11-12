@@ -34,7 +34,7 @@ describe('marketing landing page', () => {
       screen.getByRole('heading', { name: /Traffic and revenue together/i }),
     ).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /OUR PRICING/i })).toBeInTheDocument();
-    expect(screen.getByText(/7-day free trial included/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/No free tier/i).length).toBeGreaterThan(0);
 
     for (const plan of PLANS) {
       expect(screen.getByRole('heading', { name: plan.name })).toBeInTheDocument();
@@ -126,6 +126,26 @@ describe('marketing landing page', () => {
     expect(screen.getByText('$9.16')).toBeInTheDocument();
   });
 
+  test('checkout links carry the selected plan, billing period, and traffic tier', async () => {
+    const { user } = render(<LandingPage />);
+    const starter = document.querySelector('[data-plan="starter"]') as HTMLElement;
+
+    expect(within(starter).getByRole('link')).toHaveAttribute(
+      'href',
+      '/checkout?plan=starter&interval=monthly&tier=3',
+    );
+
+    fireEvent.change(screen.getByRole('slider', { name: /Monthly traffic/i }), {
+      target: { value: '0' },
+    });
+    await user.click(screen.getByRole('button', { name: /Yearly/i }));
+
+    expect(within(starter).getByRole('link')).toHaveAttribute(
+      'href',
+      '/checkout?plan=starter&interval=annual&tier=0',
+    );
+  });
+
   test('shows the factual capability answers instead of invented testimonials', () => {
     render(<LandingPage />);
 
@@ -182,7 +202,7 @@ describe('marketing landing page', () => {
     expect(hand).toHaveAttribute('aria-hidden', 'true');
   });
 
-  test('answers the trial, provider, and cancellation objections', () => {
+  test('answers the free-plan, provider, and cancellation objections', () => {
     render(<LandingPage />);
 
     expect(
@@ -190,6 +210,7 @@ describe('marketing landing page', () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/How does Tartly match revenue to traffic\?/i)).toBeInTheDocument();
     expect(screen.getByText(/Which payment providers can I connect\?/i)).toBeInTheDocument();
+    expect(screen.getByText(/Is there a free plan\?/i)).toBeInTheDocument();
     expect(screen.getByText(/Can I cancel anytime\?/i)).toBeInTheDocument();
   });
 

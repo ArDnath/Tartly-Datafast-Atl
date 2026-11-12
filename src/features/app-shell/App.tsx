@@ -7,8 +7,8 @@ import { TopNav } from '@/features/app-shell/TopNav';
 import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { AppWelcomeOverlayGate } from '@/features/onboarding/welcome/AppWelcomeOverlayGate';
 import { useWorkspacesQuery } from '@/features/workspaces/hooks/useWorkspacesQuery';
+import { AppBillingGate } from './AppBillingGate';
 import { UpdateNotice } from './UpdateNotice';
-import { UsageBanner } from './UsageBanner';
 
 export function App({ children }) {
   const { user, isLoading, error } = useLoginQuery();
@@ -77,8 +77,7 @@ export function App({ children }) {
       position="relative"
     >
       <TopNav showUser />
-      <UsageBanner />
-      <Column alignItems="center">{children}</Column>
+      <AppBillingGate>{children}</AppBillingGate>
       {user.isAdmin && <UpdateNotice userId={user.id} />}
       <AppLogoutButton />
       <AppWelcomeOverlayGate />

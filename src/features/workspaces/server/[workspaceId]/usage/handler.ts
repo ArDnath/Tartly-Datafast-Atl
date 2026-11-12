@@ -47,6 +47,7 @@ export async function GET(
       replaySessionsPerMonth: usage.plan.replaySessionsPerMonth,
       features: usage.plan.features,
     },
+    trafficTierIndex: usage.trafficTierIndex,
     subscriptionStatus: usage.subscriptionStatus,
     active: usage.active,
     setup: usage.setup,

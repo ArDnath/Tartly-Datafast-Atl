@@ -26,6 +26,7 @@ interface WorkspaceUsageResponse {
     replaySessionsPerMonth: number;
     features: readonly string[];
   };
+  trafficTierIndex: number | null;
   subscriptionStatus: string;
   active: boolean;
   setup: boolean;
@@ -192,7 +193,6 @@ export function UsageSettingsPage() {
   const isPaid = usage.active;
   const isPro = usage.plan.id === 'pro';
   const isSetup = usage.setup;
-  const eventAllowance = isSetup ? usage.events.limit : usage.plan.eventsPerMonth;
 
   return (
     <Column gap="5">
@@ -200,7 +200,7 @@ export function UsageSettingsPage() {
         <Row justifyContent="space-between" alignItems="baseline" gap="3" wrap="wrap">
           <Heading size="lg">Plan and usage</Heading>
           <Text size="sm" color="muted">
-            {isSetup ? 'One-time setup allowance' : `Resets ${formatDate(usage.resetAt)}`}
+            {isSetup ? 'No active subscription' : `Resets ${formatDate(usage.resetAt)}`}
           </Text>
         </Row>
         <Text color="muted">
@@ -223,7 +223,7 @@ export function UsageSettingsPage() {
           <Text size="sm" color="muted">
             {isPaid
               ? `Subscription ${usage.subscriptionStatus}.`
-              : `Setup allowance only: ${eventAllowance.toLocaleString('en-US')} events while you verify the tracker. No paid subscription is on file.`}
+              : 'No active subscription. Choose a plan to start collecting events.'}
           </Text>
           <Link
             href="/pricing"
@@ -260,7 +260,7 @@ export function UsageSettingsPage() {
 
       <Column border padding="4" gap="4" style={SURFACE}>
         <UsageBar
-          label={isSetup ? 'Setup events (until you subscribe)' : 'Billable events'}
+          label={isSetup ? 'Billable events (subscription required)' : 'Billable events'}
           meter={usage.events}
           unit="events"
         />
@@ -278,10 +278,8 @@ export function UsageSettingsPage() {
         <Text weight="bold">What happens next</Text>
         {isSetup && (
           <Text size="sm" color="muted">
-            This workspace has no paid subscription. It can collect{' '}
-            {eventAllowance.toLocaleString('en-US')} setup events once so you can verify the
-            tracker. After that, billable ingestion pauses until you choose Starter or Pro. The
-            allowance does not reset. This is not a free plan.
+            Billable ingestion is paused until you choose Starter or Pro. Your dashboards, reports,
+            and exported data remain available.
           </Text>
         )}
         <Text size="sm" color="muted">

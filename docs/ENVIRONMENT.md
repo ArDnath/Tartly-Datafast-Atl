@@ -51,9 +51,11 @@ Optional groups (see `.env.example`):
   `LEMONSQUEEZY_WEBHOOK_SECRET`, `POLAR_WEBHOOK_SECRET`.
 - Platform billing (context A): `DODO_PAYMENTS_API_KEY`,
   `DODO_PAYMENTS_WEBHOOK_SECRET`, `DODO_PAYMENTS_ENVIRONMENT`,
-  `DODO_STARTER_PRODUCT_ID`, `DODO_PRO_PRODUCT_ID`, and optional
-  `DODO_STARTER_ANNUAL_PRODUCT_ID` / `DODO_PRO_ANNUAL_PRODUCT_ID`. These are
-  separate from the per-website analytics Dodo connections. See
+  `DODO_STARTER_PRODUCT_ID`, `DODO_PRO_PRODUCT_ID`, optional
+  `DODO_STARTER_ANNUAL_PRODUCT_ID` / `DODO_PRO_ANNUAL_PRODUCT_ID`, and optional
+  `DODO_PRODUCT_IDS_JSON` for exact traffic-tier products. These are separate
+  from the per-website analytics Dodo connections. `pnpm billing:setup-dodo`
+  uses the same `src/lib/plans.ts` source to create and print them. See
   `docs/PLATFORM_BILLING.md`.
 - Email: `RESEND_API_KEY`, `EMAIL_FROM`, and `APP_URL` (public origin used in
   invitation, verification, and reset links). Without `RESEND_API_KEY`,

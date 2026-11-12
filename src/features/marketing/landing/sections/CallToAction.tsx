@@ -9,7 +9,7 @@ export function CallToAction() {
   const scrollToHero = () => {
     const input = document.getElementById('website');
     if (!(input instanceof HTMLInputElement)) {
-      window.location.assign('/signup?trial=1');
+      window.location.assign('/signup');
       return;
     }
 

@@ -1,10 +1,10 @@
 import { billingSubscriptionHasAccess } from '@/lib/billing-lifecycle';
 import {
-  FREE_TRIAL_MEMBERS,
-  FREE_TRIAL_WEBSITES,
-  getFreeTrialState,
   getPlan,
   getPlanOrNull,
+  resolvePlanForTrafficTier,
+  SETUP_MEMBERS,
+  SETUP_WEBSITES,
   type Plan,
   type PlanFeature,
   planHasFeature,
@@ -15,22 +15,20 @@ import prisma from '@/lib/prisma';
  * Plan entitlements are derived from backend billing records, never from the
  * UI and never from a checkout redirect.
  *
- * A workspace without a provider-confirmed subscription is in its 7-day free
- * trial (2,000 events, one website). When the trial ends, paid features and
- * ingestion stay locked until a subscription is active.
+ * A workspace without a provider-confirmed subscription may finish onboarding
+ * (one website, one member) but has no ingestion or paid features. There is no
+ * free trial: the app shell shows the paywall until a subscription is active.
  */
 
 export interface WorkspaceEntitlements {
   workspaceId: string;
   plan: Plan | null;
   planId: string | null;
+  trafficTierIndex: number | null;
   subscriptionStatus: string;
   /** True only when the provider has confirmed paid access. */
   active: boolean;
-  /** True while the workspace is inside its 7-day free trial. */
-  trial: boolean;
-  trialEndsAt: Date | null;
-  /** True when `active` is false; only trial limits are available. */
+  /** True when `active` is false; only the onboarding setup allowances apply. */
   setup: boolean;
 }
 
@@ -44,10 +42,10 @@ export async function getWorkspaceEntitlements(
       id: true,
       planId: true,
       subscriptionStatus: true,
-      createdAt: true,
       platformSubscription: {
         select: {
           planId: true,
+          trafficTierIndex: true,
           lifecycleStatus: true,
           cancelAtPeriodEnd: true,
           currentPeriodEnd: true,
@@ -61,45 +59,29 @@ export async function getWorkspaceEntitlements(
   }
 
   const subscription = workspace.platformSubscription;
+  const active = subscription
+    ? billingSubscriptionHasAccess(
+        {
+          lifecycleStatus: subscription.lifecycleStatus,
+          cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+          currentPeriodEnd: subscription.currentPeriodEnd,
+        },
+        now,
+      )
+    : workspace.subscriptionStatus === 'active' || workspace.subscriptionStatus === 'trialing';
 
-  if (subscription) {
-    const plan = getPlanOrNull(subscription.planId) || getPlan('starter');
-    const active = billingSubscriptionHasAccess(
-      {
-        lifecycleStatus: subscription.lifecycleStatus,
-        cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
-        currentPeriodEnd: subscription.currentPeriodEnd,
-      },
-      now,
-    );
-
-    return {
-      workspaceId: workspace.id,
-      plan,
-      planId: subscription.planId,
-      subscriptionStatus: subscription.lifecycleStatus,
-      active,
-      trial: active && subscription.lifecycleStatus === 'TRIALING',
-      trialEndsAt: null,
-      setup: !active,
-    };
-  }
-
-  // Pre-billing workspaces have no subscription row. They keep their stored
-  // plan for limits, but only an explicit legacy status counts as paid.
-  const plan = getPlanOrNull(workspace.planId) || getPlan('starter');
-  const active =
-    workspace.subscriptionStatus === 'active' || workspace.subscriptionStatus === 'trialing';
-  const freeTrial = getFreeTrialState(workspace.createdAt, now);
+  const planId = subscription?.planId ?? workspace.planId;
+  const basePlan = getPlanOrNull(planId) || getPlan('starter');
+  const trafficTierIndex = subscription?.trafficTierIndex ?? null;
+  const plan = resolvePlanForTrafficTier(basePlan, trafficTierIndex);
 
   return {
     workspaceId: workspace.id,
     plan,
-    planId: workspace.planId,
-    subscriptionStatus: workspace.subscriptionStatus,
+    planId,
+    trafficTierIndex,
+    subscriptionStatus: subscription?.lifecycleStatus ?? workspace.subscriptionStatus,
     active,
-    trial: active || freeTrial.active,
-    trialEndsAt: active ? null : freeTrial.endsAt,
     setup: !active,
   };
 }
@@ -124,7 +106,7 @@ export function getWebsiteLimit(entitlements: WorkspaceEntitlements | null): num
     return entitlements.plan?.websiteLimit ?? 0;
   }
 
-  return entitlements.trial ? FREE_TRIAL_WEBSITES : 0;
+  return SETUP_WEBSITES;
 }
 
 export function getMemberLimit(entitlements: WorkspaceEntitlements | null): number {
@@ -136,5 +118,5 @@ export function getMemberLimit(entitlements: WorkspaceEntitlements | null): numb
     return entitlements.plan?.memberLimit ?? 0;
   }
 
-  return entitlements.trial ? FREE_TRIAL_MEMBERS : 0;
+  return SETUP_MEMBERS;
 }

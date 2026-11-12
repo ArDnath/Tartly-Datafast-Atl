@@ -7,17 +7,21 @@
   `.github/rulesets/main-protection.json`)
 - **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
   forked locally at `/home/ariyaman/Dev/fight/efforts/revenuelens`
-- **Last updated:** 2026-11-11
-- **Current phase:** Phases 10, 11, and 12 are implemented. A real local
-  ingestion run (10,000 events, 50 concurrent clients, 157 req/s, p95 412 ms,
-  0 errors) is recorded in `docs/LOAD_TEST.md`, and the run exposed and fixed a
-  deleted-workspace session leak. The remaining work is external verification:
-  live Dodo/Resend/provider credentials, a real browser walkthrough, a Neon
-  production restore rehearsal, hosting/DNS, and lawyer review. All are labelled
-  **UNVERIFIED** with the exact human action. The source restructure remains
-  enforced: `src/app` is routing only, every domain owns its
-  UI/hooks/lib/server/queries, and `src/lib`/`src/queries` are allowlisted
-  shared kernels.
+- **Last updated:** 2026-11-12
+- **Current phase:** Phases 10, 11, and 12 are implemented, and the
+  2026-11-12 platform-checkout slice now connects the landing pricing cards,
+  the onboarding setup allowance, the `/app` paywall, and Dodo subscription
+  management. The free trial was removed: a workspace finishes onboarding
+  (one website) and must subscribe before ingestion or paid features unlock.
+  A real local ingestion run (10,000 events, 50 concurrent clients, 157 req/s,
+  p95 412 ms, 0 errors) is recorded in `docs/LOAD_TEST.md`, and the run exposed
+  and fixed a deleted-workspace session leak. The remaining work is external
+  verification: live Dodo/Resend/provider credentials, a real browser
+  walkthrough, a Neon production restore rehearsal, hosting/DNS, and lawyer
+  review. All are labelled **UNVERIFIED** with the exact human action. The
+  source restructure remains enforced: `src/app` is routing only, every domain
+  owns its UI/hooks/lib/server/queries, and `src/lib`/`src/queries` are
+  allowlisted shared kernels.
 - **Mandatory engineering gate:** the two repository skills
   (`.opencode/skills/production-backend-readiness/SKILL.md`,
   `.opencode/skills/high-scale-low-cost-deployment/SKILL.md`) are binding.
@@ -38,9 +42,9 @@
 - Overall percent (average of phases 0–12): **94%**
 - Build state at last check: **green** — `pnpm gate` (Biome format, Biome
   lint, `tsc --noEmit`, coverage-enforced tests, production build) passes.
-  Latest local full run (2026-11-11): **203 test files passed / 1 gated skip**,
-  **936 tests passed / 1 skipped**, coverage **66.20% statements / 55.07%
-  branches / 63.58% functions / 66.61% lines**, plus the explicit 48-assertion
+  Latest local full run (2026-11-12): **213 test files passed / 1 gated skip**,
+  **966 tests passed / 1 skipped**, coverage **66.79% statements / 55.97%
+  branches / 64.01% functions / 67.26% lines**, plus the explicit 48-assertion
   PostgreSQL analytics smoke and the recorded load probe.
 - GitHub CI: **green on `main`** (run 43066591765 for `619099b`). The three-job
   pipeline starts PostgreSQL 17, runs format, lint, typecheck, coverage tests,
@@ -63,7 +67,7 @@
   and `/app/settings/admin` are wired. The legacy `/websites/*` and
   `/settings/*` URLs redirect to `/app/*`.
 - Database: local PostgreSQL has all migrations applied, including the newest
-  `20261106120000_abuse_suspension` (user/workspace suspension).
+  `20261112120000_platform_billing_traffic_tier` (purchased traffic tier).
 
 ## Final engineering status (2026-11-06)
 
@@ -90,6 +94,88 @@ code:
 
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
+
+## 2026-11-12 — Remove the 7-day free trial (owner request)
+
+- Removed the time-based trial from the single source of truth
+  (`src/lib/plans.ts`): no `FREE_TRIAL_*` constants, no `trialDays` on a plan,
+  and no trial-state helpers. The two paid plans are unchanged.
+- Entitlements and usage snapshots no longer expose trial fields. An unpaid
+  workspace keeps only the onboarding setup allowance (one website, one member)
+  and has a zero event/replay allowance.
+- Ingestion now returns `subscription_required` for every billable event when
+  `active` is false. The one-time setup event counter and its reserve/release
+  helpers were removed from the collector path.
+- `/api/billing/access` returns `requiresPayment: true` as soon as a workspace
+  has no confirmed subscription. The trial countdown strip was deleted; `/app`
+  renders the paywall immediately after onboarding.
+- Checkout handoff sends only paid workspaces to `/app`; every unpaid workspace
+  goes to Dodo checkout. No provider-side trial is requested.
+- Marketing, legal, docs, `llms.txt`, and the OpenAPI `BillingAccess` schema
+  now say "no free tier / no free trial". Pricing CTAs read "Choose a plan".
+- Verified: `pnpm gate` exit 0 on 2026-11-12 — 213 test files passed / 1
+  skipped, 966 tests passed / 1 skipped, coverage 66.79% statements / 55.97%
+  branches / 64.02% functions / 67.23% lines, deploy checks passed, and the
+  production build (including `/checkout` and the paywall routes) was green.
+  The 13 directly affected suites were also run on their own (83 tests).
+- **UNVERIFIED:** live Dodo checkout with real test credentials. The human
+  action is unchanged from the entry below: configure `DODO_PAYMENTS_*`, run
+  `pnpm billing:setup-dodo --apply`, sign in, finish onboarding, and complete a
+  test-card checkout.
+
+## 2026-11-12 — Dodo checkout, trial paywall, and subscription management
+
+- Landing pricing cards now hand off to
+  `/checkout?plan=…&interval=…&tier=…`. Signed-out visitors continue through
+  Google; a first-run account finishes onboarding and then returns to the
+  checkout intent. A workspace still inside its local 7-day trial goes straight
+  to `/app`, and no payment is started.
+- The free-trial countdown strip now renders **above** the `/app` navbar, spans
+  the full width, and centers its pill, countdown, end date, and plan link.
+  It updates at the next minute boundary and is absent after the trial or after
+  paid access is confirmed.
+- An expired trial renders a glass paywall on `/app` with both plans, a
+  monthly/yearly switch, and the same traffic-tier slider as `/pricing`. The
+  cards are translucent, theme-aware, keyboard accessible, and fall back to a
+  solid surface where `color-mix` is unavailable. Only the owner can start
+  checkout; invited members see the owner-required explanation.
+- `POST /api/billing/checkout` now accepts an exact `tierIndex`, resolves an
+  exact provider product, and returns `billing-price-unavailable` for an
+  unconfigured non-default tier instead of silently charging the default price.
+  Checkout is rate limited per workspace (20 sessions / 10 minutes).
+- Migration `20261112120000_platform_billing_traffic_tier` records the purchased
+  tier on `platform_subscription`. Entitlements, usage metering, the billing
+  panel, and the current-plan display now enforce the purchased events
+  allowance rather than the plan default.
+- Dodo checkout no longer requests a provider-side trial. The platform's local
+  7-day trial is the only free period, so a customer cannot receive a second
+  free week by subscribing on day one or after the trial ends.
+- Added `GET /api/billing/access` (VIEWER, workspace-scoped) for the shell's
+  trial and paywall state. `openapi.yaml` now documents the billing read,
+  access, checkout, portal, cancel, and change-plan endpoints.
+- Added `pnpm billing:setup-dodo` (dry-run by default; `--apply`,
+  `--yes-live` for live mode). It builds all 32 plan/interval/tier products from
+  `src/lib/plans.ts`, reuses existing products by metadata, and prints
+  `DODO_PRODUCT_IDS_JSON` plus the four default-tier IDs.
+- The account menu now links directly to **Subscription**
+  (`/app/settings/billing`). Plan and usage shows the tier slider, exact
+  monthly/yearly totals, invoices, the Dodo customer portal, cancellation, and
+  plan or traffic-tier changes. The `/app?checkout=success` return shows a
+  confirmation state and polls the read model until the verified webhook
+  unlocks the workspace.
+- Verified: `pnpm gate` exit 0 on 2026-11-12 — **215 test files passed / 1
+  gated skip**, **980 tests passed / 1 skipped**, coverage **66.82%
+  statements / 56.02% branches / 64.01% functions / 67.26% lines**, deploy
+  script parsing and six deploy-smoke tests passed, production build green
+  (including the dynamic `/checkout` route). `prisma migrate deploy` applied
+  `20261112120000_platform_billing_traffic_tier` locally. A real local database
+  probe verified an expired workspace (`requiresPayment: true`, event limit 0)
+  and a 2-day-old workspace (trial active, 5 days remaining, 2,000 events); the
+  temporary rows were deleted afterwards.
+- **UNVERIFIED:** live Dodo test/live checkout, webhook delivery, customer
+  portal, Google consent, and a connected-browser screenshot of the paywall.
+  Exact human setup and test steps are in `docs/PLATFORM_BILLING.md` (Dodo
+  dashboard, webhook endpoint, API key, product setup script, test card).
 
 ## 2026-11-11 — Automatic CD verified on Ubuntu 26.04; security alert remediation
 

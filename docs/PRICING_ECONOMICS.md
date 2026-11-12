@@ -1,10 +1,11 @@
 # Pricing Economics
 
-- **Date:** 2026-11-07 (supersedes the 2026-11-04 two-plan sheet)
+- **Date:** 2026-11-12 (supersedes the 2026-11-07 two-plan + trial sheet)
 - **Owner-fixed entry prices:** Starter **$7.99/mo**, Pro **$14.99/mo** at
   100k / 1M events.
 - **Two paid plans.** No third plan.
-- **Free trial:** **7 days**, **2,000 events**, **1 website**, no card.
+- **No free trial and no free tier.** Unpaid workspaces can finish onboarding
+  with one website and one member, but ingestion requires a paid subscription.
 - **Website limits fixed:** Starter **1**, Pro **up to 50**.
 - **Traffic slider:** eight tiers from 10k to 2M Starter events. Pro scales
   from 100k to 10M events. Prices rise with the tier and stay below DataFast's
@@ -43,20 +44,20 @@ limits are monthly and that overage pauses rather than surprises.
 
 ## 2. Our plan proposal
 
-|                         | **Starter**                      | **Pro**                                        |
-| ----------------------- | -------------------------------- | ---------------------------------------------- |
-| Monthly                 | **$7.99**                        | **$14.99**                                     |
-| Annual (2 months free)  | **$79.90**                       | **$149.90**                                    |
-| Free trial              | **7 days, 2,000 events, 1 site** | **7 days, 2,000 events, 1 site**               |
-| Websites                | **1**                            | **up to 50**                                   |
-| Members                 | 1                                | 10                                             |
-| Billable events / month | **100,000**                      | **1,000,000**                                  |
-| Analytics retention     | **90 days**                      | **365 days**                                   |
-| Session replay          | **not included**                 | **2,000 sessions/mo**, 30-day replay retention |
-| Payment connections     | 1                                | unlimited                                      |
-| Revenue attribution     | first + last touch               | first + last touch, funnels, journeys          |
-| Support                 | email                            | priority email                                 |
-| Export                  | CSV                              | CSV + full backup                              |
+|                         | **Starter**        | **Pro**                                        |
+| ----------------------- | ------------------ | ---------------------------------------------- |
+| Monthly                 | **$7.99**          | **$14.99**                                     |
+| Annual (2 months free)  | **$79.90**         | **$149.90**                                    |
+| Free trial              | **none**           | **none**                                       |
+| Websites                | **1**              | **up to 50**                                   |
+| Members                 | 1                  | 10                                             |
+| Billable events / month | **100,000**        | **1,000,000**                                  |
+| Analytics retention     | **90 days**        | **365 days**                                   |
+| Session replay          | **not included**   | **2,000 sessions/mo**, 30-day replay retention |
+| Payment connections     | 1                  | unlimited                                      |
+| Revenue attribution     | first + last touch | first + last touch, funnels, journeys          |
+| Support                 | email              | priority email                                 |
+| Export                  | CSV                | CSV + full backup                              |
 
 Why these limits:
 

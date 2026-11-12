@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PLAN_IDS } from '@/lib/plans';
+import { DEFAULT_TRAFFIC_TIER_INDEX, PLAN_IDS, TRAFFIC_TIERS } from '@/lib/plans';
 import { parseRequest } from '@/lib/request';
 import { badRequest, forbidden, json, serviceUnavailable } from '@/lib/response';
 import { requireWorkspaceAccess } from '@/lib/workspace-auth';
@@ -11,11 +11,17 @@ import { getDodoBillingProvider } from '@/features/billing/server/providers/dodo
 const schema = z.strictObject({
   workspaceId: z.uuid(),
   planId: z.enum(PLAN_IDS),
+  tierIndex: z
+    .number()
+    .int()
+    .min(0)
+    .max(TRAFFIC_TIERS.length - 1)
+    .optional(),
 });
 
 /**
- * Ask the provider to change the plan immediately with proration. The local
- * plan is updated only by the `subscription.plan_changed` webhook, so a failed
+ * Ask the provider to change the plan or traffic tier immediately with
+ * proration. The local plan is updated only by the webhook, so a failed
  * payment cannot grant the new plan.
  */
 export async function POST(request: Request) {
@@ -50,6 +56,7 @@ export async function POST(request: Request) {
       lifecycleStatus: true,
       planId: true,
       interval: true,
+      trafficTierIndex: true,
     },
   });
 
@@ -67,20 +74,23 @@ export async function POST(request: Request) {
     });
   }
 
-  if (subscription.planId === body.planId) {
+  const interval = subscription.interval === 'annual' ? 'annual' : 'monthly';
+  const currentTierIndex = subscription.trafficTierIndex ?? DEFAULT_TRAFFIC_TIER_INDEX;
+  const tierIndex = body.tierIndex ?? currentTierIndex;
+
+  if (subscription.planId === body.planId && currentTierIndex === tierIndex) {
     return badRequest({
       code: 'plan-unchanged',
-      message: 'This workspace is already on that plan.',
+      message: 'This workspace is already on that plan and traffic tier.',
     });
   }
 
-  const interval = subscription.interval === 'annual' ? 'annual' : 'monthly';
-  const product = findBillingProduct(config, body.planId, interval);
+  const product = findBillingProduct(config, body.planId, interval, tierIndex);
 
   if (!product) {
     return badRequest({
-      code: 'billing-product-missing',
-      message: `No ${interval} price is configured for the ${body.planId} plan.`,
+      code: 'billing-price-unavailable',
+      message: `No ${interval} price is configured for the ${body.planId} plan at this traffic tier.`,
     });
   }
 
@@ -93,7 +103,7 @@ export async function POST(request: Request) {
         workspaceId: body.workspaceId,
         fromPlanId: subscription.planId,
         toPlanId: body.planId,
-        changeType: 'plan-change',
+        changeType: subscription.planId === body.planId ? 'traffic-tier-change' : 'plan-change',
         requestedBy: auth.user.id,
       },
     });
@@ -104,7 +114,13 @@ export async function POST(request: Request) {
       eventType: 'billing.subscription.plan_change_requested',
       resourceType: 'workspace',
       resourceId: body.workspaceId,
-      metadata: { fromPlanId: subscription.planId, toPlanId: body.planId, provider: 'dodo' },
+      metadata: {
+        fromPlanId: subscription.planId,
+        toPlanId: body.planId,
+        fromTierIndex: currentTierIndex,
+        toTierIndex: tierIndex,
+        provider: 'dodo',
+      },
     });
 
     return json({ ok: true, pending: true });

@@ -42,5 +42,14 @@ export async function resolvePostSignInPath(userId: string, returnUrl?: string |
     return safeReturnUrl;
   }
 
-  return (await isOnboardingRequired(userId)) ? '/onboarding' : safeReturnUrl;
+  if (!(await isOnboardingRequired(userId))) {
+    return safeReturnUrl;
+  }
+
+  // Keep an intent such as a pricing-card checkout or a deep link across the
+  // first-run setup. Onboarding performs the same allowlist check before it
+  // navigates, so this cannot become an open redirect.
+  return safeReturnUrl === '/app'
+    ? '/onboarding'
+    : `/onboarding?next=${encodeURIComponent(safeReturnUrl)}`;
 }

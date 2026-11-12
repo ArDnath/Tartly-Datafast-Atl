@@ -62,10 +62,9 @@ function allowEntitlements(plan = getPlan('pro')) {
     workspaceId: 'workspace-1',
     plan,
     planId: plan?.id ?? null,
+    trafficTierIndex: null,
     subscriptionStatus: 'active',
     active: true,
-    trial: false,
-    trialEndsAt: null,
     setup: false,
   });
 }
@@ -152,10 +151,9 @@ test('a Pro plan without an active subscription cannot record replay', async () 
     workspaceId: 'workspace-1',
     plan: getPlan('pro'),
     planId: 'pro',
+    trafficTierIndex: null,
     subscriptionStatus: 'incomplete',
     active: false,
-    trial: false,
-    trialEndsAt: null,
     setup: true,
   });
 

@@ -73,7 +73,7 @@ workspace is sent straight to `/app`.
   website. The workspace is a real tenant boundary; it is simply not a setup
   question.
 - The workspace starts on the Starter plan with an incomplete subscription, so
-  the 7-day trial allows the first website.
+  the one-website setup allowance allows the first website before payment.
 - Signup still creates only the user. The first workspace is a server-side
   side effect of the first activation step.
 

@@ -38,20 +38,22 @@ lookup filtered `deletedAt` but not `suspendedAt`. Fixed in `src/lib/entitlement
 and pinned by `src/lib/entitlements.test.ts`. After the fix, the same request
 returned 403 before any session or event write.
 
-## One-time setup allowance
+## Unpaid ingestion (trial removed)
 
-Fresh account with no subscription, `workspace.setup_events_count` set to 999:
+The one-time setup event allowance was removed with the free trial. A fresh
+account with no subscription now rejects every billable event before a session
+or event row is written:
 
 ```text
-event 1000 -> 200 accepted; counter 1000
-event 1001 -> {"ok":false,"reason":"subscription_required","limit":1000,"used":1000}
-counter remains 1000; there is no monthly reset
+event 1 -> {"ok":false,"reason":"subscription_required","limit":0,"used":0}
 ```
 
-The counter lives on the workspace, not `usage_period`, so an unsubscribed
-workspace cannot farm a fresh allowance each month. The smoke account was
-deleted afterwards. This closes the "free Starter forever" leak while still
-allowing install verification.
+The collector test suite pins this response
+(`src/features/analytics/server/send/handler.test.ts`). The workspace can still
+create its first website during onboarding through the one-website setup
+allowance. **UNVERIFIED:** repeat this against a live deployment after the
+change; the previous setup-counter observation is historical and no longer
+applies.
 
 ## Not covered
 

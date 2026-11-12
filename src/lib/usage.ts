@@ -1,14 +1,12 @@
 import { billingSubscriptionHasAccess } from '@/lib/billing-lifecycle';
 import { uuid } from '@/lib/crypto';
 import {
-  FREE_TRIAL_EVENTS,
-  FREE_TRIAL_MEMBERS,
-  FREE_TRIAL_WEBSITES,
-  getFreeTrialState,
   getPlan,
   getPlanOrNull,
+  resolvePlanForTrafficTier,
+  SETUP_MEMBERS,
+  SETUP_WEBSITES,
   type Plan,
-  SETUP_EVENT_ALLOWANCE,
 } from '@/lib/plans';
 import prisma from '@/lib/prisma';
 import { isUniqueConstraintError } from '@/lib/prisma-error';
@@ -52,12 +50,11 @@ export interface WorkspaceUsageSnapshot {
   workspaceId: string;
   planId: string | null;
   plan: Plan;
+  trafficTierIndex: number | null;
   subscriptionStatus: string;
   /** True only when the provider confirms paid access. */
   active: boolean;
-  /** True while the workspace is inside its 7-day free trial. */
-  trial: boolean;
-  /** True when paid access is inactive; only trial limits are available. */
+  /** True when paid access is inactive; only onboarding setup limits apply. */
   setup: boolean;
   periodStart: Date;
   periodEnd: Date;
@@ -184,60 +181,6 @@ export async function reserveEventUsage(
     limit: safeLimit,
     hardLimit,
   };
-}
-
-/** Reserve one event from the one-time setup allowance. Never resets. */
-export async function reserveSetupEventUsage(
-  workspaceId: string,
-  limit: number = SETUP_EVENT_ALLOWANCE,
-): Promise<ReserveResult> {
-  const safeLimit = Math.max(0, limit);
-
-  if (safeLimit <= 0) {
-    return { allowed: false, used: 0, limit: 0, hardLimit: 0 };
-  }
-
-  const rows = await prisma.client.$queryRaw<Array<{ setup_events_count: number }>>`
-    UPDATE workspace
-    SET setup_events_count = setup_events_count + 1,
-        updated_at = now()
-    WHERE workspace_id = ${workspaceId}
-      AND deleted_at IS NULL
-      AND suspended_at IS NULL
-      AND setup_events_count < ${safeLimit}
-    RETURNING setup_events_count
-  `;
-
-  if (rows.length > 0) {
-    return {
-      allowed: true,
-      used: Number(rows[0].setup_events_count),
-      limit: safeLimit,
-      hardLimit: safeLimit,
-    };
-  }
-
-  const current = await prisma.client.workspace.findUnique({
-    where: { id: workspaceId },
-    select: { setupEventsCount: true },
-  });
-
-  return {
-    allowed: false,
-    used: current?.setupEventsCount ?? safeLimit,
-    limit: safeLimit,
-    hardLimit: safeLimit,
-  };
-}
-
-/** Release a setup reservation when the event write failed. */
-export async function releaseSetupEventUsage(workspaceId: string): Promise<void> {
-  await prisma.client.$executeRaw`
-    UPDATE workspace
-    SET setup_events_count = GREATEST(0, setup_events_count - 1)
-    WHERE workspace_id = ${workspaceId}
-      AND setup_events_count > 0
-  `;
 }
 
 /** Release a reservation when the event write failed. */
@@ -449,11 +392,10 @@ export async function getWorkspaceUsage(
         id: true,
         planId: true,
         subscriptionStatus: true,
-        setupEventsCount: true,
-        createdAt: true,
         platformSubscription: {
           select: {
             planId: true,
+            trafficTierIndex: true,
             lifecycleStatus: true,
             cancelAtPeriodEnd: true,
             currentPeriodEnd: true,
@@ -493,7 +435,11 @@ export async function getWorkspaceUsage(
   }
 
   const planId = workspace.platformSubscription?.planId ?? workspace.planId;
-  const plan = getPlanOrNull(planId) || getPlan('starter');
+  const trafficTierIndex = workspace.platformSubscription?.trafficTierIndex ?? null;
+  const plan = resolvePlanForTrafficTier(
+    getPlanOrNull(planId) || getPlan('starter'),
+    trafficTierIndex,
+  );
   const subscriptionStatus =
     workspace.platformSubscription?.lifecycleStatus ?? workspace.subscriptionStatus;
   const active = workspace.platformSubscription
@@ -506,24 +452,21 @@ export async function getWorkspaceUsage(
         now,
       )
     : workspace.subscriptionStatus === 'active' || workspace.subscriptionStatus === 'trialing';
-  const freeTrial = getFreeTrialState(workspace.createdAt, now);
-  const trial = active || freeTrial.active;
-  const trialEventAllowance = freeTrial.active ? FREE_TRIAL_EVENTS : 0;
 
   return {
     workspaceId: workspace.id,
     planId,
     plan,
+    trafficTierIndex,
     subscriptionStatus,
     active,
-    trial,
     setup: !active,
     periodStart,
     periodEnd,
     resetAt: periodEnd,
     events: createUsageMeter(
-      active ? (period?.eventsCount ?? 0) : workspace.setupEventsCount,
-      active ? plan.eventsPerMonth : trialEventAllowance,
+      active ? (period?.eventsCount ?? 0) : 0,
+      active ? plan.eventsPerMonth : 0,
       active ? EVENT_GRACE : 0,
     ),
     replays: createUsageMeter(
@@ -533,11 +476,11 @@ export async function getWorkspaceUsage(
     ),
     websites: {
       used: websiteCount,
-      limit: active ? plan.websiteLimit : freeTrial.active ? FREE_TRIAL_WEBSITES : 0,
+      limit: active ? plan.websiteLimit : SETUP_WEBSITES,
     },
     members: {
       used: memberCount + pendingInvites,
-      limit: active ? plan.memberLimit : freeTrial.active ? FREE_TRIAL_MEMBERS : 0,
+      limit: active ? plan.memberLimit : SETUP_MEMBERS,
     },
   };
 }
