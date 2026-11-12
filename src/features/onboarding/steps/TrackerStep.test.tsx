@@ -83,6 +83,36 @@ test('renders the tracker snippet and live verification state', async () => {
   await waitFor(() => expect(apiGet).toHaveBeenCalledWith('/websites/website-1/onboarding/verify'));
 });
 
+test('auto-selects the detected framework guide', async () => {
+  renderStep();
+
+  expect(await screen.findByText(/import Script from 'next\/script'/)).toBeInTheDocument();
+  expect(screen.getByRole('tab', { name: 'Next.js', selected: true })).toBeInTheDocument();
+  expect(screen.getByText(/Detected Next\.js/)).toBeInTheDocument();
+});
+
+test('offers an AI agent prompt next to the manual snippet', async () => {
+  const user = userEvent.setup();
+  const writeText = vi.spyOn(navigator.clipboard, 'writeText');
+
+  renderStep();
+
+  await screen.findByText(/import Script from 'next\/script'/);
+  await user.click(screen.getByRole('button', { name: 'Use an AI agent' }));
+
+  expect(screen.getByText('AI agent prompt')).toBeInTheDocument();
+  expect(
+    screen.getByText(/Do not remove, weaken, or disable any Content-Security-Policy/),
+  ).toBeInTheDocument();
+  expect(screen.getByText(/data-website-id="website-1"/)).toBeInTheDocument();
+
+  await user.click(screen.getByRole('button', { name: 'Copy agent prompt' }));
+
+  expect(writeText).toHaveBeenCalledWith(expect.stringContaining('# Install Tartly analytics'));
+  expect(writeText).toHaveBeenCalledWith(expect.stringContaining('app/layout.tsx'));
+  expect(writeText).toHaveBeenCalledWith(expect.stringContaining('data-website-id="website-1"'));
+});
+
 test('switches framework guides and continues without a verified event', async () => {
   const user = userEvent.setup();
   const onContinue = vi.fn();

@@ -99,7 +99,8 @@
 .copyButton:focus-visible,
 .secondaryButton:focus-visible,
 .statusAction:focus-visible,
-.tab:focus-visible {
+.tab:focus-visible,
+.methodButton:focus-visible {
   outline: 2px solid var(--focus-ring-color, var(--ie-blush));
   outline-offset: 2px;
 }
@@ -181,6 +182,57 @@
   border-color: var(--ie-border);
   background: var(--ie-sunken);
   color: var(--ie-fg);
+}
+
+.methodSwitch {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--ie-border);
+  border-radius: 8px;
+  background: var(--ie-sunken);
+}
+
+.methodButton {
+  min-height: 27px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ie-muted);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+.methodButton:hover {
+  color: var(--ie-fg);
+}
+
+.methodButtonActive {
+  border-color: var(--ie-border);
+  background: var(--ie-card);
+  color: var(--ie-fg);
+}
+
+.agentPanel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ie-blush) 28%, var(--ie-border));
+  border-radius: 10px;
+  background: var(--ie-card);
+}
+
+.agentPrompt {
+  max-height: 300px;
 }
 
 .codeSection {
@@ -452,7 +504,8 @@
 @media (prefers-reduced-motion: reduce) {
   .tab,
   .copyButton,
-  .secondaryButton {
+  .secondaryButton,
+  .methodButton {
     transition: none;
   }
 }

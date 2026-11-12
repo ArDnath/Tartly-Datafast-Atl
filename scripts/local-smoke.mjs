@@ -15,6 +15,7 @@
  */
 import { randomUUID } from 'node:crypto';
 import 'dotenv/config';
+import pg from 'pg';
 
 const baseUrl = (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
 const email = process.env.SMOKE_EMAIL || `smoke-${Date.now()}@example.com`;
@@ -105,7 +106,17 @@ async function ensureWebsite() {
   const workspaceId = workspaces?.[0]?.workspace?.id;
 
   if (!workspaceId) {
-    throw new Error('No workspace found for this account.');
+    // Registration deliberately creates only the user. The first-run flow
+    // creates the invisible workspace and its first website in one request.
+    const result = await api('/api/onboarding/website', {
+      method: 'POST',
+      body: { domain: 'smoke.example.com' },
+    });
+
+    console.log(
+      `created onboarding workspace ${result.workspace.id} and website ${result.website.id}`,
+    );
+    return result.website;
   }
 
   const website = await api('/api/websites', {
@@ -119,6 +130,79 @@ async function ensureWebsite() {
 
   console.log(`created website ${website.id}`);
   return website;
+}
+
+function isLocalHost(hostname) {
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+}
+
+/**
+ * Local-only test activation. Production has no free tier, so a freshly
+ * registered workspace correctly rejects billable events until a subscription
+ * is confirmed. This helper makes the local analytics loop testable without a
+ * real provider. It refuses to run unless both the app and the database are
+ * local, and can be disabled with SMOKE_ACTIVATE_WORKSPACE=0.
+ */
+async function activateLocalWorkspace(workspaceId) {
+  if (!workspaceId || process.env.SMOKE_ACTIVATE_WORKSPACE === '0') {
+    return false;
+  }
+
+  const appUrl = new URL(baseUrl);
+  const databaseUrl = new URL(process.env.DATABASE_URL || '');
+
+  if (!isLocalHost(appUrl.hostname) || !isLocalHost(databaseUrl.hostname)) {
+    return false;
+  }
+
+  const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
+
+  await client.connect();
+
+  try {
+    const result = await client.query(
+      `update workspace
+       set subscription_status = 'active'
+       where workspace_id = $1 and deleted_at is null`,
+      [workspaceId],
+    );
+
+    if (result.rowCount === 1) {
+      console.log('activated the local smoke workspace for ingestion (test only)');
+      return true;
+    }
+
+    return false;
+  } finally {
+    await client.end();
+  }
+}
+
+async function readInstallStatus(website) {
+  const response = await api(
+    `/api/websites/install-status?workspaceId=${encodeURIComponent(website.workspaceId)}`,
+  );
+  const status = (response?.data || []).find(item => item.id === website.id);
+
+  if (!status) {
+    throw new Error('The install-status endpoint did not return the smoke website.');
+  }
+
+  return status;
+}
+
+async function waitForInstallStatus(website, expected) {
+  for (let attempt = 1; attempt <= 10; attempt += 1) {
+    const status = await readInstallStatus(website);
+
+    if (status.connected === expected) {
+      return status;
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 300));
+  }
+
+  throw new Error(`Install status never became ${expected ? 'connected' : 'pending'}.`);
 }
 
 async function sendEvent(website) {
@@ -144,6 +228,13 @@ async function sendEvent(website) {
 
   if (result?.beep) {
     throw new Error('The collector rejected the request as a bot. Use a browser User-Agent.');
+  }
+
+  if (result?.ok === false) {
+    throw new Error(
+      `The collector rejected the event: ${result.reason}. ` +
+        'A local smoke run activates its own workspace; if this is disabled, set SMOKE_ACTIVATE_WORKSPACE=1.',
+    );
   }
 
   console.log(`sent event for session ${result.sessionId || 'created'}`);
@@ -173,7 +264,15 @@ async function readStats(website) {
 try {
   await authenticate();
   const website = await ensureWebsite();
+  await activateLocalWorkspace(website.workspaceId);
+  const installBefore = await readInstallStatus(website);
+
+  console.log(
+    `install reminder status before the event: ${installBefore.connected ? 'connected' : 'pending'}`,
+  );
+
   await sendEvent(website);
+  await waitForInstallStatus(website, true);
   const stats = await readStats(website);
 
   console.log(
@@ -193,7 +292,7 @@ try {
     throw new Error('Analytics query returned no pageviews; ingestion or query is not working.');
   }
 
-  console.log('OK: ingestion and analytics query are working.');
+  console.log('OK: ingestion, analytics query, and install-status reminder are working.');
 } catch (error) {
   console.error(`FAIL: ${error instanceof Error ? error.message : String(error)}`);
   process.exit(1);

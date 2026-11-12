@@ -25,6 +25,19 @@
   letter-spacing: -0.01em;
 }
 
+/*
+ * The same setup canvas, mounted over the signed-in shell when an existing
+ * customer adds another website. The route is still /app/new; this overlay
+ * keeps the flow visually identical to first-run onboarding and gives the
+ * customer an obvious exit back to the app.
+ */
+.embedded {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  min-height: 100dvh;
+}
+
 .loading {
   display: flex;
   flex: 1;

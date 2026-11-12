@@ -6,6 +6,7 @@ import { AppLogoutButton } from '@/features/app-shell/AppLogoutButton';
 import { TopNav } from '@/features/app-shell/TopNav';
 import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { AppWelcomeOverlayGate } from '@/features/onboarding/welcome/AppWelcomeOverlayGate';
+import { TrackerReminder } from '@/features/websites/components/TrackerReminder';
 import { useWorkspacesQuery } from '@/features/workspaces/hooks/useWorkspacesQuery';
 import { AppBillingGate } from './AppBillingGate';
 import { UpdateNotice } from './UpdateNotice';
@@ -79,6 +80,7 @@ export function App({ children }) {
       <TopNav showUser />
       <AppBillingGate>{children}</AppBillingGate>
       {user.isAdmin && <UpdateNotice userId={user.id} />}
+      <TrackerReminder />
       <AppLogoutButton />
       <AppWelcomeOverlayGate />
     </Column>

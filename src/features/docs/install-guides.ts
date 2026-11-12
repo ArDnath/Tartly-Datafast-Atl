@@ -59,6 +59,8 @@ export interface InstallGuide {
   language: string;
   status: InstallGuideStatus;
   statusNote: string;
+  /** The file a customer edits for the standard install. */
+  filePath: string;
   steps: string[];
   notes?: string[];
   mode?: InstallMode;
@@ -126,6 +128,7 @@ export const STANDARD_GUIDES: InstallGuide[] = [
     title: 'Next.js',
     summary: 'Add the tracker to the App Router root layout with next/script.',
     language: 'tsx',
+    filePath: 'app/layout.tsx (or src/app/layout.tsx)',
     status: 'untested',
     statusNote: UNTESTED_RUNTIME,
     steps: [
@@ -164,6 +167,7 @@ ${attributes}
     title: 'React',
     summary: 'Put the script in the HTML entry point so it loads before React.',
     language: 'html',
+    filePath: 'index.html (the HTML entry point used by your build)',
     status: 'untested',
     statusNote: UNTESTED_RUNTIME,
     steps: [
@@ -181,6 +185,7 @@ ${attributes}
     title: 'Vite',
     summary: 'Add the snippet to the Vite index.html entry point.',
     language: 'html',
+    filePath: 'index.html at the project root',
     status: 'untested',
     statusNote: UNTESTED_RUNTIME,
     steps: [
@@ -198,6 +203,7 @@ ${attributes}
     title: 'Plain HTML',
     summary: 'Paste one script tag before the closing body tag on every page.',
     language: 'html',
+    filePath: 'the shared HTML template for every page',
     status: 'untested',
     statusNote: UNTESTED_RUNTIME,
     steps: [
@@ -215,6 +221,7 @@ ${attributes}
     title: 'Astro',
     summary: 'Use an inline script in the shared layout so Astro does not bundle it.',
     language: 'astro',
+    filePath: 'src/layouts/Layout.astro (or your shared layout)',
     status: 'untested',
     statusNote: UNTESTED_RUNTIME,
     steps: [
@@ -249,6 +256,7 @@ ${attributes}
     title: 'Remix',
     summary: 'Render the script in the root route body.',
     language: 'tsx',
+    filePath: 'app/root.tsx',
     status: 'untested',
     statusNote: UNTESTED_RUNTIME,
     steps: [
@@ -285,6 +293,7 @@ ${attributes}
     summary:
       'Use the custom-code, code-injection, or embed field in your site builder. The snippet is plain HTML and needs no build step.',
     language: 'html',
+    filePath: 'your builder’s global custom-code or footer field',
     status: 'untested',
     statusNote: UNTESTED_RUNTIME,
     steps: [
@@ -305,6 +314,7 @@ export const FIRST_PARTY_GUIDES: InstallGuide[] = [
   {
     slug: 'nextjs-first-party',
     title: 'Next.js (first-party)',
+    filePath: 'app/layout.tsx and app/%5Ftartly/[...path]/route.ts',
     summary:
       'Proxy /_tartly through a Next.js App Router route handler, then load the tracker from your own domain.',
     language: 'tsx',
@@ -335,6 +345,7 @@ export const FIRST_PARTY_GUIDES: InstallGuide[] = [
   {
     slug: 'vercel-first-party',
     title: 'Vercel (first-party)',
+    filePath: 'api/tartly/[...path].ts, vercel.json, and your HTML entry point',
     summary:
       'Add a Vercel function and rewrite, then load the tracker from /_tartly on your own domain.',
     language: 'ts',
@@ -371,6 +382,7 @@ export const FIRST_PARTY_GUIDES: InstallGuide[] = [
   {
     slug: 'netlify-first-party',
     title: 'Netlify (first-party)',
+    filePath: 'netlify/edge-functions/tartly.ts and your HTML entry point',
     summary: 'Add a Netlify edge function, then load the tracker from /_tartly on your own domain.',
     language: 'ts',
     status: 'untested',
@@ -400,6 +412,7 @@ export const FIRST_PARTY_GUIDES: InstallGuide[] = [
   {
     slug: 'cloudflare-first-party',
     title: 'Cloudflare Pages (first-party)',
+    filePath: 'functions/_tartly/[[path]].ts and your HTML entry point',
     summary: 'Add a Pages Function, then load the tracker from /_tartly on your own domain.',
     language: 'ts',
     status: 'untested',
@@ -470,6 +483,137 @@ const FIRST_PARTY_GUIDE_BY_HOST: Record<string, string> = {
   netlify: 'netlify-first-party',
   cloudflare: 'cloudflare-first-party',
 };
+
+/**
+ * Best-effort mapping from the detected host to the standard guide. The
+ * standard snippet is the same plain script for every static host; the guide
+ * only changes the file path and the framework wrapper. Unknown hosts keep the
+ * plain-HTML guide rather than guessing a file the customer may not have.
+ */
+const STANDARD_GUIDE_BY_HOST: Record<string, string> = {
+  nextjs: 'nextjs',
+  vercel: 'html',
+  netlify: 'html',
+  cloudflare: 'html',
+  shopify: 'other',
+  wordpress: 'other',
+};
+
+export function getStandardGuideForHost(hostId: string | undefined | null) {
+  return (
+    getInstallGuide((hostId && STANDARD_GUIDE_BY_HOST[hostId]) || 'html') ??
+    getInstallGuide('html') ??
+    STANDARD_GUIDES[0]
+  );
+}
+
+export interface AgentPromptPolicy {
+  scriptBlocked?: boolean;
+  connectBlocked?: boolean;
+  strictDynamic?: boolean;
+  suggestedHeaders?: string[];
+}
+
+export interface AgentPromptOptions {
+  guide: InstallGuide;
+  context: InstallContext;
+  websiteUrl?: string;
+  detectedHost?: string;
+  policy?: AgentPromptPolicy;
+}
+
+function promptFileForGuide(guide: InstallGuide, context: InstallContext, snippet: string) {
+  const firstParty = (context.mode ?? guide.mode) === 'first-party' && guide.firstParty;
+
+  if (firstParty) {
+    return {
+      label: 'Tracker snippet',
+      path: guide.firstParty?.snippetPath || guide.filePath,
+      language: 'html',
+      code: snippet,
+    };
+  }
+
+  return {
+    label: 'Tracker snippet',
+    path: guide.filePath,
+    language: guide.language,
+    code: snippet,
+  };
+}
+
+/**
+ * A copy-paste brief for a coding agent. It contains the exact files the
+ * customer needs and the guardrails that keep the agent from weakening a CSP or
+ * turning the public website ID into a secret.
+ */
+export function buildAgentPrompt({
+  guide,
+  context,
+  websiteUrl,
+  detectedHost,
+  policy,
+}: AgentPromptOptions) {
+  const mode = context.mode ?? guide.mode ?? 'standard';
+  const snippet = getInstallSnippet(guide, context);
+  const snippetFile = promptFileForGuide(guide, context, snippet);
+  const proxyFiles = mode === 'first-party' && guide.firstParty ? guide.firstParty.files : [];
+  const target = websiteUrl || context.domain || 'the customer site';
+  const blocked = Boolean(policy?.scriptBlocked || policy?.connectBlocked || policy?.strictDynamic);
+  const policyNote = blocked
+    ? `${BRAND.name} detected a strict security policy on this site${
+        policy?.suggestedHeaders?.length
+          ? ` (suggested header: ${policy.suggestedHeaders.join(' | ')})`
+          : ''
+      }. Do not apply that header change yourself. Use the first-party install if the standard install is blocked.`
+    : `${BRAND.name} did not detect a blocking security policy. If the browser console shows a CSP error, stop and use the first-party install instead of weakening the policy.`;
+
+  const files = [...proxyFiles, snippetFile]
+    .map(
+      file =>
+        `### ${file.label}: ${file.path} (${file.language})\n\n\`\`\`${file.language}\n${file.code}\n\`\`\``,
+    )
+    .join('\n\n');
+
+  return `# Install ${BRAND.name} analytics
+
+You are adding ${BRAND.name} analytics to ${target}. Follow this brief exactly. Do not redesign the app, change its framework, or rewrite the tracker.
+
+- Detected host: ${detectedHost || guide.title}
+- Install mode: ${mode === 'first-party' ? 'first-party proxy on the customer domain' : `standard script from the ${BRAND.name} domain`}
+- Guide: ${guide.title}
+- Website ID: ${context.websiteId} (public identifier, never a secret)
+
+## Goal
+
+${guide.summary}
+
+## Hard constraints
+
+- Do not remove, weaken, or disable any Content-Security-Policy or security header.
+- Do not move the website ID into an environment variable, secret store, or server-only config.
+- Keep the existing framework, router, build, and deployment. Add only the files or tags below.
+- Preserve the customer's existing page markup. A full-file example below is a reference for the tag, not a replacement for their layout.
+- Do not modify or self-host the ${BRAND.name} tracker script.
+- ${policyNote}
+- After deploying, verify a real event reaches ${BRAND.name}. Do not claim completion from the build alone.
+
+## Steps
+
+${guide.steps.map((step, index) => `${index + 1}. ${step}`).join('\n')}
+${guide.notes?.length ? `\n## Notes\n\n${guide.notes.map(note => `- ${note}`).join('\n')}\n` : ''}
+## Files
+
+${files}
+
+## Verification
+
+1. Run the project's production build.
+2. Deploy, then open ${target} in a normal browser profile (not one with an analytics blocker).
+3. In the browser network panel, confirm the tracker request and a request to /api/send.
+4. Return to ${BRAND.name}, open the website's onboarding or settings screen, and press "Check now" until the tracker reports connected.
+5. If no event arrives, report the exact console and network errors. Do not loosen the security policy.`;
+}
 
 export function getInstallGuide(slug: string) {
   return INSTALL_GUIDES.find(guide => guide.slug === slug);

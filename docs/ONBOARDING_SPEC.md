@@ -82,8 +82,20 @@ workspace is sent straight to `/app`.
 - Snippet generation comes from `src/features/docs/install-guides.ts`, so the
   onboarding flow, public docs, and website settings cannot drift.
 - Framework tabs: Next.js, React, Vite, plain HTML, Astro, Remix.
+- Best-effort host detection from the preflight response auto-selects the
+  matching guide (Next.js; Shopify/WordPress → no-code; static hosts → plain
+  HTML). The customer can override the tab at any time. Detection is a
+  convenience, not a security boundary.
+- The install step offers two methods. **Copy the code** shows the exact snippet
+  and framework wrapper. **Use an AI agent** generates a prompt with the exact
+  file paths, code, the public-website-ID rule, CSP guardrails, and a real-event
+  verification checklist. Neither method weakens an existing CSP; a strict
+  policy recommends the first-party install instead.
 - Live verification polls `GET /api/websites/:id/onboarding/verify`. It reads
   the event store, not a client-side flag, and never fakes success.
+- The customer can continue before the first event arrives. Until a real event
+  arrives, signed-in dashboards show a quiet setup reminder that links back to
+  the install step; it disappears automatically after the first event.
 - The customer can continue before the first event arrives; the tracker can be
   verified later in Settings → Websites.
 
@@ -97,6 +109,14 @@ workspace is sent straight to `/app`.
 - The copy states the boundary explicitly: this is the customer's analytics
   revenue integration, never the Tartly platform subscription.
 - The customer can finish without connecting a provider.
+
+### Add another website
+
+`/app/new` mounts the same flow in `add-website` mode. It keeps the same canvas
+and three steps, uses the active workspace (ADMIN required) and
+`POST /api/websites` instead of the first-run onboarding endpoint, does not set
+`onboarding_completed_at` again, and returns to the new website. It is not a
+separate wizard.
 
 ### Completion — Welcome and `/app`
 

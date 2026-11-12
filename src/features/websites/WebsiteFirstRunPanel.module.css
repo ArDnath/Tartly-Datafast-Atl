@@ -1,0 +1,135 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 620px;
+  margin: 12px auto 0;
+  padding: 28px;
+  border: 1px solid var(--talivia-card-border);
+  border-radius: 18px;
+  background: var(--talivia-card-background);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--accent-text);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 8px 0 0;
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.body {
+  max-width: 48ch;
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin: 22px 0 0;
+  padding: 18px 0 0;
+  border-top: 1px solid var(--talivia-card-border);
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.stepIndex {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--talivia-card-border);
+  border-radius: 999px;
+  background: var(--surface-subtle);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.stepLabel {
+  display: block;
+  font-weight: 600;
+}
+
+.stepDetail {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  margin-top: 22px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--text-primary);
+  color: var(--talivia-app-background);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.action:hover {
+  opacity: 0.86;
+}
+
+.action:active {
+  transform: translateY(1px);
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+
+.action svg {
+  width: 14px;
+  height: 14px;
+}
+
+@media (max-width: 640px) {
+  .panel {
+    padding: 22px 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action {
+    transition: none;
+  }
+}
