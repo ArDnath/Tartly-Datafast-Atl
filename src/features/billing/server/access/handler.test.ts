@@ -16,7 +16,6 @@ const state = {
   subscriptionStatus: 'incomplete',
   configured: true,
   paid: false,
-  trial: { active: false, endsAt: null, daysRemaining: 0 },
   requiresPayment: true,
   subscription: null,
   availableProducts: [],

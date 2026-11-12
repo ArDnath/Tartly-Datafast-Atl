@@ -65,9 +65,6 @@ function allowEntitlements(plan = getPlan('pro')) {
     trafficTierIndex: null,
     subscriptionStatus: 'active',
     active: true,
-    trial: false,
-    trialEndsAt: null,
-    trialDaysRemaining: 0,
     setup: false,
   });
 }
@@ -157,9 +154,6 @@ test('a Pro plan without an active subscription cannot record replay', async () 
     trafficTierIndex: null,
     subscriptionStatus: 'incomplete',
     active: false,
-    trial: false,
-    trialEndsAt: null,
-    trialDaysRemaining: 0,
     setup: true,
   });
 

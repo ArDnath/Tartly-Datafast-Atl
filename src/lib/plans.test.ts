@@ -2,31 +2,28 @@ import { describe, expect, test } from 'vitest';
 import {
   annualSavingsCents,
   DEFAULT_TRAFFIC_TIER_INDEX,
-  FREE_TRIAL_DAYS,
-  FREE_TRIAL_EVENTS,
-  FREE_TRIAL_WEBSITES,
   formatAnnualPrice,
   formatMonthlyPrice,
-  getFreeTrialState,
   getPlan,
   getPlanOrNull,
   getTrafficEvents,
   getTrafficPriceCents,
-  getTrialDaysRemaining,
   isPlanId,
   PLANS,
   planHasFeature,
   resolvePlanForTrafficTier,
+  SETUP_MEMBERS,
+  SETUP_WEBSITES,
   TRAFFIC_TIERS,
 } from './plans';
 
 describe('plans', () => {
-  test('ships two paid plans plus a 7-day free trial', () => {
+  test('ships exactly two paid plans and no trial clock', () => {
     expect(PLANS.map(plan => plan.id)).toEqual(['starter', 'pro']);
     expect(PLANS.every(plan => plan.monthlyPriceCents > 0)).toBe(true);
-    expect(PLANS.every(plan => plan.trialDays === FREE_TRIAL_DAYS)).toBe(true);
-    expect(FREE_TRIAL_EVENTS).toBe(2_000);
-    expect(FREE_TRIAL_WEBSITES).toBe(1);
+    expect(PLANS).toHaveLength(2);
+    expect(SETUP_WEBSITES).toBe(1);
+    expect(SETUP_MEMBERS).toBe(1);
   });
 
   test('keeps the owner-fixed entry prices and increases the included limits', () => {
@@ -95,14 +92,6 @@ describe('plans', () => {
     expect(getTrafficEvents('pro', 0)).toBeGreaterThanOrEqual(10_000);
   });
 
-  test('the free trial ends after seven days and never renews', () => {
-    const createdAt = new Date('2026-11-07T00:00:00.000Z');
-
-    expect(getFreeTrialState(createdAt, new Date('2026-11-13T23:59:59.000Z')).active).toBe(true);
-    expect(getFreeTrialState(createdAt, new Date('2026-11-14T00:00:00.000Z')).active).toBe(false);
-    expect(getFreeTrialState(null).active).toBe(false);
-  });
-
   test('resolves purchased traffic tiers into the effective plan limits', () => {
     const low = resolvePlanForTrafficTier('starter', 0);
     const high = resolvePlanForTrafficTier('pro', 6);
@@ -113,14 +102,5 @@ describe('plans', () => {
     expect(high.monthlyPriceCents).toBe(4799);
     expect(high.websiteLimit).toBe(50);
     expect(resolvePlanForTrafficTier('starter', null)).toEqual(getPlan('starter'));
-  });
-
-  test('counts trial days up so the final day reads as one day left', () => {
-    const now = new Date('2026-11-07T12:00:00.000Z');
-
-    expect(getTrialDaysRemaining(new Date('2026-11-14T12:00:00.000Z'), now)).toBe(7);
-    expect(getTrialDaysRemaining(new Date('2026-11-08T00:00:00.000Z'), now)).toBe(1);
-    expect(getTrialDaysRemaining(new Date('2026-11-07T11:59:59.000Z'), now)).toBe(0);
-    expect(getTrialDaysRemaining(null, now)).toBe(0);
   });
 });

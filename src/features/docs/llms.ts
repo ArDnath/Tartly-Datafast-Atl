@@ -5,7 +5,7 @@
  * an agent never sees a price or limit that the product does not enforce.
  */
 import { BRAND } from '@/lib/brand';
-import { FREE_TRIAL_DAYS, FREE_TRIAL_EVENTS, formatMonthlyPrice, PLANS } from '@/lib/plans';
+import { formatMonthlyPrice, PLANS } from '@/lib/plans';
 
 export function buildLlmsTxt(origin: string) {
   const plans = PLANS.map(
@@ -26,8 +26,7 @@ advertising network, a data broker, or an AI product.
 
 ## Plans
 
-Two paid plans, plus a ${FREE_TRIAL_DAYS}-day free trial with
-${FREE_TRIAL_EVENTS.toLocaleString('en-US')} events and no card required.
+Two paid plans. There is no free tier and no free trial.
 ${plans}
 
 ## Install

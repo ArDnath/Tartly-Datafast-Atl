@@ -26,9 +26,9 @@ import styles from './CheckoutHandoff.module.css';
  * The one place every landing-page pricing card lands.
  *
  * Signed-out visitors continue through Google; new accounts finish onboarding
- * first. A live trial goes straight to `/app` (the owner can subscribe early
- * from settings), while an expired trial is handed to Dodo checkout. Nothing
- * here activates a plan: the webhook remains the source of truth.
+ * first. A workspace that already has paid access goes straight to `/app`;
+ * every other workspace is handed to Dodo checkout. Nothing here activates a
+ * plan: the webhook remains the source of truth.
  */
 export function CheckoutHandoff({ intent }: { intent: CheckoutIntent }) {
   const router = useRouter();
@@ -100,7 +100,7 @@ export function CheckoutHandoff({ intent }: { intent: CheckoutIntent }) {
       return;
     }
 
-    if (access.data.paid || access.data.trial.active) {
+    if (access.data.paid) {
       router.replace('/app');
       return;
     }
@@ -168,13 +168,10 @@ export function CheckoutHandoff({ intent }: { intent: CheckoutIntent }) {
           <span>{BRAND.name}</span>
         </div>
 
-        <h1 className={styles.title}>
-          {access.data?.trial.active ? 'Taking you to your dashboard' : 'Preparing your checkout'}
-        </h1>
+        <h1 className={styles.title}>Preparing your checkout</h1>
         <p className={styles.subtitle}>
-          {access.data?.trial.active
-            ? 'Your free trial is still active, so there is nothing to pay yet.'
-            : 'Secure subscription checkout is handled by Dodo Payments. Your plan starts after the payment is confirmed.'}
+          Secure subscription checkout is handled by Dodo Payments. Your plan starts after the
+          payment is confirmed.
         </p>
 
         <div className={styles.summary}>

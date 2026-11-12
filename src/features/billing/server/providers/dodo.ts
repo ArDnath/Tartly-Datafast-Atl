@@ -16,12 +16,10 @@ import type {
  * - Customer portal:
  *   https://docs.dodopayments.com/api-reference/customers/create-customer-portal-session
  *
- * The 7-day free trial is managed by the platform before checkout, not by
- * Dodo.
- * Charging starts as soon as the customer completes the provider checkout;
- * this is what makes the post-trial paywall honest. Never re-introduce a
- * provider-side trial without updating docs/PLATFORM_BILLING.md and the trial
- * entitlement rules together.
+ * There is no platform-side trial: charging starts as soon as the customer
+ * completes the provider checkout, and the workspace unlocks only after the
+ * webhook confirms payment. Never re-introduce a provider-side trial without
+ * updating docs/PLATFORM_BILLING.md and the entitlement rules together.
  */
 export function createDodoBillingProvider(
   config: BillingConfig,

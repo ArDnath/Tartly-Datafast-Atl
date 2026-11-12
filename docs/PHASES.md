@@ -10,7 +10,9 @@
 - **Last updated:** 2026-11-12
 - **Current phase:** Phases 10, 11, and 12 are implemented, and the
   2026-11-12 platform-checkout slice now connects the landing pricing cards,
-  the local 7-day trial, the `/app` paywall, and Dodo subscription management.
+  the onboarding setup allowance, the `/app` paywall, and Dodo subscription
+  management. The free trial was removed: a workspace finishes onboarding
+  (one website) and must subscribe before ingestion or paid features unlock.
   A real local ingestion run (10,000 events, 50 concurrent clients, 157 req/s,
   p95 412 ms, 0 errors) is recorded in `docs/LOAD_TEST.md`, and the run exposed
   and fixed a deleted-workspace session leak. The remaining work is external
@@ -40,8 +42,8 @@
 - Overall percent (average of phases 0–12): **94%**
 - Build state at last check: **green** — `pnpm gate` (Biome format, Biome
   lint, `tsc --noEmit`, coverage-enforced tests, production build) passes.
-  Latest local full run (2026-11-12): **215 test files passed / 1 gated skip**,
-  **980 tests passed / 1 skipped**, coverage **66.82% statements / 56.02%
+  Latest local full run (2026-11-12): **213 test files passed / 1 gated skip**,
+  **966 tests passed / 1 skipped**, coverage **66.79% statements / 55.97%
   branches / 64.01% functions / 67.26% lines**, plus the explicit 48-assertion
   PostgreSQL analytics smoke and the recorded load probe.
 - GitHub CI: **green on `main`** (run 43066591765 for `619099b`). The three-job
@@ -92,6 +94,34 @@ code:
 
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
+
+## 2026-11-12 — Remove the 7-day free trial (owner request)
+
+- Removed the time-based trial from the single source of truth
+  (`src/lib/plans.ts`): no `FREE_TRIAL_*` constants, no `trialDays` on a plan,
+  and no trial-state helpers. The two paid plans are unchanged.
+- Entitlements and usage snapshots no longer expose trial fields. An unpaid
+  workspace keeps only the onboarding setup allowance (one website, one member)
+  and has a zero event/replay allowance.
+- Ingestion now returns `subscription_required` for every billable event when
+  `active` is false. The one-time setup event counter and its reserve/release
+  helpers were removed from the collector path.
+- `/api/billing/access` returns `requiresPayment: true` as soon as a workspace
+  has no confirmed subscription. The trial countdown strip was deleted; `/app`
+  renders the paywall immediately after onboarding.
+- Checkout handoff sends only paid workspaces to `/app`; every unpaid workspace
+  goes to Dodo checkout. No provider-side trial is requested.
+- Marketing, legal, docs, `llms.txt`, and the OpenAPI `BillingAccess` schema
+  now say "no free tier / no free trial". Pricing CTAs read "Choose a plan".
+- Verified: `pnpm gate` exit 0 on 2026-11-12 — 213 test files passed / 1
+  skipped, 966 tests passed / 1 skipped, coverage 66.79% statements / 55.97%
+  branches / 64.02% functions / 67.23% lines, deploy checks passed, and the
+  production build (including `/checkout` and the paywall routes) was green.
+  The 13 directly affected suites were also run on their own (83 tests).
+- **UNVERIFIED:** live Dodo checkout with real test credentials. The human
+  action is unchanged from the entry below: configure `DODO_PAYMENTS_*`, run
+  `pnpm billing:setup-dodo --apply`, sign in, finish onboarding, and complete a
+  test-card checkout.
 
 ## 2026-11-12 — Dodo checkout, trial paywall, and subscription management
 

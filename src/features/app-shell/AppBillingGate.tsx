@@ -16,7 +16,7 @@ const CHECKOUT_CANCELLED_NOTICE = 'Checkout was cancelled. Nothing was charged.'
  *
  * The read model comes from `/api/billing/access`; the UI never grants access
  * itself. Every billing-sensitive API still checks the workspace role and the
- * ingestion path still enforces the trial/plan allowance. If the read model is
+ * ingestion path still enforces the plan allowance. If the read model is
  * temporarily unavailable the shell fails open for read-only screens rather
  * than locking an owner out of their own data.
  */

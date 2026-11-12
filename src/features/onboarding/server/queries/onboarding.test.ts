@@ -66,8 +66,6 @@ beforeEach(() => {
     planId: 'starter',
     subscriptionStatus: 'incomplete',
     active: false,
-    trial: true,
-    trialEndsAt: new Date(),
     setup: true,
   } as any);
   vi.mocked(countWorkspaceWebsites).mockResolvedValue(0);

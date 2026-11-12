@@ -5,9 +5,9 @@ human action. No launch claim is allowed without a stored result.
 
 ## Product and plans
 
-- [x] Two paid plans plus a 7-day free trial: Free trial 2,000 events/1
-  website, Starter $7.99/100k events/1 website, Pro $14.99/1M events/50
-  websites (`src/lib/plans.ts`, tests).
+- [x] Two paid plans, no free trial or free tier: Starter $7.99/100k events/1
+  website, Pro $14.99/1M events/50 websites (`src/lib/plans.ts`, tests).
+  Onboarding keeps a one-website setup allowance; ingestion requires payment.
 - [x] Plan limits enforced server-side; no hardcoded limits in components.
 - [x] Landing, pricing, docs, legal, login, signup reachable.
 - [x] Onboarding: welcome → workspace → website → install → verify → payments →

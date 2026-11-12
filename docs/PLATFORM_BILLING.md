@@ -45,27 +45,25 @@ accepted from the analytics integration by mistake.
 Migrations: `20261105150000_platform_billing` and
 `20261112120000_platform_billing_traffic_tier` (the purchased traffic tier).
 
-## Trial, paywall, and checkout handoff
+## Paywall and checkout handoff
 
-The 7-day free trial is **Tartly's own trial**, not a Dodo trial:
+There is **no free trial**. A workspace is usable only with a confirmed paid
+subscription:
 
-1. A new workspace gets 7 days, 2,000 events, and one website. No card is
-   required.
-2. While that trial is live, the app shell shows a daily countdown banner and
-   `/app` stays open. A landing-page pricing card sends a signed-in trial user
-   straight to `/app`; an owner who wants to subscribe early uses **Plan and
-   usage** in settings.
-3. When the trial ends, `/app` renders the paywall: two glass plan cards in the
-   current light/dark theme, a monthly/yearly switch, and the same traffic-tier
-   slider as `/pricing`. The route guard is a UX guard; ingestion and plan
-   limits are also enforced server-side by entitlements.
-4. A pricing card or paywall card goes to `/checkout?plan=…&interval=…&tier=…`.
+1. A new workspace can finish onboarding and create its first website. The
+   setup allowance is one website and one member, so the tenant exists before
+   payment; ingestion and paid features stay locked.
+2. `/app` renders the paywall until paid access is confirmed: two glass plan
+   cards in the current light/dark theme, a monthly/yearly switch, and the same
+   traffic-tier slider as `/pricing`. The route guard is a UX guard; ingestion
+   and plan limits are also enforced server-side by entitlements.
+3. A pricing card or paywall card goes to `/checkout?plan=…&interval=…&tier=…`.
    Signed-out visitors continue through Google. A new account finishes the
    website onboarding first and then returns to the checkout intent.
-5. The owner completes payment on the hosted Dodo page. Dodo returns the
+4. The owner completes payment on the hosted Dodo page. Dodo returns the
    browser to `/app?checkout=success`; the app polls the read model and opens
    only after the verified webhook writes paid access.
-6. **Plan and usage** in the account menu shows the subscription, invoices,
+5. **Plan and usage** in the account menu shows the subscription, invoices,
    plan/tier changes, cancellation, and the Dodo customer portal.
 
 `/api/billing/checkout` creates a hosted session and returns its URL.
@@ -74,10 +72,9 @@ writer of paid state.
 
 ## Checkout behaviour
 
-- Dodo is asked for a paid subscription immediately. There is **no second
-  provider-side trial**: the local 7-day trial is the only free period. Without
-  this rule, a customer could receive 14 free days by subscribing on day one or
-  after the local trial ends.
+- Dodo is asked for a paid subscription immediately. There is **no
+  provider-side trial and no platform trial**: charging starts at checkout and
+  access unlocks after the webhook confirms payment.
 - The checkout carries `workspaceId`, `planId`, `interval`, and `tierIndex` in
   metadata. The webhook resolves the tenant from provider IDs first and uses
   metadata only when no stored provider binding exists.
@@ -173,7 +170,7 @@ steps below with a real Dodo account.
    four default-tier environment values.
 5. Paste the printed values into the runtime environment and restart the app.
    Do **not** commit them.
-6. Sign in as a workspace owner whose 7-day trial has ended. Open `/app`; the
+6. Sign in as a workspace owner. Finish onboarding, then open `/app`; the
    paywall should show. Choose a plan, complete test checkout with a Dodo test
    card, and confirm the return to `/app?checkout=success` shows the
    confirmation screen until the webhook lands.
@@ -194,7 +191,7 @@ steps below with a real Dodo account.
 | Route                                  | Role        | Behaviour                                                                                             |
 | -------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------- |
 | `GET /api/billing?workspaceId=`        | VIEWER      | Plan, lifecycle, period, cancellation flag, invoices, available products. No secrets or raw payloads. |
-| `GET /api/billing/access?workspaceId=` | VIEWER      | Compact paid/trial/paywall state for the app shell.                                                   |
+| `GET /api/billing/access?workspaceId=` | VIEWER      | Compact paid/paywall state for the app shell.                                                         |
 | `POST /api/billing/checkout`           | OWNER       | Creates a hosted checkout for a plan, interval, and traffic tier; returns `{url}`.                    |
 | `POST /api/billing/portal`             | OWNER       | Creates a provider customer-portal link.                                                              |
 | `POST /api/billing/cancel`             | OWNER       | Schedules cancellation at period end.                                                                 |
@@ -206,6 +203,6 @@ steps below with a real Dodo account.
 - No invoice is invented before the provider issues one.
 - No plan activation from a success redirect or client-side state.
 - No reuse of the customer's analytics payment connections for charging them.
-- No provider-side free trial. The local 7-day trial and its countdown are the
-  only free period.
+- No provider-side trial and no platform trial. Paid access starts only after
+  the provider confirms payment.
 - No third paid plan and no hardcoded plan limit in the paywall or checkout UI.

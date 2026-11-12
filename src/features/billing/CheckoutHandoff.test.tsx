@@ -51,7 +51,6 @@ function access(
     subscriptionStatus: 'incomplete',
     configured: true,
     paid: false,
-    trial: { active: false, endsAt: null, daysRemaining: 0 },
     requiresPayment: true,
     subscription: null,
     availableProducts: [{ planId: 'pro', interval: 'monthly', tierIndex: 3 }],
@@ -59,16 +58,9 @@ function access(
   };
 }
 
-test('sends a workspace with a live trial straight to the app', async () => {
+test('sends a workspace with paid access straight to the app', async () => {
   state.user = { id: 'user-1', onboardingRequired: false };
-  state.access = access({
-    requiresPayment: false,
-    trial: {
-      active: true,
-      endsAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-      daysRemaining: 3,
-    },
-  });
+  state.access = access({ paid: true, requiresPayment: false });
 
   render(<CheckoutHandoff intent={{ planId: 'pro', interval: 'monthly', tierIndex: 3 }} />, {
     route: '/checkout?plan=pro&interval=monthly&tier=3',

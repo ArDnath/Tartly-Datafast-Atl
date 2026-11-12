@@ -35,19 +35,11 @@ import { getSalt, secret, uuid } from '@/lib/crypto';
 import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import { fetchWebsite } from '@/lib/load';
 import { logger } from '@/lib/logger';
-import { FREE_TRIAL_EVENTS } from '@/lib/plans';
 import { parseRequest } from '@/lib/request';
 import { badRequest, forbidden, json, serverError } from '@/lib/response';
 import { anyObjectParam, urlOrPathParam } from '@/lib/schema';
 import { safeDecodeURI, safeDecodeURIComponent } from '@/lib/url';
-import {
-  EVENT_GRACE,
-  isBillableEvent,
-  releaseEventUsage,
-  releaseSetupEventUsage,
-  reserveEventUsage,
-  reserveSetupEventUsage,
-} from '@/lib/usage';
+import { EVENT_GRACE, isBillableEvent, releaseEventUsage, reserveEventUsage } from '@/lib/usage';
 import { getWebsiteAttributionRuntimeConfig } from '@/queries/prisma/website';
 
 const schema = z.object({
@@ -97,7 +89,6 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   let reservedWorkspaceId: string | null = null;
-  let reservedUsageKind: 'plan' | 'setup' | null = null;
   let eventCommitted = false;
 
   try {
@@ -237,7 +228,7 @@ export async function POST(request: Request) {
       }
 
       if (isBillableEvent(eventType)) {
-        if (!entitlements.active && !entitlements.trial) {
+        if (!entitlements.active) {
           return json({
             ok: false,
             reason: 'subscription_required',
@@ -246,21 +237,22 @@ export async function POST(request: Request) {
           });
         }
 
-        const reservation = entitlements.active
-          ? await reserveEventUsage(workspaceId, entitlements.plan.eventsPerMonth, EVENT_GRACE)
-          : await reserveSetupEventUsage(workspaceId, FREE_TRIAL_EVENTS);
+        const reservation = await reserveEventUsage(
+          workspaceId,
+          entitlements.plan.eventsPerMonth,
+          EVENT_GRACE,
+        );
 
         if (!reservation.allowed) {
           return json({
             ok: false,
-            reason: entitlements.active ? 'usage_limit_reached' : 'trial_limit_reached',
+            reason: 'usage_limit_reached',
             limit: reservation.limit,
             used: reservation.used,
           });
         }
 
         reservedWorkspaceId = workspaceId;
-        reservedUsageKind = entitlements.active ? 'plan' : 'setup';
       }
     }
 
@@ -561,11 +553,7 @@ export async function POST(request: Request) {
       // A failed write must not consume allowance. This is best-effort: the
       // original error is still the one returned to the client.
       try {
-        if (reservedUsageKind === 'setup') {
-          await releaseSetupEventUsage(reservedWorkspaceId);
-        } else {
-          await releaseEventUsage(reservedWorkspaceId);
-        }
+        await releaseEventUsage(reservedWorkspaceId);
       } catch {
         // Ignore release failures; the counter is repaired by the next write
         // or the period rollover.

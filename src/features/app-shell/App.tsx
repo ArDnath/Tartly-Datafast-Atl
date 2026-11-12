@@ -8,7 +8,6 @@ import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { AppWelcomeOverlayGate } from '@/features/onboarding/welcome/AppWelcomeOverlayGate';
 import { useWorkspacesQuery } from '@/features/workspaces/hooks/useWorkspacesQuery';
 import { AppBillingGate } from './AppBillingGate';
-import { AppTrialBanner } from './AppTrialBanner';
 import { UpdateNotice } from './UpdateNotice';
 
 export function App({ children }) {
@@ -77,7 +76,6 @@ export function App({ children }) {
       minHeight="0"
       position="relative"
     >
-      <AppTrialBanner />
       <TopNav showUser />
       <AppBillingGate>{children}</AppBillingGate>
       {user.isAdmin && <UpdateNotice userId={user.id} />}

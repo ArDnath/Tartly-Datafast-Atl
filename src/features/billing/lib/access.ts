@@ -2,7 +2,7 @@ import type { BillingInterval, BillingLifecycleStatus } from '@/lib/billing-life
 import { DEFAULT_TRAFFIC_TIER_INDEX, type PlanId } from '@/lib/plans';
 
 /**
- * Client-safe shape for the app shell paywall and trial banner. The server
+ * Client-safe shape for the app shell paywall. The server
  * route adds the caller's workspace role; no provider secret or raw webhook
  * payload is ever part of this contract.
  */
@@ -21,12 +21,7 @@ export interface WorkspaceBillingAccess {
   configured: boolean;
   /** Provider-confirmed (or legacy-confirmed) paid access. */
   paid: boolean;
-  trial: {
-    active: boolean;
-    endsAt: string | null;
-    daysRemaining: number;
-  };
-  /** True only when both paid access and the free trial are over. */
+  /** True when the workspace has no active subscription. */
   requiresPayment: boolean;
   subscription: {
     planId: PlanId;

@@ -1,12 +1,10 @@
 import { billingSubscriptionHasAccess } from '@/lib/billing-lifecycle';
 import {
-  FREE_TRIAL_MEMBERS,
-  FREE_TRIAL_WEBSITES,
-  getFreeTrialState,
   getPlan,
   getPlanOrNull,
-  getTrialDaysRemaining,
   resolvePlanForTrafficTier,
+  SETUP_MEMBERS,
+  SETUP_WEBSITES,
   type Plan,
   type PlanFeature,
   planHasFeature,
@@ -17,9 +15,9 @@ import prisma from '@/lib/prisma';
  * Plan entitlements are derived from backend billing records, never from the
  * UI and never from a checkout redirect.
  *
- * A workspace without a provider-confirmed subscription is in its 7-day free
- * trial (2,000 events, one website). When the trial ends, paid features and
- * ingestion stay locked until a subscription is active.
+ * A workspace without a provider-confirmed subscription may finish onboarding
+ * (one website, one member) but has no ingestion or paid features. There is no
+ * free trial: the app shell shows the paywall until a subscription is active.
  */
 
 export interface WorkspaceEntitlements {
@@ -30,11 +28,7 @@ export interface WorkspaceEntitlements {
   subscriptionStatus: string;
   /** True only when the provider has confirmed paid access. */
   active: boolean;
-  /** True while the workspace is inside its 7-day free trial. */
-  trial: boolean;
-  trialEndsAt: Date | null;
-  trialDaysRemaining: number;
-  /** True when `active` is false; only trial limits are available. */
+  /** True when `active` is false; only the onboarding setup allowances apply. */
   setup: boolean;
 }
 
@@ -48,7 +42,6 @@ export async function getWorkspaceEntitlements(
       id: true,
       planId: true,
       subscriptionStatus: true,
-      createdAt: true,
       platformSubscription: {
         select: {
           planId: true,
@@ -77,8 +70,6 @@ export async function getWorkspaceEntitlements(
       )
     : workspace.subscriptionStatus === 'active' || workspace.subscriptionStatus === 'trialing';
 
-  const freeTrial = getFreeTrialState(workspace.createdAt, now);
-  const trial = !active && freeTrial.active;
   const planId = subscription?.planId ?? workspace.planId;
   const basePlan = getPlanOrNull(planId) || getPlan('starter');
   const trafficTierIndex = subscription?.trafficTierIndex ?? null;
@@ -91,9 +82,6 @@ export async function getWorkspaceEntitlements(
     trafficTierIndex,
     subscriptionStatus: subscription?.lifecycleStatus ?? workspace.subscriptionStatus,
     active,
-    trial,
-    trialEndsAt: trial ? freeTrial.endsAt : null,
-    trialDaysRemaining: trial ? getTrialDaysRemaining(freeTrial.endsAt, now) : 0,
     setup: !active,
   };
 }
@@ -118,7 +106,7 @@ export function getWebsiteLimit(entitlements: WorkspaceEntitlements | null): num
     return entitlements.plan?.websiteLimit ?? 0;
   }
 
-  return entitlements.trial ? FREE_TRIAL_WEBSITES : 0;
+  return SETUP_WEBSITES;
 }
 
 export function getMemberLimit(entitlements: WorkspaceEntitlements | null): number {
@@ -130,5 +118,5 @@ export function getMemberLimit(entitlements: WorkspaceEntitlements | null): numb
     return entitlements.plan?.memberLimit ?? 0;
   }
 
-  return entitlements.trial ? FREE_TRIAL_MEMBERS : 0;
+  return SETUP_MEMBERS;
 }

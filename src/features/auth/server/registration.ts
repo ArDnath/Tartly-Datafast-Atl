@@ -37,7 +37,7 @@ export interface PersonalAccountInput {
  * A workspace is deliberately NOT created here. New accounts finish signing
  * in first and then create their workspace inside `/onboarding`, where they
  * choose its name, photo, and the first website. This keeps the workspace
- * record (and its trial clock) tied to a real, user-confirmed action instead
+ * record tied to a real, user-confirmed action instead
  * of a placeholder name derived from the email.
  *
  * Invited users already have a membership by the time they sign in and are

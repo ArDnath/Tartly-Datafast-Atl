@@ -22,7 +22,7 @@ vi.mock('@/features/app-shell/UsageBanner', () => ({
   UsageBanner: () => null,
 }));
 
-function expiredAccess(): WorkspaceBillingAccessResponse {
+function unpaidAccess(): WorkspaceBillingAccessResponse {
   return {
     workspaceId: 'workspace-1',
     role: 'OWNER',
@@ -30,7 +30,6 @@ function expiredAccess(): WorkspaceBillingAccessResponse {
     subscriptionStatus: 'incomplete',
     configured: true,
     paid: false,
-    trial: { active: false, endsAt: null, daysRemaining: 0 },
     requiresPayment: true,
     subscription: null,
     availableProducts: [{ planId: 'starter', interval: 'monthly', tierIndex: 3 }],
@@ -40,10 +39,10 @@ function expiredAccess(): WorkspaceBillingAccessResponse {
 beforeEach(() => {
   accessState.isLoading = false;
   accessState.isError = false;
-  accessState.data = expiredAccess();
+  accessState.data = unpaidAccess();
 });
 
-test('replaces the app content with the paywall after the trial ends', () => {
+test('replaces the app content with the paywall while payment is required', () => {
   render(
     <AppBillingGate>
       <p>Private dashboard</p>
@@ -52,29 +51,9 @@ test('replaces the app content with the paywall after the trial ends', () => {
   );
 
   expect(screen.queryByText('Private dashboard')).not.toBeInTheDocument();
-  expect(screen.getByRole('heading', { name: /Your free trial has ended/i })).toBeInTheDocument();
-});
-
-test('keeps the app open during the trial', () => {
-  accessState.data = {
-    ...expiredAccess(),
-    requiresPayment: false,
-    trial: {
-      active: true,
-      endsAt: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(),
-      daysRemaining: 4,
-    },
-  };
-
-  render(
-    <AppBillingGate>
-      <p>Private dashboard</p>
-    </AppBillingGate>,
-    { route: '/app' },
-  );
-
-  expect(screen.getByText('Private dashboard')).toBeInTheDocument();
-  expect(screen.queryByRole('heading', { name: /free trial has ended/i })).not.toBeInTheDocument();
+  expect(
+    screen.getByRole('heading', { name: /Choose a plan to activate this workspace/i }),
+  ).toBeInTheDocument();
 });
 
 test('shows the confirmation screen while a successful payment is waiting for the webhook', () => {
@@ -91,7 +70,7 @@ test('shows the confirmation screen while a successful payment is waiting for th
 
 test('renders the app when the caller has paid access', () => {
   accessState.data = {
-    ...expiredAccess(),
+    ...unpaidAccess(),
     paid: true,
     requiresPayment: false,
   };

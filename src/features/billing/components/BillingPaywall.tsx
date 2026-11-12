@@ -104,13 +104,13 @@ export function BillingPaywall({
         <div className={styles.hero}>
           <span className={styles.eyebrow}>
             <span className={styles.eyebrowDot} aria-hidden="true" />
-            Trial ended
+            Subscription required
           </span>
           <h1 className={styles.title} id="paywall-title">
-            Your free trial has ended.
+            Choose a plan to activate this workspace.
           </h1>
           <p className={styles.subtitle}>
-            Your dashboards, reports, and history are safe. Choose a plan to reopen this workspace.
+            Your workspace and first website are ready. Choose a plan to start collecting events.
             Checkout is handled securely by Dodo Payments. Cancel any time.
           </p>
         </div>

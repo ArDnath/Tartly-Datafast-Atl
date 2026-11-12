@@ -1,6 +1,12 @@
 import { beforeEach, expect, test, vi } from 'vitest';
+import { SETUP_MEMBERS, SETUP_WEBSITES } from '@/lib/plans';
 import prisma from '@/lib/prisma';
-import { getWorkspaceEntitlements } from './entitlements';
+import {
+  entitlementsHaveFeature,
+  getMemberLimit,
+  getWebsiteLimit,
+  getWorkspaceEntitlements,
+} from './entitlements';
 
 vi.mock('@/lib/prisma', () => ({
   default: {
@@ -48,52 +54,46 @@ test('an active platform subscription is paid and is not a setup allowance', asy
     planId: 'pro',
     trafficTierIndex: 6,
     active: true,
-    trial: false,
     setup: false,
   });
   expect(entitlements?.plan?.eventsPerMonth).toBe(10_000_000);
 });
 
-test('an expired trial has no website or member allowance', async () => {
+test('an unpaid workspace gets onboarding setup allowances but no paid access', async () => {
   vi.mocked(prisma.client.workspace.findFirst as any).mockResolvedValue({
     id: 'workspace-1',
     planId: 'starter',
     subscriptionStatus: 'incomplete',
-    createdAt: new Date('2026-11-01T00:00:00.000Z'),
     platformSubscription: null,
   } as any);
 
-  const entitlements = await getWorkspaceEntitlements(
-    'workspace-1',
-    new Date('2026-11-12T00:00:00.000Z'),
-  );
+  const entitlements = await getWorkspaceEntitlements('workspace-1');
 
   expect(entitlements).toMatchObject({
     active: false,
-    trial: false,
     setup: true,
-    trialDaysRemaining: 0,
   });
+  expect(getWebsiteLimit(entitlements)).toBe(SETUP_WEBSITES);
+  expect(getMemberLimit(entitlements)).toBe(SETUP_MEMBERS);
+  expect(entitlementsHaveFeature(entitlements, 'revenue_attribution')).toBe(false);
 });
 
-test('a live trial keeps the setup allowances but not paid features', async () => {
+test('a trialing legacy subscription still counts as paid access', async () => {
   vi.mocked(prisma.client.workspace.findFirst as any).mockResolvedValue({
     id: 'workspace-1',
     planId: 'starter',
     subscriptionStatus: 'incomplete',
-    createdAt: new Date('2026-11-10T00:00:00.000Z'),
-    platformSubscription: null,
+    platformSubscription: {
+      planId: 'starter',
+      trafficTierIndex: null,
+      lifecycleStatus: 'TRIALING',
+      cancelAtPeriodEnd: false,
+      currentPeriodEnd: new Date('2099-01-01T00:00:00.000Z'),
+    },
   } as any);
 
-  const entitlements = await getWorkspaceEntitlements(
-    'workspace-1',
-    new Date('2026-11-12T00:00:00.000Z'),
-  );
+  const entitlements = await getWorkspaceEntitlements('workspace-1');
 
-  expect(entitlements).toMatchObject({
-    active: false,
-    trial: true,
-    setup: true,
-    trialDaysRemaining: 5,
-  });
+  expect(entitlements).toMatchObject({ active: true, setup: false });
+  expect(getWebsiteLimit(entitlements)).toBe(1);
 });

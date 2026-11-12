@@ -17,9 +17,8 @@ describe('buildLlmsTxt', () => {
     expect(text).toContain('/api/developer/verify');
   });
 
-  test('states the free-trial length and allowance', () => {
-    expect(text).toContain('7-day free trial');
-    expect(text).toContain('2,000 events');
+  test('states that there is no free tier or trial', () => {
+    expect(text).toContain('There is no free tier and no free trial');
   });
 
   test('does not claim fake usage', () => {

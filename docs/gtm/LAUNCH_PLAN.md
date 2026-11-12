@@ -41,9 +41,9 @@ founders.
 
 **Body:** I built a small analytics tool that joins pageviews to payments so you
 can see which channels actually produce revenue. It supports Stripe, Dodo,
-Lemon Squeezy, Polar, Yolfi, and a manual API. Two plans and a 7-day free
-trial. The interesting parts are the tenant isolation, idempotent webhooks, and
-the first/last-touch attribution model. Happy to answer questions about the
+Lemon Squeezy, Polar, Yolfi, and a manual API. Two paid plans, no free tier.
+The interesting parts are the tenant isolation, idempotent webhooks, and the
+first/last-touch attribution model. Happy to answer questions about the
 architecture or the pricing math.
 
 ### Indie Hackers
@@ -51,9 +51,9 @@ architecture or the pricing math.
 **Title:** I priced revenue analytics at $7.99 because the existing tools are
 priced for teams I don't have.
 
-**Body:** The problem, the two plans, the 7-day trial, the margin model, and what I
-deliberately left out (SSO, SLA, unlimited events). Ask for feedback on the
-onboarding, not upvotes.
+**Body:** The problem, the two plans, why there is no free tier, the margin
+model, and what I deliberately left out (SSO, SLA, unlimited events). Ask for
+feedback on the onboarding, not upvotes.
 
 ### Reddit rules check
 
@@ -68,7 +68,7 @@ r/analytics with a link only when relevant. Do not cross-post the same text.
 2. Tartly joins the two: visitor → session → payment.
 3. First-touch and last-touch, so you can see both the discovery channel and the
    closer.
-4. Two plans: $7.99 Starter, $14.99 Pro. 7-day free trial, no per-seat tax.
+4. Two plans: $7.99 Starter, $14.99 Pro. No free tier, no per-seat tax.
 5. Install one script, connect one provider, read the first report.
 6. Link.
 
@@ -101,7 +101,7 @@ a lifetime deal that cannot fund hosting and support.
 
 - Activation: signup → website → first event → payment connected → first
   attributed payment.
-- Conversion: free-trial start → paid (measure checkout
+- Conversion: signup → checkout start → paid (measure checkout
   starts and completions).
 - Revenue: MRR, ARPU, churn, expansion.
 - Product: p95 dashboard latency, ingestion error rate, replay usage.

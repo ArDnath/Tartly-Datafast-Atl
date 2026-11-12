@@ -14,12 +14,7 @@ import {
 import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import { fetchWebsite } from '@/lib/load';
 import { parseRequest } from '@/lib/request';
-import {
-  releaseEventUsage,
-  releaseSetupEventUsage,
-  reserveEventUsage,
-  reserveSetupEventUsage,
-} from '@/lib/usage';
+import { releaseEventUsage, reserveEventUsage } from '@/lib/usage';
 import { getWebsiteAttributionRuntimeConfig } from '@/queries/prisma/website';
 import { POST } from './handler';
 
@@ -57,9 +52,7 @@ vi.mock('@/lib/usage', () => ({
   EVENT_GRACE: 1_000,
   isBillableEvent: (eventType: number) => eventType >= 1 && eventType <= 4,
   reserveEventUsage: vi.fn(),
-  reserveSetupEventUsage: vi.fn(),
   releaseEventUsage: vi.fn(),
-  releaseSetupEventUsage: vi.fn(),
 }));
 
 vi.mock('@/lib/request', () => ({
@@ -256,53 +249,12 @@ test('rejects a website whose workspace is unavailable before creating a session
   expect(reserveEventUsage).not.toHaveBeenCalled();
 });
 
-test('caps a trial workspace at the free-trial allowance', async () => {
+test('rejects an unpaid workspace before creating a session', async () => {
   const workspaceId = '6b7c2d44-8f25-4b50-8d4f-9f0f3b1f1b1b';
 
   vi.mocked(fetchWebsite).mockResolvedValue({ id: websiteId, workspaceId } as any);
   vi.mocked(getWorkspaceEntitlements).mockResolvedValue({
     active: false,
-    trial: true,
-    setup: true,
-    plan: { eventsPerMonth: 50_000 },
-  } as any);
-  vi.mocked(reserveSetupEventUsage).mockResolvedValue({
-    allowed: false,
-    used: 2_000,
-    limit: 2_000,
-    hardLimit: 2_000,
-  });
-  vi.mocked(parseRequest).mockResolvedValue({
-    body: {
-      type: 'event',
-      payload: {
-        website: websiteId,
-        visitorId: 'v_visitor',
-        sessionId: 's_session',
-        hostname: 'shop.example',
-        url: 'https://shop.example/pricing',
-      },
-    },
-  } as any);
-
-  const response = await POST(
-    new Request('https://collector.example/api/send', { method: 'POST' }),
-  );
-  const body = await response.json();
-
-  expect(reserveSetupEventUsage).toHaveBeenCalledWith(workspaceId, 2_000);
-  expect(body).toMatchObject({ ok: false, reason: 'trial_limit_reached', limit: 2_000 });
-  expect(createSession).not.toHaveBeenCalled();
-  expect(saveEvent).not.toHaveBeenCalled();
-});
-
-test('rejects an expired trial before creating a session', async () => {
-  const workspaceId = '6b7c2d44-8f25-4b50-8d4f-9f0f3b1f1b1b';
-
-  vi.mocked(fetchWebsite).mockResolvedValue({ id: websiteId, workspaceId } as any);
-  vi.mocked(getWorkspaceEntitlements).mockResolvedValue({
-    active: false,
-    trial: false,
     setup: true,
     plan: { eventsPerMonth: 50_000 },
   } as any);
@@ -325,51 +277,8 @@ test('rejects an expired trial before creating a session', async () => {
   const body = await response.json();
 
   expect(body).toMatchObject({ ok: false, reason: 'subscription_required', limit: 0 });
-  expect(reserveSetupEventUsage).not.toHaveBeenCalled();
+  expect(reserveEventUsage).not.toHaveBeenCalled();
   expect(createSession).not.toHaveBeenCalled();
-});
-
-test('releases a trial reservation when the event write fails', async () => {
-  const workspaceId = '6b7c2d44-8f25-4b50-8d4f-9f0f3b1f1b1b';
-
-  vi.mocked(fetchWebsite).mockResolvedValue({ id: websiteId, workspaceId } as any);
-  vi.mocked(getWorkspaceEntitlements).mockResolvedValue({
-    active: false,
-    trial: true,
-    setup: true,
-    plan: { eventsPerMonth: 50_000 },
-  } as any);
-  vi.mocked(reserveSetupEventUsage).mockResolvedValue({
-    allowed: true,
-    used: 1,
-    limit: 2_000,
-    hardLimit: 2_000,
-  });
-  vi.mocked(saveEvent).mockRejectedValueOnce(new Error('write failed'));
-  vi.mocked(parseRequest).mockResolvedValue({
-    body: {
-      type: 'event',
-      payload: {
-        website: websiteId,
-        visitorId: 'v_visitor',
-        sessionId: 's_session',
-        hostname: 'shop.example',
-        url: 'https://shop.example/pricing',
-      },
-    },
-  } as any);
-
-  const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
-
-  const response = await POST(
-    new Request('https://collector.example/api/send', { method: 'POST' }),
-  );
-
-  expect(response.status).toBe(500);
-  expect(releaseSetupEventUsage).toHaveBeenCalledWith(workspaceId);
-  expect(releaseEventUsage).not.toHaveBeenCalled();
-
-  consoleLog.mockRestore();
 });
 
 test('releases the reservation when the event write fails', async () => {

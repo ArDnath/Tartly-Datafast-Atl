@@ -65,7 +65,11 @@ const SURFACE = {
 
 const STATUS_COPY: Record<string, { label: string; color: string; detail: string }> = {
   ACTIVE: { label: 'Active', color: '#2dbf72', detail: 'Paid features are enabled.' },
-  TRIALING: { label: 'Trial', color: 'var(--accent-text)', detail: 'Your trial is running.' },
+  TRIALING: {
+    label: 'Trial',
+    color: 'var(--accent-text)',
+    detail: 'A provider-side trial is running.',
+  },
   PAST_DUE: {
     label: 'Payment past due',
     color: '#f8b84e',

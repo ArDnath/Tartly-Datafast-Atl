@@ -356,12 +356,12 @@ paths:
   /api/billing/access:
     get:
       tags: [Billing]
-      summary: Read the compact trial and paywall state for the app shell
+      summary: Read the compact paywall state for the app shell
       parameters:
         - $ref: "#/components/parameters/WorkspaceIdQuery"
       responses:
         "200":
-          description: Paid access, trial countdown, and available products.
+          description: Paid access and available products.
           content:
             application/json:
               schema:
@@ -521,7 +521,7 @@ components:
           description: Exact traffic tier. Omit for the plan's base default-tier product.
     BillingAccess:
       type: object
-      required: [workspaceId, configured, paid, trial, requiresPayment, availableProducts, role]
+      required: [workspaceId, configured, paid, requiresPayment, availableProducts, role]
       properties:
         workspaceId: { type: string, format: uuid }
         role: { type: string, enum: [OWNER, ADMIN, MEMBER, VIEWER] }
@@ -530,13 +530,6 @@ components:
         configured: { type: boolean }
         paid: { type: boolean }
         requiresPayment: { type: boolean }
-        trial:
-          type: object
-          required: [active, endsAt, daysRemaining]
-          properties:
-            active: { type: boolean }
-            endsAt: { type: string, format: date-time, nullable: true }
-            daysRemaining: { type: integer, minimum: 0 }
         availableProducts:
           type: array
           items:

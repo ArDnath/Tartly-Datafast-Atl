@@ -21,7 +21,6 @@ function access(
     subscriptionStatus: 'incomplete',
     configured: true,
     paid: false,
-    trial: { active: false, endsAt: null, daysRemaining: 0 },
     requiresPayment: true,
     subscription: null,
     availableProducts: [
@@ -44,7 +43,9 @@ test('shows both glass plan cards and starts checkout with the selected tier', a
     route: '/app',
   });
 
-  expect(screen.getByRole('heading', { name: /Your free trial has ended/i })).toBeInTheDocument();
+  expect(
+    screen.getByRole('heading', { name: /Choose a plan to activate this workspace/i }),
+  ).toBeInTheDocument();
   expect(screen.getByRole('heading', { name: 'Starter' })).toBeInTheDocument();
   expect(screen.getByRole('heading', { name: 'Pro' })).toBeInTheDocument();
   expect(screen.getByText('$7.99')).toBeInTheDocument();

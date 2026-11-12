@@ -50,39 +50,15 @@ test('a confirmed subscription is paid and needs no checkout', async () => {
     workspaceId: 'workspace-1',
     paid: true,
     requiresPayment: false,
-    trial: { active: false, endsAt: null, daysRemaining: 0 },
     subscription: { planId: 'pro', interval: 'annual', trafficTierIndex: 5 },
   });
 });
 
-test('a live seven-day trial keeps the workspace open', async () => {
+test('an unpaid workspace requires payment and advertises available products', async () => {
   vi.mocked(prisma.client.workspace.findFirst as any).mockResolvedValue({
     id: 'workspace-1',
     planId: 'starter',
     subscriptionStatus: 'incomplete',
-    createdAt: new Date('2026-11-08T12:00:00.000Z'),
-    platformSubscription: null,
-  });
-
-  const access = await getWorkspaceBillingAccess('workspace-1', now);
-
-  expect(access).toMatchObject({
-    paid: false,
-    requiresPayment: false,
-    trial: {
-      active: true,
-      endsAt: '2026-11-15T12:00:00.000Z',
-      daysRemaining: 3,
-    },
-  });
-});
-
-test('an expired trial requires payment and advertises available products', async () => {
-  vi.mocked(prisma.client.workspace.findFirst as any).mockResolvedValue({
-    id: 'workspace-1',
-    planId: 'starter',
-    subscriptionStatus: 'incomplete',
-    createdAt: new Date('2026-11-01T00:00:00.000Z'),
     platformSubscription: null,
   });
 
@@ -92,7 +68,6 @@ test('an expired trial requires payment and advertises available products', asyn
     paid: false,
     requiresPayment: true,
     configured: true,
-    trial: { active: false, endsAt: null, daysRemaining: 0 },
   });
   expect(access?.availableProducts).toEqual([
     { planId: 'starter', interval: 'monthly', tierIndex: 3 },

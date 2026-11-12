@@ -3,7 +3,7 @@
 ## One sentence
 
 **Tartly shows indie SaaS founders which traffic sources actually produce
-paying customers, starting at $7.99/month after a 7-day free trial.**
+paying customers, starting at $7.99/month. There is no free tier.**
 
 ## Who it is for
 
@@ -40,19 +40,19 @@ for teams with a marketing budget.
   cohorts, realtime, and session replay (Pro).
 - Stripe, Dodo Payments, Lemon Squeezy, Polar, Yolfi, and a manual payment API.
 - Two plans: Starter $7.99/month (1 website, 100k events) and Pro $14.99/month
-  (up to 50 websites, 1M events), both with a 7-day free trial.
+  (up to 50 websites, 1M events). No free tier and no trial.
 - No invented invoices. No fake customer counts.
 
 ## Message hierarchy
 
-| Level             | Message                                                                                                       |
-| ----------------- | ------------------------------------------------------------------------------------------------------------- |
-| Hero              | Know which traffic makes money.                                                                               |
-| Subhead           | Connect your site and your payments. See revenue by channel in minutes.                                       |
-| Primary CTA       | Start your 7-day free trial                                                                                   |
-| Secondary CTA     | See the live demo                                                                                             |
-| Objection handler | 2,000 events and 1 website free for 7 days, no card. Then $7.99/month. No annual lock-in and no per-seat tax. |
-| Trust             | MIT-licensed foundation, first-touch and last-touch attribution, your data stays in your workspace.           |
+| Level             | Message                                                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ |
+| Hero              | Know which traffic makes money.                                                                              |
+| Subhead           | Connect your site and your payments. See revenue by channel in minutes.                                      |
+| Primary CTA       | Choose a plan                                                                                                |
+| Secondary CTA     | See the live demo                                                                                            |
+| Objection handler | No free tier: Starter is $7.99/month for 100k events and one website. No annual lock-in and no per-seat tax. |
+| Trust             | MIT-licensed foundation, first-touch and last-touch attribution, your data stays in your workspace.          |
 
 ## Words to avoid
 
@@ -67,9 +67,8 @@ for teams with a marketing budget.
 
 ## Pricing narrative
 
-Two plans, deliberately narrow, plus one trial:
+Two plans, deliberately narrow, with no free tier:
 
-- **Free trial** — 7 days, 2,000 events, 1 website, no card.
 - **Starter $7.99** — one website, 100k events, the full revenue loop, for a
   founder proving the first channel.
 - **Pro $14.99** — up to 50 websites, 1M events, replay, longer retention, for a

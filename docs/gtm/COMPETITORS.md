@@ -28,7 +28,8 @@ one shown by the vendor. Nothing here is inferred. Re-verify on launch day.
   allowing up to 50 websites.
 - Tartly includes revenue attribution on both plans. Plausible lists
   ecommerce revenue attribution on its Business plan ($19) in the fetched page.
-- Tartly offers a 7-day trial with 2,000 events and 1 website, no card.
+- Tartly has no free tier or trial: Starter is $7.99/month for 100k events and
+  one website.
   Umami's Hobby plan is free forever; compare the trial and the paid capacity,
   not just the entry price.
 

@@ -1,5 +1,5 @@
 import { billingSubscriptionHasAccess } from '@/lib/billing-lifecycle';
-import { getFreeTrialState, getTrialDaysRemaining, isPlanId } from '@/lib/plans';
+import { isPlanId } from '@/lib/plans';
 import prisma from '@/lib/prisma';
 import type { WorkspaceBillingAccess } from '@/features/billing/lib/access';
 import { getBillingConfig } from '@/features/billing/server/provider';
@@ -19,7 +19,6 @@ export async function getWorkspaceBillingAccess(
       id: true,
       planId: true,
       subscriptionStatus: true,
-      createdAt: true,
       platformSubscription: {
         select: {
           planId: true,
@@ -48,8 +47,6 @@ export async function getWorkspaceBillingAccess(
         now,
       )
     : workspace.subscriptionStatus === 'active' || workspace.subscriptionStatus === 'trialing';
-  const freeTrial = getFreeTrialState(workspace.createdAt, now);
-  const trialActive = !paid && freeTrial.active;
   const config = getBillingConfig();
   const planId = subscription?.planId ?? workspace.planId;
 
@@ -59,12 +56,7 @@ export async function getWorkspaceBillingAccess(
     subscriptionStatus: subscription?.lifecycleStatus ?? workspace.subscriptionStatus,
     configured: Boolean(config),
     paid,
-    trial: {
-      active: trialActive,
-      endsAt: trialActive ? (freeTrial.endsAt?.toISOString() ?? null) : null,
-      daysRemaining: trialActive ? getTrialDaysRemaining(freeTrial.endsAt, now) : 0,
-    },
-    requiresPayment: !paid && !trialActive,
+    requiresPayment: !paid,
     subscription:
       subscription && isPlanId(subscription.planId)
         ? {

@@ -11,9 +11,6 @@ import {
 import { buildCheckoutPath } from '@/features/billing/lib/checkout-intent';
 import {
   DEFAULT_TRAFFIC_TIER_INDEX,
-  FREE_TRIAL_DAYS,
-  FREE_TRIAL_EVENTS,
-  FREE_TRIAL_WEBSITES,
   formatTrafficEvents,
   formatUsd,
   getTrafficAnnualCents,
@@ -74,9 +71,9 @@ export function PricingSection() {
           </Reveal>
           <Reveal delay={140}>
             <p className="mx-auto mt-5 max-w-xl text-sm/6 text-lp-fg-muted sm:text-base/7">
-              Traffic-based plans with a {FREE_TRIAL_DAYS}-day free trial. Move the slider to match
-              your monthly traffic. Every plan includes traffic analytics, first- and last-touch
-              revenue attribution, funnels, and CSV export.
+              Traffic-based plans with no free tier. Move the slider to match your monthly traffic.
+              Every plan includes traffic analytics, first- and last-touch revenue attribution,
+              funnels, and CSV export.
             </p>
           </Reveal>
         </div>
@@ -170,18 +167,15 @@ export function PricingSection() {
             </div>
 
             <div className="mt-5 rounded-md border border-dashed border-lp-line border-l-2 border-l-lp-pink bg-lp-canvas px-4 py-4">
-              <p className="text-xs font-bold text-lp-ink">
-                {FREE_TRIAL_DAYS}-day free trial included
-              </p>
+              <p className="text-xs font-bold text-lp-ink">No free tier</p>
               <p className="mt-1 text-[11px]/4 text-lp-fg-muted">
-                {FREE_TRIAL_EVENTS.toLocaleString('en-US')} events and {FREE_TRIAL_WEBSITES}{' '}
-                website. No card required.
+                Paid access starts after checkout. Cancel any time.
               </p>
               <Link
-                href="/signup?trial=1"
+                href="/pricing"
                 className="mt-2.5 inline-flex items-center gap-1.5 text-[11px] font-bold text-lp-primary underline-offset-4 hover:underline"
               >
-                Start free trial
+                See full pricing
                 <ArrowRightIcon className="size-3" strokeWidth={3} aria-hidden="true" />
               </Link>
             </div>
@@ -247,7 +241,7 @@ export function PricingSection() {
                             : 'border-2 border-lp-line bg-lp-canvas text-lp-ink shadow-[4px_4px_0_0_rgba(23,23,23,0.1)] transition-[border-color,translate,box-shadow] duration-150 ease-out hover:border-lp-ink active:translate-x-1 active:translate-y-1'
                         }`}
                       >
-                        Start {FREE_TRIAL_DAYS}-day free trial
+                        Choose {plan.name}
                       </Link>
                     </div>
 

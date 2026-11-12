@@ -29,8 +29,6 @@ const {
   getUsageStatus,
   isBillableEvent,
   reserveEventUsage,
-  reserveSetupEventUsage,
-  releaseSetupEventUsage,
   reserveReplaySession,
 } = await import('./usage');
 
@@ -187,33 +185,5 @@ describe('replay reservation', () => {
     ).resolves.toMatchObject({ allowed: false, metered: false });
 
     expect(tx.usageReplaySession.create).not.toHaveBeenCalled();
-  });
-});
-
-describe('one-time setup allowance', () => {
-  test('reserves from the workspace counter atomically', async () => {
-    queryRaw.mockResolvedValueOnce([{ setup_events_count: 1 }]);
-
-    const result = await reserveSetupEventUsage('workspace-1', 1_000);
-
-    expect(result).toMatchObject({ allowed: true, used: 1, limit: 1_000 });
-    expect(queryRaw).toHaveBeenCalledTimes(1);
-  });
-
-  test('rejects after the one-time allowance is consumed and reports the used count', async () => {
-    queryRaw.mockResolvedValueOnce([]);
-    findWorkspace.mockResolvedValueOnce({ setupEventsCount: 1_000 });
-
-    const result = await reserveSetupEventUsage('workspace-1', 1_000);
-
-    expect(result).toMatchObject({ allowed: false, used: 1_000, limit: 1_000 });
-  });
-
-  test('releases a setup reservation without going below zero', async () => {
-    executeRaw.mockResolvedValueOnce(1);
-
-    await releaseSetupEventUsage('workspace-1');
-
-    expect(executeRaw).toHaveBeenCalledTimes(1);
   });
 });

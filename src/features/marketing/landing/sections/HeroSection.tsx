@@ -8,7 +8,7 @@ import {
   Globe as GlobeIcon,
 } from '@/components/icons';
 import { BRAND } from '@/lib/brand';
-import { FREE_TRIAL_DAYS, FREE_TRIAL_EVENTS, formatMonthlyPrice, PLANS } from '@/lib/plans';
+import { formatMonthlyPrice, PLANS } from '@/lib/plans';
 import { Parallax } from '../motion/Parallax';
 import StarBorder from '../motion/StarBorder';
 import { HeroPreview } from './HeroPreview';
@@ -251,15 +251,15 @@ export function HeroSection() {
         >
           <span className="inline-flex items-center gap-1.5">
             <CheckIcon className="size-3.5 text-emerald-600" strokeWidth={3} aria-hidden="true" />
-            No credit card required
+            No free tier
           </span>
           <span className="inline-flex items-center gap-1.5">
             <CheckIcon className="size-3.5 text-emerald-600" strokeWidth={3} aria-hidden="true" />
-            {FREE_TRIAL_DAYS}-day free trial · {FREE_TRIAL_EVENTS.toLocaleString('en-US')} events
+            Starter from {formatMonthlyPrice(starter)}/mo
           </span>
           <span className="inline-flex items-center gap-1.5">
             <CheckIcon className="size-3.5 text-emerald-600" strokeWidth={3} aria-hidden="true" />
-            Then {formatMonthlyPrice(starter)}/mo · cancel anytime
+            Paid access starts after checkout · cancel anytime
           </span>
         </div>
 
