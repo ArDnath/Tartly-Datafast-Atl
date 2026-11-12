@@ -212,9 +212,16 @@ shutdown or destructive action should be taken based on this tracker.
   `/etc/cron.d/tartly` timer now runs the backup every six hours as `deploy`;
   the old file referenced a removed `/opt/tartly/deploy` and was preserved at
   `/root/tartly-cron.stale-20261112`.
+- The follow-up docs/ops commit `e5c02f3` deployed through the same automated
+  path (CI run `43212365271`, deploy run `43213898363`). The deploy found the
+  data services healthy, wrote a pre-deploy PostgreSQL dump, applied both
+  migration sets, recreated the app and worker, verified readiness, and
+  updated `BUILD_VERSION` in the runtime `.env` to `e5c02f3…`. The 6-hourly
+  backup cron then produced a full PostgreSQL + ClickHouse + env backup at
+  12:17 UTC with zero errors.
 - Host housekeeping: removed old `tartly-app` images except the current and
   previous rollback tags, removed unused images, and pruned build cache;
-  disk free space went from ~32 GB to ~61 GB after the cutover.
+  disk free space went from ~32 GB to ~56 GB after the cutover.
 - **UNVERIFIED / next human actions:** Dodo live/test checkout and webhook
   delivery from the Dodo dashboard; Resend live delivery; a signed-in browser
   walkthrough of onboarding, paywall, and analytics; an encrypted off-host
