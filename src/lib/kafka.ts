@@ -66,7 +66,7 @@ async function getProducer(): Promise<Producer> {
 async function sendMessage(
   topic: string,
   message: Record<string, string | number> | Record<string, string | number>[],
-): Promise<RecordMetadata[]> {
+): Promise<RecordMetadata[] | null> {
   try {
     await connect();
 
@@ -85,8 +85,12 @@ async function sendMessage(
       acks: ACKS,
     });
   } catch (e) {
+    // Returning null lets the caller write directly to ClickHouse. Swallowing
+    // the failure here would silently drop events from the analytics store
+    // whenever the broker is unavailable.
     // eslint-disable-next-line no-console
     console.log('KAFKA ERROR:', serializeError(e));
+    return null;
   }
 }
 

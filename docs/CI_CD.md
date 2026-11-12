@@ -118,14 +118,40 @@ The control is enforced in `.github/workflows/deploy.yml` and
 `deploy/production/deploy.sh`; `pnpm gate` also parses the scripts and runs the
 smoke-harness tests.
 
+### Production data services
+
+| Service    | Image                                  | Volume            | Memory cap | Purpose                                                       |
+| ---------- | -------------------------------------- | ----------------- | ---------- | ------------------------------------------------------------- |
+| PostgreSQL | `postgres:17-alpine`                   | `postgres_data`   | 1 GB       | tenant data, billing, usage, audit, attribution mirror        |
+| Redis      | `redis:7.4-alpine`                     | `redis_data`      | 320 MB     | cache and collector helpers (sessions stay in PostgreSQL)     |
+| ClickHouse | `clickhouse/clickhouse-server:25.3`    | `clickhouse_data` | 2 GB       | events, event/session data, replay, analytics queries         |
+| Kafka      | `apache/kafka:3.9.1` (KRaft, 1 broker) | `kafka_data`      | 1 GB       | event transport from the app to the ClickHouse writer         |
+| Worker     | `tartly-app:<sha>`                     | none              | 512 MB     | Kafka -> ClickHouse bridge, only with the `streaming` profile |
+| App        | `tartly-app:<sha>`                     | none              | 1 GB       | Next.js standalone server                                     |
+| Caddy      | `caddy:2-alpine`                       | `caddy_*`         | 256 MB     | the only public listener                                      |
+
+None of the data services publish a host port. The app connects over the
+Compose network using `postgres:5432`, `redis:6379`, `clickhouse:8123`, and
+`kafka:9092`. The worker is started by `deploy.sh` only when `KAFKA_URL`,
+`KAFKA_BROKER`, and `CLICKHOUSE_URL` are set. If Kafka is unavailable, the
+application falls back to a direct ClickHouse insert so events are not lost.
+
 ### One-time host layout
 
 ```text
-/opt/tartly/app                  git clone of this repository
-/opt/tartly/runtime/.env         production secrets, chmod 600, never in git
+/opt/tartly/app                          git clone of this repository
+/opt/tartly/runtime/.env                 production secrets, chmod 600, never in git
 /opt/tartly/runtime/docker-compose.yml   copied by deploy.sh
 /opt/tartly/runtime/Caddyfile            copied by deploy.sh
+/opt/tartly/runtime/clickhouse/low-memory.xml  copied by deploy.sh
+/opt/tartly/runtime/backup.sh            copied by deploy.sh
+/opt/tartly/backups                      pg_dump + ClickHouse backups, mode 700
 ```
+
+The production stack is self-hosted on the VPS. PostgreSQL, Redis,
+ClickHouse, and Kafka run as containers with persistent Docker volumes and
+memory limits. There is no Neon connection in production. The only public
+listener is Caddy on 80/443; database and broker ports are not published.
 
 The VPS must have Docker Engine with the Compose plugin, `git`, and outbound
 network access. The SSH key used by CI must be authorized for a non-root
@@ -183,8 +209,10 @@ Install Docker Engine with the Compose plugin from Docker's official apt
 repository. Do not use a snap or a rootless-only install for this stack; the
 `deploy` user needs access to the Docker socket. Fill
 `/opt/tartly/runtime/.env` from `deploy/production/.env.example`; never commit
-it, print it, or place it inside the repository. `DATABASE_URL` is the pooled
-Neon host; `DATABASE_URL_UNPOOLED` is the direct host used by migrations.
+it, print it, or place it inside the repository. Both database URLs point at
+the internal `postgres` service. Generate the infrastructure passwords with
+`openssl rand -hex 32` and use the same value in the `*_PASSWORD` key and the
+matching URL. The deploy user must be able to create `/opt/tartly/backups`.
 
 Verify the two directions before enabling `DEPLOY_ENABLED`:
 
@@ -241,20 +269,31 @@ then delete the old key from GitHub.
 2. requires the target to equal the current `origin/main` head unless
    `ALLOW_NON_HEAD=1` is set for an explicit rollback;
 3. resets the checkout to the exact SHA that passed CI;
-4. copies the committed compose file and Caddyfile into the runtime directory;
+4. copies the committed compose file, Caddyfile, ClickHouse config, and backup
+   script into the runtime directory;
 5. builds `tartly-app:<sha>` with `BUILD_VERSION=<sha>`;
-6. runs `prisma migrate deploy` through the one-shot `migrate` service using
-   `DATABASE_URL_UNPOOLED` (the direct Neon host);
-7. restarts only the app container, leaving Caddy and TLS state intact;
-8. polls `https://<domain>/api/health/ready` for up to two minutes and requires
-   `ok: true`, `database: "up"`, and `version: "<sha>"`;
-9. on failure, redeploys the previous SHA and verifies it again;
-10. records the healthy SHA in `$RUNTIME_DIR/last-deploy`.
+6. starts PostgreSQL, Redis, ClickHouse, and Kafka and waits for their health
+   checks;
+7. takes a pre-deploy PostgreSQL dump with `backup.sh --postgres-only`;
+8. runs `prisma migrate deploy` through the one-shot `migrate` service using
+   `DATABASE_URL_UNPOOLED` (the internal PostgreSQL service);
+9. runs `scripts/clickhouse-migrate.mjs` through the one-shot
+   `clickhouse-migrate` service;
+10. restarts the app and, when Kafka and ClickHouse are configured, the
+    Kafka-to-ClickHouse worker; Caddy and TLS state stay intact;
+11. polls `https://<domain>/api/health/ready` for up to two minutes and requires
+    `ok: true`, `database: "up"`, and `version: "<sha>"`;
+12. on failure, redeploys the previous SHA and verifies it again;
+13. records the healthy SHA in `$RUNTIME_DIR/last-deploy`.
 
-If the image build or migration fails, the running app is not restarted and the
-checkout is restored to the running SHA. Migrations are never reversed
-automatically. A bad migration is fixed with a forward migration or a Neon
-branch restore.
+If the image build, data-service start, backup, or migration fails, the running
+app is not restarted and the checkout is restored to the running SHA.
+Migrations are never reversed automatically. A bad migration is fixed with a
+forward migration or a restore from `/opt/tartly/backups` (see
+`docs/BACKUP_AND_RECOVERY.md`).
+
+The backup timer is installed once by the operator; `deploy.sh` only takes the
+pre-deploy dump. See the daily backup cron in `docs/BACKUP_AND_RECOVERY.md`.
 
 ### Required repository configuration
 
@@ -375,7 +414,10 @@ approval before running. The deploy job also runs only after a successful
 ## Secrets
 
 The pipeline never prints secrets. `deploy.sh` does not source `.env`; it reads
-only the non-secret `TARTLY_DOMAIN` value for the health URL and lets Docker
-Compose inject the rest. SSH keys live in the runner temporary directory with
+only non-secret values (`TARTLY_DOMAIN`, `POSTGRES_USER`, `POSTGRES_DB`, and the
+presence of `CLICKHOUSE_URL`/`KAFKA_*`) and lets Docker Compose inject the rest.
+`backup.sh` never writes a secret to stdout, but the backup directory contains
+database dumps and a copy of `.env`; it must stay mode 700 and be copied
+off-host with encryption. SSH keys live in the runner temporary directory with
 mode 600 and are removed when the runner is destroyed. Rotate a key immediately
 if it may have appeared in a log, artifact, or pull request.

@@ -1,7 +1,7 @@
+import { flattenJSON, getStringValue } from '@/features/analytics/lib/data';
 import clickhouse from '@/lib/clickhouse';
 import { DATA_TYPE } from '@/lib/constants';
 import { uuid } from '@/lib/crypto';
-import { flattenJSON, getStringValue } from '@/features/analytics/lib/data';
 import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
 import kafka from '@/lib/kafka';
 import prisma from '@/lib/prisma';
@@ -72,7 +72,9 @@ async function clickhouseQuery(data: SaveEventDataArgs) {
   });
 
   if (kafka.enabled) {
-    await sendMessage('event_data', messages);
+    const sent = await sendMessage('event_data', messages);
+
+    if (!sent) await insert('event_data', messages);
   } else {
     await insert('event_data', messages);
   }

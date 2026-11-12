@@ -1,0 +1,36 @@
+<!--
+  Single-VPS ClickHouse limits. The server has 8 GB RAM and also runs
+  PostgreSQL, Redis, Kafka, two Next.js containers (app + worker), and Caddy.
+  Keep ClickHouse below 1.5 GB resident memory and cap query concurrency.
+
+  The `backups` disk is used by deploy/production/backup.sh:
+    BACKUP DATABASE talivia TO Disk('backups', '<name>')
+-->
+<clickhouse>
+    <logger>
+        <level>information</level>
+    </logger>
+
+    <max_server_memory_usage>1610612736</max_server_memory_usage>
+    <max_server_memory_usage_to_ram_ratio>0.35</max_server_memory_usage_to_ram_ratio>
+    <max_concurrent_queries>24</max_concurrent_queries>
+    <mark_cache_size>268435456</mark_cache_size>
+
+    <send_crash_reports>
+        <enabled>false</enabled>
+    </send_crash_reports>
+
+    <!-- Native BACKUP/RESTORE support used by deploy/production/backup.sh. -->
+    <backups>
+        <allowed_disk>backups</allowed_disk>
+        <allowed_path>/var/lib/clickhouse/backups/</allowed_path>
+    </backups>
+
+    <storage_configuration>
+        <disks>
+            <backups>
+                <path>/var/lib/clickhouse/backups/</path>
+            </backups>
+        </disks>
+    </storage_configuration>
+</clickhouse>

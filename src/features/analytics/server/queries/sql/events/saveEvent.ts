@@ -287,7 +287,9 @@ async function clickhouseQuery({
   };
 
   if (kafka.enabled) {
-    await sendMessage('event', message);
+    const sent = await sendMessage('event', message);
+
+    if (!sent) await insert('website_event', [message]);
   } else {
     await insert('website_event', [message]);
   }

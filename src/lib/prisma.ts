@@ -375,9 +375,10 @@ function getClient() {
   const logQuery = process.env.LOG_QUERY;
   const schema = getSchema();
 
-  // Keep the pool small: Neon scales compute by CU, and the app is deployed as
-  // many short-lived server instances. The timeouts let a cold/suspended
-  // compute wake without hanging a request indefinitely.
+  // Keep the pool small: the production PostgreSQL container has a 100
+  // connection cap shared by the app, worker, migrations, and operator
+  // sessions. The timeouts bound a connection attempt without hanging a
+  // request indefinitely.
   const baseAdapter = new PrismaPg(
     {
       connectionString: url,

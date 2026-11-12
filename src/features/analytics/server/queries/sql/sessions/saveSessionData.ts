@@ -1,7 +1,7 @@
+import { flattenJSON, getStringValue } from '@/features/analytics/lib/data';
 import clickhouse from '@/lib/clickhouse';
 import { DATA_TYPE } from '@/lib/constants';
 import { uuid } from '@/lib/crypto';
-import { flattenJSON, getStringValue } from '@/features/analytics/lib/data';
 import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
 import kafka from '@/lib/kafka';
 import prisma from '@/lib/prisma';
@@ -89,7 +89,9 @@ async function clickhouseQuery({
   });
 
   if (kafka.enabled) {
-    await sendMessage('session_data', messages);
+    const sent = await sendMessage('session_data', messages);
+
+    if (!sent) await insert('session_data', messages);
   } else {
     await insert('session_data', messages);
   }

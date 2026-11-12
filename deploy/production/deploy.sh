@@ -27,6 +27,7 @@ TARGET_SHA="${1:-}"
 ALLOW_NON_HEAD="${ALLOW_NON_HEAD:-0}"
 APP_DIR="${APP_DIR:-/opt/tartly/app}"
 RUNTIME_DIR="${RUNTIME_DIR:-/opt/tartly/runtime}"
+BACKUP_DIR="${BACKUP_DIR:-/opt/tartly/backups}"
 APP_URL="${APP_URL:-}"
 HEALTH_MAX_ATTEMPTS="${HEALTH_MAX_ATTEMPTS:-40}"
 HEALTH_SLEEP_SECONDS="${HEALTH_SLEEP_SECONDS:-3}"
@@ -54,6 +55,10 @@ read_env_value() {
   line="${line#\'}"
   line="${line%\'}"
   printf '%s' "$line"
+}
+
+env_is_set() {
+  [ -n "$(read_env_value "$1")" ]
 }
 
 read_health_version() {
@@ -94,6 +99,10 @@ wait_for_health() {
 sync_runtime_config() {
   install -m 644 "$APP_DIR/deploy/production/docker-compose.yml" "$RUNTIME_DIR/docker-compose.yml"
   install -m 644 "$APP_DIR/deploy/production/Caddyfile" "$RUNTIME_DIR/Caddyfile"
+  install -d -m 755 "$RUNTIME_DIR/clickhouse"
+  install -m 644 "$APP_DIR/deploy/production/clickhouse/low-memory.xml" \
+    "$RUNTIME_DIR/clickhouse/low-memory.xml"
+  install -m 755 "$APP_DIR/deploy/production/backup.sh" "$RUNTIME_DIR/backup.sh"
 }
 
 rollback() {
@@ -119,6 +128,9 @@ rollback() {
   fi
 
   if "${COMPOSE[@]}" up -d --no-deps --no-build app </dev/null; then
+    if [ "${WORKER_ENABLED:-0}" -eq 1 ]; then
+      "${COMPOSE[@]}" up -d --no-deps --no-build worker </dev/null || true
+    fi
     if wait_for_health "$PREVIOUS_SHA"; then
       printf '%s\n' "$PREVIOUS_SHA" > "$RUNTIME_DIR/last-deploy"
       DEPLOY_SUCCEEDED=1
@@ -221,19 +233,54 @@ cd "$RUNTIME_DIR"
 export BUILD_VERSION="$TARGET_SHA"
 COMPOSE=(docker compose --env-file .env -f docker-compose.yml)
 
+# The Kafka -> ClickHouse writer is only needed when both paths are enabled.
+# Keeping it behind a profile means a single-node install without Kafka can
+# still start the rest of the stack.
+WORKER_ENABLED=0
+if env_is_set KAFKA_URL && env_is_set KAFKA_BROKER && env_is_set CLICKHOUSE_URL; then
+  WORKER_ENABLED=1
+  COMPOSE+=(--profile streaming)
+fi
+
 log "building image tartly-app:$TARGET_SHA"
 "${COMPOSE[@]}" build --pull app </dev/null ||
   die "image build failed; the running app was not changed"
 
+log "starting data services (postgres, redis, clickhouse, kafka)"
+"${COMPOSE[@]}" up -d --wait --wait-timeout 240 postgres redis clickhouse kafka </dev/null ||
+  die "data services failed to become healthy; the running app was not changed"
+
+log "backing up PostgreSQL before migration"
+RUNTIME_DIR="$RUNTIME_DIR" BACKUP_DIR="$BACKUP_DIR" \
+  "$RUNTIME_DIR/backup.sh" --postgres-only </dev/null ||
+  die "pre-deploy database backup failed; the running app was not changed"
+
 log "applying database migrations"
 "${COMPOSE[@]}" --profile tools run --rm -T migrate </dev/null ||
   die "migration failed; the running app was not restarted (previous: $PREVIOUS_SHA)"
+
+log "applying ClickHouse migrations"
+"${COMPOSE[@]}" --profile tools run --rm -T clickhouse-migrate </dev/null ||
+  die "ClickHouse migration failed; the running app was not restarted (previous: $PREVIOUS_SHA)"
 
 log "starting app"
 "${COMPOSE[@]}" up -d --no-deps app </dev/null || {
   rollback || true
   die "starting $TARGET_SHA failed"
 }
+
+if [ "$WORKER_ENABLED" -eq 1 ]; then
+  log "starting Kafka -> ClickHouse worker"
+  "${COMPOSE[@]}" up -d --wait --wait-timeout 120 --no-deps worker </dev/null || {
+    rollback || true
+    die "starting the streaming worker failed"
+  }
+fi
+
+# Caddy is normally already running. This also recovers a fresh host and
+# applies a changed Caddyfile without touching TLS storage.
+"${COMPOSE[@]}" up -d --no-deps caddy </dev/null ||
+  log "WARNING: caddy did not start; the app is running but the public edge may be down"
 
 if ! wait_for_health "$TARGET_SHA"; then
   rollback || true

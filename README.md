@@ -70,13 +70,13 @@ pnpm db:local status
 pnpm db:local reset   # destructive: deletes .local/pgdata
 ```
 
-### With Neon PostgreSQL
+### With a remote PostgreSQL (optional, local development)
 
-Set both Neon connection strings in `.env`, then use the same command:
+Set a PostgreSQL 17+ connection in `.env`, then use the same command:
 
 ```env
-DATABASE_URL=postgresql://...-pooler.../db?sslmode=require
-DATABASE_URL_UNPOOLED=postgresql://..../db?sslmode=require
+DATABASE_URL=postgresql://user:password@host:5432/database
+DATABASE_URL_UNPOOLED=postgresql://user:password@host:5432/database
 ```
 
 ```bash
@@ -84,7 +84,9 @@ pnpm dev:local
 ```
 
 The helper detects the remote host and skips the local cluster. `pnpm dev`
-runs `prisma migrate deploy` in its `predev` step.
+runs `prisma migrate deploy` in its `predev` step. This is a local-development
+option only; production runs its own PostgreSQL container on the VPS (see
+`deploy/production/docker-compose.yml`).
 
 ### Verify analytics
 
@@ -94,8 +96,7 @@ With the app running:
 pnpm smoke:local   # register → website → event → stats
 ```
 
-Full guide, RAM notes, Neon switching, and troubleshooting:
-`docs/LOCAL_DEVELOPMENT.md`.
+Full guide, RAM notes, and troubleshooting: `docs/LOCAL_DEVELOPMENT.md`.
 
 Useful checks:
 
@@ -114,25 +115,34 @@ docker compose up -d postgres
 
 ## Operations
 
+Production is a single-VPS Docker stack: PostgreSQL, Redis, ClickHouse, Kafka,
+the Next.js app, the Kafka-to-ClickHouse worker, and Caddy. Nothing is managed
+by a database vendor.
+
+- `deploy/production/docker-compose.yml` — the production stack and resource caps.
+- `deploy/production/.env.example` — the complete production variable template.
+- `docs/CI_CD.md` — automatic deploy, migrations, backups, and host bootstrap.
 - `docs/LAUNCH_CHECKLIST.md` — what is verified and what needs a human.
-- `docs/RUNBOOK.md` — deploy, rollback, outages, abuse, webhook failures.
-- `docs/BACKUP_AND_RECOVERY.md` — Neon restore rehearsal and verification.
-- `docs/SECRETS_ROTATION.md` — `APP_SECRET` and provider credential rotation.
+- `docs/RUNBOOK.md` — deploy, rollback, outages, worker, ClickHouse, backups.
+- `docs/BACKUP_AND_RECOVERY.md` — self-hosted PostgreSQL/ClickHouse restore.
+- `docs/SECRETS_ROTATION.md` — `APP_SECRET`, database, and provider rotation.
 - `docs/ENGINEERING_STANDARDS.md` — the mandatory per-feature gate.
 - `docs/PHASES.md` — current status, proof, and remaining external blockers.
 
 ## Configuration
 
-| Variable                | Required | Purpose                                                                                                     |
-| ----------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`          | Yes      | Pooled PostgreSQL connection used by the app.                                                               |
-| `DATABASE_URL_UNPOOLED` | For Neon | Direct connection used by migrations.                                                                       |
-| `APP_SECRET`            | Yes      | 32+ random bytes; signs sessions and encrypts provider credentials.                                         |
-| `RESEND_API_KEY`        | No       | Live verification, reset, and invitation email. Without it, development writes to `.dev-emails/outbox.log`. |
-| `PLATFORM_ADMIN_EMAILS` | No       | Comma-separated allowlist for platform administration.                                                      |
+| Variable                | Required   | Purpose                                                                                                     |
+| ----------------------- | ---------- | ----------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`          | Yes        | PostgreSQL connection used by the app.                                                                      |
+| `DATABASE_URL_UNPOOLED` | Production | Direct connection used by migrations; same host in the Docker stack.                                        |
+| `APP_SECRET`            | Yes        | 32+ random bytes; signs sessions and encrypts provider credentials.                                         |
+| `POSTGRES_PASSWORD`     | Production | PostgreSQL container password; must match the database URLs.                                                |
+| `REDIS_PASSWORD`        | Production | Redis container password; must match `REDIS_URL`.                                                           |
+| `CLICKHOUSE_PASSWORD`   | Production | ClickHouse user password; must match `CLICKHOUSE_URL`.                                                      |
+| `RESEND_API_KEY`        | No         | Live verification, reset, and invitation email. Without it, development writes to `.dev-emails/outbox.log`. |
+| `PLATFORM_ADMIN_EMAILS` | No         | Comma-separated allowlist for platform administration.                                                      |
 
-See `docs/ENVIRONMENT.md` for Neon setup, pooled/direct strings, and
-preview/production branching.
+See `docs/ENVIRONMENT.md` for local and production configuration.
 
 ## First setup
 
@@ -165,7 +175,7 @@ docs/             phase tracker, design system, tenancy, pricing, operations
 - `docs/UI_DESIGN_SYSTEM.md` — visual language and source layout.
 - `docs/TENANCY.md` — workspace isolation rules.
 - `docs/PRICING_ECONOMICS.md` — plans, costs, and margin model.
-- `docs/ENVIRONMENT.md` — local, Neon, and production configuration.
+- `docs/ENVIRONMENT.md` — local and production configuration.
 
 ## Licence and attribution
 
