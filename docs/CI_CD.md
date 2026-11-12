@@ -293,7 +293,8 @@ forward migration or a restore from `/opt/tartly/backups` (see
 `docs/BACKUP_AND_RECOVERY.md`).
 
 The backup timer is installed once by the operator; `deploy.sh` only takes the
-pre-deploy dump. See the daily backup cron in `docs/BACKUP_AND_RECOVERY.md`.
+pre-deploy dump. See the six-hourly backup cron in
+`docs/BACKUP_AND_RECOVERY.md`.
 
 ### Required repository configuration
 

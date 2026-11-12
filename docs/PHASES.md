@@ -17,11 +17,11 @@
   p95 412 ms, 0 errors) is recorded in `docs/LOAD_TEST.md`, and the run exposed
   and fixed a deleted-workspace session leak. Production is now a self-hosted
   single-VPS Docker stack: PostgreSQL, Redis, ClickHouse, and Kafka run on the
-  host with persistent volumes, a Kafka-to-ClickHouse worker, and daily
+  host with persistent volumes, a Kafka-to-ClickHouse worker, and 6-hourly
   backups. There is no Neon production dependency. The remaining work is
   external verification: live Dodo/Resend/provider credentials, a real browser
-  walkthrough, a self-hosted restore rehearsal with an encrypted off-host
-  backup copy, a deployed streaming-path load test, and lawyer review. All are
+  walkthrough, an encrypted off-host backup copy, a deployed streaming-path
+  load test, and lawyer review. All are
   labelled **UNVERIFIED** with the exact human action. The
   source restructure remains enforced: `src/app` is routing only, every domain
   owns its UI/hooks/lib/server/queries, and `src/lib`/`src/queries` are
