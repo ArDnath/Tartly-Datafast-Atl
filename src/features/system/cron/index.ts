@@ -2,6 +2,7 @@ import { Cron, type CronOptions } from 'croner';
 import { logger } from '@/lib/logger';
 import { runAnalyticsRetentionJob } from './jobs/analytics-retention';
 import { runAuthMaintenanceJob } from './jobs/auth-maintenance';
+import { runOperationalDataRetentionJob } from './jobs/data-retention';
 import { runProviderWebhookCleanupJob } from './jobs/provider-webhook-cleanup';
 import { runUsageNoticeJob } from './jobs/usage-notices';
 
@@ -34,6 +35,11 @@ const cronJobs: TaliviaCronJob[] = [
     name: 'analytics-retention',
     schedule: '30 3 * * *',
     run: () => runAnalyticsRetentionJob(),
+  },
+  {
+    name: 'operational-data-retention',
+    schedule: '45 3 * * *',
+    run: () => runOperationalDataRetentionJob(),
   },
   {
     name: 'usage-notices',

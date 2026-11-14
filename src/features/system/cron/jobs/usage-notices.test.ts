@@ -3,6 +3,7 @@ import { runUsageNoticeJob } from './usage-notices';
 
 const NOW = new Date('2026-11-15T04:00:00.000Z');
 const PERIOD_START = new Date('2026-11-01T00:00:00.000Z');
+const PERIOD_END = new Date('2026-12-01T00:00:00.000Z');
 
 function createClient(periods: any[]) {
   return {
@@ -16,6 +17,8 @@ function createClient(periods: any[]) {
 function period(overrides: Record<string, unknown> = {}) {
   return {
     workspaceId: 'workspace-1',
+    periodStart: PERIOD_START,
+    periodEnd: PERIOD_END,
     eventsCount: 80_000,
     warningNotifiedAt: null,
     limitNotifiedAt: null,

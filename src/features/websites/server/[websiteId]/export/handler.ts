@@ -1,8 +1,9 @@
 import JSZip from 'jszip';
 import Papa from 'papaparse';
 import { sanitizeCsvData } from '@/lib/csv';
+import { canUseWebsiteFeature } from '@/lib/feature-access';
 import { getQueryFilters, parseRequest } from '@/lib/request';
-import { json, unauthorized } from '@/lib/response';
+import { forbidden, json, unauthorized } from '@/lib/response';
 import { pagingParams, withDateRange } from '@/lib/schema';
 import { canExportWebsiteData } from '@/permissions';
 import { getRevenueAttributionReport } from '@/features/analytics/server/queries/revenueAttribution';
@@ -31,6 +32,14 @@ export async function GET(
 
   if (!(await canExportWebsiteData(auth, websiteId))) {
     return unauthorized();
+  }
+
+  if (!(await canUseWebsiteFeature(auth, websiteId, 'csv_export'))) {
+    return forbidden({
+      code: 'plan_feature_required',
+      feature: 'csv_export',
+      message: 'Data export is not included in this plan.',
+    });
   }
 
   const filters = await getQueryFilters(query, websiteId);

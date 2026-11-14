@@ -1,9 +1,11 @@
 import { z } from 'zod';
 import { ENTITY_TYPE } from '@/lib/constants';
 import { uuid } from '@/lib/crypto';
+import { canUseWebsiteFeature } from '@/lib/feature-access';
 import { getRandomChars } from '@/features/websites/lib/generate';
 import { parseRequest } from '@/lib/request';
-import { json, unauthorized } from '@/lib/response';
+import { forbidden, json, unauthorized } from '@/lib/response';
+import { getShareExpiry } from '@/lib/share-policy';
 import { anyObjectParam, filterParams, pagingParams } from '@/lib/schema';
 import { canManageWebsiteIntegrations } from '@/permissions';
 import { createShare, getSharesByEntityId } from '@/queries/prisma';
@@ -62,6 +64,14 @@ export async function POST(
     return unauthorized();
   }
 
+  if (!(await canUseWebsiteFeature(auth, websiteId, 'client_reporting'))) {
+    return forbidden({
+      code: 'plan_feature_required',
+      feature: 'client_reporting',
+      message: 'Client reporting links are included in the Pro plan.',
+    });
+  }
+
   const slug = getRandomChars(16);
 
   const share = await createShare({
@@ -71,6 +81,7 @@ export async function POST(
     name,
     slug,
     parameters: shareParameters,
+    expiresAt: getShareExpiry(),
   });
 
   return json(share);

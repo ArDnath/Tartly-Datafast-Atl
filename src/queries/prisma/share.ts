@@ -1,5 +1,6 @@
 import type { Prisma } from '@/generated/prisma/client';
 import prisma from '@/lib/prisma';
+import { isShareLinkActive } from '@/lib/share-policy';
 import type { QueryFilters } from '@/lib/types';
 
 export async function findShare(criteria: Prisma.ShareFindUniqueArgs) {
@@ -15,11 +16,13 @@ export async function getShare(shareId: string) {
 }
 
 export async function getShareByCode(slug: string) {
-  return findShare({
+  const share = await prisma.client.share.findUnique({
     where: {
       slug,
     },
   });
+
+  return share && isShareLinkActive(share) ? share : null;
 }
 
 export async function getShareByEntityId(entityId: string) {

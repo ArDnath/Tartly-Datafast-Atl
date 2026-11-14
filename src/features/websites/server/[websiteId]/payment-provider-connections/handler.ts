@@ -26,6 +26,7 @@ import {
   updatePolarWebhookEndpoint,
   validatePolarReadAccess,
 } from '@/features/payments/server/providers/polar-provider';
+import { getWebsiteEntitlements } from '@/lib/feature-access';
 import prisma from '@/lib/prisma';
 import { isUniqueConstraintError } from '@/lib/prisma-error';
 import {
@@ -33,7 +34,7 @@ import {
   encryptProviderSecret,
 } from '@/features/payments/server/provider-secrets';
 import { parseRequest } from '@/lib/request';
-import { badRequest, json, unauthorized } from '@/lib/response';
+import { badRequest, forbidden, json, unauthorized } from '@/lib/response';
 import {
   createStripeWebhookEndpoint,
   deleteStripeWebhookEndpoint,
@@ -192,6 +193,26 @@ export async function POST(
 
   if (!(await canManageWebsiteIntegrations(auth, websiteId))) {
     return unauthorized();
+  }
+
+  const entitlements = await getWebsiteEntitlements(auth, websiteId);
+  const connectionLimit = entitlements?.plan?.paymentConnectionLimit;
+
+  if (connectionLimit != null) {
+    const activeConnections =
+      (await prisma.client.paymentProviderConnection.findMany({
+        where: { websiteId, disconnectedAt: null },
+        select: { providerName: true },
+      })) ?? [];
+    const providers = new Set(activeConnections.map(connection => connection.providerName));
+
+    if (!providers.has(body.providerName) && providers.size >= connectionLimit) {
+      return forbidden({
+        code: 'plan_limit_reached',
+        limit: connectionLimit,
+        message: `The ${entitlements?.plan?.name ?? 'current'} plan includes ${connectionLimit} payment connection${connectionLimit === 1 ? '' : 's'}. Upgrade to connect another provider.`,
+      });
+    }
   }
 
   if (body.providerName === 'stripe' && body.apiKey) {

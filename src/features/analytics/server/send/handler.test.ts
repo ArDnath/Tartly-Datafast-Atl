@@ -326,6 +326,48 @@ test('releases the reservation when the event write fails', async () => {
   consoleLog.mockRestore();
 });
 
+test('treats a retried client event id as one event and releases the second reservation', async () => {
+  const workspaceId = '6b7c2d44-8f25-4b50-8d4f-9f0f3b1f1b1b';
+
+  vi.mocked(fetchWebsite).mockResolvedValue({ id: websiteId, workspaceId } as any);
+  vi.mocked(getWorkspaceEntitlements).mockResolvedValue({
+    active: true,
+    plan: { eventsPerMonth: 50_000 },
+  } as any);
+  vi.mocked(reserveEventUsage).mockResolvedValue({
+    allowed: true,
+    used: 2,
+    limit: 50_000,
+    hardLimit: 51_000,
+  });
+  vi.mocked(saveEvent).mockRejectedValueOnce({ code: 'P2002' });
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        website: websiteId,
+        visitorId: 'v_visitor',
+        sessionId: 's_session',
+        hostname: 'shop.example',
+        url: 'https://shop.example/pricing',
+        eventId: 'client-event-123',
+      },
+    },
+  } as any);
+
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
+  const body = await response.json();
+
+  expect(response.status).toBe(200);
+  expect(body).toMatchObject({ ok: true, duplicate: true });
+  expect(saveEvent).toHaveBeenCalledWith(
+    expect.objectContaining({ eventId: '11111111-1111-4111-8111-111111111111' }),
+  );
+  expect(releaseEventUsage).toHaveBeenCalledWith(workspaceId);
+});
+
 test('rejects a legacy pixel id that is actually another website id', async () => {
   const { getPixel } = await import('@/queries/prisma');
   vi.mocked(getPixel).mockResolvedValue(null);

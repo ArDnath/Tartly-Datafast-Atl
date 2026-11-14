@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import { createApiKeyToken, hashApiKey } from '@/features/websites/lib/api-key';
+import { canUseWebsiteFeature } from '@/lib/feature-access';
 import prisma from '@/lib/prisma';
 import { parseRequest } from '@/lib/request';
-import { json, unauthorized } from '@/lib/response';
+import { forbidden, json, unauthorized } from '@/lib/response';
 import { canManageWebsiteIntegrations, canViewWebsite } from '@/permissions';
 import { recordAuditEvent } from '@/queries/prisma';
 
@@ -36,6 +37,14 @@ export async function GET(
     return unauthorized();
   }
 
+  if (!(await canUseWebsiteFeature(auth, websiteId, 'api_access'))) {
+    return forbidden({
+      code: 'plan_feature_required',
+      feature: 'api_access',
+      message: 'API keys are included in the Pro plan.',
+    });
+  }
+
   const keys = await prisma.client.apiKey.findMany({
     where: {
       websiteId,
@@ -62,6 +71,14 @@ export async function POST(
 
   if (!(await canManageWebsiteIntegrations(auth, websiteId))) {
     return unauthorized();
+  }
+
+  if (!(await canUseWebsiteFeature(auth, websiteId, 'api_access'))) {
+    return forbidden({
+      code: 'plan_feature_required',
+      feature: 'api_access',
+      message: 'API keys are included in the Pro plan.',
+    });
   }
 
   const key = createApiKeyToken();

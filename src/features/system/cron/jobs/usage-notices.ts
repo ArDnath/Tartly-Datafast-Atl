@@ -43,12 +43,20 @@ export async function runUsageNoticeJob({
   send = sendUsageNoticeEmail,
   origin = getPublicOrigin({ headers: new Headers(), url: 'http://localhost:3000' }),
 }: UsageNoticeJobOptions = {}) {
-  const { periodStart } = getUsagePeriodRange(now);
+  const calendarPeriod = getUsagePeriodRange(now);
 
   const periods = await client.usagePeriod.findMany({
-    where: { periodStart, workspace: { deletedAt: null, suspendedAt: null } },
+    where: {
+      // Provider billing periods have different start dates per workspace.
+      // Scan every period that contains "now" instead of one calendar month.
+      periodStart: { lte: now },
+      periodEnd: { gt: now },
+      workspace: { deletedAt: null, suspendedAt: null },
+    },
     select: {
       workspaceId: true,
+      periodStart: true,
+      periodEnd: true,
       eventsCount: true,
       warningNotifiedAt: true,
       limitNotifiedAt: true,
@@ -127,7 +135,7 @@ export async function runUsageNoticeJob({
         used: period.eventsCount,
         limit: plan.eventsPerMonth,
         percentage,
-        resetAt: getUsagePeriodRange(now).periodEnd,
+        resetAt: period.periodEnd,
         billingUrl: billingUrl(origin),
         level,
       });
@@ -135,7 +143,7 @@ export async function runUsageNoticeJob({
       await client.usagePeriod.updateMany({
         where: {
           workspaceId: period.workspaceId,
-          periodStart,
+          periodStart: period.periodStart,
           ...(level === 'warning' ? { warningNotifiedAt: null } : { limitNotifiedAt: null }),
         },
         data: level === 'warning' ? { warningNotifiedAt: now } : { limitNotifiedAt: now },
@@ -153,7 +161,7 @@ export async function runUsageNoticeJob({
   }
 
   return {
-    periodStart,
+    periodStart: periods[0]?.periodStart ?? calendarPeriod.periodStart,
     scanned: periods.length,
     sent: results.filter(result => result.sent).length,
     failed: results.filter(result => !result.sent).length,

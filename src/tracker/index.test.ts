@@ -216,6 +216,25 @@ test('tracks a visible element once after it remains above its threshold', () =>
 
   observer.emit(element, 0.8);
   expect(fetchMock).toHaveBeenCalledTimes(1);
+  expect(request.payload.eventId).toMatch(/^e_/);
+});
+
+test('gives every event a unique idempotency key', () => {
+  installTracker();
+
+  const fetchMock = vi.mocked(fetch);
+  fetchMock.mockClear();
+
+  window.talivia.track('first');
+  window.talivia.track('second');
+
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+  const first = JSON.parse(String(fetchMock.mock.calls[0][1]?.body)).payload.eventId;
+  const second = JSON.parse(String(fetchMock.mock.calls[1][1]?.body)).payload.eventId;
+
+  expect(first).toMatch(/^e_/);
+  expect(second).toMatch(/^e_/);
+  expect(first).not.toBe(second);
 });
 
 test('observes visible elements added after the tracker loads', () => {

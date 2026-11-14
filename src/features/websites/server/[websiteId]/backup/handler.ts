@@ -1,7 +1,8 @@
 import { createTaliviaBackup } from '@/features/websites/server/imports';
 import { BRAND } from '@/lib/brand';
+import { canUseWebsiteFeature } from '@/lib/feature-access';
 import { getQueryFilters, parseRequest } from '@/lib/request';
-import { badRequest, unauthorized } from '@/lib/response';
+import { badRequest, forbidden, unauthorized } from '@/lib/response';
 import { withDateRange } from '@/lib/schema';
 import { canExportWebsiteData } from '@/permissions';
 import { recordAuditEvent } from '@/queries/prisma';
@@ -20,6 +21,14 @@ export async function GET(
 
   if (!(await canExportWebsiteData(auth, websiteId))) {
     return unauthorized();
+  }
+
+  if (!(await canUseWebsiteFeature(auth, websiteId, 'full_backup'))) {
+    return forbidden({
+      code: 'plan_feature_required',
+      feature: 'full_backup',
+      message: 'Full website backups are included in the Pro plan.',
+    });
   }
 
   const filters = await getQueryFilters(query, websiteId);

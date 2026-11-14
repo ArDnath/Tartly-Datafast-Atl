@@ -294,6 +294,9 @@
     referrer: currentRef,
     tag,
     id: identity ? identity : undefined,
+    // One id per event. The collector derives the stored primary key from it,
+    // so a network retry or a duplicate beacon cannot double-count the event.
+    eventId: createKey('e'),
     sessionId: getSessionId(),
     linker: incomingLinker,
   });

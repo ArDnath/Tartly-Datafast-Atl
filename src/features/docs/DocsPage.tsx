@@ -327,7 +327,8 @@ const sessionId = window.talivia.getSessionId();`}</code>
           Send events from your backend to the same collector. No visitor or session token is
           required: the server derives a rotating visitor key and a 30-minute session bucket. The
           website ID is public by design, so treat it as a routing key, not a secret. Send an opaque
-          user ID, never personal data.
+          user ID, never personal data. Include an <code>eventId</code> when your job may retry:
+          repeating the same id is counted once and does not consume a second event.
         </p>
         <div className={styles.codeBlock}>
           <div className={styles.codeHeader}>
@@ -342,6 +343,7 @@ const sessionId = window.talivia.getSessionId();`}</code>
     "payload": {
       "website": "YOUR_WEBSITE_ID",
       "name": "trial-started",
+      "eventId": "order-4821-trial-started",
       "hostname": "app.example.com",
       "url": "https://app.example.com/welcome",
       "data": { "plan": "pro" }

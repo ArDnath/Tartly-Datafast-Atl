@@ -36,6 +36,7 @@ import { getSalt, hash, secret, uuid } from '@/lib/crypto';
 import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import { fetchWebsite } from '@/lib/load';
 import { logger } from '@/lib/logger';
+import { isUniqueConstraintError } from '@/lib/prisma-error';
 import { hashRateLimitSubject, rateLimitKey } from '@/lib/rate-limit';
 import redis from '@/lib/redis';
 import { parseRequest } from '@/lib/request';
@@ -69,6 +70,9 @@ const schema = z.object({
       userAgent: z.string().optional(),
       timestamp: z.coerce.number().int().min(946684800).max(4102444800).optional(),
       id: z.string().optional(),
+      // Client-generated, per-event idempotency key. Retrying the same event
+      // must not create a second row or consume a second usage slot.
+      eventId: z.string().min(8).max(100).optional(),
       visitorId: z.string().max(100).optional(),
       sessionId: z.string().max(100).optional(),
       linker: z.string().max(4096).optional(),
@@ -122,6 +126,7 @@ export async function POST(request: Request) {
       tag,
       timestamp,
       id,
+      eventId: payloadEventId,
       visitorId: payloadVisitorToken,
       sessionId: payloadSessionToken,
       linker,
@@ -256,6 +261,13 @@ export async function POST(request: Request) {
         : name
           ? EVENT_TYPE.customEvent
           : EVENT_TYPE.pageView;
+
+    // A client event id makes delivery idempotent. The primary key is derived
+    // from the website and the client key, so a retry collides in PostgreSQL
+    // instead of creating a second event. The key is scoped per website: two
+    // tenants may use the same client key without colliding.
+    const idempotentEventId =
+      websiteId && payloadEventId ? uuid(websiteId, 'client-event', payloadEventId) : undefined;
 
     // Resolve entitlement and reserve the billable event BEFORE creating a
     // session or visitor context. A deleted/suspended workspace must not leave
@@ -465,56 +477,74 @@ export async function POST(request: Request) {
         });
       }
 
-      const websiteEventId = await saveEvent({
-        websiteId: sourceId,
-        visitorId,
-        sessionId,
-        eventType,
-        createdAt,
+      let websiteEventId: string;
 
-        // Page
-        pageTitle: safeDecodeURIComponent(title),
-        hostname: hostname || urlDomain,
-        urlPath: safeDecodeURI(urlPath),
-        urlQuery,
-        referrerPath: safeDecodeURI(referrerPath),
-        referrerQuery,
-        referrerDomain,
+      try {
+        websiteEventId = await saveEvent({
+          eventId: idempotentEventId,
+          websiteId: sourceId,
+          visitorId,
+          sessionId,
+          eventType,
+          createdAt,
 
-        // Session
-        distinctId: id,
-        browser,
-        os,
-        device,
-        screen,
-        language,
-        country,
-        region,
-        city,
+          // Page
+          pageTitle: safeDecodeURIComponent(title),
+          hostname: hostname || urlDomain,
+          urlPath: safeDecodeURI(urlPath),
+          urlQuery,
+          referrerPath: safeDecodeURI(referrerPath),
+          referrerQuery,
+          referrerDomain,
 
-        // Events
-        eventName: name,
-        eventData: data,
-        tag,
+          // Session
+          distinctId: id,
+          browser,
+          os,
+          device,
+          screen,
+          language,
+          country,
+          region,
+          city,
 
-        // UTM
-        utmSource,
-        utmMedium,
-        utmCampaign,
-        utmContent,
-        utmTerm,
+          // Events
+          eventName: name,
+          eventData: data,
+          tag,
 
-        // Click IDs
-        gclid,
-        gclsrc,
-        wbraid,
-        gbraid,
-        fbclid,
-        msclkid,
-        ttclid,
-        lifatid,
-        twclid,
-      });
+          // UTM
+          utmSource,
+          utmMedium,
+          utmCampaign,
+          utmContent,
+          utmTerm,
+
+          // Click IDs
+          gclid,
+          gclsrc,
+          wbraid,
+          gbraid,
+          fbclid,
+          msclkid,
+          ttclid,
+          lifatid,
+          twclid,
+        });
+      } catch (e) {
+        if (idempotentEventId && isUniqueConstraintError(e)) {
+          // A retry of an event that already committed. Release the fresh
+          // reservation: the first delivery already paid for this event.
+          if (reservedWorkspaceId) {
+            await releaseEventUsage(reservedWorkspaceId);
+            reservedWorkspaceId = null;
+          }
+
+          return json({ ok: true, duplicate: true });
+        }
+
+        throw e;
+      }
 
       eventCommitted = true;
 
