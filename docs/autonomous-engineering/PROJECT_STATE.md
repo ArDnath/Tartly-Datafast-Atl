@@ -3,6 +3,8 @@
 - **Started:** 2026-11-14
 - **Main project:** `/home/ariyaman/Dev/fight/efforts/revenuelens`
 - **Source of truth branch:** `main` (protected); integration branch `autonomous/saas-buildout`
+- **Release-blocker branch:** `feature/15-release-blockers`; PR #54
+  <https://github.com/ArDnath/Tartly-Datafast-Atl/pull/54>
 - **Baseline commit:** `ec11b22` (main), plus preserved slice `cb052f7`
   (`feature/14-activation-security`) merged into the integration branch.
 - **Reference folder (read-only):** `/home/ariyaman/Dev/fight/efforts/References`
@@ -114,8 +116,11 @@ slices are made by the master in this worktree, one at a time. Recorded in
 ## Next step
 
 The engineering-owned blockers B9, B11, B12, B13, and B14 are closed on
-`feature/15-release-blockers` with tests. Remaining blockers need credentials,
-a live service, or a human: (1) ClickHouse retention/deletion on the real stack,
+`feature/15-release-blockers` with tests, reviewed independently, and merged
+into `autonomous/saas-buildout`. PR #54 is open against `main`; merging it
+would trigger the repository's automatic production deploy, so merging is a
+human decision. Remaining blockers need credentials, a live service, or a
+human: (1) ClickHouse retention/deletion on the real stack,
 (2) live Dodo test-mode checkout/webhook/portal, (3) browser journey with
 consent and replay, (4) deployed streaming load test, (5) off-host backup and
 restore rehearsal, (6) legal review. Push the feature branch, open the PR, and
