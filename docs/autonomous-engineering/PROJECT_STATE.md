@@ -20,16 +20,16 @@ tree was clean on resume.
 
 ## Capability probe (2026-11-14)
 
-| Capability          | Status | Evidence                                                    |
-| ------------------- | ------ | ----------------------------------------------------------- |
-| Subagents           | YES    | `subagent` tool with `explore` and `general` agents          |
-| Git worktrees       | YES    | `git worktree list`; no extra worktrees created (RAM)        |
-| Shell / Node / pnpm | YES    | Node v24.13.0, pnpm 10.10.0                                  |
-| Test runner         | YES    | Vitest 4.1.12, coverage gated by `pnpm gate`                 |
-| Lint / format       | YES    | Biome                                                        |
-| Browser automation  | YES    | `browser` tools; no desktop browser was connected            |
-| Web access          | YES    | `webfetch`, `websearch`, Firecrawl                           |
-| Local PostgreSQL    | YES    | `pnpm db:local` / `pnpm smoke:local`                         |
+| Capability          | Status | Evidence                                                                      |
+| ------------------- | ------ | ----------------------------------------------------------------------------- |
+| Subagents           | YES    | `subagent` tool with `explore` and `general` agents                           |
+| Git worktrees       | YES    | `git worktree list`; no extra worktrees created (RAM)                         |
+| Shell / Node / pnpm | YES    | Node v24.13.0, pnpm 10.10.0                                                   |
+| Test runner         | YES    | Vitest 4.1.12, coverage gated by `pnpm gate`                                  |
+| Lint / format       | YES    | Biome                                                                         |
+| Browser automation  | YES    | `browser` tools; no desktop browser was connected                             |
+| Web access          | YES    | `webfetch`, `websearch`, Firecrawl                                            |
+| Local PostgreSQL    | YES    | `pnpm db:local` / `pnpm smoke:local`                                          |
 | Resource watchdog   | YES    | `scripts/agent-resource-guard.sh` → `/tmp/opencode/revenuelens-resources.log` |
 
 ## Resource policy (binding on this machine)

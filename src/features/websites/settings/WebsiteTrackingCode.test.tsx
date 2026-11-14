@@ -81,13 +81,13 @@ async function renderSettings() {
   return render(<WebsiteTrackingCode websiteId={websiteId} hostUrl="https://talivia.test" />);
 }
 
-test('generates a tracker snippet with shared and cross-domain identity settings', async () => {
+test('generates a tracker snippet with cross-domain identity settings', async () => {
   apiGet.mockResolvedValue(standardPreflight());
 
   render(<WebsiteTrackingCode websiteId={websiteId} hostUrl="https://talivia.test" />);
 
   expect(screen.getByRole('textbox')).toHaveValue(
-    `<script defer src="https://talivia.test/script.js" data-website-id="${websiteId}" data-domain="example.com" data-cross-domain-domains="example.com,app.example.com,checkout.example.net"></script>`,
+    `<script defer src="https://talivia.test/script.js" data-website-id="${websiteId}" data-cross-domain-domains="example.com,app.example.com,checkout.example.net"></script>`,
   );
 
   await waitFor(() =>

@@ -92,4 +92,3 @@ re-litigate them blindly.
   entitlement only if such workspaces exist; the usage guard is applied to new
   website creation. The change is reversible in one config edit.
 - **Evidence:** `src/lib/plans.ts`, `src/lib/plans.test.ts` (9 tests pass).
-
