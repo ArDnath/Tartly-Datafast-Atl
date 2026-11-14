@@ -1,13 +1,13 @@
 # Existing architecture — source-verified audit
 
-- **Audited revision:** `d45ad0c` on `autonomous/saas-buildout` (`git log -1 --format='%h %s'`).
+- **Audited revision:** `7e32b59` on `autonomous/saas-buildout` (`git log -1 --format='%h %s'`).
 - **Method:** read-only inspection (`rg`, `sed`, `git show`, `git diff`). No tests, build, dev
   server, migrations, or database commands were run (7 GB RAM constraint).
 - **Consequence:** every statement below is source-verified, not runtime-verified. Items that
   require an execution or live credentials are marked **UNVERIFIED**.
 - **Tracker note:** the identity model changed in `caa8399` ("cookieless tracker with rotating
   salted visitor identity"). Section 5.1 describes the current code, not the retired cookie model.
-- **Concurrency:** the repository is being changed by other agents. Line numbers were verified at `d45ad0c`; re-run the cited `rg`/`sed` before acting.
+- **Concurrency:** the repository is being changed by other agents. Line numbers were verified at `7e32b59`; re-run the cited `rg`/`sed` before acting.
 
 ## 1. Runtime topology
 

@@ -72,8 +72,15 @@ slices are made by the master in this worktree, one at a time. Recorded in
     entry; legal cookie page corrected (2026-11-14).
   - **License notice:** Umami's MIT copyright restored in
     `THIRD_PARTY_NOTICES.md` (Talivia's LICENSE had replaced it).
-- **Wave 1 / 2 / 3:** not started.
-- **Release gate:** not evaluated.
+- **Wave 1:** H-TRACKER, H-BACKEND, and H-UX complete. H-INTEGRATE not run.
+- **Wave 2 slices:** cookieless tracker, consent, outbound/download, timestamp
+  bounds, cross-domain identity, beacon-safe last touch, replay switch, metric
+  definitions, revenue-first channel sort, honest pre-payment verification,
+  first-site landing, and no fabricated chart line.
+- **Release gate:** evaluated on 2026-11-15. `pnpm gate` exit 0 (227 files,
+  1,126 tests, 78 static pages). Verdict: **NOT PRODUCTION READY** because
+  ClickHouse retention/deletion, event idempotency, and live billing proof are
+  still open. See `PRODUCTION_READINESS.md` and `FINAL_DELIVERY_REPORT.md`.
 
 ## Evidence log
 
@@ -87,8 +94,9 @@ slices are made by the master in this worktree, one at a time. Recorded in
 
 ## Next step
 
-Finish S1/S4, write `docs/architecture/MASTER_ARCHITECTURE.md` and
-`docs/architecture/PORT_PLAN.md`, review the S2/S3 findings, then run the next
-P0 code slices (consent-aware tracker mode, first-party install verification,
-and any confirmed gap from S1). Run `pnpm gate` with capped workers before the
-commit.
+Close the release blockers in this order: (1) ClickHouse retention/deletion on
+the real stack, (2) event idempotency and the reservation/write failure window,
+(3) central Pro-feature enforcement and billing-period metering, (4) live Dodo
+test-mode checkout/webhook/portal, (5) browser journey with consent and replay,
+(6) legal review. The exact tasks and acceptance tests are in
+`docs/architecture/PORT_PLAN.md` and `PRODUCTION_READINESS.md`.

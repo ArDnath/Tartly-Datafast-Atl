@@ -136,10 +136,11 @@
   is present, so the first dashboard is the customer's site, not the portfolio.
 - **No fabricated chart line.** A portfolio card with no chart data now renders
   "No visits yet" instead of a flat zero line that looked like real traffic.
-- **Verification:** typecheck exit 0; website update 5 tests, edit form 1, docs
-  24, attribution journeys 6, collector 12, cross-domain 3, onboarding/portfolio
-  59, verify 2. Full gate is run separately and recorded in
-  `PRODUCTION_READINESS.md`.
+- **Verification:** `pnpm gate` exit 0 on 2026-11-15 — **227 test files passed /
+  1 skipped**, **1,126 tests passed / 1 skipped**, coverage **68.15% statements
+  / 58.1% branches / 65.56% functions / 68.6% lines**, deploy checks passed, and
+  the production build generated all 78 static pages. The full gate is recorded
+  in `docs/autonomous-engineering/PRODUCTION_READINESS.md`.
 - **UNVERIFIED:** a real browser replay recording against a live site; the
   recorder and ingest path are unit- and smoke-tested, not browser-tested here.
 - **N/A:** schema/migration change (the `replayEnabled` column already existed),
@@ -153,10 +154,10 @@
 - Overall percent (average of phases 0–12): **94%**
 - Build state at last check: **green** — `pnpm gate` (Biome format, Biome
   lint, `tsc --noEmit`, coverage-enforced tests, production build) passes.
-  Latest local full run (2026-11-14): **225 test files passed / 1 skipped**,
-  **1103 tests passed / 1 skipped**, coverage **68.20% statements / 58.07%
-  branches / 65.65% functions / 68.64% lines**, plus the explicit
-  PostgreSQL analytics smoke and the recorded load probe.
+  Latest local full run (2026-11-15): **227 test files passed / 1 skipped**,
+  **1126 tests passed / 1 skipped**, coverage **68.15% statements / 58.1%
+  branches / 65.56% functions / 68.6% lines**, plus the explicit PostgreSQL
+  analytics smoke and the recorded load probe.
 - GitHub CI: **green on `main`** (run 43066591765 for `619099b`). The three-job
   pipeline starts PostgreSQL 17, runs format, lint, typecheck, coverage tests,
   a clean production dependency audit, `prisma migrate deploy`, the Phase 7

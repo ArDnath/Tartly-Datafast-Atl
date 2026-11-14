@@ -1,8 +1,8 @@
 # Monetization audit
 
-- **Audited revision:** `d45ad0c`. Read-only; no checkout, webhook, or provider call was executed.
+- **Audited revision:** `7e32b59`. Read-only; no checkout, webhook, or provider call was executed.
 - All live-revenue behaviour is **UNTESTED** here.
-- **Concurrency:** the repository is being changed by other agents. Enforcement claims were verified at `d45ad0c`; re-run the cited checks before pricing decisions.
+- **Concurrency:** the repository is being changed by other agents. Enforcement claims were verified at `7e32b59`; re-run the cited checks before pricing decisions.
 
 ## 1. Plans — source of truth
 
@@ -170,7 +170,7 @@ requested at the provider and the local plan changes only on the next webhook
    full backups, public client dashboards, journeys, and unlimited payment connections. Session
    replay is now the one Pro feature with a server gate; the others rely on UI copy.
 2. **Portfolio MRR by channel is computed but not rendered.** Per-website revenue by
-   channel/campaign/referrer *is* shown in the overview breakdown cards
+   channel/campaign/referrer _is_ shown in the overview breakdown cards
    (`DashboardBreakdownPanel.tsx:18-95`, `dashboardBreakdown.ts:263-311`), but the portfolio
    `mrrByChannel` payload has no UI consumer (`portfolioMrr.ts:16`, `website-overview.ts:108,245`).
    The dedicated `getRevenueAttributionReport` is also unused by the UI; only the CSV export and
@@ -200,6 +200,8 @@ requested at the provider and the local plan changes only on the next webhook
 
 - One plan config; no hardcoded limits in components (`BillingPaywall.tsx` and `PricingSection.tsx`
   read `Plan` fields).
+- Per-site revenue by channel/campaign/referrer is delivered by the overview breakdown cards
+  (`DashboardBreakdownPanel.tsx`, `dashboardBreakdown.ts:263-311`).
 - Provider state, not redirects, is authoritative for access.
 - Webhook signature, idempotency, ordering, and tenant resolution are carefully implemented.
 - Metering is atomic and fails closed.

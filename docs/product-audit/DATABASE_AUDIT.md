@@ -1,10 +1,10 @@
 # Database audit
 
-- **Audited revision:** `d45ad0c`. **Method:** read-only inspection of `prisma/schema.prisma`,
+- **Audited revision:** `7e32b59`. **Method:** read-only inspection of `prisma/schema.prisma`,
   `prisma/migrations/`, and the query layer. No database connection, migration, or query was run.
 - **Actual row counts / sizes / bloat are UNVERIFIED.** Everything below is schema- and
   migration-derived.
-- **Concurrency:** schema and migrations were verified at `d45ad0c`; neither changed during the audit, but re-check before writing a migration.
+- **Concurrency:** schema and migrations were verified at `7e32b59`; neither changed during the audit, but re-check before writing a migration.
 
 ## 1. Snapshot
 
