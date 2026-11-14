@@ -114,6 +114,10 @@
 
 - PASS: production build, migrations, structured logs, health endpoints,
   backup and rollback procedures are documented and scripted.
+- **LIMITATION:** with ClickHouse enabled, a ClickHouse write failure after the
+  PostgreSQL commit leaves the event only in PostgreSQL. PostgreSQL is the
+  source of truth and retries are deduped, but the mirror is not replayed
+  automatically. PostgreSQL-only mode is unaffected.
 - **UNVERIFIED:** deployed streaming load test, off-host backup copy, and a live
   restore rehearsal on the current host.
 
