@@ -31,7 +31,7 @@ describe('plans', () => {
     expect(getPlan('starter').websiteLimit).toBe(1);
     expect(getPlan('starter').eventsPerMonth).toBe(100_000);
     expect(getPlan('pro').monthlyPriceCents).toBe(1499);
-    expect(getPlan('pro').websiteLimit).toBe(50);
+    expect(getPlan('pro').websiteLimit).toBe(20);
     expect(getPlan('pro').eventsPerMonth).toBe(1_000_000);
   });
 
@@ -100,7 +100,7 @@ describe('plans', () => {
     expect(low.monthlyPriceCents).toBe(599);
     expect(high.eventsPerMonth).toBe(10_000_000);
     expect(high.monthlyPriceCents).toBe(4799);
-    expect(high.websiteLimit).toBe(50);
+    expect(high.websiteLimit).toBe(20);
     expect(resolvePlanForTrafficTier('starter', null)).toEqual(getPlan('starter'));
   });
 });

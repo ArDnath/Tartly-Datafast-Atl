@@ -71,3 +71,20 @@ re-litigate them blindly.
 - **Consequences:** Simpler merges, lower memory pressure. Review is
   sequential rather than parallel.
 - **Evidence:** `docs/autonomous-engineering/PROJECT_STATE.md` resource policy.
+
+## ADR-004 — Pro website limit aligned to the owner specification
+
+- **Date:** 2026-11-14
+- **Status:** accepted
+- **Context:** `AGENTS.md` fixes Pro at "up to 20" websites, but
+  `src/lib/plans.ts` sold 50 and the pricing test asserted 50. The S2 design
+  audit flagged the contradiction; the S4 market pass also tested the 20-site
+  promise and found it competitive (Plausible $14 = 3 sites, getopen $19 = 5,
+  DataFast $19 = 30, Fathom $15 = 50 without attribution).
+- **Decision:** `websiteLimit` is 20 for Pro, with the description, code
+  comment, and tests updated. No component hardcodes the limit.
+- **Consequences:** Existing workspaces above 20 websites would exceed the new
+  entitlement only if such workspaces exist; the usage guard is applied to new
+  website creation. The change is reversible in one config edit.
+- **Evidence:** `src/lib/plans.ts`, `src/lib/plans.test.ts` (9 tests pass).
+

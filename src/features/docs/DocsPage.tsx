@@ -321,6 +321,40 @@ const sessionId = window.talivia.getSessionId();`}</code>
           Vue, Nuxt, Svelte, Astro, and similar frameworks is tracked without extra code. Outbound
           and download events are opt-in because they count as billable custom events.
         </p>
+
+        <h3 className={styles.sectionTitle}>Server-side events</h3>
+        <p className={styles.body}>
+          Send events from your backend to the same collector. No visitor or session token is
+          required: the server derives a rotating visitor key and a 30-minute session bucket. The
+          website ID is public by design, so treat it as a routing key, not a secret. Send an opaque
+          user ID, never personal data.
+        </p>
+        <div className={styles.codeBlock}>
+          <div className={styles.codeHeader}>
+            <span>Shell</span>
+            <span>POST /api/send</span>
+          </div>
+          <pre>
+            <code>{`curl -X POST ${BRAND.url}/api/send \\
+  -H 'Content-Type: application/json' \\
+  -d '{
+    "type": "event",
+    "payload": {
+      "website": "YOUR_WEBSITE_ID",
+      "name": "trial-started",
+      "hostname": "app.example.com",
+      "url": "https://app.example.com/welcome",
+      "data": { "plan": "pro" }
+    }
+  }'`}</code>
+          </pre>
+        </div>
+        <p className={styles.body}>
+          Responses use <code>ok</code> plus a machine-readable <code>reason</code> when the event
+          is rejected, for example <code>subscription_required</code> or{' '}
+          <code>usage_limit_reached</code>. The collector is rate limited per source address and
+          applies bot and origin checks; it is not a general-purpose public write endpoint.
+        </p>
       </section>
 
       {INSTALL_GUIDES.map(guide => (
