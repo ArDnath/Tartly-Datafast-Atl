@@ -401,3 +401,48 @@ test('derives both identities when a server-side caller sends no tokens', async 
     }),
   );
 });
+
+test('rejects an event backdated beyond the accepted window', async () => {
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        website: websiteId,
+        sessionId: 's_tab',
+        timestamp: Math.floor(Date.now() / 1000) - 8 * 24 * 60 * 60,
+        hostname: 'shop.example',
+        url: 'https://shop.example/',
+      },
+    },
+  } as any);
+
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
+
+  expect(response.status).toBe(400);
+  expect(reserveEventUsage).not.toHaveBeenCalled();
+  expect(createSession).not.toHaveBeenCalled();
+});
+
+test('accepts a recently delayed event inside the window', async () => {
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        website: websiteId,
+        sessionId: 's_tab',
+        timestamp: Math.floor(Date.now() / 1000) - 60 * 60,
+        hostname: 'shop.example',
+        url: 'https://shop.example/',
+      },
+    },
+  } as any);
+
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
+
+  expect(response.status).toBe(200);
+  expect(createSession).toHaveBeenCalled();
+});

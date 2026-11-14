@@ -45,6 +45,9 @@ import { EVENT_GRACE, isBillableEvent, releaseEventUsage, reserveEventUsage } fr
 import { getLink, getPixel } from '@/queries/prisma';
 import { getWebsiteAttributionRuntimeConfig } from '@/queries/prisma/website';
 
+const MAX_EVENT_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const MAX_EVENT_FUTURE_MS = 5 * 60 * 1000;
+
 const schema = z.object({
   type: z.enum(['event', 'identify', 'performance', 'linker']),
   payload: z
@@ -218,6 +221,20 @@ export async function POST(request: Request) {
     }
 
     const createdAt = timestamp ? new Date(timestamp * 1000) : new Date();
+    const now = Date.now();
+
+    // A public collector must not accept arbitrarily old or future events:
+    // backdating distorts reports and can burn another tenant's usage window.
+    if (
+      createdAt.getTime() < now - MAX_EVENT_AGE_MS ||
+      createdAt.getTime() > now + MAX_EVENT_FUTURE_MS
+    ) {
+      return badRequest({
+        code: 'timestamp_out_of_range',
+        message: 'Event timestamp is outside the accepted window.',
+      });
+    }
+
     let visitorToken = payloadVisitorToken;
     let sessionToken = payloadSessionToken;
 
