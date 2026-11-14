@@ -77,6 +77,9 @@ Optional groups (see `.env.example`):
   Secure cookie flag, or `false` to test a production build over local HTTP.
 - Tuning/flags: `SKIP_DB_CHECK`, `SKIP_DB_MIGRATION`, `DISABLE_BOT_CHECK`,
   `CLIENT_IP_HEADER`, `IGNORE_IP`, `LOG_QUERY`, `SALT_ROTATION`, etc.
+  `SALT_ROTATION` is `day`, `week`, or `month` and defaults to `day`. It controls
+  the rotating window for the keyed visitor hash used by cookieless tracking;
+  shortening it improves privacy and reduces cross-day uniqueness.
 - Client-IP trust: the production Caddy edge overwrites `X-Real-IP` and
   `X-Forwarded-For` with the socket peer and strips spoofable CDN headers. Do
   not remove those `header_up` rules; auth and ingestion rate limits use the

@@ -48,6 +48,59 @@
   `BUILD_VERSION`, run public smoke checks, and roll back on failure. See
   `docs/CI_CD.md` → Deployment invariants.
 
+## 2026-11-14 — Cookieless tracker, consent mode, and monitored build loop
+
+- **Cookieless by implementation, not just copy.** The tracker no longer reads
+  or writes cookies. A random session token lives only in the tab
+  (`sessionStorage`, 30-minute rolling expiry) and falls back to memory when
+  storage is blocked. The server derives the visitor key from a keyed,
+  rotating salted hash of website, IP, user agent, salt, and `APP_SECRET`;
+  raw IP is still never stored. `SALT_ROTATION` now defaults to `day` in
+  `.env.example` and `docs/ENVIRONMENT.md`. Decision record: ADR-001 in
+  `docs/architecture/ARCHITECTURE_DECISIONS.md`.
+- **Attribution preserved.** Checkout link decoration still carries the tab
+  session ID to Dodo, Stripe, and Lemon Squeezy; the signed cross-domain linker
+  still carries visitor and session tokens across configured domains. The
+  collector cache continues to identify in-page requests.
+- **Consent-aware mode.** `data-consent="required"` sends nothing until
+  `window.talivia.setConsent(true)` or a `talivia:consent` event. Revoking
+  stops later sends; it cannot recall delivered events. The recorder keeps its
+  existing separate consent hook.
+- **Opt-in engagement events.** `data-track-outbound="true"` records
+  `outbound-link`; `data-track-downloads="true"` records `file-download`. A
+  manual `data-talivia-event` wins, so one click is never double counted.
+  These count as billable custom events and the docs say so.
+- **Docs and legal.** `/docs/install` gained a Tracker reference (attributes,
+  custom events, SPA, consent, server-side `POST /api/send` example) and a nav
+  entry. The legal cookie page now states the tracker sets no cookies, explains
+  the rotating hash, and documents the daily-unique and shared-IP limitations.
+- **Plan limit corrected.** `AGENTS.md` fixes Pro at up to 20 websites; the
+  config sold 50. `websiteLimit` is now 20, with the description and tests
+  aligned (ADR-004).
+- **License notice restored.** Talivia's MIT `LICENSE` had replaced Umami's
+  copyright line. The original Umami notice is now in
+  `THIRD_PARTY_NOTICES.md`.
+- **Resource guard.** The host has 7.1 GB RAM. Two orphaned 10-worker test runs
+  from the previous session drove load average to ~30; both were stopped.
+  `scripts/agent-resource-guard.sh` samples memory, swap, load, and top RSS
+  every 15 seconds. `gate:test` is capped at 2 workers.
+- **Verification (2026-11-14):**
+  - `pnpm exec vitest run` (2 workers, no coverage): **225 files passed /
+    1 skipped, 1,112 tests passed / 1 skipped**, 275 s.
+  - Targeted after the consent slice: tracker **24**, collector **9**, docs
+    **33**, plans **9**; `tsc --noEmit` exit 0.
+  - Tracker build: **10,098 bytes raw / 4.12 KB gzip**, zero `document.cookie`.
+  - Live local E2E: `pnpm smoke:local` registered an account, created a website,
+    sent a tokenised event, and read `pageviews 1 / visitors 1 / visits 1`.
+    A second `POST /api/send` with **no visitor or session token** returned a
+    collector cache and linker; the stored `website_event` row had non-null
+    `visitor_id` and `session_id` and `url_path=/cookieless`.
+- **UNVERIFIED:** a connected-browser visual pass of the new docs section and
+  consent states; the daily-unique visitor count against a multi-day dataset;
+  live Dodo/Resend/provider flows (unchanged from the previous entry).
+- **N/A:** database schema or migration change, new dependency, new
+  infrastructure, and any tracker payload breaking change.
+
 ## Overall progress
 
 - Total phases: **13** (0–12 product/build, 12 go-to-market)

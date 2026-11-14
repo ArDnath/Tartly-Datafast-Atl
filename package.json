@@ -47,7 +47,7 @@
     "gate:format": "biome format .",
     "gate:lint": "biome lint .",
     "gate:typecheck": "tsc --noEmit",
-    "gate:test": "vitest run --coverage",
+    "gate:test": "vitest run --coverage --maxWorkers=2",
     "gate:deploy": "npm-run-all gate:deploy-scripts gate:deploy-smoke",
     "gate:deploy-scripts": "bash -n deploy/production/deploy.sh && bash -n deploy/production/backup.sh && bash -n scripts/apply-branch-protection.sh && node --check scripts/deploy-smoke.mjs && node --check scripts/clickhouse-migrate.mjs && node --check scripts/kafka-clickhouse-consumer.mjs",
     "gate:deploy-smoke": "node --test scripts/deploy-smoke.test.mjs",
