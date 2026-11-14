@@ -84,7 +84,7 @@ Full tables and sources are in `docs/market-intelligence/`.
 
 ## Working features (verified by tests/smoke)
 
-- Cookieless tracker: 28 tests, 10,335 B raw / 4.20 KB gzip.
+- Cookieless tracker: 29 tests, 10,355 B raw / 4.22 KB gzip.
 - Collector: 12 tests, including no-token cookieless events and timestamp
   bounds. Live local probe stored a visitor and session without cookies.
 - Consent, GPC, outbound/download, SPA (pushState/replaceState/popstate/
@@ -115,11 +115,12 @@ load and records the host's CPU/disk/egress.
 
 ## Tests executed
 
-- `pnpm gate` exit 0 on 2026-11-15:
-  - 228 test files passed / 1 skipped.
-  - 1,130 tests passed / 1 skipped.
-  - Coverage 68.19% statements / 58.11% branches / 65.6% functions / 68.64% lines.
+- `pnpm gate` exit 0 on 2026-11-15 after the release-blocker slice:
+  - 232 test files passed / 1 skipped.
+  - 1,142 tests passed / 1 skipped.
+  - Coverage 68.3% statements / 58.22% branches / 65.74% functions / 68.75% lines.
   - Production build compiled; 78 static pages; postbuild ran.
+  - Log: `/tmp/opencode/gate-feature15.log`.
 - `pnpm smoke:local` passed on local PostgreSQL.
 - Full suite with 2 workers took ~4.6 minutes on the 7.1 GB host.
 
@@ -128,15 +129,16 @@ load and records the host's CPU/disk/egress.
 - ClickHouse retention and deletion: implemented with a plan-cutoff helper, a
   365-day TTL migration, and website-delete purge; unit-tested but not run
   against a live ClickHouse. Needs a VPS/CH run before claiming retention.
-- No event-level idempotency; retried events can double count/bill.
+- Event-level idempotency is implemented and tested in PostgreSQL; live
+  ClickHouse duplicate behavior remains unverified with the retention run.
 - Last-non-direct attribution model: deferred.
 - Live Dodo checkout/webhook/portal, Resend delivery, Google consent: external
   credentials/human actions.
 - Real browser replay/consent/visual pass: no connected browser.
 - Deployed load test, off-host backup copy, restore rehearsal: not run here.
 - Legal review: pending.
-- Some Pro features lack central enforcement.
-- Billing period ≠ provider anniversary; webhook/audit payload retention open.
+- Pro features are centrally gated server-side, including payment-provider connection limits.
+- Billing period now follows the provider anniversary; webhook/audit payload retention job is implemented (live cron unverified).
 
 ## Servant outcomes
 

@@ -6,7 +6,7 @@ asserts it.
 
 | ID  | Task                                                                 | Evidence                                                                     |
 | --- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| C1  | Cookieless tracker with no `document.cookie`                         | `src/tracker/index.js`; 28 tracker tests; built 10,335 B / 4.20 KB gzip      |
+| C1  | Cookieless tracker with no `document.cookie`                         | `src/tracker/index.js`; 29 tracker tests; built 10,355 B / 4.22 KB gzip      |
 | C2  | Tab-scoped session token with 30-minute rolling expiry               | tracker tests "sessionStorage", "rolling session"                            |
 | C3  | Server-derived keyed rotating visitor hash                           | `send/handler.ts`; live local cookieless event with non-null visitor/session |
 | C4  | Consent-aware mode + GPC + opt-in DNT                                | tracker tests for consent, revoke, GPC                                       |

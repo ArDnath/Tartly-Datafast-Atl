@@ -65,7 +65,7 @@ slices are made by the master in this worktree, one at a time. Recorded in
     server-derived rotating keyed visitor hash; `SALT_ROTATION=month` default
     (daily resets first-touch attribution every day).
     Tests: tracker 22, collector handler 9, related 7. Tracker build
-    9,862 bytes raw / 4.0 KB gzip, zero `document.cookie`.
+    10,355 bytes raw / 4.22 KB gzip, zero `document.cookie`.
   - **Opt-in outbound/download events:** `outbound-link` and `file-download`,
     with manual-event precedence and cross-domain exclusion. Tests included.
   - **Tracker reference docs** on `/docs/install` and a tracker-reference nav
@@ -77,10 +77,22 @@ slices are made by the master in this worktree, one at a time. Recorded in
   bounds, cross-domain identity, beacon-safe last touch, replay switch, metric
   definitions, revenue-first channel sort, honest pre-payment verification,
   first-site landing, and no fabricated chart line.
-- **Release gate:** evaluated on 2026-11-15. `pnpm gate` exit 0 (227 files,
-  1,126 tests, 78 static pages). Verdict: **NOT PRODUCTION READY** because
-  ClickHouse retention/deletion, event idempotency, and live billing proof are
-  still open. See `PRODUCTION_READINESS.md` and `FINAL_DELIVERY_REPORT.md`.
+- **Release-blocker slice (2026-11-15, branch `feature/15-release-blockers`):**
+  - event idempotency via a client event key and a deterministic PostgreSQL
+    primary key; duplicate delivery releases its fresh usage reservation;
+  - central server-side Pro gating for journeys, API keys, client-reporting
+    shares, full backups, and CSV export;
+  - metering follows the provider subscription anniversary, with the UTC
+    calendar month only as the onboarding/legacy fallback;
+  - operational retention job for webhook payloads, audit IPs, and old
+    billing/provider/audit rows;
+  - public share links now expire after 30 days, enforced by the resolver;
+  - `docs/install` documents `eventId` for retry-safe server-side events.
+- **Release gate:** re-evaluated on 2026-11-15 after the slice. `pnpm gate`
+  exit 0 (232 test files, 1,142 tests, 78 static pages, production build).
+  Verdict remains **NOT PRODUCTION READY**: live ClickHouse retention, live
+  Dodo test-mode billing, a real browser journey, a deployed load test, and
+  legal review are still external blockers. See `PRODUCTION_READINESS.md`.
 
 ## Evidence log
 
@@ -89,14 +101,23 @@ slices are made by the master in this worktree, one at a time. Recorded in
   9 passed.
 - `pnpm exec vitest run src/features/docs` → 24 passed.
 - `pnpm typecheck` → exit 0.
-- `pnpm build-tracker` → `public/script.js` created; 9,862 B raw, 4.0 KB gzip.
-- Resource log: `/tmp/opencode/revenuelens-resources.log`.
+- `pnpm build-tracker` → `public/script.js` created; 10,355 B raw, 4.22 KB gzip.
+- `feature/15-release-blockers` targeted tests: handler 13, tracker 29,
+  feature-access 4, usage 13, share 4, data-retention 1, usage-notices 6.
+- `pnpm gate` → exit 0; 232 test files passed / 1 skipped; 1,142 tests passed
+  / 1 skipped; coverage 68.3% statements / 58.22% branches; production build
+  compiled 78 static pages. Log: `/tmp/opencode/gate-feature15.log`.
+- Peak build RSS observed by the watchdog: ~3.7 GB; available memory remained
+  above 1.6 GB and the host did not OOM. Log:
+  `/tmp/opencode/revenuelens-resources.log`.
 
 ## Next step
 
-Close the release blockers in this order: (1) ClickHouse retention/deletion on
-the real stack, (2) event idempotency and the reservation/write failure window,
-(3) central Pro-feature enforcement and billing-period metering, (4) live Dodo
-test-mode checkout/webhook/portal, (5) browser journey with consent and replay,
-(6) legal review. The exact tasks and acceptance tests are in
+The engineering-owned blockers B9, B11, B12, B13, and B14 are closed on
+`feature/15-release-blockers` with tests. Remaining blockers need credentials,
+a live service, or a human: (1) ClickHouse retention/deletion on the real stack,
+(2) live Dodo test-mode checkout/webhook/portal, (3) browser journey with
+consent and replay, (4) deployed streaming load test, (5) off-host backup and
+restore rehearsal, (6) legal review. Push the feature branch, open the PR, and
+merge through `autonomous/saas-buildout` after CI. The exact tasks are in
 `docs/architecture/PORT_PLAN.md` and `PRODUCTION_READINESS.md`.

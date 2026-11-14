@@ -92,3 +92,78 @@ re-litigate them blindly.
   entitlement only if such workspaces exist; the usage guard is applied to new
   website creation. The change is reversible in one config edit.
 - **Evidence:** `src/lib/plans.ts`, `src/lib/plans.test.ts` (9 tests pass).
+
+## ADR-005 — Event idempotency uses a client key and the existing primary key
+
+- **Date:** 2026-11-15
+- **Status:** accepted
+- **Context:** Retries, duplicate beacons, and edge replay could create a second
+  event row and charge a second usage slot. The event table already has a UUID
+  primary key, and Postgres is the source of truth for billing and attribution.
+- **Decision:** The tracker (and the documented server-side API) sends an
+  optional `eventId`. The collector derives the stored primary key as
+  `uuid(websiteId, 'client-event', eventId)`. A duplicate insert raises P2002,
+  which the collector treats as success and releases the fresh reservation.
+  ClickHouse is written only after the PostgreSQL mirror so a duplicate does not
+  reach the analytics store.
+- **Consequences:** Retry-safe ingestion without a new column, queue, or Redis
+  dependency. The key is scoped per website and is not a secret. A secret
+  rotation changes the derived key; retries across a rotation are out of scope.
+- **Evidence:** `src/features/analytics/server/send/handler.test.ts` (duplicate
+  retry releases usage), `src/tracker/index.test.ts` (unique keys).
+
+## ADR-006 — Paid features are checked at the server route boundary
+
+- **Date:** 2026-11-15
+- **Status:** accepted
+- **Context:** Some Pro capabilities were only hidden in the UI. `planHasFeature`
+  existed but had almost no callers.
+- **Decision:** `src/lib/feature-access.ts` resolves the website's workspace and
+  reads backend entitlements. Journeys, API keys, client-reporting shares, full
+  backups, CSV export, and the payment-provider connection count call it before
+  doing work. Share-token reads remain authorized by the share itself and
+  cannot mint paid features.
+- **Consequences:** Every new paid route must call the helper. A server-side
+  denial is the authority; hiding a button is not.
+- **Evidence:** `src/lib/feature-access.test.ts`; route handlers.
+
+## ADR-007 — Metering follows the provider billing period
+
+- **Date:** 2026-11-15
+- **Status:** accepted
+- **Context:** Calendar-month counters gave the first partial subscription month
+  a full allowance and cut the last one short.
+- **Decision:** `getUsagePeriodRangeForWorkspace` reads
+  `platform_subscription.currentPeriodStart/End` when the period contains
+  `now`. Otherwise it falls back to the UTC calendar month for onboarding and
+  legacy rows. The notice job scans every period containing `now`.
+- **Consequences:** Usage rows are keyed by the provider anniversary. Existing
+  calendar-month rows remain as history; no destructive backfill is performed.
+- **Evidence:** `src/lib/usage.test.ts`; usage-notice tests.
+
+## ADR-008 — Operational data has a redaction and deletion window
+
+- **Date:** 2026-11-15
+- **Status:** accepted
+- **Context:** Provider webhook payloads and audit IPs contain customer and
+  payment data and had no retention policy.
+- **Decision:** A daily cron redacts webhook payloads and audit IPs after 90
+  days, then deletes billing/provider/audit rows after 365 days. The job is
+  idempotent `updateMany`/`deleteMany` work with fixed cutoffs.
+- **Consequences:** Replays older than a year are not a supported recovery path;
+  providers do not reuse event IDs. The retention windows are constants in
+  `src/features/system/cron/jobs/data-retention.ts`.
+- **Evidence:** `data-retention.test.ts`.
+
+## ADR-009 — Public share links expire after 30 days
+
+- **Date:** 2026-11-15
+- **Status:** accepted
+- **Context:** A leaked public share slug was valid forever.
+- **Decision:** `share.expires_at` is added by migration, existing rows are
+  backfilled to now + 30 days, creation sets a 30-day expiry, and the slug
+  resolver rejects missing or past expiries.
+- **Consequences:** Shared links must be re-created after 30 days. The TTL is one
+  constant in `src/lib/share-policy.ts`.
+- **Evidence:** migration `20261115010000_share_expiry`,
+  `src/queries/prisma/share.test.ts`, `share-policy.test.ts`.

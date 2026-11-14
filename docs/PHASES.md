@@ -7,7 +7,7 @@
   `.github/rulesets/main-protection.json`)
 - **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
   forked locally at `/home/ariyaman/Dev/fight/efforts/revenuelens`
-- **Last updated:** 2026-11-14
+- **Last updated:** 2026-11-15
 - **Current phase:** Phases 10, 11, and 12 are implemented. The 2026-11-14
   activation/security slice makes the landing → login → onboarding → app →
   upgrade path continuous, preserves website and checkout intent across auth,
@@ -47,6 +47,32 @@
   head automatically after CI (no approval click), verify the running
   `BUILD_VERSION`, run public smoke checks, and roll back on failure. See
   `docs/CI_CD.md` → Deployment invariants.
+
+## 2026-11-15 — Release-blocker slice: idempotency, entitlements, billing period
+
+Branch `feature/15-release-blockers`. Closed the engineering-owned blockers from
+`docs/autonomous-engineering/PRODUCTION_READINESS.md`:
+
+- **Event idempotency (B9):** tracker and documented server-side API send an
+  `eventId`; the collector derives a per-website PostgreSQL primary key. A
+  duplicate returns `ok`, is counted once, and releases its fresh usage
+  reservation. ClickHouse is written after the relational mirror.
+- **Central Pro enforcement (B11):** journeys, API keys, client-reporting
+  shares, full backups, and CSV export now check server-side entitlements via
+  `src/lib/feature-access.ts`. Share-token reads remain scoped by the share.
+- **Billing-period metering (B12):** event/replay counters use the provider
+  subscription anniversary when live; UTC calendar month is only the
+  onboarding/legacy fallback. Usage notices scan every live period.
+- **Operational retention (B13):** daily job redacts webhook payloads and audit
+  IPs after 90 days and deletes billing/provider/audit rows after 365 days.
+- **Share expiry (B14):** 30-day `expires_at`, migration + backfill, resolver
+  enforcement.
+
+Evidence: `pnpm gate` exit 0 on 2026-11-15 — 232 test files, 1,142 tests, 78
+static pages, production build, coverage 68.3% statements. Log:
+`/tmp/opencode/gate-feature15.log`. Still external: live ClickHouse retention
+run, Dodo test-mode checkout/webhook/portal, browser journey, deployed load
+test, off-host restore, legal review.
 
 ## 2026-11-14 — Cookieless tracker, consent mode, and monitored build loop
 

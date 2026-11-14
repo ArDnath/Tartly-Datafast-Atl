@@ -1,8 +1,8 @@
 # Production readiness
 
 - **Evaluated:** 2026-11-15
-- **Revision:** `25cdd55` plus the docs on this commit
-- **Gate evidence:** `/tmp/opencode/gate.log` (local run, 7.1 GB host)
+- **Revision:** `feature/15-release-blockers` on top of `80bd25c` (2026-11-15)
+- **Gate evidence:** `/tmp/opencode/gate-feature15.log` (local run, 7.1 GB host)
 - **Verdict:** **NOT PRODUCTION READY** until the critical items below close.
   The core product runs and is tested; the privacy-retention and billing-proof
   gaps are real and are not hidden behind a green build.
@@ -12,13 +12,13 @@
 | Area                       | Status  | Evidence                                                                     |
 | -------------------------- | ------- | ---------------------------------------------------------------------------- |
 | Format, lint, typecheck    | PASS    | `pnpm gate` exit 0                                                           |
-| Unit + integration tests   | PASS    | 228 files passed / 1 skipped; 1,130 tests passed / 1 skipped                 |
-| Coverage threshold         | PASS    | 68.19% statements, 58.11% branches, 65.6% functions, 68.64% lines            |
+| Unit + integration tests   | PASS    | 232 files passed / 1 skipped; 1,142 tests passed / 1 skipped                 |
+| Coverage threshold         | PASS    | 68.3% statements, 58.22% branches, 65.74% functions, 68.75% lines            |
 | Production build           | PASS    | Next.js build compiled; 78 static pages; postbuild ran                       |
 | Deploy script/smoke checks | PASS    | `gate:deploy` in the same run                                                |
 | Local ingestion E2E        | PASS    | `pnpm smoke:local`: pageviews 1 / visitors 1 / visits 1                      |
 | Cookieless E2E             | PASS    | `POST /api/send` with no tokens created visitor + session; row `/cookieless` |
-| Tracker size               | PASS    | 10,335 B raw / 4.20 KB gzip; zero `document.cookie`                          |
+| Tracker size               | PASS    | 10,355 B raw / 4.22 KB gzip; zero `document.cookie`                          |
 | Live provider billing      | BLOCKED | No verified Dodo test checkout/webhook/portal in this environment            |
 | Live email                 | BLOCKED | No Resend key/domain                                                         |
 | Real browser walkthrough   | BLOCKED | No connected desktop browser; no replay/consent visual pass                  |
@@ -39,8 +39,11 @@
 - Revenue attribution is visible on the Revenue page with the channel breakdown
   sorted by revenue. First touch and last touch rows are materialized per
   payment; performance beacons no longer null last touch.
-- **FAIL:** no event-level idempotency. A retried client event can be counted
-  and billed twice. This is a correctness and metering risk, not a cosmetic one.
+- **PASS:** event-level idempotency. The tracker and server-side examples send an
+  `eventId`; the collector derives a per-website PostgreSQL primary key. A
+  duplicate delivery returns `ok` and releases its fresh usage reservation.
+  Postgres enforces this; the ClickHouse mirror is written after the relational
+  insert, but live ClickHouse dedupe remains unverified with the rest of B1.
 
 ### Cookieless and privacy
 
@@ -70,10 +73,13 @@
 - PASS: Pro website limit corrected to 20; session replay is enforceable.
 - **BLOCKED:** a real Dodo test checkout, webhook delivery, and customer portal
   need credentials and a human. Not claimed as working.
-- **FAIL:** some Pro features (API access, exports, client reporting) still lack
-  a central server-side entitlement check.
-- **FAIL:** metering uses the UTC calendar month, not the provider subscription
-  anniversary; the first partial month can receive a full allowance.
+- **PASS:** central server-side entitlements now gate journeys, API keys,
+  client-reporting shares, full backups, CSV export, and the payment-provider
+  connection count. Share-token reads stay authorized by the share itself.
+- **PASS:** metering follows `platform_subscription.currentPeriodStart/End`
+  when a provider period is live, falling back to the UTC calendar month only
+  for onboarding or legacy workspaces. The usage-notice job scans every live
+  period, not one calendar month.
 
 ### Security
 
@@ -82,8 +88,11 @@
 - PASS: no critical dependency findings in the recorded audit.
 - **UNVERIFIED:** ClickHouse retention/deletion as above (code and tests, no
   live ClickHouse run).
-- **OPEN:** provider webhook payloads and audit IPs have no retention policy.
-- **OPEN:** share links never expire.
+- **PASS:** an operational retention job redacts provider/billing webhook
+  payloads and audit IPs after 90 days, then deletes operational rows after 365
+  days. Unit-tested; the live cron has not run on production data.
+- **PASS:** public share links carry a 30-day expiry, backfilled for existing
+  rows and enforced by the slug resolver. Unit-tested.
 
 ### Provenance and design
 
@@ -105,9 +114,9 @@
 
 1. Run and verify ClickHouse retention/deletion on the real stack (code and
    tests are in place; the live statement is unverified).
-2. Add event idempotency and fix the reservation/write failure window.
-3. Add central Pro-feature checks and align metering to the billing period.
-4. Run a real Dodo test-mode checkout + webhook + portal journey.
-5. Run the browser journey: onboarding → install → first event → revenue page,
+2. Run a real Dodo test-mode checkout + webhook + portal journey.
+3. Run the browser journey: onboarding → install → first event → revenue page,
    including consent and replay.
+4. Run the deployed streaming load test and record cost per million events.
+5. Rehearse an off-host backup restore.
 6. Obtain legal review of the privacy/cookies/DPA drafts.
