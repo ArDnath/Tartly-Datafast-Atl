@@ -96,6 +96,7 @@ const SHARED_LIB_MODULES = new Set([
   'colors.ts',
   'constants.ts',
   'crypto.ts',
+  'csv.ts',
   'csrf.ts',
   'currency-exchange.ts',
   'date.ts',

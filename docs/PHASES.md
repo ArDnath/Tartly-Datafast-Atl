@@ -7,15 +7,19 @@
   `.github/rulesets/main-protection.json`)
 - **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
   forked locally at `/home/ariyaman/Dev/fight/efforts/revenuelens`
-- **Last updated:** 2026-11-13
-- **Current phase:** Phases 10, 11, and 12 are implemented. The 2026-11-13
-  setup-continuity slice unifies `/app/new` with the first-run onboarding flow,
-  auto-selects the detected framework guide, adds an AI-agent install prompt,
-  and adds a live bottom-corner reminder until the tracker sends its first
-  event. The 2026-11-13 first-party install slice adds strict-policy preflight
-  and same-origin proxy guides for Next.js, Vercel, Netlify, and Cloudflare
-  Pages; the tracker and ingestion are untouched. The 2026-11-12 platform-checkout slice connects the
-  landing pricing cards,
+- **Last updated:** 2026-11-14
+- **Current phase:** Phases 10, 11, and 12 are implemented. The 2026-11-14
+  activation/security slice makes the landing → login → onboarding → app →
+  upgrade path continuous, preserves website and checkout intent across auth,
+  and closes the tenant-isolation, share-redaction, collector, OAuth-linking,
+  webhook, replay, and request-size findings from the production audit. The
+  2026-11-13 setup-continuity slice unifies `/app/new` with the first-run
+  onboarding flow, auto-selects the detected framework guide, adds an AI-agent
+  install prompt, and adds a live bottom-corner reminder until the tracker
+  sends its first event. The 2026-11-13 first-party install slice adds
+  strict-policy preflight and same-origin proxy guides for Next.js, Vercel,
+  Netlify, and Cloudflare Pages; the tracker and ingestion remain intact. The
+  2026-11-12 platform-checkout slice connects the landing pricing cards,
   the onboarding setup allowance, the `/app` paywall, and Dodo subscription
   management. The free trial was removed: a workspace finishes onboarding
   (one website) and must subscribe before ingestion or paid features unlock.
@@ -52,9 +56,9 @@
 - Overall percent (average of phases 0–12): **94%**
 - Build state at last check: **green** — `pnpm gate` (Biome format, Biome
   lint, `tsc --noEmit`, coverage-enforced tests, production build) passes.
-  Latest local full run (2026-11-13): **217 test files passed / 1 skipped**,
-  **1042 tests passed / 1 skipped**, coverage **67.84% statements / 57.47%
-  branches / 65.28% functions / 68.26% lines**, plus the explicit 48-assertion
+  Latest local full run (2026-11-14): **225 test files passed / 1 skipped**,
+  **1103 tests passed / 1 skipped**, coverage **68.20% statements / 58.07%
+  branches / 65.65% functions / 68.64% lines**, plus the explicit
   PostgreSQL analytics smoke and the recorded load probe.
 - GitHub CI: **green on `main`** (run 43066591765 for `619099b`). The three-job
   pipeline starts PostgreSQL 17, runs format, lint, typecheck, coverage tests,
@@ -104,6 +108,61 @@ code:
 
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
+
+## 2026-11-14 — Activation continuity and production security audit
+
+- **One activation path.** The hero now submits to `/signup`, which checks the
+  session on the server. Signed-out visitors go to `/login` with the entered
+  website; a new account goes to `/onboarding?website=…`; an existing customer
+  goes to `/app/new?website=…` instead of replaying first-run setup. The same
+  handoff preserves pricing-card checkout intent, and a paid customer choosing
+  a different plan now lands on Plan and usage instead of silently returning
+  to `/app`.
+- `LoginPage` and the server post-sign-in resolver now use the same
+  intent-preserving rules. `/app/new` accepts a prefilled website. The login
+  screen gained a clear heading, terms/privacy fine print, a back link, and a
+  password-reset path for the new “email already has a password account”
+  state. The paywall uses top-aligned layout so plan cards no longer clip the
+  headline on laptop viewports, and a quiet Upgrade pill appears for Starter
+  owners without a second API request.
+- **Security fixes verified by tests.** Validated timezone at the query
+  boundary and stopped interpolating unvalidated zones into analytics SQL;
+  restricted legacy owner/member website queries to workspace-less rows and
+  filtered suspended workspaces; required the share context for every share
+  token; blocked `distinctId`/`query` fields from share metrics/values and
+  redacted filter-object values; bound API keys to their creator and revoked
+  them on member removal/user suspension; added action-specific export and
+  integration roles; pinned report updates to the existing website; scoped
+  provider-event idempotency by website; required per-website webhook secrets;
+  rejected Google auto-linking to unverified password accounts; stopped
+  `/api/me` from returning the session token; required a real legacy
+  pixel/link before writing collector events; generated share slugs with the
+  CSPRNG; neutralized CSV formula injection; enforced body limits while
+  streaming (not only `Content-Length`); added Redis-backed collector
+  throttles, replay chunk/byte limits, and a replay chunk unique index;
+  changed the collector origin check to prefer the browser `Origin`; required
+  verified email for invitation acceptance; limited pagination/metrics
+  result sizes; restricted OSS telemetry to platform admins; and made the
+  production Caddy edge overwrite client-IP headers.
+- **Migrations:** `20261113150000_provider_event_tenant_scope`,
+  `20261113151000_session_replay_chunk_unique`, and
+  `20261113152000_api_key_creator_backfill`.
+- **Verification (2026-11-14):** format check, lint, typecheck, deploy-script
+  and deploy-smoke checks pass. Coverage-gated suite: **225 test files
+  passed / 1 skipped**, **1103 tests passed / 1 skipped**, coverage
+  **68.20% statements / 58.07% branches / 65.65% functions / 68.64% lines**.
+  The production build compiled, type-checked, and generated all 78 static
+  pages. Local visual QA covered the landing page at 1440/390 px, `/login`,
+  `/app/new`, the tracker and provider steps, `/app` with an unpaid paywall,
+  and the Starter upgrade pill; the paywall clipping defect found during that
+  pass is fixed.
+- **UNVERIFIED:** live Dodo checkout/webhook/portal, Resend delivery, a real
+  Google consent round trip, connected-provider webhooks, the new migrations
+  against a production-sized dataset, a deployed load test, and a real
+  customer-site first-party proxy. These remain external-credential or
+  human-browser actions, not missing product code.
+- **N/A:** no new runtime dependency, no new infrastructure, and no change to
+  the tracker payload contract or the plan catalogue.
 
 ## 2026-11-13 — Setup continuity: one flow, AI install prompt, live reminder
 

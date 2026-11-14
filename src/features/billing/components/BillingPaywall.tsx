@@ -2,7 +2,7 @@
 
 import { useApi } from '@/components/hooks';
 import { Check } from '@/components/icons';
-import { type CSSProperties, useState } from 'react';
+import { type CSSProperties, useEffect, useState } from 'react';
 import type {
   BillingProductAvailability,
   WorkspaceBillingAccessResponse,
@@ -74,6 +74,12 @@ export function BillingPaywall({
   const isOwner = access.role === 'OWNER';
   const ownerBlocked = !isOwner || !access.configured;
   const sliderPercent = (tierIndex / (TRAFFIC_TIERS.length - 1)) * 100;
+
+  // The gate can replace content after the customer scrolled a dashboard. A
+  // plan choice must open at its headline, not halfway down the cards.
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, []);
 
   async function startCheckout(planId: Plan['id']) {
     setBusyPlan(planId);

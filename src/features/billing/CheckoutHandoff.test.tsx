@@ -60,13 +60,48 @@ function access(
 
 test('sends a workspace with paid access straight to the app', async () => {
   state.user = { id: 'user-1', onboardingRequired: false };
-  state.access = access({ paid: true, requiresPayment: false });
+  state.access = access({
+    paid: true,
+    requiresPayment: false,
+    subscription: {
+      planId: 'pro',
+      interval: 'monthly',
+      trafficTierIndex: 3,
+      lifecycleStatus: 'ACTIVE',
+      currentPeriodEnd: '2026-12-01T00:00:00.000Z',
+      cancelAtPeriodEnd: false,
+    },
+  });
 
   render(<CheckoutHandoff intent={{ planId: 'pro', interval: 'monthly', tierIndex: 3 }} />, {
     route: '/checkout?plan=pro&interval=monthly&tier=3',
   });
 
   await waitFor(() => expect(getTestRouter().replace).toHaveBeenCalledWith('/app'));
+});
+
+test('sends a paid workspace changing plan to billing settings', async () => {
+  state.user = { id: 'user-1', onboardingRequired: false };
+  state.access = access({
+    paid: true,
+    requiresPayment: false,
+    subscription: {
+      planId: 'starter',
+      interval: 'monthly',
+      trafficTierIndex: 3,
+      lifecycleStatus: 'ACTIVE',
+      currentPeriodEnd: '2026-12-01T00:00:00.000Z',
+      cancelAtPeriodEnd: false,
+    },
+  });
+
+  render(<CheckoutHandoff intent={{ planId: 'pro', interval: 'monthly', tierIndex: 3 }} />, {
+    route: '/checkout?plan=pro&interval=monthly&tier=3',
+  });
+
+  await waitFor(() =>
+    expect(getTestRouter().replace).toHaveBeenCalledWith('/app/settings/billing'),
+  );
 });
 
 test('shows the checkout summary when payment is required', () => {

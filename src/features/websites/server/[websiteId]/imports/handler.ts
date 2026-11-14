@@ -1,6 +1,6 @@
 import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
-import { canUpdateWebsite } from '@/permissions';
+import { canManageWebsiteIntegrations } from '@/permissions';
 import { getWebsiteImports } from '@/features/websites/server/queries/websiteImport';
 
 export async function GET(
@@ -13,7 +13,7 @@ export async function GET(
 
   const { websiteId } = await params;
 
-  if (!(await canUpdateWebsite(auth, websiteId))) {
+  if (!(await canManageWebsiteIntegrations(auth, websiteId))) {
     return unauthorized();
   }
 

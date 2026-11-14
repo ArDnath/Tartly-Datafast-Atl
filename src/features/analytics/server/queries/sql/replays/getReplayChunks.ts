@@ -54,7 +54,11 @@ async function relationalQuery(websiteId: string, sessionId: string): Promise<Re
 
   return chunks.map(chunk => ({
     ...chunk,
-    events: JSON.parse(gunzipSync(Buffer.from(chunk.events)).toString('utf-8')),
+    events: JSON.parse(
+      gunzipSync(Buffer.from(chunk.events), { maxOutputLength: 20 * 1024 * 1024 }).toString(
+        'utf-8',
+      ),
+    ),
   }));
 }
 

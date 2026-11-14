@@ -3,6 +3,7 @@ import { fetchWebsite } from '@/lib/load';
 import prisma from '@/lib/prisma';
 import { decryptProviderSecret } from '@/features/payments/server/provider-secrets';
 import { badRequest, json, notFound, serverError, unauthorized } from '@/lib/response';
+import { getBodyLimitError, readRequestBody } from '@/lib/request';
 import {
   formatStripeAmount,
   mapStripeCheckoutSessionToPaymentInput,
@@ -766,6 +767,12 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ websiteId: string }> },
 ) {
+  const oversized = getBodyLimitError(request, 256 * 1024);
+
+  if (oversized) {
+    return oversized;
+  }
+
   const { websiteId } = await params;
   const website = await fetchWebsite(websiteId);
 
@@ -773,14 +780,19 @@ export async function POST(
     return notFound({ message: 'Website not found.' });
   }
 
-  const rawBody = await request.text();
+  const rawBody = await readRequestBody(request, 256 * 1024);
+
+  if (rawBody === null) {
+    return badRequest({ code: 'payload-too-large', message: 'Webhook body is too large.' });
+  }
   const connection = await getStripeConnection(websiteId);
-  const endpointSecret =
-    decryptProviderSecret(connection?.webhookSecretRef) || process.env.STRIPE_WEBHOOK_SECRET;
+  const endpointSecret = decryptProviderSecret(connection?.webhookSecretRef);
   const signature = request.headers.get('stripe-signature');
 
-  if (!endpointSecret || !signature) {
-    return unauthorized({ message: 'Stripe webhook signature is required.' });
+  // A global fallback secret is not tenant-bound. Require the per-website
+  // endpoint secret created when the customer connected Stripe.
+  if (!connection || !endpointSecret || !signature) {
+    return unauthorized({ message: 'Connect Stripe for this website first.' });
   }
 
   if (!verifyStripeSignature(rawBody, signature, endpointSecret)) {
@@ -801,7 +813,8 @@ export async function POST(
 
   const existingEvent = await prisma.client.providerEvent.findUnique({
     where: {
-      providerName_providerEventKey: {
+      websiteId_providerName_providerEventKey: {
+        websiteId,
         providerName: 'stripe',
         providerEventKey: event.id,
       },

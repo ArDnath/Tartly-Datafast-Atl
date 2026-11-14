@@ -16,6 +16,17 @@
 	}
 
 	reverse_proxy app:3000 {
+		# The app trusts the edge for client IPs. Do not preserve caller-supplied
+		# forwarding headers: doing so would let a client rotate X-Real-IP or
+		# X-Forwarded-For and bypass auth/ingestion rate limits.
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up -True-Client-IP
+		header_up -CF-Connecting-IP
+		header_up -Fastly-Client-IP
+		header_up -DO-Connecting-IP
+		header_up -X-AppEngine-User-IP
+		header_up -Forwarded
 		health_uri /api/health/live
 		health_interval 10s
 		health_timeout 3s

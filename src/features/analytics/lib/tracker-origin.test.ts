@@ -59,6 +59,17 @@ describe('tracker origin enforcement', () => {
     ).toBe(false);
   });
 
+  test('prefers the browser Origin over a spoofed payload hostname', () => {
+    expect(
+      isTrackerOriginAllowed({
+        configuredDomain: 'acme.dev',
+        hostname: 'acme.dev',
+        origin: 'https://evil.example',
+        enforce: true,
+      }),
+    ).toBe(false);
+  });
+
   test('does not block a server-side or legacy event without a host', () => {
     expect(
       isTrackerOriginAllowed({ configuredDomain: 'acme.dev', hostname: null, enforce: true }),

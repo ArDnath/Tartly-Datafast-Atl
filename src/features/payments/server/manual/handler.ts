@@ -40,7 +40,9 @@ export async function POST(request: Request) {
     return error();
   }
 
-  if (apiKey.websiteId && apiKey.websiteId !== body.websiteId) {
+  // authenticateApiKey guarantees a live website scope. Mismatch is always
+  // rejected; never fall back to a caller-supplied website ID.
+  if (apiKey.websiteId !== body.websiteId) {
     return forbidden({ message: 'API key is not allowed to write payments for this website.' });
   }
 

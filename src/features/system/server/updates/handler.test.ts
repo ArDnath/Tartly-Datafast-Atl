@@ -36,7 +36,9 @@ function request() {
 describe('self-hosted update check', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.checkAuth.mockResolvedValue({ user: { id: 'admin-1', isAdmin: true } });
+    mocks.checkAuth.mockResolvedValue({
+      user: { id: 'admin-1', username: 'admin@example.com', role: 'admin', isAdmin: true },
+    });
     mocks.upsert.mockResolvedValue({ id: '84459196-cb05-4607-8869-81e9565b0c48' });
     mocks.count.mockResolvedValue(2);
     mocks.findMany.mockResolvedValue([{ domain: 'example.com' }, { domain: 'store.example.com' }]);

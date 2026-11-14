@@ -60,6 +60,13 @@ export function forbidden(error?: Record<string, any>) {
   );
 }
 
+export function conflict(error?: Record<string, any>) {
+  return Response.json(
+    { error: { message: 'Conflict', code: 'conflict', status: 409, ...error } },
+    { status: 409 },
+  );
+}
+
 export function notFound(error?: Record<string, any>) {
   return Response.json(
     { error: { message: 'Not found', code: 'not-found', status: 404, ...error } },

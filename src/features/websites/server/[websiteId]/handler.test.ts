@@ -1,8 +1,8 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { parseRequest } from '@/lib/request';
-import { canViewWebsite, getWebsiteAccess } from '@/permissions';
-import { getWebsite } from '@/queries/prisma';
-import { GET } from './handler';
+import { canUpdateWebsite, canViewWebsite, getWebsiteAccess } from '@/permissions';
+import { findWorkspaceWebsiteByDomain, getWebsite, updateWebsite } from '@/queries/prisma';
+import { GET, POST } from './handler';
 
 vi.mock('@/lib/request', () => ({
   parseRequest: vi.fn(),
@@ -17,6 +17,7 @@ vi.mock('@/permissions', () => ({
 
 vi.mock('@/queries/prisma', () => ({
   deleteWebsite: vi.fn(),
+  findWorkspaceWebsiteByDomain: vi.fn(),
   getWebsite: vi.fn(),
   recordAuditEvent: vi.fn(),
   updateWebsite: vi.fn(),
@@ -111,4 +112,28 @@ test('keeps the full website response for authenticated users', async () => {
     updatedAt: website.updatedAt.toISOString(),
     access,
   });
+});
+
+test('rejects renaming a website to a domain already used in the workspace', async () => {
+  vi.mocked(parseRequest).mockResolvedValue({
+    auth: { user: { id: 'user-1', role: 'admin', isAdmin: true } },
+    body: { domain: 'other.example.com' },
+  } as any);
+  vi.mocked(canUpdateWebsite).mockResolvedValue(true);
+  vi.mocked(getWebsite).mockResolvedValue({ ...website, workspaceId: 'workspace-1' } as any);
+  vi.mocked(findWorkspaceWebsiteByDomain).mockResolvedValue({
+    id: 'website-2',
+    name: 'Other',
+    domain: 'other.example.com',
+  } as any);
+
+  const response = await POST(
+    new Request(`https://analytics.example.com/api/websites/${website.id}`, { method: 'POST' }),
+    { params: Promise.resolve({ websiteId: website.id }) },
+  );
+  const body = await response.json();
+
+  expect(response.status).toBe(409);
+  expect(body.error.code).toBe('website-exists');
+  expect(updateWebsite).not.toHaveBeenCalled();
 });

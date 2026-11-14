@@ -24,6 +24,27 @@ export async function getWebsite(websiteId: string) {
 }
 
 /**
+ * Domain uniqueness inside one workspace. Two live rows for the same host
+ * would split events and revenue between two dashboards, so creation and
+ * rename both check this before writing.
+ */
+export async function findWorkspaceWebsiteByDomain(
+  workspaceId: string,
+  domain: string,
+  excludeWebsiteId?: string,
+) {
+  return prisma.client.website.findFirst({
+    where: {
+      workspaceId,
+      domain: { equals: domain, mode: 'insensitive' },
+      deletedAt: null,
+      ...(excludeWebsiteId ? { id: { not: excludeWebsiteId } } : {}),
+    },
+    select: { id: true, name: true, domain: true },
+  });
+}
+
+/**
  * A website is publicly shareable only while it and its workspace are live.
  * Legacy websites without a workspace keep the inherited behaviour.
  */
@@ -69,19 +90,31 @@ async function getWebsiteMembershipOrFilters(userId: string): Promise<Prisma.Web
 
   const username = normalizeUsername(user?.username);
   const memberships = await prisma.client.workspaceMembership.findMany({
-    where: { userId },
+    where: {
+      userId,
+      workspace: { deletedAt: null, suspendedAt: null },
+    },
     select: { workspaceId: true },
   });
 
+  // Workspace-owned websites are authorized only through a live workspace
+  // membership. The legacy owner/team clauses are restricted to rows without
+  // a workspace; otherwise a creator who was removed from the workspace (or a
+  // membership in a suspended workspace) would keep reading tenant data.
   return [
-    { userId },
     { workspaceId: { in: memberships.map(member => member.workspaceId) } },
     {
-      members: {
-        some: {
-          OR: [{ userId }, ...(username ? [{ username }] : [])],
+      workspaceId: null,
+      OR: [
+        { userId },
+        {
+          members: {
+            some: {
+              OR: [{ userId }, ...(username ? [{ username }] : [])],
+            },
+          },
         },
-      },
+      ],
     },
   ];
 }

@@ -177,6 +177,31 @@ test('authenticates a request from the HttpOnly session cookie', async () => {
   });
 });
 
+test('ignores a share token outside the share context, even with a session', async () => {
+  vi.mocked(resolveAuthSession).mockResolvedValue({ id: 'session-1', userId: 'user-1' });
+  vi.mocked(getUser).mockResolvedValue({
+    id: 'user-1',
+    username: 'owner@example.com',
+    role: 'user',
+  } as any);
+
+  const auth = await checkAuth(
+    new Request('https://app.example.com/api/websites/website-1/stats', {
+      headers: {
+        cookie: 'rl_session=session-token',
+        [SHARE_TOKEN_HEADER]: createToken(validPayload, secret()),
+      },
+    }),
+  );
+
+  expect(auth?.user?.id).toBe('user-1');
+  expect(auth?.shareToken).toBeNull();
+});
+
+test('rejects a share token outside the share context for an anonymous caller', async () => {
+  await expect(checkAuth(requestFor(validPayload))).resolves.toBeNull();
+});
+
 test('rejects an unknown cookie session', async () => {
   vi.mocked(resolveAuthSession).mockResolvedValue(null);
 

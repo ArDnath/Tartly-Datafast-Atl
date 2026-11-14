@@ -249,11 +249,18 @@ function redactValue(value: unknown, options: SharedRedactionOptions, path: stri
     return value;
   }
 
+  const filterField =
+    (typeof value.name === 'string' && value.name) ||
+    (typeof value.column === 'string' && value.column) ||
+    (typeof value.field === 'string' && value.field) ||
+    null;
   const propertyName =
     (typeof value.dataKey === 'string' && value.dataKey) ||
     (typeof value.propertyName === 'string' && value.propertyName) ||
     options.propertyName;
-  const hasSensitiveProperty = isSensitivePropertyKey(propertyName);
+  const hasSensitiveProperty =
+    isSensitivePropertyKey(propertyName) ||
+    (Boolean(filterField) && 'value' in value && isSensitivePropertyKey(filterField));
   const sensitiveTextValues = collectSensitiveStrings(value, path);
   const result: Record<string, unknown> = {};
 

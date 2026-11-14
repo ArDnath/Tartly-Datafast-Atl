@@ -9,6 +9,7 @@ import { verifyPolarSignature } from '@/features/payments/server/webhooks/polar-
 import prisma from '@/lib/prisma';
 import { decryptProviderSecret } from '@/features/payments/server/provider-secrets';
 import { badRequest, json, notFound, serverError, unauthorized } from '@/lib/response';
+import { getBodyLimitError, readRequestBody } from '@/lib/request';
 import {
   recordPayment,
   recordRefund,
@@ -163,6 +164,12 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ websiteId: string }> },
 ) {
+  const oversized = getBodyLimitError(request, 256 * 1024);
+
+  if (oversized) {
+    return oversized;
+  }
+
   const { websiteId } = await params;
   const website = await fetchWebsite(websiteId);
 
@@ -171,12 +178,15 @@ export async function POST(
   }
 
   const connection = await getPolarConnection(websiteId);
-  const webhookSecret =
-    decryptProviderSecret(connection?.webhookSecretRef) || process.env.POLAR_WEBHOOK_SECRET;
-  const rawBody = await request.text();
+  const webhookSecret = decryptProviderSecret(connection?.webhookSecretRef);
+  const rawBody = await readRequestBody(request, 256 * 1024);
 
-  if (!webhookSecret) {
-    return unauthorized({ message: 'Polar webhook signature is required.' });
+  if (rawBody === null) {
+    return badRequest({ code: 'payload-too-large', message: 'Webhook body is too large.' });
+  }
+
+  if (!connection || !webhookSecret) {
+    return unauthorized({ message: 'Connect Polar for this website first.' });
   }
 
   if (!verifyPolarSignature(rawBody, request.headers, webhookSecret)) {
@@ -200,7 +210,8 @@ export async function POST(
 
   const existingEvent = await prisma.client.providerEvent.findUnique({
     where: {
-      providerName_providerEventKey: {
+      websiteId_providerName_providerEventKey: {
+        websiteId,
         providerName: 'polar',
         providerEventKey: eventKey,
       },

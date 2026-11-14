@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { getBearerToken } from '@/lib/auth';
 import { hash, secret } from '@/lib/crypto';
+import { getWorkspaceMembership } from '@/lib/workspace-auth';
 import prisma from '@/lib/prisma';
 
 export function createApiKeyToken() {
@@ -34,6 +35,7 @@ export async function authenticateApiKey(request: Request) {
       website: {
         select: {
           deletedAt: true,
+          workspaceId: true,
           workspace: { select: { deletedAt: true, suspendedAt: true } },
         },
       },
@@ -44,21 +46,31 @@ export async function authenticateApiKey(request: Request) {
     return null;
   }
 
+  // API keys are machine credentials for one website. A key without a live
+  // website scope must never reach a handler that trusts `apiKey.websiteId`.
+  if (!apiKey.websiteId || !apiKey.website || apiKey.website.deletedAt) {
+    return null;
+  }
+
   // A key is only as live as its owner and tenant. Suspending a user or a
   // workspace must not leave a machine credential working.
   if (apiKey.user && (apiKey.user.deletedAt || apiKey.user.suspendedAt)) {
     return null;
   }
 
-  if (apiKey.website) {
-    if (apiKey.website.deletedAt) {
-      return null;
-    }
+  if (
+    apiKey.website.workspace &&
+    (apiKey.website.workspace.deletedAt || apiKey.website.workspace.suspendedAt)
+  ) {
+    return null;
+  }
 
-    if (
-      apiKey.website.workspace &&
-      (apiKey.website.workspace.deletedAt || apiKey.website.workspace.suspendedAt)
-    ) {
+  // New keys record the creator. If that person has since been removed from
+  // the workspace, the key must stop working immediately.
+  if (apiKey.userId && apiKey.website.workspaceId) {
+    const membership = await getWorkspaceMembership(apiKey.userId, apiKey.website.workspaceId);
+
+    if (!membership) {
       return null;
     }
   }

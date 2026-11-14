@@ -9,7 +9,8 @@ export type GoogleLoginError =
   | 'rate-limited'
   | 'google-failed'
   | 'account-unavailable'
-  | 'email-not-verified';
+  | 'email-not-verified'
+  | 'email-link-required';
 
 function withNoStore(response: NextResponse) {
   response.headers.set('Cache-Control', 'no-store');

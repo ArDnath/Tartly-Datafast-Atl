@@ -32,7 +32,7 @@ import {
   getYolfiOrganization,
   updateYolfiAnalyticsEndpoint,
 } from '@/features/payments/server/providers/yolfi-provider';
-import { canUpdateWebsite } from '@/permissions';
+import { canManageWebsiteIntegrations } from '@/permissions';
 import { backfillDodoRevenue } from '@/features/payments/server/queries/dodoProvider';
 import { backfillPolarRevenue } from '@/features/payments/server/queries/polarProvider';
 import { enqueueProviderWebhookCleanup } from '@/queries/prisma/providerWebhookCleanup';
@@ -63,7 +63,7 @@ vi.mock('@/lib/request', () => ({
 }));
 
 vi.mock('@/permissions', () => ({
-  canUpdateWebsite: vi.fn(),
+  canManageWebsiteIntegrations: vi.fn(),
   canViewWebsite: vi.fn(),
 }));
 
@@ -168,7 +168,7 @@ beforeEach(() => {
       apiKey: 'rk_test_123',
     },
   } as any);
-  vi.mocked(canUpdateWebsite).mockResolvedValue(true);
+  vi.mocked(canManageWebsiteIntegrations).mockResolvedValue(true);
   (prisma.client.paymentProviderConnection.findFirst as any).mockResolvedValue(null);
   (prisma.client.paymentProviderConnection.findMany as any).mockResolvedValue([]);
   vi.mocked(getYolfiOrganization).mockResolvedValue({ organizationId: 'org-123' });

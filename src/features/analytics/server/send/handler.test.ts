@@ -70,6 +70,11 @@ vi.mock('@/queries/prisma/website', () => ({
   getWebsiteAttributionRuntimeConfig: vi.fn(),
 }));
 
+vi.mock('@/queries/prisma', () => ({
+  getLink: vi.fn(),
+  getPixel: vi.fn(),
+}));
+
 vi.mock('@/features/analytics/server/queries/sql', () => ({
   createSession: vi.fn(),
   saveEvent: vi.fn(),
@@ -318,4 +323,28 @@ test('releases the reservation when the event write fails', async () => {
   expect(releaseEventUsage).toHaveBeenCalledWith(workspaceId);
 
   consoleLog.mockRestore();
+});
+
+test('rejects a legacy pixel id that is actually another website id', async () => {
+  const { getPixel } = await import('@/queries/prisma');
+  vi.mocked(getPixel).mockResolvedValue(null);
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        pixel: websiteId,
+        url: 'https://evil.example/',
+        name: 'refund',
+        data: { revenue: 100000, currency: 'USD' },
+      },
+    },
+  } as any);
+
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
+
+  expect(response.status).toBe(400);
+  expect(createSession).not.toHaveBeenCalled();
+  expect(saveEvent).not.toHaveBeenCalled();
 });

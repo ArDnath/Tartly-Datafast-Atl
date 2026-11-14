@@ -33,13 +33,16 @@ import {
 import { COLLECTION_TYPE, EVENT_TYPE } from '@/lib/constants';
 import { getSalt, secret, uuid } from '@/lib/crypto';
 import { getWorkspaceEntitlements } from '@/lib/entitlements';
+import redis from '@/lib/redis';
 import { fetchWebsite } from '@/lib/load';
 import { logger } from '@/lib/logger';
 import { parseRequest } from '@/lib/request';
-import { badRequest, forbidden, json, serverError } from '@/lib/response';
+import { hashRateLimitSubject, rateLimitKey } from '@/lib/rate-limit';
+import { badRequest, forbidden, json, serverError, tooManyRequests } from '@/lib/response';
 import { anyObjectParam, urlOrPathParam } from '@/lib/schema';
 import { safeDecodeURI, safeDecodeURIComponent } from '@/lib/url';
 import { EVENT_GRACE, isBillableEvent, releaseEventUsage, reserveEventUsage } from '@/lib/usage';
+import { getLink, getPixel } from '@/queries/prisma';
 import { getWebsiteAttributionRuntimeConfig } from '@/queries/prisma/website';
 
 const schema = z.object({
@@ -60,7 +63,7 @@ const schema = z.object({
       tag: z.string().max(50).optional(),
       ip: z.string().optional(),
       userAgent: z.string().optional(),
-      timestamp: z.coerce.number().int().optional(),
+      timestamp: z.coerce.number().int().min(946684800).max(4102444800).optional(),
       id: z.string().optional(),
       visitorId: z.string().max(100).optional(),
       sessionId: z.string().max(100).optional(),
@@ -133,26 +136,34 @@ export async function POST(request: Request) {
     let websiteDomain: string | null = null;
 
     if (websiteId) {
+      // Always resolve the website, even when a cache token carries the
+      // tenant: a valid token must stop working the moment the website is
+      // deleted or its workspace changes.
+      const website = await fetchWebsite(websiteId);
+
+      if (!website) {
+        return badRequest({ message: 'Website not found.' });
+      }
+
+      workspaceId = website.workspaceId ?? null;
+      websiteDomain = website.domain ?? null;
+
       const cacheHeader = request.headers.get('x-talivia-cache');
 
       if (cacheHeader) {
         cache = parseCollectorCacheToken(cacheHeader, websiteId, secret());
       }
+    } else if (pixelId) {
+      const pixel = await getPixel(pixelId);
 
-      workspaceId = cache?.workspaceId ?? null;
+      if (!pixel || pixel.deletedAt) {
+        return badRequest({ message: 'Pixel not found.' });
+      }
+    } else if (linkId) {
+      const link = await getLink(linkId);
 
-      // The tenant is required for usage metering. Older cache tokens do not
-      // contain it, so resolve the website once and refresh the token below.
-      // Origin enforcement also needs the configured domain on every request.
-      if (!cache?.websiteId || !workspaceId || process.env.ENFORCE_TRACKER_ORIGIN === 'true') {
-        const website = await fetchWebsite(websiteId);
-
-        if (!website) {
-          return badRequest({ message: 'Website not found.' });
-        }
-
-        workspaceId = website.workspaceId ?? null;
-        websiteDomain = website.domain ?? null;
+      if (!link || link.deletedAt) {
+        return badRequest({ message: 'Link not found.' });
       }
     }
 
@@ -189,6 +200,21 @@ export async function POST(request: Request) {
     // IP block
     if (hasBlockedIp(ip)) {
       return forbidden();
+    }
+
+    // The public collector is intentionally unauthenticated. A Redis-backed
+    // per-IP ceiling keeps one client from exhausting a tenant's event quota
+    // or the process while leaving normal tracker traffic far below it.
+    if (redis.enabled) {
+      const allowed = await redis.client.rateLimit(
+        rateLimitKey('collector:send', hashRateLimitSubject(ip || 'unknown')),
+        1200,
+        60,
+      );
+
+      if (!allowed) {
+        return tooManyRequests({ message: 'Too many tracking events.' }, 60);
+      }
     }
 
     const createdAt = timestamp ? new Date(timestamp * 1000) : new Date();

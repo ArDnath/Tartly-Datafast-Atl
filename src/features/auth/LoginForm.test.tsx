@@ -13,10 +13,14 @@ test('shows the larger Tartly lockup above a single Google sign-in action', () =
   const button = screen.getByRole('link', { name: 'Continue with Google' });
   expect(button).toHaveAttribute('href', '/api/auth/google?returnUrl=%2Fapp%2Frevenue');
   expect(
+    screen.getByRole('heading', { name: 'Sign in to your revenue dashboard' }),
+  ).toBeInTheDocument();
+  expect(
     screen.getByText(
-      'Use your Google account to sign in or create your Tartly workspace. No password needed.',
+      'See which channels make money. Use Google to sign in or create your Tartly workspace. No password needed.',
     ),
   ).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Back to Tartly' })).toHaveAttribute('href', '/');
   expect(screen.queryByLabelText('Username')).not.toBeInTheDocument();
   expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
 });

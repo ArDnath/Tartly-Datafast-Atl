@@ -86,7 +86,7 @@ export function CallToAction() {
 
               <p className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.06em] text-lp-fg-muted uppercase">
                 <CheckIcon className="size-3 text-emerald-600" strokeWidth={3} aria-hidden="true" />
-                No card required · cancel anytime
+                No charge until you choose a plan · cancel anytime
               </p>
             </div>
           </div>

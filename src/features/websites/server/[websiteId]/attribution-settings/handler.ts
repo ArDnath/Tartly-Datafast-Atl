@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
-import { canUpdateWebsite, canViewWebsite } from '@/permissions';
+import { canManageWebsiteIntegrations, canViewWebsite } from '@/permissions';
 import {
   getWebsite,
   getWebsiteAttributionSettings,
@@ -63,7 +63,7 @@ export async function POST(
 
   const { websiteId } = await params;
 
-  if (!(await canUpdateWebsite(auth, websiteId))) {
+  if (!(await canManageWebsiteIntegrations(auth, websiteId))) {
     return unauthorized();
   }
 

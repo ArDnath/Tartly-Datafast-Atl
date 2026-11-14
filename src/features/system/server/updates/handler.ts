@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { checkAuth } from '@/lib/auth';
 import { secret } from '@/lib/crypto';
 import { getOssUpdateUrl, OSS_VERSION } from '@/features/system/lib/oss-version';
+import { isPlatformAdmin } from '@/lib/platform-admin';
 import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -25,7 +26,7 @@ function noStore(data: unknown, status = 200) {
 
 export async function POST(request: Request) {
   const auth = await checkAuth(request);
-  if (!auth?.user?.isAdmin) {
+  if (!auth?.user || !isPlatformAdmin(auth.user)) {
     return noStore({ error: 'Administrator access required' }, 403);
   }
 

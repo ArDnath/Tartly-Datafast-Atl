@@ -3,7 +3,7 @@ import { BRAND } from '@/lib/brand';
 import { getQueryFilters, parseRequest } from '@/lib/request';
 import { badRequest, unauthorized } from '@/lib/response';
 import { withDateRange } from '@/lib/schema';
-import { canViewWebsite } from '@/permissions';
+import { canExportWebsiteData } from '@/permissions';
 import { recordAuditEvent } from '@/queries/prisma';
 
 export const runtime = 'nodejs';
@@ -18,7 +18,7 @@ export async function GET(
 
   const { websiteId } = await params;
 
-  if (!(await canViewWebsite(auth, websiteId))) {
+  if (!(await canExportWebsiteData(auth, websiteId))) {
     return unauthorized();
   }
 

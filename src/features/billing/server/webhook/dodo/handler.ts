@@ -6,6 +6,7 @@ import {
 import { getBillingConfig } from '@/features/billing/server/provider';
 import { processDodoWebhook } from '@/features/billing/server/service';
 import { badRequest, json, serverError, serviceUnavailable } from '@/lib/response';
+import { getBodyLimitError, readRequestBody } from '@/lib/request';
 
 /**
  * Platform billing webhook (context A). This path is deliberately different
@@ -14,6 +15,12 @@ import { badRequest, json, serverError, serviceUnavailable } from '@/lib/respons
  * accepted across contexts.
  */
 export async function POST(request: Request) {
+  const oversized = getBodyLimitError(request, 256 * 1024);
+
+  if (oversized) {
+    return oversized;
+  }
+
   const config = getBillingConfig();
 
   if (!config) {
@@ -23,7 +30,11 @@ export async function POST(request: Request) {
     });
   }
 
-  const payload = await request.text();
+  const payload = await readRequestBody(request, 256 * 1024);
+
+  if (payload === null) {
+    return badRequest({ code: 'payload-too-large', message: 'Webhook body is too large.' });
+  }
 
   let verified: ReturnType<typeof verifyStandardWebhook>;
 

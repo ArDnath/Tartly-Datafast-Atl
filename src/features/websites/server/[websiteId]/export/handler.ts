@@ -1,9 +1,10 @@
 import JSZip from 'jszip';
 import Papa from 'papaparse';
+import { sanitizeCsvData } from '@/lib/csv';
 import { getQueryFilters, parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
 import { pagingParams, withDateRange } from '@/lib/schema';
-import { canViewWebsite } from '@/permissions';
+import { canExportWebsiteData } from '@/permissions';
 import { getRevenueAttributionReport } from '@/features/analytics/server/queries/revenueAttribution';
 import { recordAuditEvent } from '@/queries/prisma';
 import {
@@ -28,7 +29,7 @@ export async function GET(
 
   const { websiteId } = await params;
 
-  if (!(await canViewWebsite(auth, websiteId))) {
+  if (!(await canExportWebsiteData(auth, websiteId))) {
     return unauthorized();
   }
 
@@ -53,7 +54,7 @@ export async function GET(
   const zip = new JSZip();
 
   const parse = (data: any) => {
-    return Papa.unparse(data, {
+    return Papa.unparse(sanitizeCsvData(data), {
       header: true,
       skipEmptyLines: true,
     });

@@ -817,6 +817,7 @@ model SessionReplay {
   @@index([sessionId])
   @@index([websiteId, sessionId])
   @@index([websiteId, createdAt])
+  @@unique([sessionId, chunkIndex])
   @@index([sessionId, chunkIndex])
   @@map("session_replay")
 }
@@ -1097,7 +1098,7 @@ model ProviderEvent {
   website    Website                    @relation(fields: [websiteId], references: [id])
   connection PaymentProviderConnection? @relation(fields: [connectionId], references: [id])
 
-  @@unique([providerName, providerEventKey])
+  @@unique([websiteId, providerName, providerEventKey])
   @@index([websiteId, receivedAt])
   @@index([connectionId])
   @@index([processingStatus])

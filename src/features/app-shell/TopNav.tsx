@@ -5,11 +5,17 @@ import Link from '@/components/common/Link';
 import { useNavigation } from '@/components/hooks';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { UserButton } from '@/features/app-shell/components/UserButton';
+import { useBillingAccessQuery } from '@/features/billing/hooks/useBillingAccessQuery';
+import { useActiveWorkspace } from '@/features/workspaces/hooks/useActiveWorkspace';
 import { BRAND } from '@/lib/brand';
 import { APP_LAYOUT_MAX_WIDTH } from '@/lib/constants';
 
 export function TopNav({ showUser = true }: { showUser?: boolean }) {
   const { renderUrl } = useNavigation();
+  const { workspaceId } = useActiveWorkspace();
+  const access = useBillingAccessQuery(workspaceId);
+  const showUpgrade =
+    access.data?.paid === true && access.data.planId === 'starter' && access.data.role === 'OWNER';
 
   return (
     <Row width="100%" backgroundColor="transparent">
@@ -33,6 +39,11 @@ export function TopNav({ showUser = true }: { showUser?: boolean }) {
         </Row>
         {showUser && (
           <Row alignItems="center" gap="3" style={{ marginLeft: 'auto' }}>
+            {showUpgrade && (
+              <Link className="app-upgrade" href={renderUrl('/app/settings/billing', false)}>
+                Upgrade
+              </Link>
+            )}
             <ThemeToggle />
             <UserButton />
           </Row>

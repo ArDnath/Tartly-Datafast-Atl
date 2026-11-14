@@ -32,16 +32,28 @@ test('getUserWebsites includes websites shared to the user by id or username', a
   const [, criteria] = prismaMock.pagedQuery.mock.calls[0];
 
   expect(criteria.where.OR).toEqual([
-    { userId: 'user-1' },
     { workspaceId: { in: [] } },
     {
-      members: {
-        some: {
-          OR: [{ userId: 'user-1' }, { username: 'shared@example.com' }],
+      workspaceId: null,
+      OR: [
+        { userId: 'user-1' },
+        {
+          members: {
+            some: {
+              OR: [{ userId: 'user-1' }, { username: 'shared@example.com' }],
+            },
+          },
         },
-      },
+      ],
     },
   ]);
+  expect(prismaMock.client.workspaceMembership.findMany).toHaveBeenCalledWith({
+    where: {
+      userId: 'user-1',
+      workspace: { deletedAt: null, suspendedAt: null },
+    },
+    select: { workspaceId: true },
+  });
 });
 
 test('getUserWebsites includes workspace membership and narrows to an authorized workspace', async () => {

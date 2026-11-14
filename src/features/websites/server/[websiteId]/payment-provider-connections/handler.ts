@@ -10,7 +10,7 @@ import {
   serializeDodoCredential,
 } from '@/features/payments/server/providers/dodo-provider';
 import { BRAND } from '@/lib/brand';
-import { getBaseUrl } from '@/lib/get-base-url';
+import { getPublicOrigin } from '@/lib/get-base-url';
 import {
   createLemonSqueezyWebhookEndpoint,
   deleteLemonSqueezyWebhookEndpoint,
@@ -46,7 +46,7 @@ import {
   getYolfiOrganization,
   updateYolfiAnalyticsEndpoint,
 } from '@/features/payments/server/providers/yolfi-provider';
-import { canUpdateWebsite, canViewWebsite } from '@/permissions';
+import { canManageWebsiteIntegrations, canViewWebsite } from '@/permissions';
 import { backfillDodoRevenue } from '@/features/payments/server/queries/dodoProvider';
 import { backfillPolarRevenue } from '@/features/payments/server/queries/polarProvider';
 import { enqueueProviderWebhookCleanup } from '@/queries/prisma/providerWebhookCleanup';
@@ -81,26 +81,29 @@ function serializeConnection(connection: any) {
 }
 
 function getStripeWebhookUrl(request: Request, websiteId: string) {
-  return new URL(`/api/payments/stripe/${websiteId}/webhook`, getBaseUrl(request)).toString();
+  return new URL(`/api/payments/stripe/${websiteId}/webhook`, getPublicOrigin(request)).toString();
 }
 
 function getYolfiWebhookUrl(request: Request, websiteId: string) {
   return new URL(
     `/api/payments/yolfi/${encodeURIComponent(websiteId)}/webhook`,
-    getBaseUrl(request),
+    getPublicOrigin(request),
   ).toString();
 }
 
 function getDodoWebhookUrl(request: Request, websiteId: string) {
-  return new URL(`/api/payments/dodo/${websiteId}/webhook`, getBaseUrl(request)).toString();
+  return new URL(`/api/payments/dodo/${websiteId}/webhook`, getPublicOrigin(request)).toString();
 }
 
 function getLemonSqueezyWebhookUrl(request: Request, websiteId: string) {
-  return new URL(`/api/payments/lemonsqueezy/${websiteId}/webhook`, getBaseUrl(request)).toString();
+  return new URL(
+    `/api/payments/lemonsqueezy/${websiteId}/webhook`,
+    getPublicOrigin(request),
+  ).toString();
 }
 
 function getPolarWebhookUrl(request: Request, websiteId: string) {
-  return new URL(`/api/payments/polar/${websiteId}/webhook`, getBaseUrl(request)).toString();
+  return new URL(`/api/payments/polar/${websiteId}/webhook`, getPublicOrigin(request)).toString();
 }
 
 function getProviderErrorStatus(error: unknown) {
@@ -187,7 +190,7 @@ export async function POST(
 
   const { websiteId } = await params;
 
-  if (!(await canUpdateWebsite(auth, websiteId))) {
+  if (!(await canManageWebsiteIntegrations(auth, websiteId))) {
     return unauthorized();
   }
 
@@ -838,6 +841,12 @@ export async function POST(
     return badRequest({ message: 'Yolfi organization API key is required.' });
   }
 
+  if (body.providerName === 'stripe' && body.webhookSecret && !body.apiKey) {
+    return badRequest({
+      message: `Add the Stripe restricted key so ${BRAND.name} can verify the webhook endpoint.`,
+    });
+  }
+
   const existing = await prisma.client.paymentProviderConnection.findFirst({
     where: {
       websiteId,
@@ -850,10 +859,7 @@ export async function POST(
   const data = {
     providerAccountId: body.providerAccountId || null,
     connectionStatus: body.webhookSecret ? 'active' : 'pending',
-    webhookSecretRef:
-      body.providerName === 'yolfi' && body.webhookSecret
-        ? encryptProviderSecret(body.webhookSecret)
-        : body.webhookSecret,
+    webhookSecretRef: body.webhookSecret ? encryptProviderSecret(body.webhookSecret) : undefined,
     webhookStatus: body.webhookSecret ? 'configured' : 'not_configured',
   };
 
@@ -891,7 +897,7 @@ export async function DELETE(
 
   const { websiteId } = await params;
 
-  if (!(await canUpdateWebsite(auth, websiteId))) {
+  if (!(await canManageWebsiteIntegrations(auth, websiteId))) {
     return unauthorized();
   }
 

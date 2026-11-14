@@ -446,20 +446,27 @@ test('does not create revenue or regress subscription state for invoice.overdue'
   expect(recordSubscriptionState).not.toHaveBeenCalled();
 });
 
-test('rejects an event id already associated with another website', async () => {
-  (prisma.client.providerEvent.findUnique as any).mockResolvedValue({
-    id: 'provider-event-other-site',
-    websiteId: 'site-2',
-    processingStatus: 'processed',
-  });
+test('scopes provider-event idempotency to the website in the URL', async () => {
+  (prisma.client.providerEvent.findUnique as any).mockResolvedValue(null);
 
   const response = await POST(request('valid'), {
     params: Promise.resolve({ websiteId: 'site-1' }),
   });
 
-  expect(response.status).toBe(400);
-  expect(recordPayment).not.toHaveBeenCalled();
-  expect(prisma.client.providerEvent.update).not.toHaveBeenCalled();
+  expect(response.status).toBe(200);
+  expect(prisma.client.providerEvent.findUnique).toHaveBeenCalledWith({
+    where: {
+      websiteId_providerName_providerEventKey: expect.objectContaining({
+        websiteId: 'site-1',
+        providerName: 'yolfi',
+      }),
+    },
+  });
+  expect(prisma.client.providerEvent.create).toHaveBeenCalledWith(
+    expect.objectContaining({
+      data: expect.objectContaining({ websiteId: 'site-1' }),
+    }),
+  );
 });
 
 test('rejects a missing endpoint secret without falling back to a shared env secret', async () => {

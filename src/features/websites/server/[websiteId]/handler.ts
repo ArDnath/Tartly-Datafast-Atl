@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { parseRequest } from '@/lib/request';
-import { badRequest, json, ok, serverError, unauthorized } from '@/lib/response';
+import { badRequest, conflict, json, ok, serverError, unauthorized } from '@/lib/response';
 import {
   getWebsiteNameFromDomain,
   normalizeWebsiteDomainInput,
@@ -11,7 +11,13 @@ import {
   canViewWebsite,
   getWebsiteAccess,
 } from '@/permissions';
-import { deleteWebsite, getWebsite, recordAuditEvent, updateWebsite } from '@/queries/prisma';
+import {
+  deleteWebsite,
+  findWorkspaceWebsiteByDomain,
+  getWebsite,
+  recordAuditEvent,
+  updateWebsite,
+} from '@/queries/prisma';
 
 function getPublicShareWebsite(website: Awaited<ReturnType<typeof getWebsite>>) {
   return {
@@ -83,8 +89,21 @@ export async function POST(
   }
 
   try {
+    const currentWebsite = await getWebsite(websiteId);
+
+    if (
+      domain !== undefined &&
+      domain !== currentWebsite?.domain &&
+      currentWebsite?.workspaceId &&
+      (await findWorkspaceWebsiteByDomain(currentWebsite.workspaceId, domain, websiteId))
+    ) {
+      return conflict({
+        code: 'website-exists',
+        message: `${domain} is already connected in this workspace. Open it from the website list.`,
+      });
+    }
+
     if (name === '') {
-      const currentWebsite = await getWebsite(websiteId);
       name = getWebsiteNameFromDomain(domain ?? currentWebsite?.domain);
     }
 

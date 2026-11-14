@@ -76,7 +76,7 @@ export const searchParams = {
 
 export const pagingParams = {
   page: z.coerce.number().int().positive().optional(),
-  pageSize: z.coerce.number().int().positive().optional(),
+  pageSize: z.coerce.number().int().positive().max(200).optional(),
 };
 
 export const sortingParams = {

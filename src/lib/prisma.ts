@@ -3,6 +3,7 @@ import { readReplicas } from '@prisma/extension-read-replicas';
 import debug from 'debug';
 import { PrismaClient } from '@/generated/prisma/client';
 import { DEFAULT_PAGE_SIZE, FILTER_COLUMNS, OPERATORS, SESSION_COLUMNS } from './constants';
+import { isValidTimezone, normalizeTimezone } from './date';
 import { withDbRetry } from './db-retry';
 import { filtersObjectToArray } from './params';
 import type { Operator, QueryFilters, QueryOptions } from './types';
@@ -48,16 +49,32 @@ function getCastColumnQuery(field: string, type: string): string {
   return `${field}::${type}`;
 }
 
+function getSafeTimezone(timezone?: string) {
+  if (!timezone || timezone === 'utc' || !isValidTimezone(timezone)) {
+    return null;
+  }
+
+  return normalizeTimezone(timezone);
+}
+
 function getDateSQL(field: string, unit: string, timezone?: string): string {
-  if (timezone && timezone !== 'utc') {
-    return `to_char(date_trunc('${unit}', ${field} at time zone '${timezone}'), '${DATE_FORMATS[unit]}')`;
+  const safeTimezone = getSafeTimezone(timezone);
+
+  if (safeTimezone) {
+    return `to_char(date_trunc('${unit}', ${field} at time zone '${safeTimezone}'), '${DATE_FORMATS[unit]}')`;
   }
 
   return `to_char(date_trunc('${unit}', ${field}), '${DATE_FORMATS_UTC[unit]}')`;
 }
 
 function getDateWeeklySQL(field: string, timezone?: string) {
-  return `concat(extract(dow from (${field} at time zone '${timezone}')), ':', to_char((${field} at time zone '${timezone}'), 'HH24'))`;
+  const safeTimezone = getSafeTimezone(timezone);
+
+  if (!safeTimezone) {
+    return `concat(extract(dow from ${field}), ':', to_char(${field}, 'HH24'))`;
+  }
+
+  return `concat(extract(dow from (${field} at time zone '${safeTimezone}')), ':', to_char((${field} at time zone '${safeTimezone}'), 'HH24'))`;
 }
 
 export function getTimestampSQL(field: string) {

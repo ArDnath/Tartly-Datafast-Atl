@@ -10,6 +10,8 @@ const AUTHORIZATION_HELPERS = [
   'canViewWebsite',
   'canUpdateWebsite',
   'canDeleteWebsite',
+  'canExportWebsiteData',
+  'canManageWebsiteIntegrations',
   'canManageWebsiteMembers',
   'canViewEntity',
   'canUpdateEntity',

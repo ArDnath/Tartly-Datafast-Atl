@@ -12,6 +12,7 @@ import { fetchWebsite } from '@/lib/load';
 import prisma from '@/lib/prisma';
 import { decryptProviderSecret } from '@/features/payments/server/provider-secrets';
 import { badRequest, json, notFound, serverError, unauthorized } from '@/lib/response';
+import { getBodyLimitError, readRequestBody } from '@/lib/request';
 import { recordPayment, recordRefund } from '@/features/payments/server/queries/payment';
 
 async function getDodoConnection(websiteId: string) {
@@ -82,6 +83,12 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ websiteId: string }> },
 ) {
+  const oversized = getBodyLimitError(request, 256 * 1024);
+
+  if (oversized) {
+    return oversized;
+  }
+
   const { websiteId } = await params;
   const website = await fetchWebsite(websiteId);
 
@@ -89,7 +96,11 @@ export async function POST(
     return notFound({ message: 'Website not found.' });
   }
 
-  const rawBody = await request.text();
+  const rawBody = await readRequestBody(request, 256 * 1024);
+
+  if (rawBody === null) {
+    return badRequest({ code: 'payload-too-large', message: 'Webhook body is too large.' });
+  }
   const connection = await getDodoConnection(websiteId);
   const signingSecret = decryptProviderSecret(connection?.webhookSecretRef);
   const webhookId = request.headers.get('webhook-id');
@@ -122,7 +133,8 @@ export async function POST(
 
   const existingEvent = await prisma.client.providerEvent.findUnique({
     where: {
-      providerName_providerEventKey: {
+      websiteId_providerName_providerEventKey: {
+        websiteId,
         providerName: 'dodo',
         providerEventKey: webhookId,
       },

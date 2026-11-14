@@ -130,7 +130,17 @@ export async function removeWorkspaceMember({
     throw new MemberError('not-found', 'Only the owner can remove an admin.');
   }
 
-  await prisma.client.workspaceMembership.delete({ where: { id: memberId } });
+  await prisma.transaction(async tx => {
+    await tx.workspaceMembership.delete({ where: { id: memberId } });
+    await tx.apiKey.updateMany({
+      where: {
+        userId: member.userId,
+        website: { workspaceId },
+        revokedAt: null,
+      },
+      data: { revokedAt: new Date() },
+    });
+  });
 
   return true;
 }

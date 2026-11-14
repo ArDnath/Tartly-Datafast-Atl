@@ -53,6 +53,7 @@ vi.mock('@/features/payments/server/queries/payment', () => ({
 }));
 
 const { fetchWebsite } = await import('@/lib/load');
+const { decryptProviderSecret } = await import('@/features/payments/server/provider-secrets');
 const { default: prisma } = await import('@/lib/prisma');
 const { mapStripeCheckoutSessionToPaymentInput } = await import(
   '@/features/payments/server/providers/stripe-provider'
@@ -106,7 +107,12 @@ beforeEach(() => {
   vi.stubEnv('YOLFI_API_KEY', YOLFI_FIXTURE_KEY);
   vi.stubEnv('STRIPE_WEBHOOK_SECRET', 'whsec_test_secret');
   vi.mocked(fetchWebsite).mockResolvedValue({ id: 'site-1' } as any);
-  (prisma.client.paymentProviderConnection.findFirst as any).mockResolvedValue(null);
+  vi.mocked(decryptProviderSecret).mockReturnValue('whsec_test_secret');
+  (prisma.client.paymentProviderConnection.findFirst as any).mockResolvedValue({
+    id: 'conn-1',
+    webhookSecretRef: 'encrypted-ref',
+    connectionStatus: 'active',
+  });
   vi.mocked(verifyStripeSignature).mockReturnValue(true);
   (prisma.client.providerEvent.findUnique as any).mockResolvedValue(null);
   (prisma.client.providerEvent.create as any).mockResolvedValue({ id: 'pe_1' });
@@ -138,7 +144,12 @@ test('the Yolfi organization API key is never accepted by the Stripe analytics e
 
 test('Stripe-signed requests still use the original Stripe verification path', async () => {
   vi.stubEnv('STRIPE_WEBHOOK_SECRET', 'whsec_test_secret');
-  (prisma.client.paymentProviderConnection.findFirst as any).mockResolvedValue(null);
+  vi.mocked(decryptProviderSecret).mockReturnValue('whsec_test_secret');
+  (prisma.client.paymentProviderConnection.findFirst as any).mockResolvedValue({
+    id: 'conn-1',
+    webhookSecretRef: 'encrypted-ref',
+    connectionStatus: 'active',
+  });
   vi.mocked(verifyStripeSignature).mockReturnValue(true);
 
   const res = await POST(
@@ -157,7 +168,12 @@ test('Stripe-signed requests still use the original Stripe verification path', a
 
 test('a failed Stripe verification is still rejected', async () => {
   vi.stubEnv('STRIPE_WEBHOOK_SECRET', 'whsec_test_secret');
-  (prisma.client.paymentProviderConnection.findFirst as any).mockResolvedValue(null);
+  vi.mocked(decryptProviderSecret).mockReturnValue('whsec_test_secret');
+  (prisma.client.paymentProviderConnection.findFirst as any).mockResolvedValue({
+    id: 'conn-1',
+    webhookSecretRef: 'encrypted-ref',
+    connectionStatus: 'active',
+  });
   vi.mocked(verifyStripeSignature).mockReturnValue(false);
 
   const res = await POST(
@@ -196,7 +212,7 @@ test('a successful direct PaymentIntent records revenue with Talivia session met
   expect(normalizeEmailHash).toHaveBeenCalledWith('buyer@example.com');
   expect(recordPayment).toHaveBeenCalledWith({
     websiteId: 'site-1',
-    connectionId: undefined,
+    connectionId: 'conn-1',
     providerName: 'stripe',
     providerPaymentId: 'pi_direct',
     providerCustomerId: 'cus_1',

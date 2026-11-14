@@ -102,7 +102,7 @@ export async function GET(request: Request) {
     }
 
     if (cause instanceof GoogleAccountError) {
-      return fail(request, 'account-unavailable', cause, state.returnUrl);
+      return fail(request, cause.code, cause, state.returnUrl);
     }
 
     return fail(request, 'google-failed', cause, state.returnUrl);

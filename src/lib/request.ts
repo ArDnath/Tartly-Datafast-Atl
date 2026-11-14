@@ -3,7 +3,14 @@ import { isAppConfigurationError } from '@/lib/app-config';
 import { checkAuth } from '@/lib/auth';
 import { isSameOriginRequest, isUnsafeMethod } from '@/lib/csrf';
 import { DEFAULT_PAGE_SIZE, ENTITY_TYPE, FILTER_COLUMNS, OPERATORS } from '@/lib/constants';
-import { getAllowedUnits, getMinimumUnit, maxDate, parseDateRange } from '@/lib/date';
+import {
+  getAllowedUnits,
+  getMinimumUnit,
+  isValidTimezone,
+  maxDate,
+  normalizeTimezone,
+  parseDateRange,
+} from '@/lib/date';
 import { fetchWebsite } from '@/lib/load';
 import { filtersArrayToObject } from '@/lib/params';
 import { appConfigurationError, badRequest, forbidden, unauthorized } from '@/lib/response';
@@ -25,14 +32,81 @@ export function isPrivateSharePath(pathname: string) {
   return PRIVATE_SHARE_PATHS.some(pattern => pattern.test(pathname));
 }
 
+export const DEFAULT_JSON_BODY_LIMIT_BYTES = 1024 * 1024;
+
+/**
+ * Reject an oversized body before buffering it. Content-Length is advisory for
+ * chunked requests, so callers that read raw text should still cap the result;
+ * this catches the common browser/server case cheaply at the edge of the app.
+ */
+async function readTextWithLimit(request: Request, maxBytes: number) {
+  if (!request.body) {
+    return '';
+  }
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) {
+        break;
+      }
+
+      total += value.byteLength;
+
+      if (total > maxBytes) {
+        await reader.cancel().catch(() => undefined);
+        return null;
+      }
+
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  return Buffer.concat(chunks.map(chunk => Buffer.from(chunk))).toString('utf8');
+}
+
+/** Read a raw body with a hard byte cap, including chunked requests. */
+export async function readRequestBody(request: Request, maxBytes = DEFAULT_JSON_BODY_LIMIT_BYTES) {
+  return readTextWithLimit(request, maxBytes);
+}
+
+export function getBodyLimitError(request: Request, maxBytes = DEFAULT_JSON_BODY_LIMIT_BYTES) {
+  const declared = Number(request.headers.get('content-length') ?? 0);
+
+  if (Number.isFinite(declared) && declared > maxBytes) {
+    return badRequest({
+      code: 'payload-too-large',
+      message: 'Request body is too large.',
+    });
+  }
+
+  return null;
+}
+
 export async function parseRequest(
   request: Request,
   schema?: any,
-  options?: { skipAuth: boolean },
+  options?: { skipAuth: boolean; maxBodyBytes?: number },
 ): Promise<any> {
   const url = new URL(request.url);
   let query = Object.fromEntries(url.searchParams);
-  let body = await getJsonBody(request);
+  const limitError =
+    request.method === 'GET'
+      ? null
+      : getBodyLimitError(request, options?.maxBodyBytes ?? DEFAULT_JSON_BODY_LIMIT_BYTES);
+
+  if (limitError) {
+    return { url, query, body: undefined, auth: null, error: () => limitError };
+  }
+
+  let body = await getJsonBody(request, options?.maxBodyBytes);
   let error: () => undefined | undefined | Response;
   let auth = null;
 
@@ -89,6 +163,19 @@ export async function parseRequest(
         });
     } else if (
       !error &&
+      auth.shareToken &&
+      auth.shareToken.shareType !== ENTITY_TYPE.website &&
+      url.pathname.startsWith('/api/websites/')
+    ) {
+      // A legacy link/pixel token must never become a website analytics
+      // capability simply because its entity id matches a website id.
+      error = () =>
+        forbidden({
+          message: 'This shared dashboard cannot read website analytics.',
+          code: 'share-section-forbidden',
+        });
+    } else if (
+      !error &&
       auth.shareToken?.shareType === ENTITY_TYPE.website &&
       !canAccessWebsiteShareRequest({
         pathname: url.pathname,
@@ -109,9 +196,14 @@ export async function parseRequest(
   return { url, query, body, auth, error };
 }
 
-export async function getJsonBody(request: Request) {
+export async function getJsonBody(request: Request, maxBytes?: number) {
   try {
-    return await request.clone().json();
+    const text = await readTextWithLimit(
+      request.clone(),
+      maxBytes ?? DEFAULT_JSON_BODY_LIMIT_BYTES,
+    );
+
+    return text ? JSON.parse(text) : undefined;
   } catch {
     return undefined;
   }
@@ -126,7 +218,10 @@ export function getRequestDateRange(query: Record<string, string>) {
   return {
     startDate,
     endDate,
-    timezone,
+    // This is a defense-in-depth boundary, not only a UI preference: the
+    // timezone is interpolated into the SQL of several analytics queries.
+    // Ignore anything that is not an IANA zone instead of forwarding it.
+    timezone: timezone && isValidTimezone(timezone) ? normalizeTimezone(timezone) : undefined,
     unit: getAllowedUnits(startDate, endDate).includes(unit)
       ? unit
       : getMinimumUnit(startDate, endDate),
