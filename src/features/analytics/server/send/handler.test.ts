@@ -31,6 +31,7 @@ vi.mock('@/features/analytics/lib/cross-domain-linker', () => ({
 
 vi.mock('@/lib/crypto', () => ({
   getSalt: vi.fn(() => 'salt'),
+  hash: vi.fn((...args: string[]) => args.join('|')),
   secret: vi.fn(() => 'secret'),
   uuid: vi.fn(() => '11111111-1111-4111-8111-111111111111'),
 }));
@@ -347,4 +348,56 @@ test('rejects a legacy pixel id that is actually another website id', async () =
   expect(response.status).toBe(400);
   expect(createSession).not.toHaveBeenCalled();
   expect(saveEvent).not.toHaveBeenCalled();
+});
+
+test('accepts a cookieless event and derives a salted visitor identity server-side', async () => {
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        website: websiteId,
+        sessionId: 's_tab',
+        hostname: 'shop.example',
+        url: 'https://shop.example/pricing',
+      },
+    },
+  } as any);
+
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
+
+  expect(response.status).toBe(200);
+  expect(createSession).toHaveBeenCalledWith(
+    expect.objectContaining({
+      websiteId,
+      visitorId: expect.any(String),
+    }),
+  );
+});
+
+test('derives both identities when a server-side caller sends no tokens', async () => {
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        website: websiteId,
+        hostname: 'shop.example',
+        url: 'https://shop.example/',
+      },
+    },
+  } as any);
+
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
+
+  expect(response.status).toBe(200);
+  expect(createSession).toHaveBeenCalledWith(
+    expect.objectContaining({
+      websiteId,
+      id: expect.any(String),
+      visitorId: expect.any(String),
+    }),
+  );
 });

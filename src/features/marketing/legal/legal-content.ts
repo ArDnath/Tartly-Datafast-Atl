@@ -129,26 +129,29 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
     slug: 'cookies',
     title: 'Cookie and consent policy',
     summary: 'How the product uses cookies and how session replay consent works.',
-    updated: '2026-11-06',
+    updated: '2026-11-14',
     sections: [
       {
         heading: 'Product cookies',
         body: [
           `The signed-in product uses one HttpOnly, SameSite=Lax session cookie named rl_session. It authenticates the session and is not used for advertising or cross-site tracking.`,
+          'The analytics tracker sets no cookies. It keeps a random session token in the tab session only, and that token expires after 30 minutes of inactivity.',
           'The marketing site does not add advertising cookies in this repository.',
         ],
       },
       {
         heading: 'Analytics identification',
         body: [
-          'The tracker derives a rotating visitor identifier from request data and a server-side salt. The rotation window is configurable (month, week, or day) and defaults to monthly.',
+          'The tracker does not store a persistent visitor identifier. The server derives a visitor key from a keyed, rotating hash of the request IP address, user agent, website, and a server-side salt. Raw IP addresses are not stored.',
+          'The rotation window is configurable (month, week, or day) and defaults to daily. A visitor active across a rotation boundary is counted as a new visitor, and visitors sharing an IP address and user agent are counted as one visitor for that window.',
           'The tracker does not create a third-party advertising identifier and does not share identifiers across customer websites.',
         ],
       },
       {
-        heading: 'Session replay consent',
+        heading: 'Analytics consent',
         body: [
-          'Session replay masks all inputs by default and masks text in strict mode. A host page can require consent with data-consent="required"; the recorder then waits for window.__taliviaSetConsent(true) or a talivia:consent event.',
+          'Analytics consent can be required before any event leaves the browser. Load the tracker with data-consent="required" and call window.talivia.setConsent(true) from your consent tool, or dispatch a talivia:consent event. Revoking consent stops later events; it cannot recall events already sent.',
+          'Session replay is separate. It masks all inputs by default and masks text in strict mode. With data-consent="required" the recorder waits for window.__taliviaSetConsent(true) or a talivia:consent event.',
           'Revoking consent stops the recorder. It does not start a new recording.',
         ],
       },

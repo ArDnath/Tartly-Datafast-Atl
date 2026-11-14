@@ -14,8 +14,10 @@
   const { hostname, href, origin } = location;
 
   let localStorage;
+  let sessionStorage;
   try {
     localStorage = href.startsWith('data:') ? undefined : window.localStorage;
+    sessionStorage = href.startsWith('data:') ? undefined : window.sessionStorage;
   } catch {
     /* (DOMException) SecurityError: Access is denied for this document. */
   }
@@ -35,10 +37,12 @@
   const excludeSearch = config('exclude-search') === _true;
   const excludeHash = config('exclude-hash') === _true;
   const allowedDomainConfig = config('domains') || '';
-  const configuredCookieDomain = (config('domain') || '').replace(/^\./, '').toLowerCase();
   const crossDomainConfig = config('cross-domain-domains') || '';
   const credentials = config('fetch-credentials') || 'omit';
   const perf = config('performance') === _true;
+  const trackOutbound = config('track-outbound') === _true;
+  const trackDownloads = config('track-downloads') === _true;
+  const consentRequired = config('consent') === 'required';
 
   const domains = allowedDomainConfig
     .split(',')
@@ -48,11 +52,6 @@
     .split(',')
     .map(n => n.trim().toLowerCase())
     .filter(Boolean);
-  const cookieDomainMatches = value =>
-    value && (hostname === value || hostname.endsWith(`.${value}`));
-  const sharedCookieDomain = cookieDomainMatches(configuredCookieDomain)
-    ? configuredCookieDomain
-    : crossDomains.find(cookieDomainMatches) || '';
   const host =
     hostUrl || '__COLLECT_API_HOST__' || currentScript.src.split('/').slice(0, -1).join('/');
   const endpoint = `${host.replace(/\/$/, '')}__COLLECT_API_ENDPOINT__`;
@@ -64,16 +63,14 @@
   const visibleDelayAttribute = `${visibleEventNameAttribute}-delay`;
   const defaultVisibleThreshold = 0.5;
   const delayDuration = 300;
-  const visitorCookieKey = 'talivia_visitor_id';
-  const sessionCookieKey = 'talivia_session_id';
+  const sessionStorageKey = 'talivia.session';
   const linkerParam = '_tlv';
   const dodoSessionIdParam = 'metadata_talivia_session_id';
   const lemonSqueezySessionIdParam = 'checkout[custom][talivia_session_id]';
   const stripeClientReferenceParam = 'client_reference_id';
   const collectorContextEvent = 'talivia:collector-context';
   const collectorContextRequestEvent = 'talivia:request-collector-context';
-  const visitorMaxAge = 365 * 24 * 60 * 60;
-  const sessionMaxAge = 30 * 60;
+  const sessionMaxAgeMs = 30 * 60 * 1000;
 
   /* Helper functions */
 
@@ -103,41 +100,6 @@
     return `${prefix}_${Date.now().toString(36)}${fallbackKeyCounter.toString(36)}`;
   };
 
-  const readCookie = name => {
-    let cookies;
-
-    try {
-      cookies = document.cookie;
-    } catch {
-      return undefined;
-    }
-
-    const prefix = `${name}=`;
-    const value = cookies.split('; ').find(item => item.startsWith(prefix));
-
-    if (!value) return undefined;
-
-    try {
-      return decodeURIComponent(value.substring(prefix.length));
-    } catch {
-      return value.substring(prefix.length);
-    }
-  };
-
-  const writeCookie = (name, value, maxAge) => {
-    if (!value) return false;
-
-    const domainAttribute = sharedCookieDomain ? `;domain=.${sharedCookieDomain}` : '';
-    const secureAttribute = location.protocol === 'https:' ? ';secure' : '';
-
-    try {
-      document.cookie = `${name}=${encodeURIComponent(value)};path=/;max-age=${maxAge};samesite=lax${domainAttribute}${secureAttribute}`;
-      return readCookie(name) === value;
-    } catch {
-      return false;
-    }
-  };
-
   const publishCollectorContext = () => {
     document.dispatchEvent(
       new CustomEvent(collectorContextEvent, {
@@ -146,41 +108,56 @@
     );
   };
 
-  const setVisitorId = value => {
-    if (!value) return;
+  // Cookieless identity: the tracker stores no persistent identifier. A random
+  // session token lives only in this tab's sessionStorage (or in memory when
+  // storage is blocked) and expires after 30 minutes of inactivity. Visitor
+  // uniqueness is derived server-side from a rotating salted hash.
+  const getSessionId = () => {
+    const now = Date.now();
+    let stored;
 
-    visitorId = value;
-    writeCookie(visitorCookieKey, value, visitorMaxAge);
-  };
+    try {
+      stored = sessionStorage?.getItem(sessionStorageKey);
+    } catch {
+      stored = undefined;
+    }
 
-  const setSessionId = value => {
-    if (!value) return;
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (
+          typeof parsed?.id === 'string' &&
+          parsed.id &&
+          typeof parsed.lastSeen === 'number' &&
+          now - parsed.lastSeen < sessionMaxAgeMs
+        ) {
+          sessionId = parsed.id;
+        }
+      } catch {
+        /* A malformed value is replaced below. */
+      }
+    }
 
-    if (sessionId && sessionId !== value) {
+    if (
+      !sessionId ||
+      (typeof sessionLastSeen === 'number' && now - sessionLastSeen >= sessionMaxAgeMs)
+    ) {
+      sessionId = createKey('s');
       cache = undefined;
       publishCollectorContext();
       linkerToken = undefined;
       linkerExpiresAt = undefined;
     }
 
-    sessionId = value;
-    sessionCookieWritable = writeCookie(sessionCookieKey, value, sessionMaxAge);
-  };
+    sessionLastSeen = now;
 
-  const getVisitorId = () => {
-    const value = readCookie(visitorCookieKey) || visitorId || createKey('v');
-    setVisitorId(value);
-    return value;
-  };
+    try {
+      sessionStorage?.setItem(sessionStorageKey, JSON.stringify({ id: sessionId, lastSeen: now }));
+    } catch {
+      /* Storage can be blocked; the in-memory session still works. */
+    }
 
-  const getSessionId = () => {
-    getVisitorId();
-    const value =
-      readCookie(sessionCookieKey) ||
-      (sessionCookieWritable === false ? sessionId : undefined) ||
-      createKey('s');
-    setSessionId(value);
-    return value;
+    return sessionId;
   };
 
   const hostnameMatches = (candidate, configured) =>
@@ -208,10 +185,8 @@
       const targetUrl = new URL(el.href, location.href);
       const targetHostname = targetUrl.hostname.toLowerCase();
       const isAllowed = crossDomains.some(item => hostnameMatches(targetHostname, item));
-      const sharesCookie =
-        sharedCookieDomain && hostnameMatches(targetHostname, sharedCookieDomain);
 
-      if (!isAllowed || sharesCookie || !/^https?:$/.test(targetUrl.protocol)) return undefined;
+      if (!isAllowed || !/^https?:$/.test(targetUrl.protocol)) return undefined;
 
       return targetUrl;
     } catch {
@@ -318,7 +293,6 @@
     referrer: currentRef,
     tag,
     id: identity ? identity : undefined,
-    visitorId: getVisitorId(),
     sessionId: getSessionId(),
     linker: incomingLinker,
   });
@@ -363,6 +337,36 @@
   };
 
   const handleClicks = () => {
+    const downloadExtensionPattern =
+      /\.(7z|avi|csv|dmg|docx?|exe|gz|mp3|mp4|pdf|pptx?|rar|rtf|tar|tgz|txt|wav|xlsx?|zip)$/i;
+
+    const getDownloadInfo = href => {
+      try {
+        const target = new URL(href, location.href);
+        if (!/^https?:$/.test(target.protocol)) return undefined;
+
+        const match = target.pathname.match(downloadExtensionPattern);
+        if (!match) return undefined;
+
+        return { url: target.toString(), extension: match[1].toLowerCase() };
+      } catch {
+        return undefined;
+      }
+    };
+
+    const getOutboundInfo = href => {
+      try {
+        const target = new URL(href, location.href);
+        if (!/^https?:$/.test(target.protocol) || target.hostname === hostname) {
+          return undefined;
+        }
+
+        return { url: target.toString(), domain: target.hostname };
+      } catch {
+        return undefined;
+      }
+    };
+
     const getEventName = el => el.getAttribute(eventNameAttribute);
 
     const trackElement = async el => {
@@ -399,6 +403,20 @@
 
       if (parentElement.tagName === 'BUTTON') {
         return hasEvent ? trackElement(parentElement) : undefined;
+      }
+
+      // Opt-in automatic events. Manual data-talivia-event takes precedence so
+      // one click is never counted twice. cross-domain links stay part of the
+      // same measured journey and are not counted as outbound.
+      if (parentElement.tagName === 'A' && href && !hasEvent) {
+        const download = trackDownloads ? getDownloadInfo(href) : undefined;
+
+        if (download) {
+          track('file-download', download);
+        } else if (trackOutbound && !crossDomainUrl) {
+          const outbound = getOutboundInfo(href);
+          if (outbound) track('outbound-link', outbound);
+        }
       }
 
       if (parentElement.tagName === 'A' && href) {
@@ -564,6 +582,7 @@
   const trackingDisabled = () =>
     disabled ||
     !website ||
+    !consentGranted ||
     localStorage?.getItem('talivia.disabled') ||
     (allowedDomainConfig && !domains.some(item => hostnameMatches(hostname, item))) ||
     (dnt && hasDoNotTrack());
@@ -596,8 +615,6 @@
       const data = await res.json();
       if (data) {
         disabled = !!data.disabled;
-        if (data.visitorId) setVisitorId(data.visitorId);
-        if (data.sessionId) setSessionId(data.sessionId);
         cache = data.cache;
         publishCollectorContext();
         linkerToken = data.linker;
@@ -653,6 +670,24 @@
       },
       'identify',
     );
+  };
+
+  // Optional consent gate. With data-consent="required" nothing leaves the
+  // browser until the host grants consent. Granting sends the current pageview;
+  // revoking stops all later sends but cannot recall events already sent.
+  const setConsent = granted => {
+    const next = !!granted;
+    if (next === consentGranted) return;
+
+    consentGranted = next;
+
+    if (next) {
+      if (!initialized && autoTrack) {
+        init();
+      } else {
+        track();
+      }
+    }
   };
 
   /* Performance */
@@ -817,6 +852,7 @@
     track,
     identify,
     getSessionId,
+    setConsent,
   };
 
   if (!window.talivia) {
@@ -829,10 +865,10 @@
 
   let initialized = false;
   let disabled = false;
+  let consentGranted = !consentRequired;
   let cache;
-  let visitorId;
   let sessionId;
-  let sessionCookieWritable;
+  let sessionLastSeen;
   let linkerToken;
   let linkerExpiresAt;
   let refreshLinkerPromise;
@@ -844,6 +880,15 @@
   const visibleEventNames = new Set();
 
   document.addEventListener(collectorContextRequestEvent, publishCollectorContext);
+
+  document.addEventListener('talivia:consent', event => {
+    const detail = event?.detail;
+    const granted = typeof detail === 'boolean' ? detail : detail?.consent;
+
+    if (typeof granted === 'boolean') {
+      setConsent(granted);
+    }
+  });
 
   if (autoTrack && !trackingDisabled()) {
     if (document.readyState === 'complete') {

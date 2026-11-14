@@ -148,6 +148,11 @@ export type TaliviaTracker = {
   };
   identify: (id: string | EventData, data?: EventData) => Promise<unknown>;
   getSessionId: () => string;
+  /**
+   * Grant or revoke analytics consent. Only meaningful with
+   * `data-consent="required"`, where nothing is sent before consent.
+   */
+  setConsent: (granted: boolean) => void;
 };
 
 export interface Window {

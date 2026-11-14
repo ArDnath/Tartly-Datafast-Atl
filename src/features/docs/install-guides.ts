@@ -34,7 +34,7 @@ export interface InstallContext {
   hostUrl?: string;
   mode?: InstallMode;
   basePath?: string;
-  /** Optional cross-domain cookie domains already supported by the tracker. */
+  /** Optional domains whose links receive a signed cross-domain linker. */
   crossDomainDomains?: string[];
 }
 

@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { CookieJar, JSDOM } from 'jsdom';
+import { JSDOM } from 'jsdom';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 
 const trackerSource = readFileSync(join(process.cwd(), 'src/tracker/index.js'), 'utf8');
@@ -138,6 +138,36 @@ const installTracker = (attributes: Record<string, string> = {}) => {
   new Function('window', 'document', trackerSource)(window, document);
 };
 
+const installTrackerInFreshDom = (attributes: Record<string, string> = {}) => {
+  const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', {
+    runScripts: 'outside-only',
+    url: 'https://site.example/',
+  });
+  const tracker = dom.window.document.createElement('script');
+  tracker.setAttribute('data-website-id', 'website-id');
+  tracker.setAttribute('data-host-url', 'https://collector.example');
+  Object.entries(attributes).forEach(([name, value]) => {
+    tracker.setAttribute(`data-${name}`, value);
+  });
+  dom.window.document.head.append(tracker);
+  Object.defineProperty(dom.window.document, 'currentScript', {
+    configurable: true,
+    value: tracker,
+  });
+  Object.defineProperty(dom.window.document, 'readyState', {
+    configurable: true,
+    value: 'complete',
+  });
+
+  const fetchMock = vi.fn().mockResolvedValue({
+    json: vi.fn().mockResolvedValue({}),
+  });
+  (dom.window as unknown as { fetch: unknown }).fetch = fetchMock;
+  dom.window.eval(trackerSource);
+
+  return { dom, fetchMock };
+};
+
 const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0));
 
 test('tracks a visible element once after it remains above its threshold', () => {
@@ -202,13 +232,22 @@ test('observes visible elements added after the tracker loads', () => {
   expect(request.payload.name).toBe('modal-seen');
 });
 
-test('stores visitor and session identity in first-party cookies', () => {
+test('sets no cookies and keeps a tab-scoped session token in sessionStorage', () => {
   installTracker({ 'auto-track': 'false' });
 
   const identity = window.talivia.getSessionId?.();
 
-  expect(document.cookie).toContain('talivia_visitor_id=v_');
-  expect(document.cookie).toContain(`talivia_session_id=${identity}`);
+  expect(document.cookie).toBe('');
+  expect(identity).toMatch(/^s_/);
+  expect(JSON.parse(window.sessionStorage.getItem('talivia.session') || '{}').id).toBe(identity);
+});
+
+test('ignores the legacy cookie-domain hint and still writes no cookies', () => {
+  installTracker({ 'auto-track': 'false', domain: 'example.com' });
+
+  window.talivia.getSessionId?.();
+
+  expect(document.cookie).toBe('');
 });
 
 test('keeps collector cache off the public API and shares it with internal scripts', async () => {
@@ -232,59 +271,7 @@ test('keeps collector cache off the public API and shares it with internal scrip
   expect(cache).toBe('collector-cache');
 });
 
-test('shares visitor and session cookies across configured subdomains', () => {
-  const cookieJar = new CookieJar();
-  const getIdentity = (host: string, crossDomains = '') => {
-    const dom = new JSDOM('<script></script>', {
-      cookieJar,
-      runScripts: 'outside-only',
-      url: `https://${host}/`,
-    });
-    const tracker = dom.window.document.querySelector('script');
-    tracker?.setAttribute('data-website-id', 'shared-website');
-    tracker?.setAttribute('data-domain', 'example.com');
-    if (crossDomains) tracker?.setAttribute('data-cross-domain-domains', crossDomains);
-    tracker?.setAttribute('data-auto-track', 'false');
-    Object.defineProperty(dom.window.document, 'currentScript', {
-      configurable: true,
-      value: tracker,
-    });
-    dom.window.eval(trackerSource);
-
-    return (
-      dom.window as unknown as Window & { talivia: { getSessionId: () => string } }
-    ).talivia.getSessionId();
-  };
-
-  const marketingIdentity = getIdentity('example.com');
-  const appIdentity = getIdentity('app.example.com');
-
-  expect(appIdentity).toBe(marketingIdentity);
-
-  const checkoutIdentity = getIdentity('pay.checkout.example.net', 'checkout.example.net');
-  const checkoutCookies = cookieJar.getCookiesSync('https://checkout.example.net/');
-
-  expect(checkoutIdentity).not.toBe(marketingIdentity);
-  expect(checkoutCookies.some(cookie => cookie.domain === 'checkout.example.net')).toBe(true);
-});
-
-test('starts a new rolling session after its cookie expires', () => {
-  installTracker({ domain: 'localhost' });
-
-  const fetchMock = vi.mocked(fetch);
-  const firstRequest = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
-  const firstSessionId = firstRequest.payload.sessionId;
-
-  // biome-ignore lint/suspicious/noDocumentCookie: Expiry must mimic the browser deleting the cookie.
-  document.cookie = 'talivia_session_id=;max-age=0;path=/';
-  (window as Window & { talivia: { track: () => void } }).talivia.track();
-
-  const secondRequest = JSON.parse(String(fetchMock.mock.calls[1][1]?.body));
-  expect(secondRequest.payload.sessionId).not.toBe(firstSessionId);
-  expect(secondRequest.payload.sessionId).toMatch(/^s_/);
-});
-
-test('keeps one in-memory session when the browser rejects cookie writes', () => {
+test('keeps one in-memory session when sessionStorage is unavailable', () => {
   const dom = new JSDOM('<script></script>', {
     runScripts: 'outside-only',
     url: 'https://private.example/',
@@ -296,10 +283,11 @@ test('keeps one in-memory session when the browser rejects cookie writes', () =>
     configurable: true,
     value: tracker,
   });
-  Object.defineProperty(dom.window.document, 'cookie', {
+  Object.defineProperty(dom.window, 'sessionStorage', {
     configurable: true,
-    get: () => '',
-    set: () => {},
+    get: () => {
+      throw new DOMException('Storage access is blocked.', 'SecurityError');
+    },
   });
 
   dom.window.eval(trackerSource);
@@ -311,7 +299,21 @@ test('keeps one in-memory session when the browser rejects cookie writes', () =>
   expect(firstSessionId).toMatch(/^s_/);
 });
 
-test('keeps tracking when cookie access throws', () => {
+test('starts a new rolling session after 30 minutes of inactivity', () => {
+  vi.useFakeTimers();
+  installTracker({ 'auto-track': 'false' });
+
+  const api = (window as Window & { talivia: { getSessionId: () => string } }).talivia;
+  const firstSessionId = api.getSessionId();
+
+  vi.advanceTimersByTime(30 * 60 * 1000 + 1);
+
+  const secondSessionId = api.getSessionId();
+  expect(secondSessionId).not.toBe(firstSessionId);
+  expect(secondSessionId).toMatch(/^s_/);
+});
+
+test('keeps tracking when storage access throws', () => {
   const dom = new JSDOM('<script></script>', {
     runScripts: 'outside-only',
     url: 'https://sandboxed.example/',
@@ -323,15 +325,14 @@ test('keeps tracking when cookie access throws', () => {
     configurable: true,
     value: tracker,
   });
-  Object.defineProperty(dom.window.document, 'cookie', {
+  const blockedStorage = {
     configurable: true,
     get: () => {
-      throw new DOMException('Cookie access is blocked.', 'SecurityError');
+      throw new DOMException('Storage access is blocked.', 'SecurityError');
     },
-    set: () => {
-      throw new DOMException('Cookie access is blocked.', 'SecurityError');
-    },
-  });
+  };
+  Object.defineProperty(dom.window, 'localStorage', blockedStorage);
+  Object.defineProperty(dom.window, 'sessionStorage', blockedStorage);
 
   dom.window.eval(trackerSource);
   const api = (dom.window as unknown as Window & { talivia: { getSessionId: () => string } })
@@ -518,4 +519,107 @@ test('forwards an incoming linker once and removes it from the visible URL', () 
   expect(request.payload.linker).toBe('signed-linker');
   expect(request.payload.url).not.toContain('_tlv');
   expect(window.location.search).toBe('?utm_source=partner');
+});
+
+test('tracks outbound links when the site opts in', async () => {
+  const { dom, fetchMock } = installTrackerInFreshDom({ 'track-outbound': 'true' });
+  fetchMock.mockClear();
+
+  const link = dom.window.document.createElement('a');
+  link.href = 'https://other.example/pricing';
+  dom.window.document.body.append(link);
+  link.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }));
+  await flushPromises();
+
+  const request = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
+  expect(request.payload.name).toBe('outbound-link');
+  expect(request.payload.data).toEqual({
+    url: 'https://other.example/pricing',
+    domain: 'other.example',
+  });
+});
+
+test('does not track outbound links by default', async () => {
+  const { dom, fetchMock } = installTrackerInFreshDom();
+  fetchMock.mockClear();
+
+  const link = dom.window.document.createElement('a');
+  link.href = 'https://other.example/pricing';
+  dom.window.document.body.append(link);
+  link.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }));
+  await flushPromises();
+
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
+test('tracks file downloads with the file extension', async () => {
+  const { dom, fetchMock } = installTrackerInFreshDom({ 'track-downloads': 'true' });
+  fetchMock.mockClear();
+
+  const link = dom.window.document.createElement('a');
+  link.href = 'https://cdn.example/reports/q4.pdf?ref=site';
+  dom.window.document.body.append(link);
+  link.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }));
+  await flushPromises();
+
+  const request = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
+  expect(request.payload.name).toBe('file-download');
+  expect(request.payload.data).toEqual({
+    url: 'https://cdn.example/reports/q4.pdf?ref=site',
+    extension: 'pdf',
+  });
+});
+
+test('sends nothing before consent when consent is required', async () => {
+  const { dom, fetchMock } = installTrackerInFreshDom({ consent: 'required' });
+  await flushPromises();
+
+  expect(fetchMock).not.toHaveBeenCalled();
+
+  const api = (dom.window as unknown as { talivia: { setConsent: (value: boolean) => void } })
+    .talivia;
+  api.setConsent(true);
+  await flushPromises();
+
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  const request = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
+  expect(request.type).toBe('event');
+
+  api.setConsent(false);
+  (dom.window as unknown as { talivia: { track: (name: string) => void } }).talivia.track(
+    'after-revoke',
+  );
+  await flushPromises();
+
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+
+test('accepts the talivia:consent event and re-enables sending after a revoke', async () => {
+  const { dom, fetchMock } = installTrackerInFreshDom({ consent: 'required' });
+  await flushPromises();
+
+  const consent = (granted: boolean) =>
+    dom.window.document.dispatchEvent(
+      new dom.window.CustomEvent('talivia:consent', { detail: { consent: granted } }),
+    );
+
+  consent(true);
+  await flushPromises();
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+
+  consent(false);
+  (dom.window as unknown as { talivia: { track: (name: string) => void } }).talivia.track(
+    'blocked',
+  );
+  await flushPromises();
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+
+  consent(true);
+  (dom.window as unknown as { talivia: { track: (name: string) => void } }).talivia.track(
+    'allowed',
+  );
+  await flushPromises();
+  expect(fetchMock).toHaveBeenCalledTimes(3);
+  const last = JSON.parse(String(fetchMock.mock.calls[2][1]?.body));
+  expect(last.payload.name).toBe('allowed');
 });

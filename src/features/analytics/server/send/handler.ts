@@ -31,13 +31,13 @@ import {
   upsertVisitorContext,
 } from '@/features/payments/server/queries/attribution';
 import { COLLECTION_TYPE, EVENT_TYPE } from '@/lib/constants';
-import { getSalt, secret, uuid } from '@/lib/crypto';
+import { getSalt, hash, secret, uuid } from '@/lib/crypto';
 import { getWorkspaceEntitlements } from '@/lib/entitlements';
-import redis from '@/lib/redis';
 import { fetchWebsite } from '@/lib/load';
 import { logger } from '@/lib/logger';
-import { parseRequest } from '@/lib/request';
 import { hashRateLimitSubject, rateLimitKey } from '@/lib/rate-limit';
+import redis from '@/lib/redis';
+import { parseRequest } from '@/lib/request';
 import { badRequest, forbidden, json, serverError, tooManyRequests } from '@/lib/response';
 import { anyObjectParam, urlOrPathParam } from '@/lib/schema';
 import { safeDecodeURI, safeDecodeURIComponent } from '@/lib/url';
@@ -290,8 +290,27 @@ export async function POST(request: Request) {
         visitorId = cache.visitorId;
         sessionId = cache.sessionId;
       } else {
-        if (!visitorToken || !sessionToken) {
-          return badRequest({ message: 'Missing visitor or session identity.' });
+        // Cookieless mode. The tracker sends only an ephemeral tab-scoped
+        // session token. When no visitor token arrives, derive a stable
+        // per-website visitor key from a rotating salted hash of the request
+        // IP and user agent. The raw values are never stored.
+        if (!visitorToken) {
+          visitorToken = hash(
+            websiteId,
+            ip || 'unknown',
+            userAgent || 'unknown',
+            getSalt(process.env.SALT_ROTATION || 'day', createdAt),
+            secret(),
+          );
+        }
+
+        // Server-side callers without a session token get a deterministic
+        // 30-minute bucket so events still sessionize without client state.
+        if (!sessionToken) {
+          sessionToken = hash(
+            visitorToken,
+            String(Math.floor(createdAt.getTime() / (30 * 60 * 1000))),
+          );
         }
 
         visitorId = getTrackingVisitorId(websiteId, visitorToken);
@@ -305,7 +324,7 @@ export async function POST(request: Request) {
             'server',
             ip,
             userAgent,
-            getSalt(process.env.SALT_ROTATION || 'month', createdAt),
+            getSalt(process.env.SALT_ROTATION || 'day', createdAt),
           );
     }
 

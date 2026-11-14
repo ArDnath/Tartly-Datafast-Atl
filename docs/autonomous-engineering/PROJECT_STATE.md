@@ -10,63 +10,84 @@
 ## Discovery evidence
 
 `revenuelens` is the only directory that carries the full fork: origin
-`ArDnath/Tartly-Datafast-Atl`, upstream `talivia-group/talivia`, the newest
-history (93 commits at start), the analytics engine, tracker, Prisma schema,
-billing, and the `docs/PHASES.md` tracker. The sibling directories
-`revenuelens-runtime`, `revenuelens-serfix`, and `revenuelens-ts7` are older
-checkouts of three dependency-fix branches (2026-11-11); they are not the
-source of truth.
-
-## Dirty-tree resolution (user-approved)
-
-The working tree held a finished, uncommitted 2026-11-14 activation/security
-slice (95 modified + 12 untracked files, including three Prisma migrations).
-The user granted full control on condition that the existing implementation is
-preserved.
-
-Actions taken:
-
-1. Created `feature/14-activation-security` at `ec11b22` and committed all 107
-   files as `893920b` (nothing discarded, `main` untouched).
-2. Regenerated the Prisma client (typecheck failed on stale
-   `providerName_providerEventKey` types).
-3. Committed one additional verified test file as `cb052f7`.
-4. Fast-forwarded `autonomous/saas-buildout` onto the slice, so the buildout
-   starts from the secured code, not from the pre-audit baseline.
+`Ardntah/Tartly-Datafast-Atl`, upstream `talivia-group/talivia`, the newest
+history, the analytics engine, tracker, Prisma schema, billing, and the
+`docs/PHASES.md` tracker. The sibling directories `revenuelens-runtime`,
+`revenuelens-serfix`, and `revenuelens-ts7` are older checkouts of three
+dependency-fix branches; they are not the source of truth. `git worktree list`
+confirms that the main checkout owns all three sibling worktrees. The working
+tree was clean on resume.
 
 ## Capability probe (2026-11-14)
 
-| Capability            | Status | Evidence                                                        |
-| --------------------- | ------ | --------------------------------------------------------------- |
-| Subagents             | YES    | `subagent` tool with `explore` and `general` agents              |
-| Git worktrees         | YES    | `git worktree list` shows four existing worktrees                |
-| Shell / Node / pnpm   | YES    | Node v24.13.0, pnpm 10.10.0                                      |
-| Test runner           | YES    | Vitest 4.1.12 (`pnpm test`, coverage-gated in `pnpm gate`)       |
-| Lint / format         | YES    | Biome (`biome.json`)                                             |
-| Browser automation    | YES    | `browser` tools; `next dev` already running on the repo          |
-| Web access            | YES    | `webfetch`, `websearch`, Firecrawl tools                         |
-| Local PostgreSQL      | YES    | `pnpm db:local` / `pnpm smoke:local` scripts                     |
-| Redis                 | YES    | docker-compose / local service (collector throttles)             |
+| Capability          | Status | Evidence                                                    |
+| ------------------- | ------ | ----------------------------------------------------------- |
+| Subagents           | YES    | `subagent` tool with `explore` and `general` agents          |
+| Git worktrees       | YES    | `git worktree list`; no extra worktrees created (RAM)        |
+| Shell / Node / pnpm | YES    | Node v24.13.0, pnpm 10.10.0                                  |
+| Test runner         | YES    | Vitest 4.1.12, coverage gated by `pnpm gate`                 |
+| Lint / format       | YES    | Biome                                                        |
+| Browser automation  | YES    | `browser` tools; no desktop browser was connected            |
+| Web access          | YES    | `webfetch`, `websearch`, Firecrawl                           |
+| Local PostgreSQL    | YES    | `pnpm db:local` / `pnpm smoke:local`                         |
+| Resource watchdog   | YES    | `scripts/agent-resource-guard.sh` → `/tmp/opencode/revenuelens-resources.log` |
+
+## Resource policy (binding on this machine)
+
+The host has **7.1 GB RAM, 12 logical cores, no GPU**. Two orphaned 10-worker
+`vitest` runs from the previous session drove load average to ~30 and left
+~1.9 GB available; both were stopped. From now on:
+
+1. Tests run with `--maxWorkers=2` and `NODE_OPTIONS=--max-old-space-size=2048`.
+2. No parallel `next build`, dev server, or test run.
+3. Subagents are docs-only unless their contract says otherwise; max 4 active,
+   and no subagent may run install/build/test/dev commands.
+4. The watchdog samples memory, swap, load, and top RSS every 15 s. If
+   `MemAvailable < 700 MB` or load1 > 10, stop the current heavy step before
+   starting another.
+5. Playwright/browser work is limited to one page and one screenshot at a time.
 
 ## Concurrency decision
 
 Wave 0 servants write to disjoint `docs/` trees in this worktree and use the
 lock protocol only for shared files. Separate Git worktrees per servant were
-not used in Wave 0 because (a) nobody writes code, (b) each worktree would
-require a duplicate `node_modules` install, and (c) a `next dev` process is
-already bound to this checkout. Wave 2 code servants use a dedicated feature
-branch in this worktree and the master merges each slice; this is recorded as
-a deliberate deviation with the reason in
-`docs/architecture/ARCHITECTURE_DECISIONS.md`.
+not used: (a) nobody writes code, (b) each worktree would duplicate
+`node_modules`, and (c) the machine cannot support parallel builds. Wave 2 code
+slices are made by the master in this worktree, one at a time. Recorded in
+`docs/architecture/ARCHITECTURE_DECISIONS.md` ADR-003.
 
 ## Current state
 
-- **Wave 0:** in progress (S1 app audit, S2 design language, S3 reference
-  inventory, S4 market research; S5 privacy/legal queued).
+- **Wave 0:** S2 (design language) and S3 (reference inventory) complete.
+  S1 (app audit) and S4 (market research) running.
+- **Code slices complete on `autonomous/saas-buildout`:**
+  - **Cookieless tracker:** no tracker cookies; tab-scoped session token;
+    server-derived rotating keyed visitor hash; `SALT_ROTATION=day` default.
+    Tests: tracker 22, collector handler 9, related 7. Tracker build
+    9,862 bytes raw / 4.0 KB gzip, zero `document.cookie`.
+  - **Opt-in outbound/download events:** `outbound-link` and `file-download`,
+    with manual-event precedence and cross-domain exclusion. Tests included.
+  - **Tracker reference docs** on `/docs/install` and a tracker-reference nav
+    entry; legal cookie page corrected (2026-11-14).
+  - **License notice:** Umami's MIT copyright restored in
+    `THIRD_PARTY_NOTICES.md` (Talivia's LICENSE had replaced it).
 - **Wave 1 / 2 / 3:** not started.
 - **Release gate:** not evaluated.
 
+## Evidence log
+
+- `pnpm exec vitest run src/tracker/index.test.ts` → 22 passed.
+- `pnpm exec vitest run src/features/analytics/server/send/handler.test.ts` →
+  9 passed.
+- `pnpm exec vitest run src/features/docs` → 24 passed.
+- `pnpm typecheck` → exit 0.
+- `pnpm build-tracker` → `public/script.js` created; 9,862 B raw, 4.0 KB gzip.
+- Resource log: `/tmp/opencode/revenuelens-resources.log`.
+
 ## Next step
 
-Complete Wave 0, then synthesize `docs/architecture/MASTER_ARCHITECTURE.md`
-and `docs/architecture/PORT_PLAN.md` before any implementation.
+Finish S1/S4, write `docs/architecture/MASTER_ARCHITECTURE.md` and
+`docs/architecture/PORT_PLAN.md`, review the S2/S3 findings, then run the next
+P0 code slices (consent-aware tracker mode, first-party install verification,
+and any confirmed gap from S1). Run `pnpm gate` with capped workers before the
+commit.
