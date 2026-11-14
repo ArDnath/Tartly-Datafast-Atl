@@ -136,3 +136,22 @@ test('enforces configured website share sections on server routes', async () => 
   expect(sessionError().status).toBe(403);
   expect(funnelError().status).toBe(403);
 });
+
+test('does not treat a normal session as a legacy share on website analytics', async () => {
+  const { error, auth } = await parseRequest(req('/api/websites/install-status'));
+
+  expect(error).toBeUndefined();
+  expect(auth.user.id).toBe('user-1');
+});
+
+test('blocks a legacy link/pixel share token from website analytics', async () => {
+  vi.mocked(checkAuth).mockResolvedValue({
+    user: { id: 'user-1', role: 'user' },
+    shareToken: { shareType: 2, shareId: 'share-1', shareSlug: 'legacy', websiteId: 'website-1' },
+  } as any);
+
+  const { error } = await parseRequest(req('/api/websites/website-1/stats'));
+  const response = error?.();
+
+  expect(response?.status).toBe(403);
+});
