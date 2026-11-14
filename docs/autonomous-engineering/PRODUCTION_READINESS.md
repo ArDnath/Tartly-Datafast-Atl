@@ -1,7 +1,7 @@
 # Production readiness
 
 - **Evaluated:** 2026-11-15
-- **Revision:** `7e32b59` plus the docs on this commit
+- **Revision:** `25cdd55` plus the docs on this commit
 - **Gate evidence:** `/tmp/opencode/gate.log` (local run, 7.1 GB host)
 - **Verdict:** **NOT PRODUCTION READY** until the critical items below close.
   The core product runs and is tested; the privacy-retention and billing-proof

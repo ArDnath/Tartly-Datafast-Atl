@@ -80,6 +80,7 @@ Full tables and sources are in `docs/market-intelligence/`.
 9. `9c6b3ce` session replay switch + docs.
 10. `d45ad0c` honest pre-payment verification, first-site landing, no fake chart.
 11. `7e32b59` formatting + snippet test.
+12. `25cdd55` ClickHouse retention/deletion helper, TTL migration, tests.
 
 ## Working features (verified by tests/smoke)
 
