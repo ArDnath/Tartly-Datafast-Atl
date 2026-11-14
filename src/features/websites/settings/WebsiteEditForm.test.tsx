@@ -64,6 +64,7 @@ test('submits only editable website fields', async () => {
     {
       domain: 'www.nba.com',
       name: 'NBA Stats',
+      replayEnabled: false,
     },
     expect.any(Object),
   );

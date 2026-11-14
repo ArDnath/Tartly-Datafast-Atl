@@ -1,10 +1,19 @@
 import { z } from 'zod';
-import { parseRequest } from '@/lib/request';
-import { badRequest, conflict, json, ok, serverError, unauthorized } from '@/lib/response';
 import {
   getWebsiteNameFromDomain,
   normalizeWebsiteDomainInput,
 } from '@/features/websites/lib/website-domain';
+import { entitlementsHaveFeature, getWorkspaceEntitlements } from '@/lib/entitlements';
+import { parseRequest } from '@/lib/request';
+import {
+  badRequest,
+  conflict,
+  forbidden,
+  json,
+  ok,
+  serverError,
+  unauthorized,
+} from '@/lib/response';
 import {
   canDeleteWebsite,
   canUpdateWebsite,
@@ -68,6 +77,7 @@ export async function POST(
   const schema = z.strictObject({
     name: z.string().optional(),
     domain: z.string().optional(),
+    replayEnabled: z.boolean().optional(),
   });
 
   const { auth, body, error } = await parseRequest(request, schema);
@@ -107,9 +117,21 @@ export async function POST(
       name = getWebsiteNameFromDomain(domain ?? currentWebsite?.domain);
     }
 
+    if (body.replayEnabled === true && currentWebsite?.workspaceId) {
+      const entitlements = await getWorkspaceEntitlements(currentWebsite.workspaceId);
+
+      if (!entitlementsHaveFeature(entitlements, 'session_replay')) {
+        return forbidden({
+          code: 'plan_feature_required',
+          message: 'Session replay requires an active Pro plan.',
+        });
+      }
+    }
+
     const website = await updateWebsite(websiteId, {
       name,
       domain,
+      replayEnabled: body.replayEnabled,
     });
 
     await recordAuditEvent({
@@ -119,6 +141,7 @@ export async function POST(
         changed: {
           domain: domain !== undefined,
           name: name !== undefined,
+          replayEnabled: body.replayEnabled !== undefined,
         },
       },
       request,

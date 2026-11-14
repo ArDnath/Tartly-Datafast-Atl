@@ -102,6 +102,38 @@
 - **N/A:** database schema or migration change, new dependency, new
   infrastructure, and any tracker payload breaking change.
 
+## 2026-11-15 — Session replay toggle, revenue-first channel sort, attribution stability
+
+- **Session replay can be enabled.** Website settings now expose a Session
+  replay switch. The website update handler accepts `replayEnabled` and rejects
+  enabling it without an active Pro entitlement (`plan_feature_required`),
+  while still allowing a workspace to turn it off after a downgrade. The
+  recorder was already built and its ingest endpoint already enforces the plan
+  and per-session meter; what was missing was the customer-facing switch and
+  install copy. The tracker reference now documents the recorder snippet and
+  its consent and masking behaviour.
+- **Revenue first.** The Revenue page's channel breakdown opens sorted by
+  revenue instead of visitors, so the core promise ("which channel makes
+  money") is visible without a sort click.
+- **Attribution stability.** `SALT_ROTATION` is back to `month` by default. A
+  daily window reset visitor identity every day, so a returning buyer's first
+  touch was lost and often landed on direct. Daily and weekly remain available
+  for stricter privacy.
+- **Cross-domain identity fixed.** Visitor and session tokens are truncated to
+  the same 100-character width that `Visitor.token` stores and that the signed
+  cross-domain linker carries, so the second domain derives the same visitor
+  UUID instead of an orphan. Covered by a collector test.
+- **Last-touch beacon fixed.** The payment attribution snapshot now reads only
+  pageview and custom events, so a visibility performance beacon can no longer
+  null a campaign's last-touch source.
+- **Verification:** typecheck exit 0; website update 5 tests, edit form 1, docs
+  24, attribution journeys 6, collector 12, cross-domain 3. Full gate is run
+  separately and recorded in `PRODUCTION_READINESS.md`.
+- **UNVERIFIED:** a real browser replay recording against a live site; the
+  recorder and ingest path are unit- and smoke-tested, not browser-tested here.
+- **N/A:** schema/migration change (the `replayEnabled` column already existed),
+  new dependency, new infrastructure.
+
 ## Overall progress
 
 - Total phases: **13** (0–12 product/build, 12 go-to-market)

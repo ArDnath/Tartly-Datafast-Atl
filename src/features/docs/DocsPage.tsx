@@ -355,6 +355,27 @@ const sessionId = window.talivia.getSessionId();`}</code>
           <code>usage_limit_reached</code>. The collector is rate limited per source address and
           applies bot and origin checks; it is not a general-purpose public write endpoint.
         </p>
+
+        <h3 className={styles.sectionTitle}>Session replay (Pro)</h3>
+        <p className={styles.body}>
+          Turn on Session replay in website settings, then load the recorder after the tracker. The
+          recorder waits for the tracker&apos;s collector context, so the tracker must be present on
+          the same page. Inputs are masked by default and strict masking is available. With{' '}
+          <code>data-consent=&quot;required&quot;</code>, recording waits for{' '}
+          <code>window.__taliviaSetConsent(true)</code> or a <code>talivia:consent</code> event.
+        </p>
+        <div className={styles.codeBlock}>
+          <div className={styles.codeHeader}>
+            <span>HTML</span>
+            <span>Recorder</span>
+          </div>
+          <pre>
+            <code>{`<script defer src="${BRAND.url}/recorder.js"
+  data-website-id="YOUR_WEBSITE_ID"
+  data-sample-rate="0.15"
+  data-mask-level="moderate"></script>`}</code>
+          </pre>
+        </div>
       </section>
 
       {INSTALL_GUIDES.map(guide => (
