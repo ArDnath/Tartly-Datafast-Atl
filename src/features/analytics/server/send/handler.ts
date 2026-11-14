@@ -16,6 +16,7 @@ import { isTrackerOriginAllowed } from '@/features/analytics/lib/tracker-origin'
 import {
   getTrackingSessionId,
   getTrackingVisitorId,
+  TRACKING_TOKEN_MAX_LENGTH,
 } from '@/features/analytics/lib/tracking-identity';
 import {
   createSession,
@@ -316,7 +317,7 @@ export async function POST(request: Request) {
             websiteId,
             ip || 'unknown',
             userAgent || 'unknown',
-            getSalt(process.env.SALT_ROTATION || 'day', createdAt),
+            getSalt(process.env.SALT_ROTATION || 'month', createdAt),
             secret(),
           );
         }
@@ -330,6 +331,12 @@ export async function POST(request: Request) {
           );
         }
 
+        // Derive from the same truncated width that the visitor row and the
+        // cross-domain linker store. Otherwise a linked second domain creates
+        // events under a visitor UUID that has no visitor row.
+        visitorToken = visitorToken.slice(0, TRACKING_TOKEN_MAX_LENGTH);
+        sessionToken = sessionToken.slice(0, TRACKING_TOKEN_MAX_LENGTH);
+
         visitorId = getTrackingVisitorId(websiteId, visitorToken);
         sessionId = getTrackingSessionId(websiteId, sessionToken);
       }
@@ -341,7 +348,7 @@ export async function POST(request: Request) {
             'server',
             ip,
             userAgent,
-            getSalt(process.env.SALT_ROTATION || 'day', createdAt),
+            getSalt(process.env.SALT_ROTATION || 'month', createdAt),
           );
     }
 

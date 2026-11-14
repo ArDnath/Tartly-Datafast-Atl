@@ -62,7 +62,8 @@ slices are made by the master in this worktree, one at a time. Recorded in
   S1 (app audit) and S4 (market research) running.
 - **Code slices complete on `autonomous/saas-buildout`:**
   - **Cookieless tracker:** no tracker cookies; tab-scoped session token;
-    server-derived rotating keyed visitor hash; `SALT_ROTATION=day` default.
+    server-derived rotating keyed visitor hash; `SALT_ROTATION=month` default
+    (daily resets first-touch attribution every day).
     Tests: tracker 22, collector handler 9, related 7. Tracker build
     9,862 bytes raw / 4.0 KB gzip, zero `document.cookie`.
   - **Opt-in outbound/download events:** `outbound-link` and `file-download`,

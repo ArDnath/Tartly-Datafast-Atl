@@ -143,7 +143,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         heading: 'Analytics identification',
         body: [
           'The tracker does not store a persistent visitor identifier. The server derives a visitor key from a keyed, rotating hash of the request IP address, user agent, website, and a server-side salt. Raw IP addresses are not stored.',
-          'The rotation window is configurable (month, week, or day) and defaults to daily. A visitor active across a rotation boundary is counted as a new visitor, and visitors sharing an IP address and user agent are counted as one visitor for that window.',
+          'The rotation window is configurable (month, week, or day) and defaults to monthly so that a returning visitor keeps first-touch attribution across days. A visitor active across a rotation boundary is counted as a new visitor, and visitors sharing an IP address and user agent are counted as one visitor for that window. A shorter window is available for stricter privacy.',
           'The tracker does not create a third-party advertising identifier and does not share identifiers across customer websites.',
         ],
       },

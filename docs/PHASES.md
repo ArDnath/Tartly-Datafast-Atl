@@ -55,8 +55,9 @@
   (`sessionStorage`, 30-minute rolling expiry) and falls back to memory when
   storage is blocked. The server derives the visitor key from a keyed,
   rotating salted hash of website, IP, user agent, salt, and `APP_SECRET`;
-  raw IP is still never stored. `SALT_ROTATION` now defaults to `day` in
-  `.env.example` and `docs/ENVIRONMENT.md`. Decision record: ADR-001 in
+  raw IP is still never stored. `SALT_ROTATION` defaults to `month` in
+  `.env.example` and `docs/ENVIRONMENT.md`; a daily default reset first-touch
+  attribution every day, which broke the revenue promise. Decision record: ADR-001 in
   `docs/architecture/ARCHITECTURE_DECISIONS.md`.
 - **Attribution preserved.** Checkout link decoration still carries the tab
   session ID to Dodo, Stripe, and Lemon Squeezy; the signed cross-domain linker

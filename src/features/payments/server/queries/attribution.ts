@@ -1,3 +1,4 @@
+import { TRACKING_TOKEN_MAX_LENGTH as VISITOR_TOKEN_LENGTH } from '@/features/analytics/lib/tracking-identity';
 import type { Visitor } from '@/generated/prisma/client';
 import { URL_LENGTH } from '@/lib/constants';
 import { hash } from '@/lib/crypto';
@@ -5,7 +6,6 @@ import prisma from '@/lib/prisma';
 import { isUniqueConstraintError } from '@/lib/prisma-error';
 
 const SOURCE_LENGTH = 255;
-const VISITOR_TOKEN_LENGTH = 100;
 const PROVIDER_NAME_LENGTH = 50;
 const CUSTOMER_ID_LENGTH = 255;
 const NAME_LENGTH = 255;

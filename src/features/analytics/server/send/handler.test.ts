@@ -446,3 +446,29 @@ test('accepts a recently delayed event inside the window', async () => {
   expect(response.status).toBe(200);
   expect(createSession).toHaveBeenCalled();
 });
+
+test('stores and derives identity from the same 100-character token width', async () => {
+  const longVisitor = 'v'.repeat(128);
+  const longSession = 's'.repeat(128);
+
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        website: websiteId,
+        visitorId: longVisitor,
+        sessionId: longSession,
+        hostname: 'shop.example',
+        url: 'https://shop.example/',
+      },
+    },
+  } as any);
+
+  await POST(new Request('https://collector.example/api/send', { method: 'POST' }));
+
+  expect(ensureVisitorContext).toHaveBeenCalledWith(
+    expect.objectContaining({
+      visitorToken: longVisitor.slice(0, 100),
+    }),
+  );
+});

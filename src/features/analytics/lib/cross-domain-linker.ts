@@ -1,3 +1,4 @@
+import { TRACKING_TOKEN_MAX_LENGTH } from '@/features/analytics/lib/tracking-identity';
 import { createToken, parseToken } from '@/lib/jwt';
 
 export interface CrossDomainIdentity {
@@ -45,7 +46,7 @@ export function parseCrossDomainLinker(
   }
 
   return {
-    visitorToken: linked.visitorToken.substring(0, 100),
-    sessionToken: linked.sessionToken.substring(0, 100),
+    visitorToken: linked.visitorToken.substring(0, TRACKING_TOKEN_MAX_LENGTH),
+    sessionToken: linked.sessionToken.substring(0, TRACKING_TOKEN_MAX_LENGTH),
   };
 }

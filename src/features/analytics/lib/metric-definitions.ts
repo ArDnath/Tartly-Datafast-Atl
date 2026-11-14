@@ -12,7 +12,7 @@ export const METRIC_DEFINITIONS = {
   conversionRate:
     'Matched payments divided by unique visitors, times 100. Renewals count as payments, so a small returning customer base can produce a value above 100%.',
   visitors:
-    'Unique visitors in the selected range. Tracking is cookieless, so uniqueness uses a rotating keyed hash: the same person on another rotation day counts again, and visitors sharing an IP address and browser are counted once per day.',
+    'Unique visitors in the selected range. Tracking is cookieless, so uniqueness uses a rotating keyed hash: the same person after the rotation window (monthly by default) counts again, and visitors sharing an IP address and browser are counted once per window.',
   bounceRate: 'Visits with exactly one pageview divided by all visits in the range.',
   visitDuration: 'Total time spent across visits divided by the number of visits.',
   online: 'Distinct visitors with at least one event in the last 5 minutes.',

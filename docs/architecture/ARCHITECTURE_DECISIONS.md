@@ -23,14 +23,19 @@ re-litigate them blindly.
   3. The server derives a visitor token when none is supplied:
      `hash(websiteId, ip, userAgent, getSalt(SALT_ROTATION, createdAt), secret())`.
      Raw IP and user agent are used only for this hash and are not stored.
-  4. `SALT_ROTATION` defaults to `day` for new deployments (`.env.example`).
+  4. `SALT_ROTATION` defaults to `month` for new deployments (`.env.example`).
+     A daily window resets visitor identity (and first-touch attribution) every
+     day, which breaks the product's revenue promise. Daily or weekly rotation
+     remains available for privacy-sensitive sites.
   5. A server caller with no session token gets a deterministic 30-minute
      bucket, so server-side events still sessionize.
 - **Consequences:**
-  - No persistent client identifier. Visitors are daily uniques by default;
-    a visitor crossing the rotation boundary or changing network counts again.
+  - No persistent client identifier. Visitors are unique per rotation window
+    (monthly by default); a visitor crossing the boundary or changing network
+    counts again. First-touch attribution survives days within the window.
   - Visitors behind one NAT with identical user agents collapse into one
-    visitor. Documented on the legal page.
+    visitor. Documented on the legal page. A shorter rotation narrows this
+    window but resets attribution sooner.
   - Cross-subdomain journeys rely on the signed linker
     (`data-cross-domain-domains`), not a shared cookie domain. The old
     `data-domain` hint is ignored.
