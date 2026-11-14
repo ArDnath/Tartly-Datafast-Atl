@@ -1,5 +1,7 @@
 import type { Prisma, Website } from '@/generated/prisma/client';
 import { normalizeUsername } from '@/lib/auth-user';
+import { deleteClickHouseWebsiteData } from '@/lib/clickhouse-retention';
+import { logger } from '@/lib/logger';
 import prisma from '@/lib/prisma';
 import redis from '@/lib/redis';
 import type { QueryFilters } from '@/lib/types';
@@ -400,6 +402,15 @@ export async function deleteWebsite(websiteId: string) {
   ).then(async data => {
     if (redis.enabled) {
       await redis.client.del(`website:${websiteId}`);
+    }
+
+    try {
+      await deleteClickHouseWebsiteData(websiteId);
+    } catch (error) {
+      logger.error('website.clickhouse_purge_failed', {
+        websiteId,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
 
     return data;

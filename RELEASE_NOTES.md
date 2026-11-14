@@ -50,9 +50,9 @@
 
 ## Known limitations
 
-- Analytics stored in ClickHouse is not yet covered by the retention or deletion
-  jobs. Do not claim plan retention on a ClickHouse deployment until this is
-  fixed.
+- ClickHouse retention/deletion code and a 365-day TTL migration ship in this
+  release, but have not been run against a live ClickHouse yet. Verify on the
+  deployment before advertising plan retention.
 - A retried client event is not deduplicated at the event level.
 - Live payment-provider and email flows require production credentials and have
   not been verified in this release environment.

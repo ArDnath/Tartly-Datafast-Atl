@@ -115,17 +115,18 @@ load and records the host's CPU/disk/egress.
 ## Tests executed
 
 - `pnpm gate` exit 0 on 2026-11-15:
-  - 227 test files passed / 1 skipped.
-  - 1,126 tests passed / 1 skipped.
-  - Coverage 68.15% statements / 58.1% branches / 65.56% functions / 68.6% lines.
+  - 228 test files passed / 1 skipped.
+  - 1,130 tests passed / 1 skipped.
+  - Coverage 68.19% statements / 58.11% branches / 65.6% functions / 68.64% lines.
   - Production build compiled; 78 static pages; postbuild ran.
 - `pnpm smoke:local` passed on local PostgreSQL.
 - Full suite with 2 workers took ~4.6 minutes on the 7.1 GB host.
 
 ## Blocked / limited
 
-- ClickHouse retention and deletion: not implemented; privacy promise false
-  there. Needs a VPS/CH run.
+- ClickHouse retention and deletion: implemented with a plan-cutoff helper, a
+  365-day TTL migration, and website-delete purge; unit-tested but not run
+  against a live ClickHouse. Needs a VPS/CH run before claiming retention.
 - No event-level idempotency; retried events can double count/bill.
 - Last-non-direct attribution model: deferred.
 - Live Dodo checkout/webhook/portal, Resend delivery, Google consent: external
@@ -152,7 +153,8 @@ load and records the host's CPU/disk/egress.
 
 ## First 30 days to first paying customers
 
-1. Fix ClickHouse retention/deletion and add event idempotency (week 1).
+1. Verify ClickHouse retention/deletion on the VPS and add event idempotency
+   (week 1).
 2. Run a real Dodo test-mode checkout, webhook, portal and cancellation; then a
    live-mode smoke with a $1 internal purchase (week 1–2).
 3. Browser-run the full journey on desktop and mobile, including replay and
@@ -169,6 +171,6 @@ load and records the host's CPU/disk/egress.
 ## Final status
 
 **NOT PRODUCTION READY.** The core is built, tested, and far more honest than the
-starting state, but the ClickHouse retention failure, missing event idempotency,
-and unverified live billing are release blockers. They are documented with exact
+starting state, but live ClickHouse retention, missing event idempotency, and
+unverified live billing are release blockers. They are documented with exact
 next actions rather than hidden.

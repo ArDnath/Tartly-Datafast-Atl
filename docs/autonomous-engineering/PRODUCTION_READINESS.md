@@ -12,8 +12,8 @@
 | Area                       | Status  | Evidence                                                                     |
 | -------------------------- | ------- | ---------------------------------------------------------------------------- |
 | Format, lint, typecheck    | PASS    | `pnpm gate` exit 0                                                           |
-| Unit + integration tests   | PASS    | 227 files passed / 1 skipped; 1,126 tests passed / 1 skipped                 |
-| Coverage threshold         | PASS    | 68.15% statements, 58.1% branches, 65.56% functions, 68.6% lines             |
+| Unit + integration tests   | PASS    | 228 files passed / 1 skipped; 1,130 tests passed / 1 skipped                 |
+| Coverage threshold         | PASS    | 68.19% statements, 58.11% branches, 65.6% functions, 68.64% lines            |
 | Production build           | PASS    | Next.js build compiled; 78 static pages; postbuild ran                       |
 | Deploy script/smoke checks | PASS    | `gate:deploy` in the same run                                                |
 | Local ingestion E2E        | PASS    | `pnpm smoke:local`: pageviews 1 / visitors 1 / visits 1                      |
@@ -47,10 +47,11 @@
 - PASS: no tracker cookies; session token is tab-scoped; visitor key is a keyed
   rotating hash; raw IP is not stored; retention exists for PostgreSQL.
 - PASS: consent gate, GPC, and opt-in DNT.
-- **FAIL:** ClickHouse has no TTL and the retention/deletion jobs do not touch
-  it. In a ClickHouse deployment the Starter 90-day promise is false and a
-  deleted website's analytics payload persists. This is a privacy and contract
-  failure.
+- **IMPLEMENTED, UNVERIFIED:** a ClickHouse retention helper now deletes the
+  payload tables by plan cutoff, a global 365-day TTL migration is checked in,
+  and website deletion purges all ClickHouse payload rows. Unit tests cover the
+  SQL shape and tenant scoping, but no ClickHouse instance was available here.
+  Until it runs on the VPS, do not claim the 90/365-day retention promise.
 - **BLOCKED:** privacy policy wording and subprocessor list need legal review.
 
 ### Developer experience
@@ -79,7 +80,8 @@
 - PASS: tenant-scoped reads/writes, BOLA tests, webhook signatures, CSRF,
   session handling, rate limits, bot filtering, timestamp bounds.
 - PASS: no critical dependency findings in the recorded audit.
-- **FAIL:** ClickHouse retention/deletion as above.
+- **UNVERIFIED:** ClickHouse retention/deletion as above (code and tests, no
+  live ClickHouse run).
 - **OPEN:** provider webhook payloads and audit IPs have no retention policy.
 - **OPEN:** share links never expire.
 
@@ -101,8 +103,8 @@
 
 ## Required before charging customers
 
-1. Implement and verify ClickHouse retention/deletion (or stop storing analytics
-   there until it is done).
+1. Run and verify ClickHouse retention/deletion on the real stack (code and
+   tests are in place; the live statement is unverified).
 2. Add event idempotency and fix the reservation/write failure window.
 3. Add central Pro-feature checks and align metering to the billing period.
 4. Run a real Dodo test-mode checkout + webhook + portal journey.

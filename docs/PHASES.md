@@ -126,6 +126,14 @@
 - **Last-touch beacon fixed.** The payment attribution snapshot now reads only
   pageview and custom events, so a visibility performance beacon can no longer
   null a campaign's last-touch source.
+- **ClickHouse retention implemented, not yet live-verified.** A new helper
+  deletes `website_event`, `event_data`, `session_data`,
+  `website_event_stats_hourly`, `website_revenue`, and `session_replay` by
+  `website_id` and plan cutoff. Website deletion purges the same tables. A
+  migration adds a global 365-day TTL as a safety net for a stalled job. Unit
+  tests cover the SQL shape and tenant scoping; this environment has no
+  ClickHouse, so the live run is still required before the retention promise is
+  claimed.
 - **Pre-payment install state is honest.** The install verifier now returns
   `requiresPayment`; an unpaid workspace sees "Snippet ready. Events start after
   checkout." instead of an endless "Waiting for the first event" loop that the
@@ -136,8 +144,8 @@
   is present, so the first dashboard is the customer's site, not the portfolio.
 - **No fabricated chart line.** A portfolio card with no chart data now renders
   "No visits yet" instead of a flat zero line that looked like real traffic.
-- **Verification:** `pnpm gate` exit 0 on 2026-11-15 — **227 test files passed /
-  1 skipped**, **1,126 tests passed / 1 skipped**, coverage **68.15% statements
+- **Verification:** `pnpm gate` exit 0 on 2026-11-15 — **228 test files passed /
+  1 skipped**, **1,130 tests passed / 1 skipped**, coverage **68.15% statements
   / 58.1% branches / 65.56% functions / 68.6% lines**, deploy checks passed, and
   the production build generated all 78 static pages. The full gate is recorded
   in `docs/autonomous-engineering/PRODUCTION_READINESS.md`.
@@ -154,8 +162,8 @@
 - Overall percent (average of phases 0–12): **94%**
 - Build state at last check: **green** — `pnpm gate` (Biome format, Biome
   lint, `tsc --noEmit`, coverage-enforced tests, production build) passes.
-  Latest local full run (2026-11-15): **227 test files passed / 1 skipped**,
-  **1126 tests passed / 1 skipped**, coverage **68.15% statements / 58.1%
+  Latest local full run (2026-11-15): **228 test files passed / 1 skipped**,
+  **1130 tests passed / 1 skipped**, coverage **68.15% statements / 58.1%
   branches / 65.56% functions / 68.6% lines**, plus the explicit PostgreSQL
   analytics smoke and the recorded load probe.
 - GitHub CI: **green on `main`** (run 43066591765 for `619099b`). The three-job

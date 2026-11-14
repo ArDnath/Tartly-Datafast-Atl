@@ -62,7 +62,7 @@ removes that persistent client-side identifier and the storage dependency. It do
 the need for consent: a keyed hash of IP + user agent is still pseudonymous personal data, and the
 tracker still sends by default unless `data-consent="required"` is set.
 
-Commit `7e32b59` also fixed the cross-domain identity bug: the visitor token is now truncated to
+Commit `8955423` also fixed the cross-domain identity bug: the visitor token is now truncated to
 the stored width **before** the UUID is derived, and the linker uses the same constant
 (`send/handler.ts:334-341`, `cross-domain-linker.ts:48-51`, `tracking-identity.ts:7-11`).
 
@@ -104,7 +104,7 @@ stating that limitation on the dashboard.
 | "Only accepted, valid, **deduplicated**, non-bot events are counted" (`usage.ts:20`)                   | No event-level dedupe exists; `payload.id` is a distinct id, not an event id         | `send/handler.ts:478` (`distinctId: id`); `saveEvent` always generates a new UUID (`saveEvent.ts:69`) |
 | Billing periods will "become provider-driven when platform billing lands" (`usage.ts:23-25`)           | Billing has landed; metering is still the UTC calendar month                         | `usage.ts:68-73`                                                                                      |
 | Workspace creation is blocked "until platform billing exists" (`workspaces/handler.ts:55-57`)          | It is blocked because one owned workspace is the product rule; billing exists        | `workspaces/handler.ts:58-67`                                                                         |
-| 225 test files (`PHASES.md:85`)                                                                        | 226 test files on disk                                                               | `find src -name '*.test.ts*' \| wc -l`                                                                |
+| 225 test files (`PHASES.md:85`)                                                                        | 228 test files on disk                                                               | `find src -name '*.test.ts*' \| wc -l`                                                                |
 
 The pattern is drift, not fabrication. The plan-limit drift is the dangerous one because the
 pricing page reads code while the market docs and sales collateral may quote 50.
@@ -163,7 +163,7 @@ pricing page reads code while the market docs and sales collateral may quote 50.
 - **`App.tsx` performs a navigation side effect during render** (`window.location.href` in the
   component body, `src/features/app-shell/App.tsx:55-57`). It works, but it is not idiomatic and
   can double-fire.
-- **Test confidence is unknown.** 226 test files exist and coverage floors are 65/50/60/65
+- **Test confidence is unknown.** 228 test files exist and coverage floors are 65/50/60/65
   (`vitest.config.ts:23-36`), but the suite was not executed here. Many analytics tests are
   unit-level with mocked Prisma; the real SQL paths are exercised only by
   `phase7-analytics-smoke` when a database is available.

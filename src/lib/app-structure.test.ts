@@ -93,6 +93,7 @@ const SHARED_LIB_MODULES = new Set([
   'brand.ts',
   'charts.ts',
   'clickhouse.ts',
+  'clickhouse-retention.ts',
   'colors.ts',
   'constants.ts',
   'crypto.ts',

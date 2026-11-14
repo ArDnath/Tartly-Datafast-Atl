@@ -34,7 +34,7 @@ ClickHouse deployment. Treat the production compose file and `src/lib/db.ts` as 
 | Prisma models   | 53                       | `grep -c "^model " prisma/schema.prisma`   |
 | API route files | 141                      | `find src/app/api -name route.ts \| wc -l` |
 | Feature modules | 17 top-level dirs        | `src/features/*`                           |
-| Test files      | 226                      | `find src -name '*.test.ts*' \| wc -l`     |
+| Test files      | 228                      | `find src -name '*.test.ts*' \| wc -l`     |
 | Migrations      | 17 migration directories | `ls -d prisma/migrations/*/ \| wc -l`      |
 | Tracker source  | 915 lines                | `src/tracker/index.js`                     |
 

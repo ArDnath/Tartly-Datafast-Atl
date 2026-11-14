@@ -1,3 +1,5 @@
+import { deleteClickHousePayloads } from '@/lib/clickhouse-retention';
+import { logger } from '@/lib/logger';
 import { getPlan, getPlanOrNull } from '@/lib/plans';
 import prisma from '@/lib/prisma';
 
@@ -57,6 +59,7 @@ export interface WebsiteRetentionResult {
   sessions: number;
   revenue: number;
   dryRun: boolean;
+  clickhouse?: { enabled: boolean; tables: number };
 }
 
 function daysBefore(now: Date, days: number) {
@@ -278,6 +281,21 @@ export async function runAnalyticsRetentionJob({
       }),
     );
 
+    let clickhouse = { enabled: false, tables: 0 };
+
+    try {
+      clickhouse = await deleteClickHousePayloads({
+        websiteId: website.id,
+        eventCutoff,
+        replayCutoff,
+      });
+    } catch (error) {
+      logger.error('retention.clickhouse_failed', {
+        websiteId: website.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+
     results.push({
       websiteId: website.id,
       closed,
@@ -292,6 +310,7 @@ export async function runAnalyticsRetentionJob({
       sessions: counts.sessions,
       revenue: counts.revenue,
       dryRun: false,
+      clickhouse,
     });
   }
 
