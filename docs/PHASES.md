@@ -126,9 +126,20 @@
 - **Last-touch beacon fixed.** The payment attribution snapshot now reads only
   pageview and custom events, so a visibility performance beacon can no longer
   null a campaign's last-touch source.
+- **Pre-payment install state is honest.** The install verifier now returns
+  `requiresPayment`; an unpaid workspace sees "Snippet ready. Events start after
+  checkout." instead of an endless "Waiting for the first event" loop that the
+  collector could never satisfy. Paid workspaces keep the real event-store
+  check. Covered by a new verify-handler test.
+- **First run lands on the new site.** Onboarding now routes to
+  `/app/{websiteId}?welcome=1` unless an explicit checkout or deep-link intent
+  is present, so the first dashboard is the customer's site, not the portfolio.
+- **No fabricated chart line.** A portfolio card with no chart data now renders
+  "No visits yet" instead of a flat zero line that looked like real traffic.
 - **Verification:** typecheck exit 0; website update 5 tests, edit form 1, docs
-  24, attribution journeys 6, collector 12, cross-domain 3. Full gate is run
-  separately and recorded in `PRODUCTION_READINESS.md`.
+  24, attribution journeys 6, collector 12, cross-domain 3, onboarding/portfolio
+  59, verify 2. Full gate is run separately and recorded in
+  `PRODUCTION_READINESS.md`.
 - **UNVERIFIED:** a real browser replay recording against a live site; the
   recorder and ingest path are unit- and smoke-tested, not browser-tested here.
 - **N/A:** schema/migration change (the `replayEnabled` column already existed),

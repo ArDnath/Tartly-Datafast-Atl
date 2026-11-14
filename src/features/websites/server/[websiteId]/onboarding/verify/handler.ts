@@ -1,3 +1,4 @@
+import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import prisma from '@/lib/prisma';
 import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
@@ -37,10 +38,14 @@ export async function GET(
       select: { createdAt: true },
     }),
   ]);
+  const entitlements = await getWorkspaceEntitlements(access.workspaceId);
 
   return json({
     installed: eventCount > 0,
     eventCount,
     lastEventAt: latest?.createdAt ?? null,
+    // The collector rejects billable events before an active plan, so an
+    // unpaid workspace must not be shown an endless "waiting for event" state.
+    requiresPayment: !entitlements?.active,
   });
 }

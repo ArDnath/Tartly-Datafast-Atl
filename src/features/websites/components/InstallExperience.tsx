@@ -23,6 +23,8 @@ export interface InstallVerifyState {
   installed: boolean;
   eventCount: number;
   lastEventAt: string | null;
+  /** True when the collector is locked until the workspace subscribes. */
+  requiresPayment?: boolean;
 }
 
 interface InstallExperienceProps {
@@ -503,6 +505,10 @@ export function InstallExperience({
       detail = `${verify.eventCount.toLocaleString('en-US')} event${
         verify.eventCount === 1 ? '' : 's'
       } received. Live verification reads the event store.`;
+    } else if (verify.requiresPayment) {
+      title = 'Snippet ready. Events start after checkout.';
+      detail =
+        'The collector is locked until this workspace has an active plan. Finish the plan step, then open your site once to confirm the first event.';
     } else if (firstPartyInstalled) {
       title = 'First-party install detected';
       detail = 'Open your site once to send the first event.';
