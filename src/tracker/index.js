@@ -633,11 +633,16 @@
       const data = await res.json();
       if (data) {
         disabled = !!data.disabled;
-        cache = data.cache;
-        publishCollectorContext();
-        linkerToken = data.linker;
-        linkerExpiresAt = data.linkerExpiresAt;
-        incomingLinker = undefined;
+
+        // A duplicate acknowledgement does not carry a fresh collector cache
+        // or linker. Keep the current context instead of clearing it.
+        if (data.duplicate !== true) {
+          cache = data.cache;
+          publishCollectorContext();
+          linkerToken = data.linker;
+          linkerExpiresAt = data.linkerExpiresAt;
+          incomingLinker = undefined;
+        }
       }
       return data;
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

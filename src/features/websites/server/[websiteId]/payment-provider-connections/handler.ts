@@ -206,7 +206,7 @@ export async function POST(
       })) ?? [];
     const providers = new Set(activeConnections.map(connection => connection.providerName));
 
-    if (!providers.has(body.providerName) && providers.size >= connectionLimit) {
+    if (!providers.has(body.providerName) && activeConnections.length >= connectionLimit) {
       return forbidden({
         code: 'plan_limit_reached',
         limit: connectionLimit,

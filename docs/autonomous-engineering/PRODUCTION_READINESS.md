@@ -2,7 +2,7 @@
 
 - **Evaluated:** 2026-11-15
 - **Revision:** `feature/15-release-blockers` on top of `80bd25c` (2026-11-15)
-- **Gate evidence:** `/tmp/opencode/gate-feature15.log` (local run, 7.1 GB host)
+- **Gate evidence:** `/tmp/opencode/gate-feature15-r2.log` (local run, 7.1 GB host)
 - **Verdict:** **NOT PRODUCTION READY** until the critical items below close.
   The core product runs and is tested; the privacy-retention and billing-proof
   gaps are real and are not hidden behind a green build.
@@ -12,8 +12,8 @@
 | Area                       | Status  | Evidence                                                                     |
 | -------------------------- | ------- | ---------------------------------------------------------------------------- |
 | Format, lint, typecheck    | PASS    | `pnpm gate` exit 0                                                           |
-| Unit + integration tests   | PASS    | 232 files passed / 1 skipped; 1,142 tests passed / 1 skipped                 |
-| Coverage threshold         | PASS    | 68.3% statements, 58.22% branches, 65.74% functions, 68.75% lines            |
+| Unit + integration tests   | PASS    | 234 files passed / 1 skipped; 1,152 tests passed / 1 skipped                 |
+| Coverage threshold         | PASS    | 68.33% statements, 58.38% branches, 65.74% functions, 68.78% lines           |
 | Production build           | PASS    | Next.js build compiled; 78 static pages; postbuild ran                       |
 | Deploy script/smoke checks | PASS    | `gate:deploy` in the same run                                                |
 | Local ingestion E2E        | PASS    | `pnpm smoke:local`: pageviews 1 / visitors 1 / visits 1                      |
@@ -73,13 +73,17 @@
 - PASS: Pro website limit corrected to 20; session replay is enforceable.
 - **BLOCKED:** a real Dodo test checkout, webhook delivery, and customer portal
   need credentials and a human. Not claimed as working.
-- **PASS:** central server-side entitlements now gate journeys, API keys,
-  client-reporting shares, full backups, CSV export, and the payment-provider
-  connection count. Share-token reads stay authorized by the share itself.
+- **PASS:** central server-side entitlements now gate journeys (including
+  share-token reads), developer API access, client-reporting shares, full
+  backups, CSV export, session-replay reads, and the payment-provider
+  connection count. API-key creation stays available on Starter because the
+  same key powers the documented Manual payment API; the developer read tools
+  are what require Pro.
 - **PASS:** metering follows `platform_subscription.currentPeriodStart/End`
   when a provider period is live, falling back to the UTC calendar month only
-  for onboarding or legacy workspaces. The usage-notice job scans every live
-  period, not one calendar month.
+  for onboarding or legacy workspaces. An open counter row is adopted and
+  extended, never re-keyed, so a deploy cannot reset usage mid-period. The
+  usage-notice job scans every live period and uses the purchased traffic tier.
 
 ### Security
 
@@ -88,11 +92,14 @@
 - PASS: no critical dependency findings in the recorded audit.
 - **UNVERIFIED:** ClickHouse retention/deletion as above (code and tests, no
   live ClickHouse run).
-- **PASS:** an operational retention job redacts provider/billing webhook
-  payloads and audit IPs after 90 days, then deletes operational rows after 365
-  days. Unit-tested; the live cron has not run on production data.
+- **PASS:** an operational retention job redacts webhook payloads and audit
+  IPs after 90 days, then deletes billing/provider rows after 365 days. Stripe
+  invoice payloads used by the refund reconciler are preserved, and audit rows
+  are retained (only the IP is redacted). New global cutoff indexes cover the
+  scans. Unit-tested; the live cron has not run on production data.
 - **PASS:** public share links carry a 30-day expiry, backfilled for existing
-  rows and enforced by the slug resolver. Unit-tested.
+  rows and enforced by both the slug resolver and the share-token parser.
+  Unit-tested.
 
 ### Provenance and design
 

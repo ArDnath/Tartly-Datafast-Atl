@@ -68,9 +68,9 @@ Branch `feature/15-release-blockers`. Closed the engineering-owned blockers from
 - **Share expiry (B14):** 30-day `expires_at`, migration + backfill, resolver
   enforcement.
 
-Evidence: `pnpm gate` exit 0 on 2026-11-15 — 232 test files, 1,142 tests, 78
-static pages, production build, coverage 68.3% statements. Log:
-`/tmp/opencode/gate-feature15.log`. Still external: live ClickHouse retention
+Evidence: `pnpm gate` exit 0 on 2026-11-15 — 234 test files, 1,152 tests, 78
+static pages, production build, coverage 68.33% statements. Log:
+`/tmp/opencode/gate-feature15-r2.log`. Still external: live ClickHouse retention
 run, Dodo test-mode checkout/webhook/portal, browser journey, deployed load
 test, off-host restore, legal review.
 

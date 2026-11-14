@@ -10,13 +10,22 @@ import prisma from '@/lib/prisma';
  *
  * Retention windows are deliberately simple and documented:
  * - raw webhook payload + audit IP: 90 days
- * - billing/provider/audit row: 365 days
+ * - billing/provider row: 365 days
+ *
+ * Stripe invoice events keep their raw payload until the row is deleted: the
+ * refund path reads customer, amount, and paid-at from that payload and a
+ * refund can arrive long after the invoice. The audit row itself is retained
+ * (the IP is the personal field); deleting the security trail is a separate
+ * policy decision.
  *
  * The unique provider event key is kept for the row lifetime. A replay older
  * than a year is not a supported recovery path; providers do not reuse IDs.
  */
 export const WEBHOOK_PAYLOAD_RETENTION_DAYS = 90;
 export const OPERATIONAL_ROW_RETENTION_DAYS = 365;
+
+/** Event types whose payload is still read by the refund reconciler. */
+export const REFUND_CONTEXT_EVENT_TYPES = ['invoice.paid', 'invoice.payment_succeeded'];
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -35,7 +44,6 @@ export interface OperationalRetentionSummary {
   auditIpsRedacted: number;
   providerEventsDeleted: number;
   billingEventsDeleted: number;
-  auditEventsDeleted: number;
 }
 
 export async function runOperationalDataRetentionJob({
@@ -46,7 +54,10 @@ export async function runOperationalDataRetentionJob({
   const rowCutoff = daysBefore(now, OPERATIONAL_ROW_RETENTION_DAYS);
 
   const providerPayloads = await client.providerEvent.updateMany({
-    where: { receivedAt: { lt: payloadCutoff } },
+    where: {
+      receivedAt: { lt: payloadCutoff },
+      eventType: { notIn: REFUND_CONTEXT_EVENT_TYPES },
+    },
     data: { rawPayload: null, rawPayloadRef: null },
   });
 
@@ -68,16 +79,11 @@ export async function runOperationalDataRetentionJob({
     where: { receivedAt: { lt: rowCutoff } },
   });
 
-  const auditEvents = await client.auditEvent.deleteMany({
-    where: { createdAt: { lt: rowCutoff } },
-  });
-
   return {
     providerPayloadsRedacted: providerPayloads.count,
     billingPayloadsRedacted: billingPayloads.count,
     auditIpsRedacted: auditIps.count,
     providerEventsDeleted: providerEvents.count,
     billingEventsDeleted: billingEvents.count,
-    auditEventsDeleted: auditEvents.count,
   };
 }

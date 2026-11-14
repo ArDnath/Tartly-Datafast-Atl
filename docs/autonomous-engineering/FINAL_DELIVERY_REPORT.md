@@ -116,11 +116,11 @@ load and records the host's CPU/disk/egress.
 ## Tests executed
 
 - `pnpm gate` exit 0 on 2026-11-15 after the release-blocker slice:
-  - 232 test files passed / 1 skipped.
-  - 1,142 tests passed / 1 skipped.
-  - Coverage 68.3% statements / 58.22% branches / 65.74% functions / 68.75% lines.
+  - 234 test files passed / 1 skipped.
+  - 1,152 tests passed / 1 skipped.
+  - Coverage 68.33% statements / 58.38% branches / 65.74% functions / 68.78% lines.
   - Production build compiled; 78 static pages; postbuild ran.
-  - Log: `/tmp/opencode/gate-feature15.log`.
+  - Log: `/tmp/opencode/gate-feature15-r2.log`.
 - `pnpm smoke:local` passed on local PostgreSQL.
 - Full suite with 2 workers took ~4.6 minutes on the 7.1 GB host.
 

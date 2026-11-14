@@ -128,6 +128,36 @@ describe('usage notices job', () => {
     expect(result.results[0].error).toContain('provider down');
   });
 
+  test('uses the purchased traffic tier, not the base plan allowance', async () => {
+    const client = createClient([
+      period({
+        eventsCount: 80_000,
+        workspace: {
+          name: 'Acme',
+          planId: 'pro',
+          subscriptionStatus: 'active',
+          platformSubscription: {
+            planId: 'pro',
+            trafficTierIndex: 0,
+            lifecycleStatus: 'ACTIVE',
+            cancelAtPeriodEnd: false,
+            currentPeriodEnd: new Date('2026-12-08T00:00:00.000Z'),
+          },
+          owner: { username: 'owner@example.com', deletedAt: null, suspendedAt: null },
+        },
+      }),
+    ]);
+    const send = vi.fn(async (_message: any) => {});
+
+    await runUsageNoticeJob({ ...options, client, send });
+
+    expect(send.mock.calls[0][0]).toMatchObject({
+      level: 'warning',
+      used: 80_000,
+      limit: 100_000,
+    });
+  });
+
   test('uses the provider plan when platform billing is active', async () => {
     const client = createClient([
       period({

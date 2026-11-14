@@ -1,6 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import {
   OPERATIONAL_ROW_RETENTION_DAYS,
+  REFUND_CONTEXT_EVENT_TYPES,
   runOperationalDataRetentionJob,
   WEBHOOK_PAYLOAD_RETENTION_DAYS,
 } from './data-retention';
@@ -36,7 +37,10 @@ test('redacts payloads and IPs, then deletes rows past the longer window', async
   const rowCutoff = new Date(now.getTime() - OPERATIONAL_ROW_RETENTION_DAYS * 24 * 60 * 60 * 1000);
 
   expect(client.providerEvent.updateMany).toHaveBeenCalledWith({
-    where: { receivedAt: { lt: payloadCutoff } },
+    where: {
+      receivedAt: { lt: payloadCutoff },
+      eventType: { notIn: REFUND_CONTEXT_EVENT_TYPES },
+    },
     data: { rawPayload: null, rawPayloadRef: null },
   });
   expect(client.billingEvent.updateMany).toHaveBeenCalledWith({
@@ -53,9 +57,7 @@ test('redacts payloads and IPs, then deletes rows past the longer window', async
   expect(client.billingEvent.deleteMany).toHaveBeenCalledWith({
     where: { receivedAt: { lt: rowCutoff } },
   });
-  expect(client.auditEvent.deleteMany).toHaveBeenCalledWith({
-    where: { createdAt: { lt: rowCutoff } },
-  });
+  expect(client.auditEvent.deleteMany).not.toHaveBeenCalled();
 
   expect(result).toEqual({
     providerPayloadsRedacted: 2,
@@ -63,6 +65,5 @@ test('redacts payloads and IPs, then deletes rows past the longer window', async
     auditIpsRedacted: 4,
     providerEventsDeleted: 1,
     billingEventsDeleted: 1,
-    auditEventsDeleted: 1,
   });
 });

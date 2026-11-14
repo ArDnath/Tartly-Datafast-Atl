@@ -1,7 +1,7 @@
 import { billingSubscriptionHasAccess } from '@/lib/billing-lifecycle';
 import { getPublicOrigin } from '@/lib/get-base-url';
 import { sendUsageNoticeEmail, type UsageNoticeEmail } from '@/lib/email';
-import { getPlan, getPlanOrNull } from '@/lib/plans';
+import { getPlan, getPlanOrNull, resolvePlanForTrafficTier } from '@/lib/plans';
 import prisma from '@/lib/prisma';
 import { EVENT_GRACE, getUsagePeriodRange, getUsageStatus } from '@/lib/usage';
 
@@ -68,6 +68,7 @@ export async function runUsageNoticeJob({
           platformSubscription: {
             select: {
               planId: true,
+              trafficTierIndex: true,
               lifecycleStatus: true,
               cancelAtPeriodEnd: true,
               currentPeriodEnd: true,
@@ -109,7 +110,10 @@ export async function runUsageNoticeJob({
     }
 
     const planId = subscription?.planId ?? workspace.planId;
-    const plan = getPlanOrNull(planId) || getPlan('starter');
+    const plan = resolvePlanForTrafficTier(
+      getPlanOrNull(planId) || getPlan('starter'),
+      subscription?.trafficTierIndex,
+    );
     const status = getUsageStatus(period.eventsCount, plan.eventsPerMonth, EVENT_GRACE);
 
     let level: 'warning' | 'limit' | null = null;

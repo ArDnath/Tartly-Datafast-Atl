@@ -125,6 +125,7 @@ model BillingEvent {
 
   @@index([providerName, eventType])
   @@index([workspaceId, receivedAt])
+  @@index([receivedAt])
   @@map("billing_event")
 }
 
@@ -1102,6 +1103,7 @@ model ProviderEvent {
 
   @@unique([websiteId, providerName, providerEventKey])
   @@index([websiteId, receivedAt])
+  @@index([receivedAt])
   @@index([connectionId])
   @@index([processingStatus])
   @@map("provider_event")
@@ -1417,5 +1419,6 @@ model AuditEvent {
   @@index([userId, createdAt])
   @@index([websiteId, createdAt])
   @@index([eventType])
+  @@index([createdAt])
   @@map("audit_event")
 }

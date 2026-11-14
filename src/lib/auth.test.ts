@@ -39,6 +39,7 @@ beforeEach(() => {
     slug: 'public-demo',
     shareType: ENTITY_TYPE.website,
     parameters: {},
+    expiresAt: new Date(Date.now() + 60_000),
   } as any);
   vi.mocked(getShareableWebsite).mockResolvedValue({ id: 'website-1' } as any);
 });
@@ -56,6 +57,7 @@ test('uses current share parameters instead of stale token parameters', async ()
     parameters: {
       revenue: true,
     },
+    expiresAt: new Date(Date.now() + 60_000),
   } as any);
 
   await expect(
@@ -72,6 +74,19 @@ test('uses current share parameters instead of stale token parameters', async ()
       revenue: true,
     },
   });
+});
+
+test('rejects a valid token after the share expiry passes', async () => {
+  vi.mocked(getShare).mockResolvedValue({
+    id: 'share-1',
+    entityId: 'website-1',
+    slug: 'public-demo',
+    shareType: ENTITY_TYPE.website,
+    parameters: {},
+    expiresAt: new Date(Date.now() - 1_000),
+  } as any);
+
+  await expect(parseShareToken(requestFor(validPayload))).resolves.toBeNull();
 });
 
 test('rejects collector and linker tokens before querying the share record', async () => {

@@ -84,24 +84,50 @@ export async function getUsagePeriodRangeForWorkspace(
   workspaceId: string,
   now: Date = new Date(),
 ): Promise<{ periodStart: Date; periodEnd: Date }> {
-  const subscription = await prisma.client.platformSubscription.findUnique({
-    where: { workspaceId },
-    select: {
-      currentPeriodStart: true,
-      currentPeriodEnd: true,
-    },
-  });
+  const [subscription, openPeriod] = await Promise.all([
+    prisma.client.platformSubscription.findUnique({
+      where: { workspaceId },
+      select: {
+        currentPeriodStart: true,
+        currentPeriodEnd: true,
+      },
+    }),
+    prisma.client.usagePeriod.findFirst({
+      where: {
+        workspaceId,
+        periodStart: { lte: now },
+        periodEnd: { gt: now },
+      },
+      orderBy: { periodStart: 'desc' },
+      select: { periodStart: true, periodEnd: true },
+    }),
+  ]);
 
-  if (
-    subscription?.currentPeriodStart &&
-    subscription?.currentPeriodEnd &&
-    now >= subscription.currentPeriodStart &&
-    now < subscription.currentPeriodEnd
-  ) {
-    return {
-      periodStart: subscription.currentPeriodStart,
-      periodEnd: subscription.currentPeriodEnd,
-    };
+  const providerStart = subscription?.currentPeriodStart;
+  const providerEnd = subscription?.currentPeriodEnd;
+
+  // Never re-key a counter that is already open. A deploy that switches from
+  // calendar months to a provider anniversary must keep the existing row and
+  // extend it to the provider period end; otherwise usage resets to zero and
+  // the customer receives a second full allowance in the same paid period.
+  if (openPeriod) {
+    const periodEnd =
+      providerEnd && providerEnd.getTime() > openPeriod.periodEnd.getTime()
+        ? providerEnd
+        : openPeriod.periodEnd;
+
+    if (periodEnd.getTime() > openPeriod.periodEnd.getTime()) {
+      await prisma.client.usagePeriod.updateMany({
+        where: { workspaceId, periodStart: openPeriod.periodStart },
+        data: { periodEnd },
+      });
+    }
+
+    return { periodStart: openPeriod.periodStart, periodEnd };
+  }
+
+  if (providerStart && providerEnd) {
+    return { periodStart: providerStart, periodEnd: providerEnd };
   }
 
   return getUsagePeriodRange(now);

@@ -1,6 +1,7 @@
 import { isbot } from 'isbot';
 import { z } from 'zod';
 import { getFilteredAttributionQuery } from '@/features/analytics/lib/attribution-query';
+import { getClientEventId } from '@/features/analytics/lib/event-id';
 import {
   type CollectorCachePayload,
   createCollectorCacheToken,
@@ -71,8 +72,9 @@ const schema = z.object({
       timestamp: z.coerce.number().int().min(946684800).max(4102444800).optional(),
       id: z.string().optional(),
       // Client-generated, per-event idempotency key. Retrying the same event
-      // must not create a second row or consume a second usage slot.
-      eventId: z.string().min(8).max(100).optional(),
+      // must not create a second row or consume a second usage slot. Accept
+      // short legacy values rather than rejecting the whole collector request.
+      eventId: z.string().max(100).optional(),
       visitorId: z.string().max(100).optional(),
       sessionId: z.string().max(100).optional(),
       linker: z.string().max(4096).optional(),
@@ -263,11 +265,12 @@ export async function POST(request: Request) {
           : EVENT_TYPE.pageView;
 
     // A client event id makes delivery idempotent. The primary key is derived
-    // from the website and the client key, so a retry collides in PostgreSQL
-    // instead of creating a second event. The key is scoped per website: two
-    // tenants may use the same client key without colliding.
+    // from the entity that owns the row (website, link, or pixel) and the
+    // client key, so a retry collides in PostgreSQL instead of creating a
+    // second event. The key is tenant-scoped: two entities may use the same
+    // client key without colliding.
     const idempotentEventId =
-      websiteId && payloadEventId ? uuid(websiteId, 'client-event', payloadEventId) : undefined;
+      sourceId && payloadEventId ? getClientEventId(sourceId, payloadEventId) : undefined;
 
     // Resolve entitlement and reserve the billable event BEFORE creating a
     // session or visitor context. A deleted/suspended workspace must not leave

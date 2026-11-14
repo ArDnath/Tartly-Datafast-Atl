@@ -89,7 +89,7 @@ slices are made by the master in this worktree, one at a time. Recorded in
   - public share links now expire after 30 days, enforced by the resolver;
   - `docs/install` documents `eventId` for retry-safe server-side events.
 - **Release gate:** re-evaluated on 2026-11-15 after the slice. `pnpm gate`
-  exit 0 (232 test files, 1,142 tests, 78 static pages, production build).
+  exit 0 (234 test files, 1,152 tests, 78 static pages, production build).
   Verdict remains **NOT PRODUCTION READY**: live ClickHouse retention, live
   Dodo test-mode billing, a real browser journey, a deployed load test, and
   legal review are still external blockers. See `PRODUCTION_READINESS.md`.
@@ -104,9 +104,9 @@ slices are made by the master in this worktree, one at a time. Recorded in
 - `pnpm build-tracker` → `public/script.js` created; 10,355 B raw, 4.22 KB gzip.
 - `feature/15-release-blockers` targeted tests: handler 13, tracker 29,
   feature-access 4, usage 13, share 4, data-retention 1, usage-notices 6.
-- `pnpm gate` → exit 0; 232 test files passed / 1 skipped; 1,142 tests passed
-  / 1 skipped; coverage 68.3% statements / 58.22% branches; production build
-  compiled 78 static pages. Log: `/tmp/opencode/gate-feature15.log`.
+- `pnpm gate` → exit 0; 234 test files passed / 1 skipped; 1,152 tests passed
+  / 1 skipped; coverage 68.33% statements / 58.38% branches; production build
+  compiled 78 static pages. Log: `/tmp/opencode/gate-feature15-r2.log`.
 - Peak build RSS observed by the watchdog: ~3.7 GB; available memory remained
   above 1.6 GB and the host did not OOM. Log:
   `/tmp/opencode/revenuelens-resources.log`.

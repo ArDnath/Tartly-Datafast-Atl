@@ -8,6 +8,7 @@ import {
 } from '@/lib/constants';
 import { createAuthKey, secret } from '@/lib/crypto';
 import { createSecureToken, parseSecureToken, parseToken } from '@/lib/jwt';
+import { isShareLinkActive } from '@/lib/share-policy';
 import { getSessionTokenFromRequest } from '@/lib/auth-cookie';
 import { isPlatformAdmin } from '@/lib/platform-admin';
 import { resolveAuthSession } from '@/lib/auth-session';
@@ -169,6 +170,7 @@ export async function parseShareToken(request: Request): Promise<ShareTokenPaylo
 
     if (
       !share ||
+      !isShareLinkActive(share) ||
       share.slug !== payload.shareSlug ||
       share.shareType !== payload.shareType ||
       !(await hasValidShareEntity(payload, share.entityId))

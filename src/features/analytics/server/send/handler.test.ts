@@ -368,6 +368,35 @@ test('treats a retried client event id as one event and releases the second rese
   expect(releaseEventUsage).toHaveBeenCalledWith(workspaceId);
 });
 
+test('applies the idempotency key to link events too', async () => {
+  const { getLink } = await import('@/queries/prisma');
+  const linkId = '7ca9c481-3222-48b6-8bfa-b13e9d8e9210';
+
+  vi.mocked(getLink).mockResolvedValue({ id: linkId, deletedAt: null } as any);
+  vi.mocked(saveEvent).mockRejectedValueOnce({ code: 'P2002' });
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        link: linkId,
+        url: 'https://shop.example/link',
+        eventId: 'link-click-123',
+      },
+    },
+  } as any);
+
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
+  const body = await response.json();
+
+  expect(response.status).toBe(200);
+  expect(body).toMatchObject({ ok: true, duplicate: true });
+  expect(saveEvent).toHaveBeenCalledWith(
+    expect.objectContaining({ eventId: '11111111-1111-4111-8111-111111111111' }),
+  );
+});
+
 test('rejects a legacy pixel id that is actually another website id', async () => {
   const { getPixel } = await import('@/queries/prisma');
   vi.mocked(getPixel).mockResolvedValue(null);

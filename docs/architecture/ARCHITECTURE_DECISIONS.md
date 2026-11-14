@@ -134,9 +134,11 @@ re-litigate them blindly.
 - **Context:** Calendar-month counters gave the first partial subscription month
   a full allowance and cut the last one short.
 - **Decision:** `getUsagePeriodRangeForWorkspace` reads
-  `platform_subscription.currentPeriodStart/End` when the period contains
-  `now`. Otherwise it falls back to the UTC calendar month for onboarding and
-  legacy rows. The notice job scans every period containing `now`.
+  `platform_subscription.currentPeriodStart/End`. If a usage row is already
+  open, it is adopted and its end is extended to the provider period end; it is
+  never re-keyed. With no open row, the provider period is used. The UTC
+  calendar month is only for a workspace with no subscription row. The notice
+  job scans every period containing `now` and uses the purchased traffic tier.
 - **Consequences:** Usage rows are keyed by the provider anniversary. Existing
   calendar-month rows remain as history; no destructive backfill is performed.
 - **Evidence:** `src/lib/usage.test.ts`; usage-notice tests.
@@ -148,8 +150,10 @@ re-litigate them blindly.
 - **Context:** Provider webhook payloads and audit IPs contain customer and
   payment data and had no retention policy.
 - **Decision:** A daily cron redacts webhook payloads and audit IPs after 90
-  days, then deletes billing/provider/audit rows after 365 days. The job is
-  idempotent `updateMany`/`deleteMany` work with fixed cutoffs.
+  days, then deletes billing/provider rows after 365 days. Stripe invoice
+  payloads used by refund reconciliation keep their raw payload until deletion.
+  Audit rows are retained; only the IP is redacted. Global cutoff indexes cover
+  the scans. The job is idempotent work with fixed cutoffs.
 - **Consequences:** Replays older than a year are not a supported recovery path;
   providers do not reuse event IDs. The retention windows are constants in
   `src/features/system/cron/jobs/data-retention.ts`.
@@ -161,8 +165,8 @@ re-litigate them blindly.
 - **Status:** accepted
 - **Context:** A leaked public share slug was valid forever.
 - **Decision:** `share.expires_at` is added by migration, existing rows are
-  backfilled to now + 30 days, creation sets a 30-day expiry, and the slug
-  resolver rejects missing or past expiries.
+  backfilled to now + 30 days, creation sets a 30-day expiry, and both the slug
+  resolver and the share-token parser reject missing or past expiries.
 - **Consequences:** Shared links must be re-created after 30 days. The TTL is one
   constant in `src/lib/share-policy.ts`.
 - **Evidence:** migration `20261115010000_share_expiry`,

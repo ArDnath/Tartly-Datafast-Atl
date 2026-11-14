@@ -42,3 +42,13 @@ export async function canUseWebsiteFeature(
 
   return entitlementsHaveFeature(entitlements, feature);
 }
+
+/** Check a paid feature from an already-authorized workspace id (for shares). */
+export async function canUseWorkspaceFeature(
+  workspaceId: string,
+  feature: PlanFeature,
+): Promise<boolean> {
+  const entitlements = await getWorkspaceEntitlements(workspaceId);
+
+  return entitlementsHaveFeature(entitlements, feature);
+}
