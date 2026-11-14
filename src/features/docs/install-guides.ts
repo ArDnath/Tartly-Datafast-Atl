@@ -97,7 +97,6 @@ function snippetAttributes(context: InstallContext) {
     `src="${scriptSource(context)}"`,
     context.mode === 'first-party' ? `data-host-url="${normalizedBasePath(context)}"` : '',
     `data-website-id="${context.websiteId}"`,
-    context.domain ? `data-domain="${context.domain}"` : '',
     context.crossDomainDomains?.length
       ? `data-cross-domain-domains="${context.crossDomainDomains.join(',')}"`
       : '',
@@ -458,12 +457,12 @@ export const INSTALL_TROUBLESHOOTING: InstallTroubleshootingItem[] = [
   {
     title: 'Domain mismatch',
     detail:
-      'data-domain must match the hostname visitors use. A mismatch is reported in the live verification step, not silently ignored.',
+      'The website domain must match the hostname visitors use. Add every production hostname to the website, or list the allowed hosts in data-domains. A mismatch is reported in the live verification step, not silently ignored.',
   },
   {
     title: 'Single-page app routes are not counted',
     detail:
-      'The tracker hooks history.pushState and history.replaceState. If your router bypasses both, send a manual pageview on navigation.',
+      'The tracker hooks history.pushState and history.replaceState and listens for popstate, hashchange, and bfcache restores. If your router bypasses all of them, send a manual pageview on navigation.',
   },
   {
     title: 'A no-code builder strips the script',

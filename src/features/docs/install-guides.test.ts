@@ -61,14 +61,14 @@ test('every standard snippet contains the real tracker contract', () => {
 
     expect(code).toContain('https://analytics.example.com/script.js');
     expect(code).toContain(`data-website-id="${context.websiteId}"`);
-    expect(code).toContain('data-domain="example.com"');
+    expect(code).not.toContain('data-domain');
     expect(code).not.toContain('data-host-url');
     expect(code).not.toContain('{{');
   }
 });
 
-test('the snippet omits the domain attribute when no domain is supplied', () => {
-  const code = getInstallSnippet('html', { websiteId: context.websiteId });
+test('the snippet omits the legacy domain hint even when a domain is supplied', () => {
+  const code = getInstallSnippet('html', context);
 
   expect(code).toContain('<script defer');
   expect(code).not.toContain('data-domain');
@@ -81,7 +81,7 @@ test('first-party snippets use the same-origin base path and no Tartly origin', 
     expect(code).toContain(`src="${FIRST_PARTY_BASE_PATH}/script.js"`);
     expect(code).toContain(`data-host-url="${FIRST_PARTY_BASE_PATH}"`);
     expect(code).toContain(`data-website-id="${context.websiteId}"`);
-    expect(code).toContain('data-domain="example.com"');
+    expect(code).not.toContain('data-domain');
     expect(code).not.toContain('tartly.in');
     expect(code).not.toContain('https://analytics.example.com');
   }

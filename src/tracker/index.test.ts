@@ -138,7 +138,10 @@ const installTracker = (attributes: Record<string, string> = {}) => {
   new Function('window', 'document', trackerSource)(window, document);
 };
 
-const installTrackerInFreshDom = (attributes: Record<string, string> = {}) => {
+const installTrackerInFreshDom = (
+  attributes: Record<string, string> = {},
+  beforeEval?: (dom: JSDOM) => void,
+) => {
   const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', {
     runScripts: 'outside-only',
     url: 'https://site.example/',
@@ -163,6 +166,7 @@ const installTrackerInFreshDom = (attributes: Record<string, string> = {}) => {
     json: vi.fn().mockResolvedValue({}),
   });
   (dom.window as unknown as { fetch: unknown }).fetch = fetchMock;
+  beforeEval?.(dom);
   dom.window.eval(trackerSource);
 
   return { dom, fetchMock };
@@ -622,4 +626,68 @@ test('accepts the talivia:consent event and re-enables sending after a revoke', 
   expect(fetchMock).toHaveBeenCalledTimes(3);
   const last = JSON.parse(String(fetchMock.mock.calls[2][1]?.body));
   expect(last.payload.name).toBe('allowed');
+});
+
+test('honours Global Privacy Control', async () => {
+  const { fetchMock } = installTrackerInFreshDom({}, dom => {
+    Object.defineProperty(dom.window.navigator, 'globalPrivacyControl', {
+      configurable: true,
+      value: true,
+    });
+  });
+  await flushPromises();
+
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
+test('a consent grant does not send a pageview when auto-track is off', async () => {
+  const { dom, fetchMock } = installTrackerInFreshDom({
+    consent: 'required',
+    'auto-track': 'false',
+  });
+
+  const api = (
+    dom.window as unknown as {
+      talivia: { setConsent: (value: boolean) => void; track: (name: string) => void };
+    }
+  ).talivia;
+  api.setConsent(true);
+  await flushPromises();
+
+  expect(fetchMock).not.toHaveBeenCalled();
+
+  api.track('manual');
+  await flushPromises();
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+
+test('tracks a hash route change without a history call', async () => {
+  const { dom, fetchMock } = installTrackerInFreshDom();
+  fetchMock.mockClear();
+
+  dom.window.location.hash = '#pricing';
+  await new Promise(resolve => setTimeout(resolve, 400));
+
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  const request = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
+  expect(request.payload.url).toContain('#pricing');
+});
+
+test('tracks a custom event on a wrapper element when a child is clicked', async () => {
+  const { dom, fetchMock } = installTrackerInFreshDom();
+  fetchMock.mockClear();
+
+  const wrapper = dom.window.document.createElement('div');
+  wrapper.setAttribute('data-talivia-event', 'cta-click');
+  wrapper.setAttribute('data-talivia-event-plan', 'pro');
+  const child = dom.window.document.createElement('span');
+  wrapper.append(child);
+  dom.window.document.body.append(wrapper);
+
+  child.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+  await flushPromises();
+
+  const request = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
+  expect(request.payload.name).toBe('cta-click');
+  expect(request.payload.data).toEqual({ plan: 'pro' });
 });

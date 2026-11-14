@@ -12,6 +12,7 @@
   if (!currentScript) return;
 
   const { hostname, href, origin } = location;
+  const globalPrivacyControl = navigator.globalPrivacyControl === true;
 
   let localStorage;
   let sessionStorage;
@@ -304,23 +305,29 @@
 
   /* Event handlers */
 
-  const handlePush = (_state, _title, url) => {
-    if (!url) return;
+  const handleNavigation = url => {
+    const nextUrl = url
+      ? normalize(new URL(url, location.href).toString())
+      : normalize(location.href);
+
+    if (nextUrl === currentUrl) return;
 
     if (typeof flushPerformance === 'function') {
       flushPerformance();
     }
 
     currentRef = currentUrl;
-    currentUrl = normalize(new URL(url, location.href).toString());
+    currentUrl = nextUrl;
 
-    if (currentUrl !== currentRef) {
-      setTimeout(() => {
-        track();
-        resetVisibilityTracking();
-        initVisibilityTracking();
-      }, delayDuration);
-    }
+    setTimeout(() => {
+      track();
+      resetVisibilityTracking();
+      initVisibilityTracking();
+    }, delayDuration);
+  };
+
+  const handlePush = (_state, _title, url) => {
+    if (url) handleNavigation(url);
   };
 
   const handlePathChanges = () => {
@@ -334,6 +341,11 @@
 
     history.pushState = hook(history, 'pushState', handlePush);
     history.replaceState = hook(history, 'replaceState', handlePush);
+    window.addEventListener('popstate', () => handleNavigation());
+    window.addEventListener('hashchange', () => handleNavigation());
+    window.addEventListener('pageshow', event => {
+      if (event.persisted) handleNavigation();
+    });
   };
 
   const handleClicks = () => {
@@ -385,7 +397,9 @@
     const onClick = async e => {
       const el = e.target;
       const parentElement = el.closest('a,button');
-      if (!parentElement) return trackElement(el);
+      if (!parentElement) {
+        return trackElement(el.closest?.(`[${eventNameAttribute}]`) || el);
+      }
 
       const { href, target } = parentElement;
       const crossDomainUrl = getCrossDomainUrl(parentElement);
@@ -583,6 +597,7 @@
     disabled ||
     !website ||
     !consentGranted ||
+    globalPrivacyControl ||
     localStorage?.getItem('talivia.disabled') ||
     (allowedDomainConfig && !domains.some(item => hostnameMatches(hostname, item))) ||
     (dnt && hasDoNotTrack());
@@ -684,7 +699,7 @@
     if (next) {
       if (!initialized && autoTrack) {
         init();
-      } else {
+      } else if (autoTrack) {
         track();
       }
     }
