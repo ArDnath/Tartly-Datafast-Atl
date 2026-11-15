@@ -11,48 +11,10 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createClient } from '@clickhouse/client';
 import 'dotenv/config';
+import { splitStatements } from './lib/split-sql-statements.mjs';
 
 const migrationsDirectory = join(process.cwd(), 'db/clickhouse/migrations');
 const schemaPath = join(process.cwd(), 'db/clickhouse/schema.sql');
-
-function splitStatements(sql) {
-  const statements = [];
-  let current = '';
-  let quote = null;
-
-  for (let index = 0; index < sql.length; index++) {
-    const character = sql[index];
-    const next = sql[index + 1];
-    current += character;
-
-    if (quote) {
-      if (character === '\\') {
-        current += next || '';
-        index++;
-      } else if (character === quote) {
-        if (next === quote) {
-          current += next;
-          index++;
-        } else {
-          quote = null;
-        }
-      }
-      continue;
-    }
-
-    if (character === "'" || character === '"' || character === '`') {
-      quote = character;
-    } else if (character === ';') {
-      const statement = current.slice(0, -1).trim();
-      if (statement) statements.push(statement);
-      current = '';
-    }
-  }
-
-  if (current.trim()) statements.push(current.trim());
-
-  return statements;
-}
 
 async function executeScript(client, sql) {
   for (const query of splitStatements(sql)) {
