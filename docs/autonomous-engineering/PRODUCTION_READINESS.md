@@ -9,24 +9,24 @@
 
 ## Gate results
 
-| Area                       | Status  | Evidence                                                                     |
-| -------------------------- | ------- | ---------------------------------------------------------------------------- |
-| Format, lint, typecheck    | PASS    | `pnpm gate` exit 0                                                           |
-| Unit + integration tests   | PASS    | 235 files passed / 1 skipped; 1,156 tests passed / 1 skipped                 |
-| Coverage threshold         | PASS    | 68.42% statements, 58.46% branches, 65.79% functions, 68.87% lines           |
-| Production build           | PASS    | Next.js build compiled; 78 static pages; postbuild ran                       |
-| Deploy script/smoke checks | PASS    | `gate:deploy` in the same run                                                |
-| Local ingestion E2E        | PASS    | `pnpm smoke:local`: pageviews 1 / visitors 1 / visits 1                      |
-| Cookieless E2E             | PASS    | `POST /api/send` with no tokens created visitor + session; row `/cookieless` |
-| Tracker size               | PASS    | 10,355 B raw / 4.22 KB gzip; zero `document.cookie`                          |
-| Live tracking E2E          | PASS    | Firefox -> production tracker -> ClickHouse; stats API 1/1/1; test rows removed |
-| Production deploy          | PASS    | `8068012` live; all containers healthy; worker connected with no insert errors |
-| Live provider billing      | BLOCKED | No verified Dodo test checkout/webhook/portal in this environment            |
-| Live email                 | BLOCKED | No Resend key/domain                                                         |
+| Area                       | Status  | Evidence                                                                          |
+| -------------------------- | ------- | --------------------------------------------------------------------------------- |
+| Format, lint, typecheck    | PASS    | `pnpm gate` exit 0                                                                |
+| Unit + integration tests   | PASS    | 235 files passed / 1 skipped; 1,156 tests passed / 1 skipped                      |
+| Coverage threshold         | PASS    | 68.42% statements, 58.46% branches, 65.79% functions, 68.87% lines                |
+| Production build           | PASS    | Next.js build compiled; 78 static pages; postbuild ran                            |
+| Deploy script/smoke checks | PASS    | `gate:deploy` in the same run                                                     |
+| Local ingestion E2E        | PASS    | `pnpm smoke:local`: pageviews 1 / visitors 1 / visits 1                           |
+| Cookieless E2E             | PASS    | `POST /api/send` with no tokens created visitor + session; row `/cookieless`      |
+| Tracker size               | PASS    | 10,355 B raw / 4.22 KB gzip; zero `document.cookie`                               |
+| Live tracking E2E          | PASS    | Firefox -> production tracker -> ClickHouse; stats API 1/1/1; test rows removed   |
+| Production deploy          | PASS    | `8068012` live; all containers healthy; worker connected with no insert errors    |
+| Live provider billing      | BLOCKED | No verified Dodo test checkout/webhook/portal in this environment                 |
+| Live email                 | BLOCKED | No Resend key/domain                                                              |
 | Real browser walkthrough   | PARTIAL | Headless Firefox proved tracking + custom events; replay/consent/visual pass open |
-| Deployed load test         | BLOCKED | Not run against the VPS; only the local 10k-event probe exists               |
-| Off-host backup copy       | BLOCKED | Documented, not rehearsed here                                               |
-| Legal review               | BLOCKED | Drafts only; not lawyer-reviewed                                             |
+| Deployed load test         | BLOCKED | Not run against the VPS; only the local 10k-event probe exists                    |
+| Off-host backup copy       | BLOCKED | Documented, not rehearsed here                                                    |
+| Legal review               | BLOCKED | Drafts only; not lawyer-reviewed                                                  |
 
 ## Release-gate detail
 
