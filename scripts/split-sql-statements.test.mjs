@@ -33,4 +33,14 @@ test('the retention migration produces six executable statements', async () => {
 
   assert.equal(statements.length, 6);
   assert.ok(statements.every(statement => statement.startsWith('ALTER TABLE ')));
+  // session_replay.created_at is DateTime64(6); a bare column is not a valid
+  // TTL expression. This exact statement failed on the live ClickHouse before
+  // the cast was added.
+  assert.ok(
+    statements.some(statement =>
+      statement.startsWith(
+        'ALTER TABLE session_replay MODIFY TTL toDateTime(created_at) + INTERVAL 365 DAY',
+      ),
+    ),
+  );
 });

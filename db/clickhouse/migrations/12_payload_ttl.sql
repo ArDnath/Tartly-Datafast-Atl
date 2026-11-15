@@ -7,4 +7,5 @@ ALTER TABLE event_data MODIFY TTL created_at + INTERVAL 365 DAY;
 ALTER TABLE session_data MODIFY TTL created_at + INTERVAL 365 DAY;
 ALTER TABLE website_event_stats_hourly MODIFY TTL created_at + INTERVAL 365 DAY;
 ALTER TABLE website_revenue MODIFY TTL created_at + INTERVAL 365 DAY;
-ALTER TABLE session_replay MODIFY TTL created_at + INTERVAL 365 DAY;
+-- session_replay.created_at is DateTime64(6); TTL requires a DateTime result.
+ALTER TABLE session_replay MODIFY TTL toDateTime(created_at) + INTERVAL 365 DAY;
