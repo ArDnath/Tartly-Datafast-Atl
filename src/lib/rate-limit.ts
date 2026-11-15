@@ -78,6 +78,17 @@ export function rateLimitKey(scope: string, ...parts: Array<string | null | unde
   return [scope, ...parts.filter(Boolean)].join(':').slice(0, 255);
 }
 
+/**
+ * The collector increments a counter and asks whether the request is still
+ * inside the window. The first `limit` requests are allowed; the next one is
+ * rejected. This helper existed inline as `count >= limit`, which inverted the
+ * meaning: normal traffic was rejected until the counter reached the limit,
+ * and every Redis reset silently stopped all tracking.
+ */
+export function isAllowedByRateLimit(count: number, limit: number) {
+  return count <= limit;
+}
+
 export function hashRateLimitSubject(value: string) {
   return hash(value).slice(0, 32);
 }
