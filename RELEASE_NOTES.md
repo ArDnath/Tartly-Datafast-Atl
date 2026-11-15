@@ -1,4 +1,4 @@
-# Release notes — 2026-11-15
+# Release notes — 2026-11-16
 
 ## Privacy and tracking
 
@@ -48,14 +48,31 @@
   session replay, advanced attribution, and client-ready reporting.
 - No free tier and no free trial.
 
+## Tracking recovery (deployed 2026-11-16)
+
+- **Collector rate limit fixed.** A fresh Redis window rejected the first 1,199
+  events with `429` because the comparison was inverted. Normal traffic is
+  allowed up to 1,200 events / 60 s per subject.
+- **ClickHouse pipeline fixed.** The event store's memory ceiling was raised, the
+  Kafka worker dead-letters a poisoned batch instead of blocking the partition,
+  and dashboard reads fall back to PostgreSQL if ClickHouse fails.
+- **ClickHouse retention TTLs applied live.** Six 365-day TTLs are present in
+  `system.tables`; `session_replay` uses `toDateTime(created_at)`.
+- **Verified in production.** A real Firefox pageview plus a custom event from
+  `https://tartly.in/script.js` produced 2 events / 1 visitor / 1 session in
+  ClickHouse and `pageviews 1 / visitors 1 / visits 1` in the signed-in stats
+  API. Test rows were removed afterwards.
+
 ## Known limitations
 
-- ClickHouse retention/deletion code and a 365-day TTL migration ship in this
-  release, but have not been run against a live ClickHouse yet. Verify on the
-  deployment before advertising plan retention.
-- A retried client event is not deduplicated at the event level.
+- The tenant-scoped retention **job** has not run against seeded old rows yet;
+  the global TTLs are applied, but do not advertise the 90/365-day plan promise
+  until the job is verified.
 - Live payment-provider and email flows require production credentials and have
   not been verified in this release environment.
 - Session replay has not been browser-tested in this environment; the recorder
   and ingest path are unit- and smoke-tested.
+- The signed-in visual pass and consent/replay browser pass are still open.
 - Privacy, cookie, and DPA documents are drafts pending legal review.
+- A dead-lettered Kafka batch must be replayed from PostgreSQL or Kafka before
+  topic retention expires; no automatic replay tool ships yet.

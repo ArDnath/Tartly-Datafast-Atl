@@ -48,6 +48,43 @@
   `BUILD_VERSION`, run public smoke checks, and roll back on failure. See
   `docs/CI_CD.md` → Deployment invariants.
 
+## 2026-11-16 — Production deploy recovered; live tracking proven end to end
+
+- **Deployed:** `80680129cce9c34b2b135e6a8317e790907f1392` on the production
+  VPS (`https://tartly.in/api/health/ready` returns that exact version).
+- **Collector rate-limit bug fixed.** `redis.rateLimit` returned `count >= limit`,
+  so after a Redis restart the first 1,199 events in every window were rejected
+  with `429 Too many tracking events`; tracking only resumed after the counter
+  crossed the limit. The decision is now `count <= limit`, with a regression test
+  in `src/lib/rate-limit.test.ts`. This was the direct cause of the live
+  "tracking is not working" symptom.
+- **ClickHouse deploy path fixed.** The retention migration failed twice on real
+  infrastructure: (1) a semicolon inside a SQL comment made the statement
+  splitter emit comment fragments (`SYNTAX_ERROR: Empty query`), and (2)
+  `session_replay.created_at` is `DateTime64(6)` and is invalid as a bare TTL
+  expression. The splitter now ignores line/block comments and the migration
+  casts to `toDateTime(created_at)`. Six TTLs were applied and verified on the
+  live instance; `scripts/split-sql-statements.test.mjs` covers both cases.
+- **Real-browser production proof.** Firefox loaded a third-party test page with
+  `https://tartly.in/script.js` and the production website ID. The page fired a
+  pageview and a `data-talivia-event` custom event. ClickHouse held exactly
+  `2 events / 1 visitor / 1 session`; the signed-in stats API returned
+  `pageviews 1 / visitors 1 / visits 1 / revenue 0 / first_touch`. A temporary
+  test membership was used; the user, membership, PostgreSQL rows, ClickHouse
+  rows, and hourly aggregates were deleted afterwards. Production now holds
+  **zero test analytics rows**.
+- **Gate:** `pnpm gate` exit 0 on `fix/17-collector-rate-limit` — 235 test files
+  passed / 1 skipped, 1,156 tests passed / 1 skipped, coverage 68.42% statements
+  / 58.46% branches / 65.79% functions / 68.87% lines, 78 static pages,
+  production build. Log: `/tmp/opencode/gate-rate-limit.log`.
+- **Production health:** app, worker, PostgreSQL, Redis, Kafka, and ClickHouse
+  healthy; worker connected with no insert errors; host load ~2.5 on 2 vCPU;
+  disk 52 GB free after pruning.
+- **Still external:** live Dodo test-mode checkout/webhook/portal, Resend
+  delivery, Google OAuth round trip, off-host restore rehearsal, deployed load
+  test, legal review. ClickHouse retention code is live but the scheduled job
+  itself has not run yet.
+
 ## 2026-11-15 — Tracking pipeline recovery on the production VPS
 
 - **Symptom:** the production app accepted `POST /api/send` but the dashboard

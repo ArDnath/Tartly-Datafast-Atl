@@ -125,16 +125,32 @@ slices are made by the master in this worktree, one at a time. Recorded in
   above 1.6 GB and the host did not OOM. Log:
   `/tmp/opencode/revenuelens-resources.log`.
 
+## 2026-11-16 — Live deployment and tracking verification
+
+- **Deployed production SHA:** `80680129cce9c34b2b135e6a8317e790907f1392`.
+  Health readiness returns that exact version; app, worker, PostgreSQL, Redis,
+  Kafka, and ClickHouse are healthy.
+- **Root causes of the live tracking failure, fixed and deployed:**
+  1. ClickHouse's cgroup-derived memory ratio capped it at ~717 MB; inserts
+     failed and the Kafka worker retried one offset forever.
+  2. The collector rate limiter compared `count >= limit`, rejecting normal
+     traffic until 1,200 requests had accumulated.
+  3. The retention migration splitter treated a semicolon inside a comment as
+     SQL; `session_replay` also needed `toDateTime(created_at)` for TTL.
+- **Production browser proof:** Firefox loaded `https://tartly.in/script.js`,
+  sent one pageview and one custom event; ClickHouse stored 2 events / 1
+  visitor / 1 session; the signed-in stats API returned 1 pageview / 1 visitor /
+  1 visit. All test users, rows, and hourly aggregates were deleted afterwards.
+- **Gate:** `pnpm gate` exit 0, 235 files / 1,156 tests, coverage 68.42%
+  statements, 78 static pages. Evidence: `/tmp/opencode/gate-rate-limit.log`.
+
 ## Next step
 
-The engineering-owned blockers B9, B11, B12, B13, and B14 are closed on
-`feature/15-release-blockers` with tests, reviewed independently, and merged
-into `autonomous/saas-buildout`. PR #54 is open against `main`; merging it
-would trigger the repository's automatic production deploy, so merging is a
-human decision. Remaining blockers need credentials, a live service, or a
-human: (1) ClickHouse retention/deletion on the real stack,
-(2) live Dodo test-mode checkout/webhook/portal, (3) browser journey with
-consent and replay, (4) deployed streaming load test, (5) off-host backup and
-restore rehearsal, (6) legal review. Push the feature branch, open the PR, and
-merge through `autonomous/saas-buildout` after CI. The exact tasks are in
-`docs/architecture/PORT_PLAN.md` and `PRODUCTION_READINESS.md`.
+The tracking outage is closed and deployed. Remaining release work needs
+credentials, a live service, or a human: (1) run the live ClickHouse retention
+job against seeded old rows, (2) live Dodo test-mode checkout/webhook/portal,
+(3) Resend delivery and Google OAuth, (4) a signed-in desktop/mobile browser
+pass including replay and consent, (5) a deployed load test, (6) off-host backup
+and restore rehearsal, (7) legal review. Do not advertise the 90/365-day
+retention promise until the job has run on the VPS. The exact tasks remain in
+`PRODUCTION_READINESS.md` and `BLOCKED_TASKS.md`.
