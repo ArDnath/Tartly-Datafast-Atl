@@ -190,4 +190,14 @@ describe('shared response redaction', () => {
       browser: 'Chrome',
     });
   });
+
+  test('masks a saved filter value when the filter targets an identity field', () => {
+    expect(
+      redactSharedData({
+        filters: [{ name: 'distinctId', operator: 'equals', value: 'person@example.com' }],
+      }),
+    ).toEqual({
+      filters: [{ name: 'distinctId', operator: 'equals', value: SHARED_REDACTED_VALUE }],
+    });
+  });
 });

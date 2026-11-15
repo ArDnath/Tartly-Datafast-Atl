@@ -3,6 +3,7 @@ import { fetchWebsite } from '@/lib/load';
 import prisma from '@/lib/prisma';
 import { decryptProviderSecret } from '@/features/payments/server/provider-secrets';
 import { badRequest, json, notFound, serverError, unauthorized } from '@/lib/response';
+import { getBodyLimitError, readRequestBody } from '@/lib/request';
 import {
   shouldApplySubscriptionEvent,
   subscriptionEventPriority,
@@ -172,10 +173,20 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ websiteId: string }> },
 ) {
+  const oversized = getBodyLimitError(request, 256 * 1024);
+
+  if (oversized) {
+    return oversized;
+  }
+
   const { websiteId } = await params;
   if (!(await fetchWebsite(websiteId))) return notFound({ message: 'Website not found.' });
 
-  const rawBody = await request.text();
+  const rawBody = await readRequestBody(request, 256 * 1024);
+
+  if (rawBody === null) {
+    return badRequest({ code: 'payload-too-large', message: 'Webhook body is too large.' });
+  }
   const signature = request.headers.get('x-yolfi-signature');
   const connection = await getYolfiConnection(websiteId);
   const signingSecret = decryptProviderSecret(connection?.webhookSecretRef);
@@ -193,11 +204,14 @@ export async function POST(
     return badRequest({ message: 'Yolfi event is missing id or type.' });
 
   const existing = await prisma.client.providerEvent.findUnique({
-    where: { providerName_providerEventKey: { providerName: 'yolfi', providerEventKey: event.id } },
+    where: {
+      websiteId_providerName_providerEventKey: {
+        websiteId,
+        providerName: 'yolfi',
+        providerEventKey: event.id,
+      },
+    },
   });
-  if (existing && existing.websiteId !== websiteId) {
-    return badRequest({ message: 'Yolfi event id is already associated with another website.' });
-  }
   if (existing?.processingStatus === 'processed') {
     return json({ ok: true, duplicate: true, providerEventId: existing.id });
   }

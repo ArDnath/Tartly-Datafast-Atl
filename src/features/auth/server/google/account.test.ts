@@ -69,7 +69,7 @@ describe('findOrCreateGoogleUser', () => {
       logoUrl: null,
       deletedAt: null,
       suspendedAt: null,
-      emailVerifiedAt: null,
+      emailVerifiedAt: new Date('2026-01-15T00:00:00Z'),
     });
 
     await findOrCreateGoogleUser(profile);
@@ -84,6 +84,23 @@ describe('findOrCreateGoogleUser', () => {
         }),
       }),
     );
+  });
+
+  test('rejects linking to an unverified password account', async () => {
+    prismaMock.client.user.findUnique.mockResolvedValue({
+      ...googleUser,
+      googleId: null,
+      displayName: null,
+      logoUrl: null,
+      deletedAt: null,
+      suspendedAt: null,
+      emailVerifiedAt: null,
+    });
+
+    await expect(findOrCreateGoogleUser(profile)).rejects.toMatchObject({
+      code: 'email-link-required',
+    });
+    expect(prismaMock.client.user.update).not.toHaveBeenCalled();
   });
 
   test('creates a passwordless account for a new user', async () => {

@@ -64,7 +64,13 @@ const {
 } = await import('./workspace-invitations');
 
 const auth = {
-  user: { id: 'user-a', username: 'owner@example.com', role: 'user', isAdmin: false },
+  user: {
+    id: 'user-a',
+    username: 'owner@example.com',
+    role: 'user',
+    isAdmin: false,
+    emailVerifiedAt: new Date('2026-01-01T00:00:00Z'),
+  },
 } as any;
 
 beforeEach(() => {
@@ -255,5 +261,22 @@ describe('workspace invitations', () => {
         invitationId: 'invite-1',
       }),
     ).rejects.toBeInstanceOf(InvitationError);
+  });
+});
+
+test('rejects an unverified account', async () => {
+  workspaceInvitation.findFirst.mockResolvedValue({
+    id: 'invite-1',
+    workspaceId: 'workspace-a',
+    email: 'member@example.com',
+    role: 'MEMBER',
+    expiresAt: new Date(Date.now() + 60_000),
+    acceptedAt: null,
+    workspace: { name: 'Acme', deletedAt: null, suspendedAt: null },
+  });
+  const user = { ...auth.user, username: 'member@example.com', emailVerifiedAt: null };
+
+  await expect(acceptWorkspaceInvitation({ user, token: 'valid-token' })).rejects.toMatchObject({
+    code: 'email-not-verified',
   });
 });

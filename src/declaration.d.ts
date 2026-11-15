@@ -23,5 +23,6 @@ interface Window {
     track: (...args: any[]) => Promise<string>;
     identify: (...args: any[]) => Promise<string>;
     getSessionId?: () => string;
+    setConsent?: (granted: boolean) => void;
   };
 }

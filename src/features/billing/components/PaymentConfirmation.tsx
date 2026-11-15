@@ -14,6 +14,8 @@ export function PaymentConfirmation({ onRefresh }: { onRefresh: () => void }) {
   const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+
     const timer = window.setInterval(() => setSeconds(value => value + 1), 1000);
 
     return () => window.clearInterval(timer);

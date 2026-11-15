@@ -1,6 +1,7 @@
 import { isbot } from 'isbot';
 import { z } from 'zod';
 import { getFilteredAttributionQuery } from '@/features/analytics/lib/attribution-query';
+import { getClientEventId } from '@/features/analytics/lib/event-id';
 import {
   type CollectorCachePayload,
   createCollectorCacheToken,
@@ -16,6 +17,7 @@ import { isTrackerOriginAllowed } from '@/features/analytics/lib/tracker-origin'
 import {
   getTrackingSessionId,
   getTrackingVisitorId,
+  TRACKING_TOKEN_MAX_LENGTH,
 } from '@/features/analytics/lib/tracking-identity';
 import {
   createSession,
@@ -31,16 +33,23 @@ import {
   upsertVisitorContext,
 } from '@/features/payments/server/queries/attribution';
 import { COLLECTION_TYPE, EVENT_TYPE } from '@/lib/constants';
-import { getSalt, secret, uuid } from '@/lib/crypto';
+import { getSalt, hash, secret, uuid } from '@/lib/crypto';
 import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import { fetchWebsite } from '@/lib/load';
 import { logger } from '@/lib/logger';
+import { isUniqueConstraintError } from '@/lib/prisma-error';
+import { hashRateLimitSubject, rateLimitKey } from '@/lib/rate-limit';
+import redis from '@/lib/redis';
 import { parseRequest } from '@/lib/request';
-import { badRequest, forbidden, json, serverError } from '@/lib/response';
+import { badRequest, forbidden, json, serverError, tooManyRequests } from '@/lib/response';
 import { anyObjectParam, urlOrPathParam } from '@/lib/schema';
 import { safeDecodeURI, safeDecodeURIComponent } from '@/lib/url';
 import { EVENT_GRACE, isBillableEvent, releaseEventUsage, reserveEventUsage } from '@/lib/usage';
+import { getLink, getPixel } from '@/queries/prisma';
 import { getWebsiteAttributionRuntimeConfig } from '@/queries/prisma/website';
+
+const MAX_EVENT_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const MAX_EVENT_FUTURE_MS = 5 * 60 * 1000;
 
 const schema = z.object({
   type: z.enum(['event', 'identify', 'performance', 'linker']),
@@ -60,8 +69,12 @@ const schema = z.object({
       tag: z.string().max(50).optional(),
       ip: z.string().optional(),
       userAgent: z.string().optional(),
-      timestamp: z.coerce.number().int().optional(),
+      timestamp: z.coerce.number().int().min(946684800).max(4102444800).optional(),
       id: z.string().optional(),
+      // Client-generated, per-event idempotency key. Retrying the same event
+      // must not create a second row or consume a second usage slot. Accept
+      // short legacy values rather than rejecting the whole collector request.
+      eventId: z.string().max(100).optional(),
       visitorId: z.string().max(100).optional(),
       sessionId: z.string().max(100).optional(),
       linker: z.string().max(4096).optional(),
@@ -115,6 +128,7 @@ export async function POST(request: Request) {
       tag,
       timestamp,
       id,
+      eventId: payloadEventId,
       visitorId: payloadVisitorToken,
       sessionId: payloadSessionToken,
       linker,
@@ -133,26 +147,34 @@ export async function POST(request: Request) {
     let websiteDomain: string | null = null;
 
     if (websiteId) {
+      // Always resolve the website, even when a cache token carries the
+      // tenant: a valid token must stop working the moment the website is
+      // deleted or its workspace changes.
+      const website = await fetchWebsite(websiteId);
+
+      if (!website) {
+        return badRequest({ message: 'Website not found.' });
+      }
+
+      workspaceId = website.workspaceId ?? null;
+      websiteDomain = website.domain ?? null;
+
       const cacheHeader = request.headers.get('x-talivia-cache');
 
       if (cacheHeader) {
         cache = parseCollectorCacheToken(cacheHeader, websiteId, secret());
       }
+    } else if (pixelId) {
+      const pixel = await getPixel(pixelId);
 
-      workspaceId = cache?.workspaceId ?? null;
+      if (!pixel || pixel.deletedAt) {
+        return badRequest({ message: 'Pixel not found.' });
+      }
+    } else if (linkId) {
+      const link = await getLink(linkId);
 
-      // The tenant is required for usage metering. Older cache tokens do not
-      // contain it, so resolve the website once and refresh the token below.
-      // Origin enforcement also needs the configured domain on every request.
-      if (!cache?.websiteId || !workspaceId || process.env.ENFORCE_TRACKER_ORIGIN === 'true') {
-        const website = await fetchWebsite(websiteId);
-
-        if (!website) {
-          return badRequest({ message: 'Website not found.' });
-        }
-
-        workspaceId = website.workspaceId ?? null;
-        websiteDomain = website.domain ?? null;
+      if (!link || link.deletedAt) {
+        return badRequest({ message: 'Link not found.' });
       }
     }
 
@@ -191,7 +213,36 @@ export async function POST(request: Request) {
       return forbidden();
     }
 
+    // The public collector is intentionally unauthenticated. A Redis-backed
+    // per-IP ceiling keeps one client from exhausting a tenant's event quota
+    // or the process while leaving normal tracker traffic far below it.
+    if (redis.enabled) {
+      const allowed = await redis.client.rateLimit(
+        rateLimitKey('collector:send', hashRateLimitSubject(ip || 'unknown')),
+        1200,
+        60,
+      );
+
+      if (!allowed) {
+        return tooManyRequests({ message: 'Too many tracking events.' }, 60);
+      }
+    }
+
     const createdAt = timestamp ? new Date(timestamp * 1000) : new Date();
+    const now = Date.now();
+
+    // A public collector must not accept arbitrarily old or future events:
+    // backdating distorts reports and can burn another tenant's usage window.
+    if (
+      createdAt.getTime() < now - MAX_EVENT_AGE_MS ||
+      createdAt.getTime() > now + MAX_EVENT_FUTURE_MS
+    ) {
+      return badRequest({
+        code: 'timestamp_out_of_range',
+        message: 'Event timestamp is outside the accepted window.',
+      });
+    }
+
     let visitorToken = payloadVisitorToken;
     let sessionToken = payloadSessionToken;
 
@@ -212,6 +263,14 @@ export async function POST(request: Request) {
         : name
           ? EVENT_TYPE.customEvent
           : EVENT_TYPE.pageView;
+
+    // A client event id makes delivery idempotent. The primary key is derived
+    // from the entity that owns the row (website, link, or pixel) and the
+    // client key, so a retry collides in PostgreSQL instead of creating a
+    // second event. The key is tenant-scoped: two entities may use the same
+    // client key without colliding.
+    const idempotentEventId =
+      sourceId && payloadEventId ? getClientEventId(sourceId, payloadEventId) : undefined;
 
     // Resolve entitlement and reserve the billable event BEFORE creating a
     // session or visitor context. A deleted/suspended workspace must not leave
@@ -264,9 +323,34 @@ export async function POST(request: Request) {
         visitorId = cache.visitorId;
         sessionId = cache.sessionId;
       } else {
-        if (!visitorToken || !sessionToken) {
-          return badRequest({ message: 'Missing visitor or session identity.' });
+        // Cookieless mode. The tracker sends only an ephemeral tab-scoped
+        // session token. When no visitor token arrives, derive a stable
+        // per-website visitor key from a rotating salted hash of the request
+        // IP and user agent. The raw values are never stored.
+        if (!visitorToken) {
+          visitorToken = hash(
+            websiteId,
+            ip || 'unknown',
+            userAgent || 'unknown',
+            getSalt(process.env.SALT_ROTATION || 'month', createdAt),
+            secret(),
+          );
         }
+
+        // Server-side callers without a session token get a deterministic
+        // 30-minute bucket so events still sessionize without client state.
+        if (!sessionToken) {
+          sessionToken = hash(
+            visitorToken,
+            String(Math.floor(createdAt.getTime() / (30 * 60 * 1000))),
+          );
+        }
+
+        // Derive from the same truncated width that the visitor row and the
+        // cross-domain linker store. Otherwise a linked second domain creates
+        // events under a visitor UUID that has no visitor row.
+        visitorToken = visitorToken.slice(0, TRACKING_TOKEN_MAX_LENGTH);
+        sessionToken = sessionToken.slice(0, TRACKING_TOKEN_MAX_LENGTH);
 
         visitorId = getTrackingVisitorId(websiteId, visitorToken);
         sessionId = getTrackingSessionId(websiteId, sessionToken);
@@ -396,56 +480,74 @@ export async function POST(request: Request) {
         });
       }
 
-      const websiteEventId = await saveEvent({
-        websiteId: sourceId,
-        visitorId,
-        sessionId,
-        eventType,
-        createdAt,
+      let websiteEventId: string;
 
-        // Page
-        pageTitle: safeDecodeURIComponent(title),
-        hostname: hostname || urlDomain,
-        urlPath: safeDecodeURI(urlPath),
-        urlQuery,
-        referrerPath: safeDecodeURI(referrerPath),
-        referrerQuery,
-        referrerDomain,
+      try {
+        websiteEventId = await saveEvent({
+          eventId: idempotentEventId,
+          websiteId: sourceId,
+          visitorId,
+          sessionId,
+          eventType,
+          createdAt,
 
-        // Session
-        distinctId: id,
-        browser,
-        os,
-        device,
-        screen,
-        language,
-        country,
-        region,
-        city,
+          // Page
+          pageTitle: safeDecodeURIComponent(title),
+          hostname: hostname || urlDomain,
+          urlPath: safeDecodeURI(urlPath),
+          urlQuery,
+          referrerPath: safeDecodeURI(referrerPath),
+          referrerQuery,
+          referrerDomain,
 
-        // Events
-        eventName: name,
-        eventData: data,
-        tag,
+          // Session
+          distinctId: id,
+          browser,
+          os,
+          device,
+          screen,
+          language,
+          country,
+          region,
+          city,
 
-        // UTM
-        utmSource,
-        utmMedium,
-        utmCampaign,
-        utmContent,
-        utmTerm,
+          // Events
+          eventName: name,
+          eventData: data,
+          tag,
 
-        // Click IDs
-        gclid,
-        gclsrc,
-        wbraid,
-        gbraid,
-        fbclid,
-        msclkid,
-        ttclid,
-        lifatid,
-        twclid,
-      });
+          // UTM
+          utmSource,
+          utmMedium,
+          utmCampaign,
+          utmContent,
+          utmTerm,
+
+          // Click IDs
+          gclid,
+          gclsrc,
+          wbraid,
+          gbraid,
+          fbclid,
+          msclkid,
+          ttclid,
+          lifatid,
+          twclid,
+        });
+      } catch (e) {
+        if (idempotentEventId && isUniqueConstraintError(e)) {
+          // A retry of an event that already committed. Release the fresh
+          // reservation: the first delivery already paid for this event.
+          if (reservedWorkspaceId) {
+            await releaseEventUsage(reservedWorkspaceId);
+            reservedWorkspaceId = null;
+          }
+
+          return json({ ok: true, duplicate: true });
+        }
+
+        throw e;
+      }
 
       eventCommitted = true;
 

@@ -19,6 +19,10 @@ vi.mock('@/lib/crypto', () => ({
   secret: vi.fn(() => 'secret'),
 }));
 
+const membership = vi.hoisted(() => ({ getWorkspaceMembership: vi.fn() }));
+
+vi.mock('@/lib/workspace-auth', () => membership);
+
 function request() {
   return new Request('https://example.com/api/developer/verify', {
     headers: { 'x-talivia-api-key': 'tlv_test' },
@@ -35,6 +39,7 @@ function key(overrides: Record<string, unknown> = {}) {
     user: { deletedAt: null, suspendedAt: null },
     website: {
       deletedAt: null,
+      workspaceId: 'workspace-1',
       workspace: { deletedAt: null, suspendedAt: null },
     },
     ...overrides,
@@ -43,6 +48,7 @@ function key(overrides: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  membership.getWorkspaceMembership.mockResolvedValue({ role: 'MEMBER' });
   vi.mocked(prisma.client.apiKey.findFirst as any).mockResolvedValue(key());
 });
 
@@ -79,6 +85,21 @@ test('rejects a key when the workspace is suspended or deleted', async () => {
 test('rejects a key when the website is deleted', async () => {
   vi.mocked(prisma.client.apiKey.findFirst as any).mockResolvedValue(
     key({ website: { deletedAt: new Date(), workspace: null } }),
+  );
+
+  await expect(authenticateApiKey(request())).resolves.toBeNull();
+});
+
+test('rejects a key whose creator was removed from the workspace', async () => {
+  membership.getWorkspaceMembership.mockResolvedValue(null);
+
+  await expect(authenticateApiKey(request())).resolves.toBeNull();
+  expect(prisma.client.apiKey.update).not.toHaveBeenCalled();
+});
+
+test('rejects an unscoped legacy key', async () => {
+  vi.mocked(prisma.client.apiKey.findFirst as any).mockResolvedValue(
+    key({ websiteId: null, website: null }),
   );
 
   await expect(authenticateApiKey(request())).resolves.toBeNull();

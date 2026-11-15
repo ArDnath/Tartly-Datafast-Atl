@@ -7,8 +7,15 @@ import { OnboardingFlow } from '@/features/onboarding/OnboardingFlow';
  * and billing guards still apply; the flow itself renders the same full-height
  * canvas and step components as /onboarding.
  */
-export default function Page() {
-  return <OnboardingFlow mode="add-website" />;
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ website?: string | string[] }>;
+}) {
+  const { website } = await searchParams;
+  const initialWebsite = typeof website === 'string' ? website : undefined;
+
+  return <OnboardingFlow mode="add-website" initialWebsite={initialWebsite} />;
 }
 
 export const metadata: Metadata = {

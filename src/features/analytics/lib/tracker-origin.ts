@@ -61,8 +61,9 @@ export function isTrackerOriginAllowed({
     return true;
   }
 
-  const candidate =
-    normalizeTrackerHost(hostname) || (origin ? normalizeTrackerHost(origin) : null);
+  // A browser-attached Origin is not spoofable by page JavaScript. Prefer it
+  // when present; payload.hostname is only a fallback for server-side clients.
+  const candidate = normalizeTrackerHost(origin) || normalizeTrackerHost(hostname);
 
   if (!candidate) {
     // Server-side events and older clients do not always send a host.

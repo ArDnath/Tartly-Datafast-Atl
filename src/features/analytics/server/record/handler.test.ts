@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { parseCollectorCacheToken } from '@/features/analytics/lib/collector-cache';
 import { getClientInfo, hasBlockedIp } from '@/features/analytics/lib/detect';
-import { saveRecording } from '@/features/analytics/server/queries/sql';
+import { saveRecording } from '@/features/analytics/server/queries/sql/replays/saveRecording';
 import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import { getPlan } from '@/lib/plans';
 import { parseRequest } from '@/lib/request';
@@ -43,7 +43,8 @@ vi.mock('@/queries/prisma', () => ({
   getWebsite: vi.fn(),
 }));
 
-vi.mock('@/features/analytics/server/queries/sql', () => ({
+vi.mock('@/features/analytics/server/queries/sql/replays/saveRecording', () => ({
+  countReplayChunks: vi.fn(async () => 0),
   saveRecording: vi.fn(),
 }));
 

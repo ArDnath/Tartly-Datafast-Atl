@@ -1,14 +1,19 @@
 import { checkAuth } from '@/lib/auth';
 import { clearSessionCookie, getSessionTokenFromRequest } from '@/lib/auth-cookie';
+import { isSameOriginRequest } from '@/lib/csrf';
 import { revokeAuthSession } from '@/lib/auth-session';
 import redis from '@/lib/redis';
-import { ok } from '@/lib/response';
+import { forbidden, ok } from '@/lib/response';
 
 /**
  * Logout is idempotent: it revokes the current cookie session when present,
  * clears the cookie, and also drops a legacy Redis-backed API session.
  */
 export async function POST(request: Request) {
+  if (!isSameOriginRequest(request)) {
+    return forbidden({ code: 'csrf-rejected', message: 'Cross-site request rejected.' });
+  }
+
   const sessionToken = getSessionTokenFromRequest(request);
 
   if (sessionToken) {

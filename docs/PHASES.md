@@ -7,15 +7,19 @@
   `.github/rulesets/main-protection.json`)
 - **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
   forked locally at `/home/ariyaman/Dev/fight/efforts/revenuelens`
-- **Last updated:** 2026-11-13
-- **Current phase:** Phases 10, 11, and 12 are implemented. The 2026-11-13
-  setup-continuity slice unifies `/app/new` with the first-run onboarding flow,
-  auto-selects the detected framework guide, adds an AI-agent install prompt,
-  and adds a live bottom-corner reminder until the tracker sends its first
-  event. The 2026-11-13 first-party install slice adds strict-policy preflight
-  and same-origin proxy guides for Next.js, Vercel, Netlify, and Cloudflare
-  Pages; the tracker and ingestion are untouched. The 2026-11-12 platform-checkout slice connects the
-  landing pricing cards,
+- **Last updated:** 2026-11-15
+- **Current phase:** Phases 10, 11, and 12 are implemented. The 2026-11-14
+  activation/security slice makes the landing → login → onboarding → app →
+  upgrade path continuous, preserves website and checkout intent across auth,
+  and closes the tenant-isolation, share-redaction, collector, OAuth-linking,
+  webhook, replay, and request-size findings from the production audit. The
+  2026-11-13 setup-continuity slice unifies `/app/new` with the first-run
+  onboarding flow, auto-selects the detected framework guide, adds an AI-agent
+  install prompt, and adds a live bottom-corner reminder until the tracker
+  sends its first event. The 2026-11-13 first-party install slice adds
+  strict-policy preflight and same-origin proxy guides for Next.js, Vercel,
+  Netlify, and Cloudflare Pages; the tracker and ingestion remain intact. The
+  2026-11-12 platform-checkout slice connects the landing pricing cards,
   the onboarding setup allowance, the `/app` paywall, and Dodo subscription
   management. The free trial was removed: a workspace finishes onboarding
   (one website) and must subscribe before ingestion or paid features unlock.
@@ -44,6 +48,173 @@
   `BUILD_VERSION`, run public smoke checks, and roll back on failure. See
   `docs/CI_CD.md` → Deployment invariants.
 
+## 2026-11-15 — Tracking pipeline recovery on the production VPS
+
+- **Symptom:** the production app accepted `POST /api/send` but the dashboard
+  showed no events. PostgreSQL had the relational mirror; ClickHouse (the read
+  store) was empty.
+- **Root cause:** ClickHouse derived a **717 MB** memory ceiling from its 2 GB
+  container and `max_server_memory_usage_to_ram_ratio=0.35`. Every insert failed
+  with `MEMORY_LIMIT_EXCEEDED`, and the Kafka worker retried the same batch
+  forever without committing its offset. One failed event blocked all later
+  events.
+- **Fix:** raised the ratio to 0.75 (1.5 GB ceiling), restarted ClickHouse and
+  the worker, and added deploy-time restart-on-config-change. The worker now
+  retries with bounded backoff and dead-letters a batch instead of stalling the
+  partition; `runQuery` falls back to the PostgreSQL query implementation when
+  ClickHouse fails. Kafka's health check is now a cheap TCP check instead of a
+  JVM topic listing every 15 s.
+- **Verified on production:** a diagnostic `POST /api/send` event reached
+  ClickHouse in under 8 seconds; `talivia.website_event` count increased from 1
+  to 2; host load average fell from ~25 to 0.34 after the backlog cleared.
+- **Verified locally in a real browser:** Firefox headless loaded a third-party
+  page with `http://localhost:3000/script.js`; a pageview, an SPA `pushState`
+  pageview with UTM parameters, and a `data-talivia-event` custom event all
+  reached PostgreSQL with visitor and session IDs. The stats API returned
+  `pageviews 4 / visitors 2 / visits 3` for the test website.
+- **Production read path verified:** a temporary test membership was granted to
+  a throwaway account, the signed-in `GET /api/websites/:id/stats` call returned
+  `pageviews 2 / visitors 2 / visits 2 / revenue 0 / first_touch` from
+  ClickHouse, and the account, membership, Postgres rows, and ClickHouse test
+  rows were deleted afterwards. The production event store is back to zero
+  fabricated rows.
+- **Still unverified:** the new worker's dead-letter path under a forced
+  ClickHouse outage, and a high-volume replay. These are recorded as
+  follow-ups, not claimed.
+- **N/A:** database migration (none), new dependency (none).
+
+## 2026-11-15 — Release-blocker slice: idempotency, entitlements, billing period
+
+Branch `feature/15-release-blockers`. Closed the engineering-owned blockers from
+`docs/autonomous-engineering/PRODUCTION_READINESS.md`:
+
+- **Event idempotency (B9):** tracker and documented server-side API send an
+  `eventId`; the collector derives a per-website PostgreSQL primary key. A
+  duplicate returns `ok`, is counted once, and releases its fresh usage
+  reservation. ClickHouse is written after the relational mirror.
+- **Central Pro enforcement (B11):** journeys, API keys, client-reporting
+  shares, full backups, and CSV export now check server-side entitlements via
+  `src/lib/feature-access.ts`. Share-token reads remain scoped by the share.
+- **Billing-period metering (B12):** event/replay counters use the provider
+  subscription anniversary when live; UTC calendar month is only the
+  onboarding/legacy fallback. Usage notices scan every live period.
+- **Operational retention (B13):** daily job redacts webhook payloads and audit
+  IPs after 90 days and deletes billing/provider/audit rows after 365 days.
+- **Share expiry (B14):** 30-day `expires_at`, migration + backfill, resolver
+  enforcement.
+
+Evidence: `pnpm gate` exit 0 on 2026-11-15 — 234 test files, 1,152 tests, 78
+static pages, production build, coverage 68.33% statements. Log:
+`/tmp/opencode/gate-feature15-r2.log`. Still external: live ClickHouse retention
+run, Dodo test-mode checkout/webhook/portal, browser journey, deployed load
+test, off-host restore, legal review.
+
+## 2026-11-14 — Cookieless tracker, consent mode, and monitored build loop
+
+- **Cookieless by implementation, not just copy.** The tracker no longer reads
+  or writes cookies. A random session token lives only in the tab
+  (`sessionStorage`, 30-minute rolling expiry) and falls back to memory when
+  storage is blocked. The server derives the visitor key from a keyed,
+  rotating salted hash of website, IP, user agent, salt, and `APP_SECRET`;
+  raw IP is still never stored. `SALT_ROTATION` defaults to `month` in
+  `.env.example` and `docs/ENVIRONMENT.md`; a daily default reset first-touch
+  attribution every day, which broke the revenue promise. Decision record: ADR-001 in
+  `docs/architecture/ARCHITECTURE_DECISIONS.md`.
+- **Attribution preserved.** Checkout link decoration still carries the tab
+  session ID to Dodo, Stripe, and Lemon Squeezy; the signed cross-domain linker
+  still carries visitor and session tokens across configured domains. The
+  collector cache continues to identify in-page requests.
+- **Consent-aware mode.** `data-consent="required"` sends nothing until
+  `window.talivia.setConsent(true)` or a `talivia:consent` event. Revoking
+  stops later sends; it cannot recall delivered events. The recorder keeps its
+  existing separate consent hook.
+- **Opt-in engagement events.** `data-track-outbound="true"` records
+  `outbound-link`; `data-track-downloads="true"` records `file-download`. A
+  manual `data-talivia-event` wins, so one click is never double counted.
+  These count as billable custom events and the docs say so.
+- **Docs and legal.** `/docs/install` gained a Tracker reference (attributes,
+  custom events, SPA, consent, server-side `POST /api/send` example) and a nav
+  entry. The legal cookie page now states the tracker sets no cookies, explains
+  the rotating hash, and documents the daily-unique and shared-IP limitations.
+- **Plan limit corrected.** `AGENTS.md` fixes Pro at up to 20 websites; the
+  config sold 50. `websiteLimit` is now 20, with the description and tests
+  aligned (ADR-004).
+- **License notice restored.** Talivia's MIT `LICENSE` had replaced Umami's
+  copyright line. The original Umami notice is now in
+  `THIRD_PARTY_NOTICES.md`.
+- **Resource guard.** The host has 7.1 GB RAM. Two orphaned 10-worker test runs
+  from the previous session drove load average to ~30; both were stopped.
+  `scripts/agent-resource-guard.sh` samples memory, swap, load, and top RSS
+  every 15 seconds. `gate:test` is capped at 2 workers.
+- **Verification (2026-11-14):**
+  - `pnpm exec vitest run` (2 workers, no coverage): **225 files passed /
+    1 skipped, 1,112 tests passed / 1 skipped**, 275 s.
+  - Targeted after the consent slice: tracker **24**, collector **9**, docs
+    **33**, plans **9**; `tsc --noEmit` exit 0.
+  - Tracker build: **10,098 bytes raw / 4.12 KB gzip**, zero `document.cookie`.
+  - Live local E2E: `pnpm smoke:local` registered an account, created a website,
+    sent a tokenised event, and read `pageviews 1 / visitors 1 / visits 1`.
+    A second `POST /api/send` with **no visitor or session token** returned a
+    collector cache and linker; the stored `website_event` row had non-null
+    `visitor_id` and `session_id` and `url_path=/cookieless`.
+- **UNVERIFIED:** a connected-browser visual pass of the new docs section and
+  consent states; the daily-unique visitor count against a multi-day dataset;
+  live Dodo/Resend/provider flows (unchanged from the previous entry).
+- **N/A:** database schema or migration change, new dependency, new
+  infrastructure, and any tracker payload breaking change.
+
+## 2026-11-15 — Session replay toggle, revenue-first channel sort, attribution stability
+
+- **Session replay can be enabled.** Website settings now expose a Session
+  replay switch. The website update handler accepts `replayEnabled` and rejects
+  enabling it without an active Pro entitlement (`plan_feature_required`),
+  while still allowing a workspace to turn it off after a downgrade. The
+  recorder was already built and its ingest endpoint already enforces the plan
+  and per-session meter; what was missing was the customer-facing switch and
+  install copy. The tracker reference now documents the recorder snippet and
+  its consent and masking behaviour.
+- **Revenue first.** The Revenue page's channel breakdown opens sorted by
+  revenue instead of visitors, so the core promise ("which channel makes
+  money") is visible without a sort click.
+- **Attribution stability.** `SALT_ROTATION` is back to `month` by default. A
+  daily window reset visitor identity every day, so a returning buyer's first
+  touch was lost and often landed on direct. Daily and weekly remain available
+  for stricter privacy.
+- **Cross-domain identity fixed.** Visitor and session tokens are truncated to
+  the same 100-character width that `Visitor.token` stores and that the signed
+  cross-domain linker carries, so the second domain derives the same visitor
+  UUID instead of an orphan. Covered by a collector test.
+- **Last-touch beacon fixed.** The payment attribution snapshot now reads only
+  pageview and custom events, so a visibility performance beacon can no longer
+  null a campaign's last-touch source.
+- **ClickHouse retention implemented, not yet live-verified.** A new helper
+  deletes `website_event`, `event_data`, `session_data`,
+  `website_event_stats_hourly`, `website_revenue`, and `session_replay` by
+  `website_id` and plan cutoff. Website deletion purges the same tables. A
+  migration adds a global 365-day TTL as a safety net for a stalled job. Unit
+  tests cover the SQL shape and tenant scoping; this environment has no
+  ClickHouse, so the live run is still required before the retention promise is
+  claimed.
+- **Pre-payment install state is honest.** The install verifier now returns
+  `requiresPayment`; an unpaid workspace sees "Snippet ready. Events start after
+  checkout." instead of an endless "Waiting for the first event" loop that the
+  collector could never satisfy. Paid workspaces keep the real event-store
+  check. Covered by a new verify-handler test.
+- **First run lands on the new site.** Onboarding now routes to
+  `/app/{websiteId}?welcome=1` unless an explicit checkout or deep-link intent
+  is present, so the first dashboard is the customer's site, not the portfolio.
+- **No fabricated chart line.** A portfolio card with no chart data now renders
+  "No visits yet" instead of a flat zero line that looked like real traffic.
+- **Verification:** `pnpm gate` exit 0 on 2026-11-15 — **228 test files passed /
+  1 skipped**, **1,130 tests passed / 1 skipped**, coverage **68.15% statements
+  / 58.1% branches / 65.56% functions / 68.6% lines**, deploy checks passed, and
+  the production build generated all 78 static pages. The full gate is recorded
+  in `docs/autonomous-engineering/PRODUCTION_READINESS.md`.
+- **UNVERIFIED:** a real browser replay recording against a live site; the
+  recorder and ingest path are unit- and smoke-tested, not browser-tested here.
+- **N/A:** schema/migration change (the `replayEnabled` column already existed),
+  new dependency, new infrastructure.
+
 ## Overall progress
 
 - Total phases: **13** (0–12 product/build, 12 go-to-market)
@@ -52,10 +223,10 @@
 - Overall percent (average of phases 0–12): **94%**
 - Build state at last check: **green** — `pnpm gate` (Biome format, Biome
   lint, `tsc --noEmit`, coverage-enforced tests, production build) passes.
-  Latest local full run (2026-11-13): **217 test files passed / 1 skipped**,
-  **1042 tests passed / 1 skipped**, coverage **67.84% statements / 57.47%
-  branches / 65.28% functions / 68.26% lines**, plus the explicit 48-assertion
-  PostgreSQL analytics smoke and the recorded load probe.
+  Latest local full run (2026-11-15): **228 test files passed / 1 skipped**,
+  **1130 tests passed / 1 skipped**, coverage **68.15% statements / 58.1%
+  branches / 65.56% functions / 68.6% lines**, plus the explicit PostgreSQL
+  analytics smoke and the recorded load probe.
 - GitHub CI: **green on `main`** (run 43066591765 for `619099b`). The three-job
   pipeline starts PostgreSQL 17, runs format, lint, typecheck, coverage tests,
   a clean production dependency audit, `prisma migrate deploy`, the Phase 7
@@ -104,6 +275,61 @@ code:
 
 Do not claim these are done until the evidence is recorded here. No system
 shutdown or destructive action should be taken based on this tracker.
+
+## 2026-11-14 — Activation continuity and production security audit
+
+- **One activation path.** The hero now submits to `/signup`, which checks the
+  session on the server. Signed-out visitors go to `/login` with the entered
+  website; a new account goes to `/onboarding?website=…`; an existing customer
+  goes to `/app/new?website=…` instead of replaying first-run setup. The same
+  handoff preserves pricing-card checkout intent, and a paid customer choosing
+  a different plan now lands on Plan and usage instead of silently returning
+  to `/app`.
+- `LoginPage` and the server post-sign-in resolver now use the same
+  intent-preserving rules. `/app/new` accepts a prefilled website. The login
+  screen gained a clear heading, terms/privacy fine print, a back link, and a
+  password-reset path for the new “email already has a password account”
+  state. The paywall uses top-aligned layout so plan cards no longer clip the
+  headline on laptop viewports, and a quiet Upgrade pill appears for Starter
+  owners without a second API request.
+- **Security fixes verified by tests.** Validated timezone at the query
+  boundary and stopped interpolating unvalidated zones into analytics SQL;
+  restricted legacy owner/member website queries to workspace-less rows and
+  filtered suspended workspaces; required the share context for every share
+  token; blocked `distinctId`/`query` fields from share metrics/values and
+  redacted filter-object values; bound API keys to their creator and revoked
+  them on member removal/user suspension; added action-specific export and
+  integration roles; pinned report updates to the existing website; scoped
+  provider-event idempotency by website; required per-website webhook secrets;
+  rejected Google auto-linking to unverified password accounts; stopped
+  `/api/me` from returning the session token; required a real legacy
+  pixel/link before writing collector events; generated share slugs with the
+  CSPRNG; neutralized CSV formula injection; enforced body limits while
+  streaming (not only `Content-Length`); added Redis-backed collector
+  throttles, replay chunk/byte limits, and a replay chunk unique index;
+  changed the collector origin check to prefer the browser `Origin`; required
+  verified email for invitation acceptance; limited pagination/metrics
+  result sizes; restricted OSS telemetry to platform admins; and made the
+  production Caddy edge overwrite client-IP headers.
+- **Migrations:** `20261113150000_provider_event_tenant_scope`,
+  `20261113151000_session_replay_chunk_unique`, and
+  `20261113152000_api_key_creator_backfill`.
+- **Verification (2026-11-14):** format check, lint, typecheck, deploy-script
+  and deploy-smoke checks pass. Coverage-gated suite: **225 test files
+  passed / 1 skipped**, **1103 tests passed / 1 skipped**, coverage
+  **68.20% statements / 58.07% branches / 65.65% functions / 68.64% lines**.
+  The production build compiled, type-checked, and generated all 78 static
+  pages. Local visual QA covered the landing page at 1440/390 px, `/login`,
+  `/app/new`, the tracker and provider steps, `/app` with an unpaid paywall,
+  and the Starter upgrade pill; the paywall clipping defect found during that
+  pass is fixed.
+- **UNVERIFIED:** live Dodo checkout/webhook/portal, Resend delivery, a real
+  Google consent round trip, connected-provider webhooks, the new migrations
+  against a production-sized dataset, a deployed load test, and a real
+  customer-site first-party proxy. These remain external-credential or
+  human-browser actions, not missing product code.
+- **N/A:** no new runtime dependency, no new infrastructure, and no change to
+  the tracker payload contract or the plan catalogue.
 
 ## 2026-11-13 — Setup continuity: one flow, AI install prompt, live reminder
 

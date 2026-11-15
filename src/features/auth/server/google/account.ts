@@ -16,11 +16,14 @@ const USER_SELECT = {
 } as const;
 
 export class GoogleAccountError extends Error {
-  code: 'account-unavailable';
+  code: 'account-unavailable' | 'email-link-required';
 
-  constructor(message = 'This account is not available.') {
+  constructor(
+    message = 'This account is not available.',
+    code: GoogleAccountError['code'] = 'account-unavailable',
+  ) {
     super(message);
-    this.code = 'account-unavailable';
+    this.code = code;
   }
 }
 
@@ -71,6 +74,16 @@ export async function findOrCreateGoogleUser(profile: GoogleProfile) {
 
     if (existing.googleId && existing.googleId !== profile.subject) {
       throw new GoogleAccountError();
+    }
+
+    // Never auto-link a Google identity to an unverified password account.
+    // An attacker can pre-register a victim's email before the victim's first
+    // Google sign-in; linking would hand them the account.
+    if (!existing.emailVerifiedAt) {
+      throw new GoogleAccountError(
+        'This email already has an unverified password account. Reset that password and verify the email before using Google.',
+        'email-link-required',
+      );
     }
 
     return prisma.client.user.update({

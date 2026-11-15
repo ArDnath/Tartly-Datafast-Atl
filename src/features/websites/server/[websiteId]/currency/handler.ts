@@ -3,7 +3,7 @@ import { CurrencyExchangeError } from '@/lib/currency-exchange';
 import { REPORTING_CURRENCY_CODES } from '@/lib/reporting-currency';
 import { parseRequest } from '@/lib/request';
 import { json, serverError, unauthorized } from '@/lib/response';
-import { canUpdateWebsite, canViewWebsite } from '@/permissions';
+import { canManageWebsiteIntegrations, canViewWebsite } from '@/permissions';
 import {
   changeWebsiteCurrency,
   getWebsiteCurrencySettings,
@@ -39,7 +39,7 @@ export async function POST(
 
   const { websiteId } = await params;
 
-  if (!(await canUpdateWebsite(auth, websiteId))) return unauthorized();
+  if (!(await canManageWebsiteIntegrations(auth, websiteId))) return unauthorized();
 
   try {
     return json(await changeWebsiteCurrency(websiteId, body.currency));

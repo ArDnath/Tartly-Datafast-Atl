@@ -72,6 +72,67 @@ export function getUsagePeriodRange(now: Date = new Date()) {
   return { periodStart, periodEnd };
 }
 
+/**
+ * The provider defines the paid billing period. Metering must follow the
+ * subscription anniversary, not the UTC calendar month, otherwise the first
+ * partial month receives a full allowance and the last one is cut short.
+ *
+ * A workspace without a live provider period (onboarding, legacy fallback)
+ * keeps the calendar-month counter.
+ */
+export async function getUsagePeriodRangeForWorkspace(
+  workspaceId: string,
+  now: Date = new Date(),
+): Promise<{ periodStart: Date; periodEnd: Date }> {
+  const [subscription, openPeriod] = await Promise.all([
+    prisma.client.platformSubscription.findUnique({
+      where: { workspaceId },
+      select: {
+        currentPeriodStart: true,
+        currentPeriodEnd: true,
+      },
+    }),
+    prisma.client.usagePeriod.findFirst({
+      where: {
+        workspaceId,
+        periodStart: { lte: now },
+        periodEnd: { gt: now },
+      },
+      orderBy: { periodStart: 'desc' },
+      select: { periodStart: true, periodEnd: true },
+    }),
+  ]);
+
+  const providerStart = subscription?.currentPeriodStart;
+  const providerEnd = subscription?.currentPeriodEnd;
+
+  // Never re-key a counter that is already open. A deploy that switches from
+  // calendar months to a provider anniversary must keep the existing row and
+  // extend it to the provider period end; otherwise usage resets to zero and
+  // the customer receives a second full allowance in the same paid period.
+  if (openPeriod) {
+    const periodEnd =
+      providerEnd && providerEnd.getTime() > openPeriod.periodEnd.getTime()
+        ? providerEnd
+        : openPeriod.periodEnd;
+
+    if (periodEnd.getTime() > openPeriod.periodEnd.getTime()) {
+      await prisma.client.usagePeriod.updateMany({
+        where: { workspaceId, periodStart: openPeriod.periodStart },
+        data: { periodEnd },
+      });
+    }
+
+    return { periodStart: openPeriod.periodStart, periodEnd };
+  }
+
+  if (providerStart && providerEnd) {
+    return { periodStart: providerStart, periodEnd: providerEnd };
+  }
+
+  return getUsagePeriodRange(now);
+}
+
 export function getUsageStatus(used: number, limit: number, grace: number = 0): UsageStatus {
   if (limit <= 0) {
     return used > 0 ? 'limit' : 'ok';
@@ -135,7 +196,7 @@ export async function reserveEventUsage(
   limit: number,
   grace: number = EVENT_GRACE,
 ): Promise<ReserveResult> {
-  const { periodStart, periodEnd } = getUsagePeriodRange();
+  const { periodStart, periodEnd } = await getUsagePeriodRangeForWorkspace(workspaceId);
   const safeLimit = Math.max(0, limit);
   const hardLimit = safeLimit > 0 ? safeLimit + Math.max(0, grace) : 0;
 
@@ -188,7 +249,7 @@ export async function releaseEventUsage(
   workspaceId: string,
   now: Date = new Date(),
 ): Promise<void> {
-  const { periodStart } = getUsagePeriodRange(now);
+  const { periodStart } = await getUsagePeriodRangeForWorkspace(workspaceId, now);
 
   await prisma.client.$executeRaw`
     UPDATE usage_period
@@ -224,7 +285,7 @@ export async function reserveReplaySession({
   limit: number;
   grace?: number;
 }): Promise<ReplayReservation> {
-  const { periodStart, periodEnd } = getUsagePeriodRange();
+  const { periodStart, periodEnd } = await getUsagePeriodRangeForWorkspace(workspaceId);
   const safeLimit = Math.max(0, limit);
   const hardLimit = safeLimit > 0 ? safeLimit + Math.max(0, grace) : 0;
 
@@ -341,7 +402,7 @@ export async function releaseReplaySession({
   sessionId: string;
   now?: Date;
 }): Promise<void> {
-  const { periodStart } = getUsagePeriodRange(now);
+  const { periodStart } = await getUsagePeriodRangeForWorkspace(workspaceId, now);
 
   await prisma.transaction(async tx => {
     const period = await tx.usagePeriod.findUnique({
@@ -383,7 +444,7 @@ export async function getWorkspaceUsage(
   workspaceId: string,
   now: Date = new Date(),
 ): Promise<WorkspaceUsageSnapshot | null> {
-  const { periodStart, periodEnd } = getUsagePeriodRange(now);
+  const { periodStart, periodEnd } = await getUsagePeriodRangeForWorkspace(workspaceId, now);
 
   const [workspace, period, websiteCount, memberCount, pendingInvites] = await Promise.all([
     prisma.client.workspace.findFirst({
@@ -491,7 +552,7 @@ export async function markUsageNotice(
   level: 'warning' | 'limit',
   now: Date = new Date(),
 ): Promise<void> {
-  const { periodStart } = getUsagePeriodRange(now);
+  const { periodStart } = await getUsagePeriodRangeForWorkspace(workspaceId, now);
 
   await prisma.client.usagePeriod.updateMany({
     where: {

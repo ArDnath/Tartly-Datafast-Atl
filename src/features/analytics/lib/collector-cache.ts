@@ -16,7 +16,9 @@ export function createCollectorCacheToken(
   payload: Omit<CollectorCachePayload, 'purpose'>,
   signingSecret: string,
 ) {
-  return createToken({ ...payload, purpose: 'collector-cache' }, signingSecret);
+  return createToken({ ...payload, purpose: 'collector-cache' }, signingSecret, {
+    expiresIn: '7d',
+  });
 }
 
 export function parseCollectorCacheToken(

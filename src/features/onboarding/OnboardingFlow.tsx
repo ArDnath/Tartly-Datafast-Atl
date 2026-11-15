@@ -367,12 +367,14 @@ export function OnboardingFlow({
       }
 
       // Preserve a checkout or deep-link intent across first-run setup. The
-      // sanitizer limits the destination to /app and /checkout.
+      // sanitizer limits the destination to /app and /checkout. Otherwise land
+      // on the new website's dashboard, not the portfolio.
       const destination = sanitizeOnboardingNextPath(nextPath);
+      const defaultDestination = website ? `/app/${website.id}?welcome=1` : '/app?welcome=1';
 
       // The singleton welcome gate reads this flag once and then rewrites the
       // URL, so a refresh never replays the animation.
-      router.replace(destination ?? '/app?welcome=1');
+      router.replace(destination ?? defaultDestination);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not finish setup.');
       setBusy(false);

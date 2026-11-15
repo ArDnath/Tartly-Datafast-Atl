@@ -1,23 +1,29 @@
 import { isbot } from 'isbot';
 import { z } from 'zod';
 import { parseCollectorCacheToken } from '@/features/analytics/lib/collector-cache';
+import { isTrackerOriginAllowed } from '@/features/analytics/lib/tracker-origin';
 import { secret } from '@/lib/crypto';
 import { getClientInfo, hasBlockedIp } from '@/features/analytics/lib/detect';
 import { getWorkspaceEntitlements } from '@/lib/entitlements';
+import redis from '@/lib/redis';
 import { planHasFeature } from '@/lib/plans';
 import { logger } from '@/lib/logger';
 import { parseRequest } from '@/lib/request';
-import { badRequest, forbidden, json, serverError } from '@/lib/response';
+import { hashRateLimitSubject, rateLimitKey } from '@/lib/rate-limit';
+import { badRequest, forbidden, json, serverError, tooManyRequests } from '@/lib/response';
 import { releaseReplaySession, reserveReplaySession } from '@/lib/usage';
 import { getWebsite } from '@/queries/prisma';
-import { saveRecording } from '@/features/analytics/server/queries/sql';
+import {
+  countReplayChunks,
+  saveRecording,
+} from '@/features/analytics/server/queries/sql/replays/saveRecording';
 
 const schema = z.object({
   type: z.literal('record'),
   payload: z.object({
     website: z.uuid(),
     events: z.array(z.any()).max(200),
-    timestamp: z.coerce.number().int().optional(),
+    timestamp: z.coerce.number().int().min(946684800).max(4102444800).optional(),
   }),
 });
 
@@ -26,7 +32,10 @@ export async function POST(request: Request) {
   let recordingCommitted = false;
 
   try {
-    const { body, error } = await parseRequest(request, schema, { skipAuth: true });
+    const { body, error } = await parseRequest(request, schema, {
+      skipAuth: true,
+      maxBodyBytes: 10 * 1024 * 1024,
+    });
 
     if (error) {
       return error();
@@ -64,6 +73,15 @@ export async function POST(request: Request) {
       return json({ ok: false, reason: 'replay_disabled' });
     }
 
+    if (
+      !isTrackerOriginAllowed({
+        configuredDomain: website.domain,
+        origin: request.headers.get('origin'),
+      })
+    ) {
+      return forbidden({ code: 'tracker-origin-mismatch' });
+    }
+
     // Client info for bot/IP checks
     const { ip, userAgent } = await getClientInfo(request, {});
 
@@ -73,6 +91,18 @@ export async function POST(request: Request) {
 
     if (hasBlockedIp(ip)) {
       return forbidden();
+    }
+
+    if (redis.enabled) {
+      const allowed = await redis.client.rateLimit(
+        rateLimitKey('collector:record', hashRateLimitSubject(ip || 'unknown')),
+        120,
+        60,
+      );
+
+      if (!allowed) {
+        return tooManyRequests({ message: 'Too many replay chunks.' }, 60);
+      }
     }
 
     // Replay is a plan entitlement and is metered per session, separately
@@ -125,6 +155,10 @@ export async function POST(request: Request) {
 
     // Use timestamp-based chunk index for ordering
     const chunkIndex = timestamp || Math.floor(Date.now() / 1000);
+
+    if ((await countReplayChunks(websiteId, sessionId)) >= 500) {
+      return json({ ok: false, reason: 'replay_chunk_limit' });
+    }
 
     await saveRecording({
       websiteId,

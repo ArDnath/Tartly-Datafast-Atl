@@ -21,6 +21,7 @@ export class InvitationError extends Error {
     | 'expired'
     | 'already-accepted'
     | 'email-mismatch'
+    | 'email-not-verified'
     | 'role-invalid'
     | 'member-limit'
     | 'already-member'
@@ -262,11 +263,11 @@ export async function acceptWorkspaceInvitation({
       role: true,
       expiresAt: true,
       acceptedAt: true,
-      workspace: { select: { name: true, deletedAt: true } },
+      workspace: { select: { name: true, deletedAt: true, suspendedAt: true } },
     },
   });
 
-  if (!invitation || invitation.workspace.deletedAt) {
+  if (!invitation || invitation.workspace.deletedAt || invitation.workspace.suspendedAt) {
     throw new InvitationError('not-found', 'This invitation is not valid.');
   }
 
@@ -280,6 +281,13 @@ export async function acceptWorkspaceInvitation({
 
   if (normalizeInvitationEmail(invitation.email) !== normalizeInvitationEmail(user.username)) {
     throw new InvitationError('email-mismatch', 'Sign in with the email address that was invited.');
+  }
+
+  if (!user.emailVerifiedAt) {
+    throw new InvitationError(
+      'email-not-verified',
+      'Verify your email address before joining a workspace.',
+    );
   }
 
   if (!isWorkspaceRole(invitation.role) || invitation.role === 'OWNER') {

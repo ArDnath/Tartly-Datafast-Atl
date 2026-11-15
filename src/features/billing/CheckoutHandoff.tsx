@@ -63,7 +63,7 @@ export function CheckoutHandoff({ intent }: { intent: CheckoutIntent }) {
     }
 
     if (!user) {
-      window.location.replace(`/api/auth/google?returnUrl=${encodeURIComponent(checkoutPath)}`);
+      window.location.replace(`/login?returnUrl=${encodeURIComponent(checkoutPath)}`);
       return;
     }
 
@@ -101,7 +101,16 @@ export function CheckoutHandoff({ intent }: { intent: CheckoutIntent }) {
     }
 
     if (access.data.paid) {
-      router.replace('/app');
+      const current = access.data.subscription;
+      const matchesCurrentIntent =
+        current?.planId === intent.planId &&
+        current.interval === intent.interval &&
+        current.trafficTierIndex === intent.tierIndex;
+
+      // A paid customer who picked the plan they already have returns to the
+      // app. A different plan or traffic tier is an upgrade/downgrade, which
+      // goes through the provider-confirmed change-plan flow in billing.
+      router.replace(matchesCurrentIntent ? '/app' : '/app/settings/billing');
       return;
     }
 

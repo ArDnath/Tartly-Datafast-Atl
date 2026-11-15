@@ -1,17 +1,32 @@
 import { z } from 'zod';
-import { parseRequest } from '@/lib/request';
-import { badRequest, json, ok, serverError, unauthorized } from '@/lib/response';
 import {
   getWebsiteNameFromDomain,
   normalizeWebsiteDomainInput,
 } from '@/features/websites/lib/website-domain';
+import { entitlementsHaveFeature, getWorkspaceEntitlements } from '@/lib/entitlements';
+import { parseRequest } from '@/lib/request';
+import {
+  badRequest,
+  conflict,
+  forbidden,
+  json,
+  ok,
+  serverError,
+  unauthorized,
+} from '@/lib/response';
 import {
   canDeleteWebsite,
   canUpdateWebsite,
   canViewWebsite,
   getWebsiteAccess,
 } from '@/permissions';
-import { deleteWebsite, getWebsite, recordAuditEvent, updateWebsite } from '@/queries/prisma';
+import {
+  deleteWebsite,
+  findWorkspaceWebsiteByDomain,
+  getWebsite,
+  recordAuditEvent,
+  updateWebsite,
+} from '@/queries/prisma';
 
 function getPublicShareWebsite(website: Awaited<ReturnType<typeof getWebsite>>) {
   return {
@@ -62,6 +77,7 @@ export async function POST(
   const schema = z.strictObject({
     name: z.string().optional(),
     domain: z.string().optional(),
+    replayEnabled: z.boolean().optional(),
   });
 
   const { auth, body, error } = await parseRequest(request, schema);
@@ -83,14 +99,39 @@ export async function POST(
   }
 
   try {
+    const currentWebsite = await getWebsite(websiteId);
+
+    if (
+      domain !== undefined &&
+      domain !== currentWebsite?.domain &&
+      currentWebsite?.workspaceId &&
+      (await findWorkspaceWebsiteByDomain(currentWebsite.workspaceId, domain, websiteId))
+    ) {
+      return conflict({
+        code: 'website-exists',
+        message: `${domain} is already connected in this workspace. Open it from the website list.`,
+      });
+    }
+
     if (name === '') {
-      const currentWebsite = await getWebsite(websiteId);
       name = getWebsiteNameFromDomain(domain ?? currentWebsite?.domain);
+    }
+
+    if (body.replayEnabled === true && currentWebsite?.workspaceId) {
+      const entitlements = await getWorkspaceEntitlements(currentWebsite.workspaceId);
+
+      if (!entitlementsHaveFeature(entitlements, 'session_replay')) {
+        return forbidden({
+          code: 'plan_feature_required',
+          message: 'Session replay requires an active Pro plan.',
+        });
+      }
     }
 
     const website = await updateWebsite(websiteId, {
       name,
       domain,
+      replayEnabled: body.replayEnabled,
     });
 
     await recordAuditEvent({
@@ -100,6 +141,7 @@ export async function POST(
         changed: {
           domain: domain !== undefined,
           name: name !== undefined,
+          replayEnabled: body.replayEnabled !== undefined,
         },
       },
       request,

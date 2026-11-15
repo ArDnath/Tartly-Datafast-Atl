@@ -172,6 +172,37 @@ export async function canDeleteWebsite(auth: Auth, websiteId: string) {
   return (await getWebsiteAccess(auth, websiteId)).canDelete;
 }
 
+async function getWebsiteWorkspaceRole(auth: Auth, websiteId: string) {
+  if (auth.shareToken) {
+    return null;
+  }
+
+  const access = await getWebsiteAccess(auth, websiteId);
+
+  if (!access.workspaceId || !access.role) {
+    return null;
+  }
+
+  return access.role.toUpperCase() as WorkspaceRole;
+}
+
+/**
+ * Action-specific checks for high-impact website operations. `canViewWebsite`
+ * is deliberately not a substitute for these: a VIEWER may read analytics but
+ * may not bulk-export, mint credentials, or change payment integrations.
+ */
+export async function canExportWebsiteData(auth: Auth, websiteId: string) {
+  const role = await getWebsiteWorkspaceRole(auth, websiteId);
+
+  return role ? canWorkspace(role, 'exports:read') : false;
+}
+
+export async function canManageWebsiteIntegrations(auth: Auth, websiteId: string) {
+  const role = await getWebsiteWorkspaceRole(auth, websiteId);
+
+  return role ? canWorkspace(role, 'integrations:manage') : false;
+}
+
 /**
  * Explicit workspace-and-website assertion used by server actions and new
  * routes. Returns null rather than leaking whether the website exists.

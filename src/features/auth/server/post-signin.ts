@@ -35,14 +35,22 @@ export async function isOnboardingRequired(userId: string) {
 
 export async function resolvePostSignInPath(userId: string, returnUrl?: string | null) {
   const safeReturnUrl = sanitizeAuthReturnUrl(returnUrl);
+  const onboardingRequired = await isOnboardingRequired(userId);
 
-  // An explicit onboarding destination (including the landing-page handoff
-  // that carries a website) is always honoured.
   if (safeReturnUrl.startsWith('/onboarding')) {
-    return safeReturnUrl;
+    if (onboardingRequired) {
+      return safeReturnUrl;
+    }
+
+    // A returning customer who arrived with a website does not replay the
+    // first-run flow. Send them straight to the add-website flow instead.
+    const target = new URL(safeReturnUrl, 'http://internal.local');
+    const website = target.searchParams.get('website');
+
+    return website ? `/app/new?website=${encodeURIComponent(website)}` : '/app';
   }
 
-  if (!(await isOnboardingRequired(userId))) {
+  if (!onboardingRequired) {
     return safeReturnUrl;
   }
 

@@ -1,9 +1,10 @@
-import type { Visitor } from '@/generated/prisma/client';
+import { getTrackingSessionId } from '@/features/analytics/lib/tracking-identity';
 import { REVENUE_PAYMENT_STATUSES } from '@/features/payments/lib/payment-status';
+import { formatStripeAmount } from '@/features/payments/lib/stripe-amount';
+import type { Visitor } from '@/generated/prisma/client';
+import { EVENT_TYPE } from '@/lib/constants';
 import prisma from '@/lib/prisma';
 import { isUniqueConstraintError } from '@/lib/prisma-error';
-import { formatStripeAmount } from '@/features/payments/lib/stripe-amount';
-import { getTrackingSessionId } from '@/features/analytics/lib/tracking-identity';
 import {
   normalizeWebsiteCurrencyAmount,
   normalizeWebsiteCurrencyAmountInTransaction,
@@ -916,6 +917,12 @@ async function writePaymentAttributions(
         where: {
           websiteId: input.websiteId,
           sessionId,
+          // A performance beacon carries no acquisition data. Ignoring beacons
+          // keeps a pageview's UTM/referrer from being overwritten by the
+          // last visibilitychange payload.
+          eventType: {
+            in: [EVENT_TYPE.pageView, EVENT_TYPE.customEvent],
+          },
           createdAt: {
             lte: input.occurredAt,
           },

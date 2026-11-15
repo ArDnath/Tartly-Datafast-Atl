@@ -3,7 +3,10 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 const queryRaw = vi.fn();
 const executeRaw = vi.fn();
 const findUsagePeriod = vi.fn();
+const findOpenUsagePeriod = vi.fn();
+const updateUsagePeriod = vi.fn();
 const findWorkspace = vi.fn();
+const findSubscription = vi.fn();
 const transaction = vi.fn();
 
 vi.mock('@/lib/prisma', () => ({
@@ -13,9 +16,14 @@ vi.mock('@/lib/prisma', () => ({
       $executeRaw: executeRaw,
       usagePeriod: {
         findUnique: findUsagePeriod,
+        findFirst: findOpenUsagePeriod,
+        updateMany: updateUsagePeriod,
       },
       workspace: {
         findUnique: findWorkspace,
+      },
+      platformSubscription: {
+        findUnique: findSubscription,
       },
     },
     transaction,
@@ -26,6 +34,7 @@ const {
   EVENT_GRACE,
   createUsageMeter,
   getUsagePeriodRange,
+  getUsagePeriodRangeForWorkspace,
   getUsageStatus,
   isBillableEvent,
   reserveEventUsage,
@@ -63,6 +72,62 @@ describe('usage periods', () => {
 
     expect(periodStart.toISOString()).toBe('2026-11-01T00:00:00.000Z');
     expect(periodEnd.toISOString()).toBe('2026-12-01T00:00:00.000Z');
+  });
+
+  test('uses the provider subscription anniversary when one is live', async () => {
+    findSubscription.mockResolvedValue({
+      currentPeriodStart: new Date('2026-11-08T09:30:00.000Z'),
+      currentPeriodEnd: new Date('2026-12-08T09:30:00.000Z'),
+    });
+
+    const range = await getUsagePeriodRangeForWorkspace(
+      'ws-1',
+      new Date('2026-11-15T00:00:00.000Z'),
+    );
+
+    expect(range.periodStart.toISOString()).toBe('2026-11-08T09:30:00.000Z');
+    expect(range.periodEnd.toISOString()).toBe('2026-12-08T09:30:00.000Z');
+  });
+
+  test('keeps the provider key when the billing webhook is delayed', async () => {
+    findSubscription.mockResolvedValue({
+      currentPeriodStart: new Date('2026-10-01T00:00:00.000Z'),
+      currentPeriodEnd: new Date('2026-11-01T00:00:00.000Z'),
+    });
+
+    const range = await getUsagePeriodRangeForWorkspace(
+      'ws-1',
+      new Date('2026-11-15T00:00:00.000Z'),
+    );
+
+    expect(range.periodStart.toISOString()).toBe('2026-10-01T00:00:00.000Z');
+    expect(range.periodEnd.toISOString()).toBe('2026-11-01T00:00:00.000Z');
+  });
+
+  test('adopts and extends an open calendar row instead of resetting it', async () => {
+    findSubscription.mockResolvedValue({
+      currentPeriodStart: new Date('2026-11-08T09:30:00.000Z'),
+      currentPeriodEnd: new Date('2026-12-08T09:30:00.000Z'),
+    });
+    findOpenUsagePeriod.mockResolvedValue({
+      periodStart: new Date('2026-11-01T00:00:00.000Z'),
+      periodEnd: new Date('2026-12-01T00:00:00.000Z'),
+    });
+
+    const range = await getUsagePeriodRangeForWorkspace(
+      'ws-1',
+      new Date('2026-11-15T00:00:00.000Z'),
+    );
+
+    expect(range.periodStart.toISOString()).toBe('2026-11-01T00:00:00.000Z');
+    expect(range.periodEnd.toISOString()).toBe('2026-12-08T09:30:00.000Z');
+    expect(updateUsagePeriod).toHaveBeenCalledWith({
+      where: {
+        workspaceId: 'ws-1',
+        periodStart: new Date('2026-11-01T00:00:00.000Z'),
+      },
+      data: { periodEnd: new Date('2026-12-08T09:30:00.000Z') },
+    });
   });
 });
 

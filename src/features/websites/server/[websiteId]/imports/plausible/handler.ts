@@ -1,7 +1,7 @@
 import { importAnalyticsFile, parsePlausibleArchive } from '@/features/websites/server/imports';
 import { parseRequest } from '@/lib/request';
 import { badRequest, unauthorized } from '@/lib/response';
-import { canUpdateWebsite } from '@/permissions';
+import { canManageWebsiteIntegrations } from '@/permissions';
 
 export const runtime = 'nodejs';
 
@@ -13,7 +13,7 @@ export async function POST(
   if (error) return error();
 
   const { websiteId } = await params;
-  if (!(await canUpdateWebsite(auth, websiteId))) return unauthorized();
+  if (!(await canManageWebsiteIntegrations(auth, websiteId))) return unauthorized();
 
   const file = (await request.formData()).get('file');
   if (!file || typeof file === 'string') {

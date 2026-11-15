@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 import { parseRequest } from '@/lib/request';
 import { json, notFound, unauthorized } from '@/lib/response';
-import { canUpdateWebsite } from '@/permissions';
+import { canManageWebsiteIntegrations } from '@/permissions';
 import { recordAuditEvent } from '@/queries/prisma';
 
 export async function DELETE(
@@ -16,7 +16,7 @@ export async function DELETE(
 
   const { websiteId, apiKeyId } = await params;
 
-  if (!(await canUpdateWebsite(auth, websiteId))) {
+  if (!(await canManageWebsiteIntegrations(auth, websiteId))) {
     return unauthorized();
   }
 

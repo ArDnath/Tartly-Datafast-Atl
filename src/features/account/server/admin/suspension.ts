@@ -110,7 +110,13 @@ export function createSuspensionHandler(target: SuspensionTarget) {
       });
 
       if (target === 'user' && body.suspended) {
-        await revokeAllAuthSessions(id);
+        await Promise.all([
+          revokeAllAuthSessions(id),
+          prisma.client.apiKey.updateMany({
+            where: { userId: id, revokedAt: null },
+            data: { revokedAt: new Date() },
+          }),
+        ]);
       }
 
       await recordAuditEvent({

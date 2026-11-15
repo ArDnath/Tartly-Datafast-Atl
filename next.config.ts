@@ -16,6 +16,9 @@ const contentSecurityPolicy = `
   connect-src 'self' https:;
   frame-src 'self';
   frame-ancestors 'self';
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self';
 `;
 
 const defaultHeaders = [

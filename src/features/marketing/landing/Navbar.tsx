@@ -123,7 +123,7 @@ export function Navbar() {
               href="/signup"
               className="flex h-9 items-center rounded-lg bg-lp-primary px-4 text-sm font-bold text-white shadow-[0_6px_18px_-6px_rgba(255,79,0,0.55)] transition-[filter,translate] duration-150 ease-out hover:brightness-105 active:translate-y-px"
             >
-              Start free
+              Get started
             </Link>
           </div>
 
@@ -167,7 +167,7 @@ export function Navbar() {
           onClick={() => setIsOpen(false)}
           className="rounded-lg bg-lp-primary px-6 py-2.5 font-bold text-white"
         >
-          Start free
+          Get started
         </Link>
 
         <button

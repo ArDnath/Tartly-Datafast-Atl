@@ -31,6 +31,7 @@ vi.mock('@/features/analytics/lib/cross-domain-linker', () => ({
 
 vi.mock('@/lib/crypto', () => ({
   getSalt: vi.fn(() => 'salt'),
+  hash: vi.fn((...args: string[]) => args.join('|')),
   secret: vi.fn(() => 'secret'),
   uuid: vi.fn(() => '11111111-1111-4111-8111-111111111111'),
 }));
@@ -68,6 +69,11 @@ vi.mock('@/features/payments/server/queries/attribution', () => ({
 
 vi.mock('@/queries/prisma/website', () => ({
   getWebsiteAttributionRuntimeConfig: vi.fn(),
+}));
+
+vi.mock('@/queries/prisma', () => ({
+  getLink: vi.fn(),
+  getPixel: vi.fn(),
 }));
 
 vi.mock('@/features/analytics/server/queries/sql', () => ({
@@ -318,4 +324,222 @@ test('releases the reservation when the event write fails', async () => {
   expect(releaseEventUsage).toHaveBeenCalledWith(workspaceId);
 
   consoleLog.mockRestore();
+});
+
+test('treats a retried client event id as one event and releases the second reservation', async () => {
+  const workspaceId = '6b7c2d44-8f25-4b50-8d4f-9f0f3b1f1b1b';
+
+  vi.mocked(fetchWebsite).mockResolvedValue({ id: websiteId, workspaceId } as any);
+  vi.mocked(getWorkspaceEntitlements).mockResolvedValue({
+    active: true,
+    plan: { eventsPerMonth: 50_000 },
+  } as any);
+  vi.mocked(reserveEventUsage).mockResolvedValue({
+    allowed: true,
+    used: 2,
+    limit: 50_000,
+    hardLimit: 51_000,
+  });
+  vi.mocked(saveEvent).mockRejectedValueOnce({ code: 'P2002' });
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        website: websiteId,
+        visitorId: 'v_visitor',
+        sessionId: 's_session',
+        hostname: 'shop.example',
+        url: 'https://shop.example/pricing',
+        eventId: 'client-event-123',
+      },
+    },
+  } as any);
+
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
+  const body = await response.json();
+
+  expect(response.status).toBe(200);
+  expect(body).toMatchObject({ ok: true, duplicate: true });
+  expect(saveEvent).toHaveBeenCalledWith(
+    expect.objectContaining({ eventId: '11111111-1111-4111-8111-111111111111' }),
+  );
+  expect(releaseEventUsage).toHaveBeenCalledWith(workspaceId);
+});
+
+test('applies the idempotency key to link events too', async () => {
+  const { getLink } = await import('@/queries/prisma');
+  const linkId = '7ca9c481-3222-48b6-8bfa-b13e9d8e9210';
+
+  vi.mocked(getLink).mockResolvedValue({ id: linkId, deletedAt: null } as any);
+  vi.mocked(saveEvent).mockRejectedValueOnce({ code: 'P2002' });
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        link: linkId,
+        url: 'https://shop.example/link',
+        eventId: 'link-click-123',
+      },
+    },
+  } as any);
+
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
+  const body = await response.json();
+
+  expect(response.status).toBe(200);
+  expect(body).toMatchObject({ ok: true, duplicate: true });
+  expect(saveEvent).toHaveBeenCalledWith(
+    expect.objectContaining({ eventId: '11111111-1111-4111-8111-111111111111' }),
+  );
+});
+
+test('rejects a legacy pixel id that is actually another website id', async () => {
+  const { getPixel } = await import('@/queries/prisma');
+  vi.mocked(getPixel).mockResolvedValue(null);
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        pixel: websiteId,
+        url: 'https://evil.example/',
+        name: 'refund',
+        data: { revenue: 100000, currency: 'USD' },
+      },
+    },
+  } as any);
+
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
+
+  expect(response.status).toBe(400);
+  expect(createSession).not.toHaveBeenCalled();
+  expect(saveEvent).not.toHaveBeenCalled();
+});
+
+test('accepts a cookieless event and derives a salted visitor identity server-side', async () => {
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        website: websiteId,
+        sessionId: 's_tab',
+        hostname: 'shop.example',
+        url: 'https://shop.example/pricing',
+      },
+    },
+  } as any);
+
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
+
+  expect(response.status).toBe(200);
+  expect(createSession).toHaveBeenCalledWith(
+    expect.objectContaining({
+      websiteId,
+      visitorId: expect.any(String),
+    }),
+  );
+});
+
+test('derives both identities when a server-side caller sends no tokens', async () => {
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        website: websiteId,
+        hostname: 'shop.example',
+        url: 'https://shop.example/',
+      },
+    },
+  } as any);
+
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
+
+  expect(response.status).toBe(200);
+  expect(createSession).toHaveBeenCalledWith(
+    expect.objectContaining({
+      websiteId,
+      id: expect.any(String),
+      visitorId: expect.any(String),
+    }),
+  );
+});
+
+test('rejects an event backdated beyond the accepted window', async () => {
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        website: websiteId,
+        sessionId: 's_tab',
+        timestamp: Math.floor(Date.now() / 1000) - 8 * 24 * 60 * 60,
+        hostname: 'shop.example',
+        url: 'https://shop.example/',
+      },
+    },
+  } as any);
+
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
+
+  expect(response.status).toBe(400);
+  expect(reserveEventUsage).not.toHaveBeenCalled();
+  expect(createSession).not.toHaveBeenCalled();
+});
+
+test('accepts a recently delayed event inside the window', async () => {
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        website: websiteId,
+        sessionId: 's_tab',
+        timestamp: Math.floor(Date.now() / 1000) - 60 * 60,
+        hostname: 'shop.example',
+        url: 'https://shop.example/',
+      },
+    },
+  } as any);
+
+  const response = await POST(
+    new Request('https://collector.example/api/send', { method: 'POST' }),
+  );
+
+  expect(response.status).toBe(200);
+  expect(createSession).toHaveBeenCalled();
+});
+
+test('stores and derives identity from the same 100-character token width', async () => {
+  const longVisitor = 'v'.repeat(128);
+  const longSession = 's'.repeat(128);
+
+  vi.mocked(parseRequest).mockResolvedValue({
+    body: {
+      type: 'event',
+      payload: {
+        website: websiteId,
+        visitorId: longVisitor,
+        sessionId: longSession,
+        hostname: 'shop.example',
+        url: 'https://shop.example/',
+      },
+    },
+  } as any);
+
+  await POST(new Request('https://collector.example/api/send', { method: 'POST' }));
+
+  expect(ensureVisitorContext).toHaveBeenCalledWith(
+    expect.objectContaining({
+      visitorToken: longVisitor.slice(0, 100),
+    }),
+  );
 });

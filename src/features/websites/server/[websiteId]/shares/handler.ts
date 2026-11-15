@@ -1,11 +1,13 @@
 import { z } from 'zod';
 import { ENTITY_TYPE } from '@/lib/constants';
 import { uuid } from '@/lib/crypto';
+import { canUseWebsiteFeature } from '@/lib/feature-access';
 import { getRandomChars } from '@/features/websites/lib/generate';
 import { parseRequest } from '@/lib/request';
-import { json, unauthorized } from '@/lib/response';
+import { forbidden, json, unauthorized } from '@/lib/response';
+import { getShareExpiry } from '@/lib/share-policy';
 import { anyObjectParam, filterParams, pagingParams } from '@/lib/schema';
-import { canUpdateWebsite } from '@/permissions';
+import { canManageWebsiteIntegrations } from '@/permissions';
 import { createShare, getSharesByEntityId } from '@/queries/prisma';
 
 export async function GET(
@@ -26,7 +28,7 @@ export async function GET(
   const { websiteId } = await params;
   const { page, pageSize, search } = query;
 
-  if (!(await canUpdateWebsite(auth, websiteId))) {
+  if (!(await canManageWebsiteIntegrations(auth, websiteId))) {
     return unauthorized();
   }
 
@@ -58,8 +60,16 @@ export async function POST(
   const { name, parameters } = body;
   const shareParameters = parameters ?? {};
 
-  if (!(await canUpdateWebsite(auth, websiteId))) {
+  if (!(await canManageWebsiteIntegrations(auth, websiteId))) {
     return unauthorized();
+  }
+
+  if (!(await canUseWebsiteFeature(auth, websiteId, 'client_reporting'))) {
+    return forbidden({
+      code: 'plan_feature_required',
+      feature: 'client_reporting',
+      message: 'Client reporting links are included in the Pro plan.',
+    });
   }
 
   const slug = getRandomChars(16);
@@ -71,6 +81,7 @@ export async function POST(
     name,
     slug,
     parameters: shareParameters,
+    expiresAt: getShareExpiry(),
   });
 
   return json(share);

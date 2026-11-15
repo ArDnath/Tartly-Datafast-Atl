@@ -6,6 +6,7 @@ import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { useLoginQuery } from '@/features/auth/hooks/useLoginQuery';
 import { APP_SECRET_CONFIGURATION_ERROR_CODE } from '@/lib/app-config';
 import { sanitizeAuthReturnUrl } from '@/features/auth/lib/auth-return-url';
+import { resolveClientPostSignInPath } from '@/features/auth/lib/post-signin-destination';
 import type { ApiError } from '@/lib/types';
 import { LoginForm } from './LoginForm';
 
@@ -20,10 +21,7 @@ export function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      const destination =
-        user.onboardingRequired && !returnUrl.startsWith('/onboarding') ? '/onboarding' : returnUrl;
-
-      router.replace(destination);
+      router.replace(resolveClientPostSignInPath(returnUrl, Boolean(user.onboardingRequired)));
     }
   }, [user, router, returnUrl]);
 

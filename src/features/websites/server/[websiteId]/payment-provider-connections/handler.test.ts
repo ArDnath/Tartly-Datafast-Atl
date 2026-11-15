@@ -19,6 +19,7 @@ import {
   validatePolarReadAccess,
 } from '@/features/payments/server/providers/polar-provider';
 import prisma from '@/lib/prisma';
+import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import { encryptProviderSecret } from '@/features/payments/server/provider-secrets';
 import { parseRequest } from '@/lib/request';
 import {
@@ -32,7 +33,7 @@ import {
   getYolfiOrganization,
   updateYolfiAnalyticsEndpoint,
 } from '@/features/payments/server/providers/yolfi-provider';
-import { canUpdateWebsite } from '@/permissions';
+import { canManageWebsiteIntegrations } from '@/permissions';
 import { backfillDodoRevenue } from '@/features/payments/server/queries/dodoProvider';
 import { backfillPolarRevenue } from '@/features/payments/server/queries/polarProvider';
 import { enqueueProviderWebhookCleanup } from '@/queries/prisma/providerWebhookCleanup';
@@ -63,8 +64,21 @@ vi.mock('@/lib/request', () => ({
 }));
 
 vi.mock('@/permissions', () => ({
-  canUpdateWebsite: vi.fn(),
+  canManageWebsiteIntegrations: vi.fn(),
   canViewWebsite: vi.fn(),
+  getWebsiteWorkspaceAccess: vi.fn().mockResolvedValue({
+    websiteId: 'site-1',
+    workspaceId: 'workspace-1',
+    role: 'OWNER',
+  }),
+}));
+
+vi.mock('@/lib/entitlements', () => ({
+  entitlementsHaveFeature: vi.fn(() => true),
+  getWorkspaceEntitlements: vi.fn().mockResolvedValue({
+    active: true,
+    plan: { name: 'Pro', paymentConnectionLimit: null },
+  }),
 }));
 
 vi.mock('@/features/payments/server/provider-secrets', () => ({
@@ -168,7 +182,7 @@ beforeEach(() => {
       apiKey: 'rk_test_123',
     },
   } as any);
-  vi.mocked(canUpdateWebsite).mockResolvedValue(true);
+  vi.mocked(canManageWebsiteIntegrations).mockResolvedValue(true);
   (prisma.client.paymentProviderConnection.findFirst as any).mockResolvedValue(null);
   (prisma.client.paymentProviderConnection.findMany as any).mockResolvedValue([]);
   vi.mocked(getYolfiOrganization).mockResolvedValue({ organizationId: 'org-123' });
@@ -1210,4 +1224,35 @@ test('DELETE disconnects a provider, clears its secrets, and queues webhook clea
   expect(body).toEqual({
     data: { id: 'connection-1', providerName: 'stripe', disconnected: true },
   });
+});
+
+test('refuses a second payment provider when the plan includes only one', async () => {
+  vi.mocked(getWorkspaceEntitlements).mockResolvedValue({
+    active: true,
+    plan: { name: 'Starter', paymentConnectionLimit: 1 },
+  } as any);
+  (prisma.client.paymentProviderConnection.findMany as any).mockResolvedValue([
+    { providerName: 'stripe' },
+  ]);
+  vi.mocked(parseRequest).mockResolvedValue({
+    auth: { user: { id: 'user-1' } },
+    body: {
+      providerName: 'polar',
+      apiKey: 'polar_test_key',
+    },
+  } as any);
+
+  const response = await POST(
+    new Request('https://analytics.example.com/api/websites/site-1/payment-provider-connections', {
+      method: 'POST',
+    }),
+    { params: Promise.resolve({ websiteId: 'site-1' }) },
+  );
+  const body = await response.json();
+
+  expect(response.status).toBe(403);
+  expect(body).toMatchObject({
+    error: { code: 'plan_limit_reached', limit: 1 },
+  });
+  expect(prisma.client.paymentProviderConnection.create).not.toHaveBeenCalled();
 });

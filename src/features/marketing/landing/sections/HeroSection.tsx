@@ -212,7 +212,7 @@ export function HeroSection() {
         </p>
 
         <form
-          action="/api/auth/google"
+          action="/signup"
           method="get"
           className="lp-hero-in mt-7 flex w-full max-w-xl flex-col items-stretch justify-center gap-3 sm:flex-row"
           style={{ animationDelay: '500ms' }}

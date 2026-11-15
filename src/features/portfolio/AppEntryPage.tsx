@@ -227,23 +227,38 @@ function WebsiteMiniChart({
       {hasVisitorTrend && (
         <path d={getAreaPath(linePoints, baseline)} fill={`url(#${areaGradientId})`} />
       )}
-      <path
-        d={getSmoothLinePath(linePoints)}
-        fill="none"
-        stroke={TRAFFIC_COLOR}
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <title>{`${formatLongNumber(maxVisitors)} peak visitors`}</title>
-      </path>
-      {linePoints.map((point, index) => (
-        <circle key={points[index].date} cx={point.x} cy={point.y} r="6" fill="transparent">
-          <title>{`${formatDateLabel(points[index].date)}: ${formatLongNumber(
-            points[index].visitors,
-          )} visitors`}</title>
-        </circle>
-      ))}
+      {hasVisitorTrend && (
+        <>
+          <path
+            d={getSmoothLinePath(linePoints)}
+            fill="none"
+            stroke={TRAFFIC_COLOR}
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <title>{`${formatLongNumber(maxVisitors)} peak visitors`}</title>
+          </path>
+          {linePoints.map((point, index) => (
+            <circle key={points[index].date} cx={point.x} cy={point.y} r="6" fill="transparent">
+              <title>{`${formatDateLabel(points[index].date)}: ${formatLongNumber(
+                points[index].visitors,
+              )} visitors`}</title>
+            </circle>
+          ))}
+        </>
+      )}
+      {!hasVisitorTrend && (
+        <text
+          x={CHART_WIDTH / 2}
+          y={(CHART_TOP + baseline) / 2}
+          textAnchor="middle"
+          fill={OVERVIEW_AXIS_COLOR}
+          fontSize="11"
+        >
+          No visits yet
+        </text>
+      )}
       {points.map((point, index) => {
         const x =
           points.length > 1

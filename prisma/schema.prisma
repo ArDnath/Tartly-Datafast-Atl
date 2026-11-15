@@ -125,6 +125,7 @@ model BillingEvent {
 
   @@index([providerName, eventType])
   @@index([workspaceId, receivedAt])
+  @@index([receivedAt])
   @@map("billing_event")
 }
 
@@ -792,10 +793,12 @@ model Share {
   shareType  Int       @map("share_type") @db.Integer
   slug       String    @unique() @db.VarChar(100)
   parameters Json
+  expiresAt  DateTime? @map("expires_at") @db.Timestamptz(6)
   createdAt  DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt  DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@index([entityId])
+  @@index([expiresAt])
   @@map("share")
 }
 
@@ -817,6 +820,7 @@ model SessionReplay {
   @@index([sessionId])
   @@index([websiteId, sessionId])
   @@index([websiteId, createdAt])
+  @@unique([sessionId, chunkIndex])
   @@index([sessionId, chunkIndex])
   @@map("session_replay")
 }
@@ -1097,8 +1101,9 @@ model ProviderEvent {
   website    Website                    @relation(fields: [websiteId], references: [id])
   connection PaymentProviderConnection? @relation(fields: [connectionId], references: [id])
 
-  @@unique([providerName, providerEventKey])
+  @@unique([websiteId, providerName, providerEventKey])
   @@index([websiteId, receivedAt])
+  @@index([receivedAt])
   @@index([connectionId])
   @@index([processingStatus])
   @@map("provider_event")
@@ -1414,5 +1419,6 @@ model AuditEvent {
   @@index([userId, createdAt])
   @@index([websiteId, createdAt])
   @@index([eventType])
+  @@index([createdAt])
   @@map("audit_event")
 }

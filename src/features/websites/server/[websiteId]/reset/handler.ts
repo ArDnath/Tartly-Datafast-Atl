@@ -1,6 +1,6 @@
 import { parseRequest } from '@/lib/request';
 import { ok, unauthorized } from '@/lib/response';
-import { canUpdateWebsite } from '@/permissions';
+import { canDeleteWebsite } from '@/permissions';
 import { resetWebsite } from '@/queries/prisma';
 
 export async function POST(
@@ -15,7 +15,7 @@ export async function POST(
 
   const { websiteId } = await params;
 
-  if (!(await canUpdateWebsite(auth, websiteId))) {
+  if (!(await canDeleteWebsite(auth, websiteId))) {
     return unauthorized();
   }
 

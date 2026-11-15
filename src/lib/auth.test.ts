@@ -39,6 +39,7 @@ beforeEach(() => {
     slug: 'public-demo',
     shareType: ENTITY_TYPE.website,
     parameters: {},
+    expiresAt: new Date(Date.now() + 60_000),
   } as any);
   vi.mocked(getShareableWebsite).mockResolvedValue({ id: 'website-1' } as any);
 });
@@ -56,6 +57,7 @@ test('uses current share parameters instead of stale token parameters', async ()
     parameters: {
       revenue: true,
     },
+    expiresAt: new Date(Date.now() + 60_000),
   } as any);
 
   await expect(
@@ -72,6 +74,19 @@ test('uses current share parameters instead of stale token parameters', async ()
       revenue: true,
     },
   });
+});
+
+test('rejects a valid token after the share expiry passes', async () => {
+  vi.mocked(getShare).mockResolvedValue({
+    id: 'share-1',
+    entityId: 'website-1',
+    slug: 'public-demo',
+    shareType: ENTITY_TYPE.website,
+    parameters: {},
+    expiresAt: new Date(Date.now() - 1_000),
+  } as any);
+
+  await expect(parseShareToken(requestFor(validPayload))).resolves.toBeNull();
 });
 
 test('rejects collector and linker tokens before querying the share record', async () => {
@@ -175,6 +190,31 @@ test('authenticates a request from the HttpOnly session cookie', async () => {
       isAdmin: false,
     },
   });
+});
+
+test('ignores a share token outside the share context, even with a session', async () => {
+  vi.mocked(resolveAuthSession).mockResolvedValue({ id: 'session-1', userId: 'user-1' });
+  vi.mocked(getUser).mockResolvedValue({
+    id: 'user-1',
+    username: 'owner@example.com',
+    role: 'user',
+  } as any);
+
+  const auth = await checkAuth(
+    new Request('https://app.example.com/api/websites/website-1/stats', {
+      headers: {
+        cookie: 'rl_session=session-token',
+        [SHARE_TOKEN_HEADER]: createToken(validPayload, secret()),
+      },
+    }),
+  );
+
+  expect(auth?.user?.id).toBe('user-1');
+  expect(auth?.shareToken).toBeNull();
+});
+
+test('rejects a share token outside the share context for an anonymous caller', async () => {
+  await expect(checkAuth(requestFor(validPayload))).resolves.toBeNull();
 });
 
 test('rejects an unknown cookie session', async () => {

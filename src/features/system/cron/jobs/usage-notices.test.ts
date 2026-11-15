@@ -3,6 +3,7 @@ import { runUsageNoticeJob } from './usage-notices';
 
 const NOW = new Date('2026-11-15T04:00:00.000Z');
 const PERIOD_START = new Date('2026-11-01T00:00:00.000Z');
+const PERIOD_END = new Date('2026-12-01T00:00:00.000Z');
 
 function createClient(periods: any[]) {
   return {
@@ -16,6 +17,8 @@ function createClient(periods: any[]) {
 function period(overrides: Record<string, unknown> = {}) {
   return {
     workspaceId: 'workspace-1',
+    periodStart: PERIOD_START,
+    periodEnd: PERIOD_END,
     eventsCount: 80_000,
     warningNotifiedAt: null,
     limitNotifiedAt: null,
@@ -123,6 +126,36 @@ describe('usage notices job', () => {
     expect(client.usagePeriod.updateMany).not.toHaveBeenCalled();
     expect(result.failed).toBe(1);
     expect(result.results[0].error).toContain('provider down');
+  });
+
+  test('uses the purchased traffic tier, not the base plan allowance', async () => {
+    const client = createClient([
+      period({
+        eventsCount: 80_000,
+        workspace: {
+          name: 'Acme',
+          planId: 'pro',
+          subscriptionStatus: 'active',
+          platformSubscription: {
+            planId: 'pro',
+            trafficTierIndex: 0,
+            lifecycleStatus: 'ACTIVE',
+            cancelAtPeriodEnd: false,
+            currentPeriodEnd: new Date('2026-12-08T00:00:00.000Z'),
+          },
+          owner: { username: 'owner@example.com', deletedAt: null, suspendedAt: null },
+        },
+      }),
+    ]);
+    const send = vi.fn(async (_message: any) => {});
+
+    await runUsageNoticeJob({ ...options, client, send });
+
+    expect(send.mock.calls[0][0]).toMatchObject({
+      level: 'warning',
+      used: 80_000,
+      limit: 100_000,
+    });
   });
 
   test('uses the provider plan when platform billing is active', async () => {

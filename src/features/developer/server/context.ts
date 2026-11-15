@@ -1,6 +1,7 @@
 import { authenticateApiKey } from '@/features/websites/lib/api-key';
+import { getWorkspaceEntitlements, entitlementsHaveFeature } from '@/lib/entitlements';
 import prisma from '@/lib/prisma';
-import { json, notFound, unauthorized } from '@/lib/response';
+import { forbidden, json, notFound, unauthorized } from '@/lib/response';
 
 export interface DeveloperContext {
   apiKey: NonNullable<Awaited<ReturnType<typeof authenticateApiKey>>>;
@@ -38,11 +39,28 @@ export async function authenticateDeveloperRequest(
 
   const website = await prisma.client.website.findFirst({
     where: { id: apiKey.websiteId, deletedAt: null },
-    select: { id: true, name: true, domain: true },
+    select: { id: true, name: true, domain: true, workspaceId: true },
   });
 
   if (!website) {
     return { response: notFound({ code: 'website-not-found' }) };
+  }
+
+  // API keys are also used by the Manual payment API, which is a Starter
+  // feature. Gate the developer read tools here rather than key creation, so a
+  // Starter customer can still connect payments.
+  if (website.workspaceId) {
+    const entitlements = await getWorkspaceEntitlements(website.workspaceId);
+
+    if (!entitlementsHaveFeature(entitlements, 'api_access')) {
+      return {
+        response: forbidden({
+          code: 'plan_feature_required',
+          feature: 'api_access',
+          message: 'Developer API access is included in the Pro plan.',
+        }),
+      };
+    }
   }
 
   return { context: { apiKey, website } };

@@ -4,7 +4,7 @@
  * Commercial model (owner-fixed, updated 2026-11-12):
  * - Two paid plans: Starter and Pro. There is no free trial and no free tier.
  * - Starter $7.99/mo at 100,000 events; Pro $14.99/mo at 1,000,000 events.
- * - Pro includes 50 websites. Starter includes 1.
+ * - Pro includes up to 20 websites. Starter includes 1.
  * - The traffic slider raises the included events and the price together.
  * - An unpaid workspace may finish onboarding (one website, one member) and
  *   then sees the paywall. Ingestion requires an active subscription.
@@ -160,11 +160,11 @@ export const PLANS: readonly Plan[] = [
     name: 'Pro',
     tagline: 'For indie SaaS, teams, and small agencies',
     description:
-      'Up to 50 sites, 1,000,000 events, session replay, advanced attribution, and client-ready reporting.',
+      'Up to 20 sites, 1,000,000 events, session replay, advanced attribution, and client-ready reporting.',
     monthlyPriceCents: 1499,
     annualPriceCents: 14990,
     currency: 'USD',
-    websiteLimit: 50,
+    websiteLimit: 20,
     memberLimit: 10,
     eventsPerMonth: 1_000_000,
     retentionDays: 365,

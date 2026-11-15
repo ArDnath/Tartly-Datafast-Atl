@@ -1,6 +1,7 @@
 'use client';
 
 import { Column } from '@talivia/react-zen';
+import Link from 'next/link';
 import { BrandWordmark } from '@/components/brand/BrandMark';
 import { sanitizeAuthReturnUrl } from '@/features/auth/lib/auth-return-url';
 import { BRAND } from '@/lib/brand';
@@ -19,6 +20,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   'rate-limited': 'Too many sign-in attempts. Try again later.',
   'google-failed': 'Google sign-in failed. Try again.',
   'account-unavailable': 'This account is not available. Contact support.',
+  'email-link-required':
+    'This email already has a password account. Reset that password, verify the email, then sign in with Google.',
   'email-not-verified': 'Google has not verified this email address.',
 };
 
@@ -48,6 +51,14 @@ export function LoginForm({ returnUrl, initialError, errorCode }: LoginFormProps
     <Column className="talivia-auth-form talivia-auth-panel" alignItems="center" gap="6">
       <BrandWordmark size={48} className="talivia-auth-lockup" />
 
+      <div className="talivia-auth-intro">
+        <h1 className="talivia-auth-title">Sign in to your revenue dashboard</h1>
+        <p className="talivia-auth-subtext">
+          See which channels make money. Use Google to sign in or create your {BRAND.name}{' '}
+          workspace. No password needed.
+        </p>
+      </div>
+
       {message ? (
         <p className="talivia-auth-error" role="alert">
           {message}
@@ -64,10 +75,27 @@ export function LoginForm({ returnUrl, initialError, errorCode }: LoginFormProps
         <span>Continue with Google</span>
       </a>
 
-      <p className="talivia-auth-subtext">
-        Use your Google account to sign in or create your {BRAND.name} workspace. No password
-        needed.
+      <p className="talivia-auth-fineprint">
+        By continuing you agree to our{' '}
+        <Link href="/legal/terms" className="talivia-auth-inline-link">
+          Terms
+        </Link>{' '}
+        and{' '}
+        <Link href="/legal/privacy" className="talivia-auth-inline-link">
+          Privacy Policy
+        </Link>
+        .
       </p>
+
+      {errorCode === 'email-link-required' && (
+        <Link className="talivia-auth-back" href="/forgot-password">
+          Reset your password
+        </Link>
+      )}
+
+      <Link className="talivia-auth-back" href="/">
+        Back to {BRAND.name}
+      </Link>
     </Column>
   );
 }

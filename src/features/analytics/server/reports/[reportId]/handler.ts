@@ -20,6 +20,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ repo
 
   const report = await getReport(reportId);
 
+  if (!report) {
+    return notFound();
+  }
+
   if (!(await canViewReport(auth, report))) {
     return unauthorized();
   }
@@ -49,7 +53,7 @@ export async function POST(
   }
 
   const { reportId } = await params;
-  const { websiteId, type, name, description, parameters } = body;
+  const { type, name, description, parameters } = body;
 
   const report = await getReport(reportId);
 
@@ -62,7 +66,9 @@ export async function POST(
   }
 
   const result = await updateReport(reportId, {
-    websiteId,
+    // A report cannot be moved between websites by an update. That would be a
+    // cross-tenant write disguised as a normal edit.
+    websiteId: report.websiteId,
     type,
     name,
     description,

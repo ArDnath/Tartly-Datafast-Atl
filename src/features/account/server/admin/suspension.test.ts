@@ -6,6 +6,7 @@ const { parseRequest, prisma, revokeAllAuthSessions, recordAuditEvent } = vi.hoi
     client: {
       user: { findUnique: vi.fn(), update: vi.fn() },
       workspace: { findUnique: vi.fn(), update: vi.fn() },
+      apiKey: { updateMany: vi.fn() },
     },
   },
   revokeAllAuthSessions: vi.fn(),

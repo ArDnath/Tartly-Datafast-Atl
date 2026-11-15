@@ -72,12 +72,12 @@ describe('marketing landing page', () => {
     expect(within(stacks).getAllByRole('link')).toHaveLength(15);
   });
 
-  test('starts Google sign-in with the entered website', () => {
+  test('starts the sign-in handoff with the entered website', () => {
     render(<LandingPage />);
 
     const form = screen.getByRole('textbox', { name: /your website/i }).closest('form');
 
-    expect(form).toHaveAttribute('action', '/api/auth/google');
+    expect(form).toHaveAttribute('action', '/signup');
     expect(form).toHaveAttribute('method', 'get');
     expect(form?.querySelector('input[name="returnUrl"]')).toHaveValue('/onboarding');
   });

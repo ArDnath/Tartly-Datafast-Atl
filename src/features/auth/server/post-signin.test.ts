@@ -67,6 +67,24 @@ describe('resolvePostSignInPath', () => {
     );
   });
 
+  test('sends a returning customer with a website to the add-website flow', async () => {
+    prismaMock.client.workspaceMembership.findMany.mockResolvedValue([
+      { role: 'OWNER', workspace: { onboardingCompletedAt: new Date() } },
+    ]);
+
+    await expect(resolvePostSignInPath('user-1', '/onboarding?website=acme.com')).resolves.toBe(
+      '/app/new?website=acme.com',
+    );
+  });
+
+  test('sends a returning customer without a website to the app', async () => {
+    prismaMock.client.workspaceMembership.findMany.mockResolvedValue([
+      { role: 'OWNER', workspace: { onboardingCompletedAt: new Date() } },
+    ]);
+
+    await expect(resolvePostSignInPath('user-1', '/onboarding')).resolves.toBe('/app');
+  });
+
   test('carries a pricing checkout through first-run onboarding', async () => {
     await expect(
       resolvePostSignInPath('user-1', '/checkout?plan=pro&interval=annual&tier=3'),

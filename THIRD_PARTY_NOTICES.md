@@ -15,6 +15,22 @@ The Talivia name, logo, and brand assets are not part of the MIT license grant
 in the sense of trademark permission. They have been replaced in
 customer-facing surfaces. Do not imply affiliation with Talivia Cloud.
 
+## Umami
+
+The analytics engine in this fork descends from Umami
+(<https://github.com/umami-software/umami>), which is MIT licensed. Talivia's
+`LICENSE` file replaced the upstream copyright line; the original notice is
+retained here to satisfy the MIT condition:
+
+```
+MIT License
+
+Copyright (c) 2022 Umami Software, Inc. <hello@umami.is>
+```
+
+The `@umami/react-zen` package is consumed as a dependency under its own MIT
+license; it is aliased as `@talivia/react-zen` in `package.json`.
+
 ## Talivia Agent Kit
 
 <https://github.com/talivia-group/agent> — MIT License. Reused concepts must keep

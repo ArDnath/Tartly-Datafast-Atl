@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { uuid } from '@/lib/crypto';
 import { getWorkspaceEntitlements, getWebsiteLimit } from '@/lib/entitlements';
 import { getQueryFilters, parseRequest } from '@/lib/request';
-import { badRequest, json, unauthorized } from '@/lib/response';
+import { badRequest, conflict, json, unauthorized } from '@/lib/response';
 import { pagingParams, searchParams } from '@/lib/schema';
 import {
   getWebsiteNameFromDomain,
@@ -10,7 +10,7 @@ import {
 } from '@/features/websites/lib/website-domain';
 import { canCreateWebsite } from '@/permissions';
 import { requireWorkspaceAccess } from '@/lib/workspace-auth';
-import { createWebsite } from '@/queries/prisma';
+import { createWebsite, findWorkspaceWebsiteByDomain } from '@/queries/prisma';
 import {
   countWorkspaceWebsites,
   getDefaultWorkspaceForUser,
@@ -100,6 +100,13 @@ export async function POST(request: Request) {
     return badRequest({
       code: 'website-limit-reached',
       message: `Your ${entitlements.plan.name} plan includes ${limit} website${limit === 1 ? '' : 's'}. Upgrade to add more.`,
+    });
+  }
+
+  if (await findWorkspaceWebsiteByDomain(workspaceId, domain)) {
+    return conflict({
+      code: 'website-exists',
+      message: `${domain} is already connected in this workspace. Open it from the website list.`,
     });
   }
 

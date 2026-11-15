@@ -45,6 +45,9 @@ function DocsNav({ activeSlug, install }: { activeSlug?: string; install?: boole
       >
         Tracker install guides
       </Link>
+      <Link href="/docs/install#tracker-reference" className={styles.sidebarLink}>
+        Tracker reference
+      </Link>
       <Link href="/docs/install#strict-security-policy" className={styles.sidebarLink}>
         Strict security policy
       </Link>
@@ -221,6 +224,160 @@ function InstallGuides() {
             <a href="#cloudflare-first-party">Cloudflare Pages Function</a>
           </li>
         </ul>
+      </section>
+
+      <section id="tracker-reference" aria-labelledby="tracker-reference-title">
+        <h2 id="tracker-reference-title" className={styles.sectionTitle}>
+          Tracker reference
+        </h2>
+        <p className={styles.body}>
+          The tracker sets no cookies and stores no persistent visitor identifier. A random session
+          token lives only in the current tab and expires after 30 minutes without activity. Visitor
+          uniqueness is derived on the server from a keyed, rotating salted hash; raw IP addresses
+          are not stored.
+        </p>
+
+        <h3 className={styles.sectionTitle}>Script attributes</h3>
+        <ul className={styles.links}>
+          <li>
+            <code>data-website-id</code> — required; the public website ID from the app.
+          </li>
+          <li>
+            <code>data-host-url</code> — optional; the origin that serves the tracker and collector.
+          </li>
+          <li>
+            <code>data-auto-track=&quot;false&quot;</code> — disable automatic pageviews; call{' '}
+            <code>window.talivia.track()</code> yourself.
+          </li>
+          <li>
+            <code>data-domains</code> — comma-separated hostnames allowed to send events.
+          </li>
+          <li>
+            <code>data-exclude-search=&quot;true&quot;</code> and{' '}
+            <code>data-exclude-hash=&quot;true&quot;</code> — drop the query string or fragment from
+            tracked URLs.
+          </li>
+          <li>
+            <code>data-do-not-track=&quot;true&quot;</code> — respect the browser Do Not Track
+            signal.
+          </li>
+          <li>
+            <code>data-track-outbound=&quot;true&quot;</code> — record clicks on links to other
+            domains as <code>outbound-link</code> events.
+          </li>
+          <li>
+            <code>data-track-downloads=&quot;true&quot;</code> — record file downloads as{' '}
+            <code>file-download</code> events.
+          </li>
+          <li>
+            <code>data-cross-domain-domains</code> — comma-separated domains whose links receive a
+            signed linker, so a journey across your own domains stays attributed.
+          </li>
+          <li>
+            <code>data-consent=&quot;required&quot;</code> — send nothing until the host grants
+            consent with <code>window.talivia.setConsent(true)</code> or a{' '}
+            <code>talivia:consent</code> event.
+          </li>
+          <li>
+            <code>data-tag</code> — a label attached to every event from that script.
+          </li>
+          <li>
+            <code>data-performance=&quot;true&quot;</code> — collect Core Web Vitals.
+          </li>
+          <li>
+            <code>data-before-send</code> — name of a global function that can inspect or reject a
+            payload before it is sent.
+          </li>
+        </ul>
+
+        <h3 className={styles.sectionTitle}>Custom events and identity</h3>
+        <div className={styles.codeBlock}>
+          <div className={styles.codeHeader}>
+            <span>JavaScript</span>
+            <span>Browser API</span>
+          </div>
+          <pre>
+            <code>{`// A named event with properties (max 50-character name).
+window.talivia.track('signup-completed', { plan: 'pro' });
+
+// Attach your own user ID to the current visitor.
+// Send an opaque ID, never an email address or other personal data.
+window.talivia.identify('user_123');
+
+// Read the session ID when forwarding a checkout to a payment provider.
+const sessionId = window.talivia.getSessionId();`}</code>
+          </pre>
+        </div>
+        <p className={styles.body}>
+          Declarative events also work without JavaScript: add{' '}
+          <code>data-talivia-event=&quot;name&quot;</code> to a button or link, and any{' '}
+          <code>data-talivia-event-&lt;key&gt;=&quot;value&quot;</code> attribute becomes an event
+          property. Add <code>data-talivia-visible=&quot;name&quot;</code> to record an element once
+          it is actually seen; tune it with <code>data-talivia-visible-threshold</code> and{' '}
+          <code>data-talivia-visible-delay</code>.
+        </p>
+        <p className={styles.body}>
+          Pageviews follow pushState and replaceState, so client-side navigation in React, Next.js,
+          Vue, Nuxt, Svelte, Astro, and similar frameworks is tracked without extra code. Outbound
+          and download events are opt-in because they count as billable custom events.
+        </p>
+
+        <h3 className={styles.sectionTitle}>Server-side events</h3>
+        <p className={styles.body}>
+          Send events from your backend to the same collector. No visitor or session token is
+          required: the server derives a rotating visitor key and a 30-minute session bucket. The
+          website ID is public by design, so treat it as a routing key, not a secret. Send an opaque
+          user ID, never personal data. Include an <code>eventId</code> when your job may retry:
+          repeating the same id is counted once and does not consume a second event.
+        </p>
+        <div className={styles.codeBlock}>
+          <div className={styles.codeHeader}>
+            <span>Shell</span>
+            <span>POST /api/send</span>
+          </div>
+          <pre>
+            <code>{`curl -X POST ${BRAND.url}/api/send \\
+  -H 'Content-Type: application/json' \\
+  -d '{
+    "type": "event",
+    "payload": {
+      "website": "YOUR_WEBSITE_ID",
+      "name": "trial-started",
+      "eventId": "order-4821-trial-started",
+      "hostname": "app.example.com",
+      "url": "https://app.example.com/welcome",
+      "data": { "plan": "pro" }
+    }
+  }'`}</code>
+          </pre>
+        </div>
+        <p className={styles.body}>
+          Responses use <code>ok</code> plus a machine-readable <code>reason</code> when the event
+          is rejected, for example <code>subscription_required</code> or{' '}
+          <code>usage_limit_reached</code>. The collector is rate limited per source address and
+          applies bot and origin checks; it is not a general-purpose public write endpoint.
+        </p>
+
+        <h3 className={styles.sectionTitle}>Session replay (Pro)</h3>
+        <p className={styles.body}>
+          Turn on Session replay in website settings, then load the recorder after the tracker. The
+          recorder waits for the tracker&apos;s collector context, so the tracker must be present on
+          the same page. Inputs are masked by default and strict masking is available. With{' '}
+          <code>data-consent=&quot;required&quot;</code>, recording waits for{' '}
+          <code>window.__taliviaSetConsent(true)</code> or a <code>talivia:consent</code> event.
+        </p>
+        <div className={styles.codeBlock}>
+          <div className={styles.codeHeader}>
+            <span>HTML</span>
+            <span>Recorder</span>
+          </div>
+          <pre>
+            <code>{`<script defer src="${BRAND.url}/recorder.js"
+  data-website-id="YOUR_WEBSITE_ID"
+  data-sample-rate="0.15"
+  data-mask-level="moderate"></script>`}</code>
+          </pre>
+        </div>
       </section>
 
       {INSTALL_GUIDES.map(guide => (

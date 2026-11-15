@@ -26,13 +26,23 @@ export function WebsiteMetricsBar({
     >
       <MetricsBar>
         {metrics?.map(
-          ({ label, value, previousValue, change, formatValue, reverseColors, showChange }) => {
+          ({
+            label,
+            value,
+            previousValue,
+            change,
+            definition,
+            formatValue,
+            reverseColors,
+            showChange,
+          }) => {
             return (
               <MetricCard
                 key={label}
                 value={value}
                 previousValue={previousValue}
                 label={label}
+                tooltip={definition}
                 change={change}
                 formatValue={formatValue}
                 reverseColors={reverseColors}

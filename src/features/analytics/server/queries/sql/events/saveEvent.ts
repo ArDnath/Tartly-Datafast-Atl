@@ -72,8 +72,11 @@ export async function saveEvent(args: SaveEventArgs) {
   if (clickhouse.enabled) {
     // Revenue attribution and the revenue-journey debugger use PostgreSQL even
     // when analytics queries run in ClickHouse. Keep an event mirror with the
-    // same id so last-touch references remain valid in both stores.
-    await Promise.all([relationalQuery(event, false), clickhouseQuery(event)]);
+    // same id so last-touch references remain valid in both stores. The mirror
+    // is written first: an idempotency collision must stop the ClickHouse
+    // insert too, otherwise a retry would double-count in the analytics store.
+    await relationalQuery(event, false);
+    await clickhouseQuery(event);
     return eventId;
   }
 

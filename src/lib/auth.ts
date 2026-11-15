@@ -8,6 +8,7 @@ import {
 } from '@/lib/constants';
 import { createAuthKey, secret } from '@/lib/crypto';
 import { createSecureToken, parseSecureToken, parseToken } from '@/lib/jwt';
+import { isShareLinkActive } from '@/lib/share-policy';
 import { getSessionTokenFromRequest } from '@/lib/auth-cookie';
 import { isPlatformAdmin } from '@/lib/platform-admin';
 import { resolveAuthSession } from '@/lib/auth-session';
@@ -30,12 +31,21 @@ export async function checkAuth(request: Request) {
   const token = getBearerToken(request);
   const sessionToken = getSessionTokenFromRequest(request);
   const payload = parseSecureToken(token, secret());
-  const shareToken = await parseShareToken(request);
+  let shareToken = await parseShareToken(request);
 
   let user = null;
   let sessionId: string | undefined;
   let source: 'cookie' | 'bearer' | 'share' = 'bearer';
   const { userId, authKey } = payload || {};
+
+  // A share token is a read-only capability for the share UI. Require the
+  // dedicated request context even when a normal session is also present, so
+  // a logged-in caller cannot combine their cookie with a share token to skip
+  // the share redaction layer.
+  if (shareToken && request.headers.get(SHARE_CONTEXT_HEADER) !== '1') {
+    log('Share token used outside share context');
+    shareToken = null;
+  }
 
   // Prefer the HttpOnly cookie. A bearer token remains valid for API clients
   // and for callers that explicitly send one.
@@ -77,14 +87,6 @@ export async function checkAuth(request: Request) {
   if (!user?.id && !shareToken) {
     log('User not authorized');
     return null;
-  }
-
-  if (!user?.id && shareToken) {
-    const shareContext = request.headers.get(SHARE_CONTEXT_HEADER);
-    if (!shareContext) {
-      log('Share token used outside share context');
-      return null;
-    }
   }
 
   if (user) {
@@ -168,6 +170,7 @@ export async function parseShareToken(request: Request): Promise<ShareTokenPaylo
 
     if (
       !share ||
+      !isShareLinkActive(share) ||
       share.slug !== payload.shareSlug ||
       share.shareType !== payload.shareType ||
       !(await hasValidShareEntity(payload, share.entityId))

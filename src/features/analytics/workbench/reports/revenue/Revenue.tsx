@@ -54,7 +54,7 @@ export function Revenue({ websiteId }: { websiteId: string }) {
       <Grid columns={{ base: '1fr', md: 'repeat(2, minmax(0, 1fr))' }} gap="3">
         <DashboardBreakdownPanel
           websiteId={websiteId}
-          defaultSort="visitors"
+          defaultSort="revenue"
           onOpen={openBreakdown}
           tabs={[
             { id: 'channel', label: t(labels.channels), type: 'channel' },

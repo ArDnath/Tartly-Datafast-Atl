@@ -138,3 +138,12 @@ ms, p99 480 ms, 0 errors, 10,001 stored rows and a matching usage counter. The
 probe found a deleted-workspace session leak; the collector now resolves
 entitlements and reserves usage before any session write. This is a single-node
 probe, not a sustained soak or a distributed 1M-RPS proof.
+
+## Timestamp window (2026-11-14)
+
+The public collector accepts a client timestamp only when it is no more than
+**7 days old** and no more than **5 minutes in the future**. Older or future
+timestamps return HTTP 400 with `code: timestamp_out_of_range` before any usage
+is reserved or a session is written. The tracker itself sends no timestamp, so
+this bound only affects integrations and abuse. Covered by two collector tests
+(backdated rejection and a one-hour-delayed acceptance).

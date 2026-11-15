@@ -17,7 +17,7 @@ export async function GET(
 ) {
   const schema = withDateRange({
     type: z.string(),
-    limit: z.coerce.number().optional(),
+    limit: z.coerce.number().int().positive().max(1000).optional(),
     offset: z.coerce.number().optional(),
     ...searchParams,
     ...filterParams,

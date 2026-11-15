@@ -1,5 +1,6 @@
 import { useDateRange, useMessages } from '@/components/hooks';
 import { useWebsiteStatsQuery } from '@/features/analytics/hooks/useWebsiteStatsQuery';
+import { METRIC_DEFINITIONS } from '@/features/analytics/lib/metric-definitions';
 import { DEFAULT_CURRENCY } from '@/lib/constants';
 import { formatLongCurrency, formatLongNumber, formatShortTime } from '@/lib/format';
 
@@ -8,6 +9,7 @@ export interface WebsiteOverviewMetric {
   previousValue?: number;
   change: number;
   label: string;
+  definition: string;
   reverseColors?: boolean;
   formatValue: (n: any) => string;
   showChange?: boolean;
@@ -37,29 +39,34 @@ export function useWebsiteOverviewMetrics({
         {
           value: overview.revenue,
           label: 'Revenue',
+          definition: METRIC_DEFINITIONS.revenue,
           change: overview.revenue - (comparisonOverview?.revenue || 0),
           formatValue: (n: number) => formatLongCurrency(Number(n || 0), currency),
         },
         {
           value: overview.revenuePerVisitor,
           label: 'Revenue/visitor',
+          definition: METRIC_DEFINITIONS.revenuePerVisitor,
           change: overview.revenuePerVisitor - (comparisonOverview?.revenuePerVisitor || 0),
           formatValue: (n: number) => formatLongCurrency(Number(n || 0), currency),
         },
         {
           value: overview.conversionRate,
           label: t(labels.conversionRate),
+          definition: METRIC_DEFINITIONS.conversionRate,
           change: overview.conversionRate - (comparisonOverview?.conversionRate || 0),
           formatValue: (n: number) => `${Number(n || 0).toFixed(2)}%`,
         },
         {
           value: overview.visitors,
           label: t(labels.visitors),
+          definition: METRIC_DEFINITIONS.visitors,
           change: overview.visitors - (comparisonOverview?.visitors || 0),
           formatValue: formatLongNumber,
         },
         {
           label: t(labels.bounceRate),
+          definition: METRIC_DEFINITIONS.bounceRate,
           value: overview.bounceRate,
           previousValue: comparisonOverview?.bounceRate,
           change: overview.bounceRate - (comparisonOverview?.bounceRate || 0),
@@ -68,6 +75,7 @@ export function useWebsiteOverviewMetrics({
         },
         {
           label: t(labels.visitDuration),
+          definition: METRIC_DEFINITIONS.visitDuration,
           value: overview.sessionTime,
           previousValue: comparisonOverview?.sessionTime,
           change: overview.sessionTime - (comparisonOverview?.sessionTime || 0),
@@ -77,6 +85,7 @@ export function useWebsiteOverviewMetrics({
         {
           value: overview.online,
           label: 'Online',
+          definition: METRIC_DEFINITIONS.online,
           change: 0,
           formatValue: formatLongNumber,
           showChange: false,

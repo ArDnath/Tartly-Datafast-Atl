@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
 import Papa from 'papaparse';
+import { sanitizeCsvData } from '@/lib/csv';
 import clickhouse from '@/lib/clickhouse';
 import prisma from '@/lib/prisma';
 import { TALIVIA_BACKUP_FORMAT } from './talivia';
@@ -224,7 +225,10 @@ async function getClickhouseBackupData(websiteId: string, range: BackupRange) {
 }
 
 function toCsv(rows: BackupRow[]) {
-  return Papa.unparse(rows.map(toSerializable), { header: true, skipEmptyLines: true });
+  return Papa.unparse(sanitizeCsvData(rows.map(toSerializable)), {
+    header: true,
+    skipEmptyLines: true,
+  });
 }
 
 function toSerializable(row: BackupRow) {

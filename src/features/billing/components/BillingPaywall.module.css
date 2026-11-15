@@ -3,7 +3,10 @@
   display: flex;
   width: 100%;
   min-height: calc(100vh - 56px);
-  align-items: center;
+  /* Plan cards are taller than a laptop viewport. Top alignment keeps the
+     headline reachable instead of letting flex centering clip it above the
+     scroll origin. */
+  align-items: flex-start;
   justify-content: center;
   overflow: hidden;
   padding: 40px 20px 72px;

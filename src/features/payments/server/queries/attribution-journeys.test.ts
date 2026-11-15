@@ -316,3 +316,43 @@ test('a payment with no visitor or session is written as explicitly unattributed
   expect(write.lastTouchSource).toBeUndefined();
   expect(tx.paymentMatch.upsert).not.toHaveBeenCalled();
 });
+
+test('the last-touch snapshot ignores performance beacons', async () => {
+  client.session.findFirst.mockResolvedValue({
+    id: 'session-9',
+    visitor: visitor({ lastSessionId: 'session-9' }),
+  });
+  tx.websiteEvent.findFirst.mockResolvedValue({
+    id: 'event-9',
+    urlPath: '/pricing',
+    utmSource: 'tiktok',
+    utmMedium: 'paid',
+    utmCampaign: 'launch',
+    referrerDomain: 'tiktok.com',
+    referrerPath: '/l/launch',
+    referrerQuery: null,
+  });
+
+  await recordPayment({
+    ...basePayment,
+    transactionId: 'pi_beacon',
+    providerPaymentId: 'pi_beacon',
+    sessionId: 'session-9',
+  });
+
+  expect(tx.websiteEvent.findFirst).toHaveBeenCalledWith(
+    expect.objectContaining({
+      where: expect.objectContaining({
+        eventType: { in: [1, 2] },
+      }),
+    }),
+  );
+
+  const [write] = attributionWrites();
+  expect(write).toEqual(
+    expect.objectContaining({
+      lastTouchSource: 'tiktok',
+      lastTouchCampaign: 'launch',
+    }),
+  );
+});

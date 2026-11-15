@@ -11,8 +11,18 @@
         <level>information</level>
     </logger>
 
+    <!--
+      The container limit is 2 GB. ClickHouse derives its effective ceiling
+      from the cgroup limit, so the ratio (not the absolute value above) is
+      what actually applied on the 2 vCPU / 8 GB VPS. At 0.35 the server was
+      capped at ~717 MB, below its own resident set, and every INSERT failed
+      with MEMORY_LIMIT_EXCEEDED. The worker then retried the same Kafka
+      offset forever and dashboards read an empty event store. 0.75 gives the
+      server 1.5 GB inside a 2 GB container while leaving room for PostgreSQL,
+      Redis, Kafka, the app, and the worker.
+    -->
     <max_server_memory_usage>1610612736</max_server_memory_usage>
-    <max_server_memory_usage_to_ram_ratio>0.35</max_server_memory_usage_to_ram_ratio>
+    <max_server_memory_usage_to_ram_ratio>0.75</max_server_memory_usage_to_ram_ratio>
     <max_concurrent_queries>24</max_concurrent_queries>
     <mark_cache_size>268435456</mark_cache_size>
 

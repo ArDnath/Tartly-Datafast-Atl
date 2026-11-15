@@ -3,7 +3,7 @@ import { createApiKeyToken, hashApiKey } from '@/features/websites/lib/api-key';
 import prisma from '@/lib/prisma';
 import { parseRequest } from '@/lib/request';
 import { json, unauthorized } from '@/lib/response';
-import { canUpdateWebsite, canViewWebsite } from '@/permissions';
+import { canManageWebsiteIntegrations, canViewWebsite } from '@/permissions';
 import { recordAuditEvent } from '@/queries/prisma';
 
 const schema = z.object({
@@ -60,7 +60,7 @@ export async function POST(
 
   const { websiteId } = await params;
 
-  if (!(await canUpdateWebsite(auth, websiteId))) {
+  if (!(await canManageWebsiteIntegrations(auth, websiteId))) {
     return unauthorized();
   }
 
@@ -68,6 +68,7 @@ export async function POST(
   const apiKey = await prisma.client.apiKey.create({
     data: {
       websiteId,
+      userId: auth.user.id,
       name: body.name,
       keyHash: hashApiKey(key),
     },

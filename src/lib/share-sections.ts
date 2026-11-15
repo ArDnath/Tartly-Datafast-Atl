@@ -31,6 +31,18 @@ const REPORT_SECTION_BY_TYPE: Record<string, ShareSectionId> = {
 
 const REPORT_SECTIONS = Object.values(REPORT_SECTION_BY_TYPE);
 
+/**
+ * Raw identity and URL-query values are never shareable. The share response
+ * redactor masks named fields, but metrics endpoints return the requested
+ * value under a generic `x` key and values endpoints return primitive arrays,
+ * so those fields must be blocked at the request boundary instead.
+ */
+const SHARE_BLOCKED_FIELDS = new Set(['distinctId', 'query']);
+
+function hasBlockedShareField(query?: Record<string, unknown>) {
+  return SHARE_BLOCKED_FIELDS.has(String(query?.type ?? ''));
+}
+
 export function getAllowedShareSections(
   parameters?: Record<string, unknown> | null,
 ): ShareSectionId[] {
@@ -153,11 +165,15 @@ export function canAccessWebsiteShareRequest({
   const endpoint = websiteMatch[1] || '';
 
   // Website metadata, date bounds, filter values, and saved segments are shared
-  // infrastructure required by every analytics section.
+  // infrastructure required by every analytics section. Identity and raw query
+  // values are the exception.
+  if (endpoint === 'values') {
+    return !hasBlockedShareField(query);
+  }
+
   if (
     endpoint === '' ||
     endpoint === 'daterange' ||
-    endpoint === 'values' ||
     endpoint === 'segments' ||
     endpoint.startsWith('segments/')
   ) {
@@ -168,6 +184,12 @@ export function canAccessWebsiteShareRequest({
     const section = getShareSectionForReportType(query?.type);
 
     return !!section && isShareSectionAllowed(parameters, [section]);
+  }
+
+  if (endpoint.startsWith('metrics') || endpoint === 'dashboard-breakdown') {
+    if (hasBlockedShareField(query)) {
+      return false;
+    }
   }
 
   const sections = getWebsiteEndpointSections(endpoint);
