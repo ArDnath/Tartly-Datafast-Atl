@@ -48,6 +48,36 @@
   `BUILD_VERSION`, run public smoke checks, and roll back on failure. See
   `docs/CI_CD.md` → Deployment invariants.
 
+## 2026-11-15 — Tracking pipeline recovery on the production VPS
+
+- **Symptom:** the production app accepted `POST /api/send` but the dashboard
+  showed no events. PostgreSQL had the relational mirror; ClickHouse (the read
+  store) was empty.
+- **Root cause:** ClickHouse derived a **717 MB** memory ceiling from its 2 GB
+  container and `max_server_memory_usage_to_ram_ratio=0.35`. Every insert failed
+  with `MEMORY_LIMIT_EXCEEDED`, and the Kafka worker retried the same batch
+  forever without committing its offset. One failed event blocked all later
+  events.
+- **Fix:** raised the ratio to 0.75 (1.5 GB ceiling), restarted ClickHouse and
+  the worker, and added deploy-time restart-on-config-change. The worker now
+  retries with bounded backoff and dead-letters a batch instead of stalling the
+  partition; `runQuery` falls back to the PostgreSQL query implementation when
+  ClickHouse fails. Kafka's health check is now a cheap TCP check instead of a
+  JVM topic listing every 15 s.
+- **Verified on production:** a diagnostic `POST /api/send` event reached
+  ClickHouse in under 8 seconds; `talivia.website_event` count increased from 1
+  to 2; host load average fell from ~25 to 0.34 after the backlog cleared.
+- **Verified locally in a real browser:** Firefox headless loaded a third-party
+  page with `http://localhost:3000/script.js`; a pageview, an SPA `pushState`
+  pageview with UTM parameters, and a `data-talivia-event` custom event all
+  reached PostgreSQL with visitor and session IDs. The stats API returned
+  `pageviews 4 / visitors 2 / visits 3` for the test website.
+- **Still unverified:** the production dashboard through a signed-in browser
+  session, the new worker's dead-letter path under a forced ClickHouse outage,
+  and a high-volume replay. These are recorded as follow-ups, not claimed.
+- **N/A:** tracker payload shape change (none), database migration (none), new
+  dependency (none).
+
 ## 2026-11-15 — Release-blocker slice: idempotency, entitlements, billing period
 
 Branch `feature/15-release-blockers`. Closed the engineering-owned blockers from

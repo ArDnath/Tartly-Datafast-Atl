@@ -95,6 +95,18 @@ slices are made by the master in this worktree, one at a time. Recorded in
   Verdict remains **NOT PRODUCTION READY**: live ClickHouse retention, live
   Dodo test-mode billing, a real browser journey, a deployed load test, and
   legal review are still external blockers. See `PRODUCTION_READINESS.md`.
+- **Production tracking recovery (2026-11-15):** the live VPS had zero events
+  in ClickHouse even though `POST /api/send` returned 200 and PostgreSQL held
+  the mirror. ClickHouse's cgroup-derived memory ceiling was ~717 MB; every
+  insert failed with `MEMORY_LIMIT_EXCEEDED`, and the Kafka worker retried the
+  same batch forever. The runtime ceiling is now 1.5 GB, the worker restarts
+  after the config change, and a diagnostic event reached ClickHouse in under
+  8 seconds. The deploy script now restarts ClickHouse when its mounted config
+  changes; the worker retries with backoff and dead-letters a batch instead of
+  blocking the partition; query reads fall back to PostgreSQL. Repository
+  evidence: `deploy/production/clickhouse/low-memory.xml`,
+  `scripts/kafka-clickhouse-consumer.mjs`, `src/lib/db.ts`, and
+  `src/lib/db.test.ts`.
 
 ## Evidence log
 

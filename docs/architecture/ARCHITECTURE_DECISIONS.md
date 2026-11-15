@@ -171,3 +171,32 @@ re-litigate them blindly.
   constant in `src/lib/share-policy.ts`.
 - **Evidence:** migration `20261115010000_share_expiry`,
   `src/queries/prisma/share.test.ts`, `share-policy.test.ts`.
+
+## ADR-010 — The event store may fail without hiding the product's data
+
+- **Date:** 2026-11-15
+- **Status:** accepted
+- **Context:** Production served zero events from ClickHouse even though the
+  PostgreSQL mirror had rows. ClickHouse computed a 717 MB ceiling from the
+  2 GB container limit and its `max_server_memory_usage_to_ram_ratio` of 0.35;
+  every insert failed with `MEMORY_LIMIT_EXCEEDED`. The Kafka worker retried the
+  same batch forever, so one failure blocked every later event. Dashboards read
+  ClickHouse exclusively, which made working tracking look broken.
+- **Decision:**
+  1. Raise the cgroup-derived ratio to 0.75 (1.5 GB inside the 2 GB container).
+  2. Restart ClickHouse from the deploy script when its bind-mounted config
+     changes, because `docker compose up` does not recreate a container for a
+     mounted file change.
+  3. Retry a failed insert with bounded exponential backoff, then park the batch
+     on `event_dead_letter` and commit the offset. The PostgreSQL mirror is the
+     authoritative copy; a blocked partition is worse than a replayable park.
+  4. Fall back to the PostgreSQL implementation of the same query when a
+     ClickHouse read or write throws. Log at most once a minute.
+- **Consequences:** PostgreSQL absorbs dashboard reads during a ClickHouse
+  outage, so latency can rise until the store recovers. A dead-letter batch must
+  be replayed from PostgreSQL or Kafka before the 7-day topic retention expires.
+  Query shapes stay identical because every analytics query already implements
+  both `PRISMA` and `CLICKHOUSE` branches.
+- **Evidence:** production `POST /api/send` reached ClickHouse in 8 s after the
+  fix; host load fell from ~25 to <1; `src/lib/db.test.ts` covers the fallback;
+  `node --check scripts/kafka-clickhouse-consumer.mjs`.
