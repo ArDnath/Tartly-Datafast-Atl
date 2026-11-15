@@ -166,15 +166,15 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1",
-        ]
-      interval: 15s
+      # A topic-list JVM every 15 s was itself a measurable load source on the
+      # 2 vCPU host and timed out under CPU steal, marking a working broker
+      # unhealthy. A TCP listen check is cheap; the worker still fails loudly
+      # if the broker accepts connections but cannot serve requests.
+      test: ["CMD-SHELL", "timeout 5 bash -c 'echo > /dev/tcp/127.0.0.1/9092'"]
+      interval: 30s
       timeout: 10s
-      retries: 12
-      start_period: 30s
+      retries: 6
+      start_period: 45s
     mem_limit: 1g
     logging: *default-logging
 

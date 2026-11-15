@@ -114,10 +114,22 @@ wait_for_health() {
   return 1
 }
 
+CH_CONFIG_CHANGED=0
+
 sync_runtime_config() {
   install -m 644 "$APP_DIR/deploy/production/docker-compose.yml" "$RUNTIME_DIR/docker-compose.yml"
   install -m 644 "$APP_DIR/deploy/production/Caddyfile" "$RUNTIME_DIR/Caddyfile"
   install -d -m 755 "$RUNTIME_DIR/clickhouse"
+
+  # A bind-mounted config change does not recreate the container. Track it so
+  # the deploy can restart ClickHouse once, instead of silently shipping a
+  # memory limit that never takes effect (the failure that stalled the event
+  # pipeline on 2026-11-15).
+  if ! cmp -s "$APP_DIR/deploy/production/clickhouse/low-memory.xml" \
+    "$RUNTIME_DIR/clickhouse/low-memory.xml"; then
+    CH_CONFIG_CHANGED=1
+  fi
+
   install -m 644 "$APP_DIR/deploy/production/clickhouse/low-memory.xml" \
     "$RUNTIME_DIR/clickhouse/low-memory.xml"
   install -m 755 "$APP_DIR/deploy/production/backup.sh" "$RUNTIME_DIR/backup.sh"
@@ -268,6 +280,23 @@ log "building image tartly-app:$TARGET_SHA"
 log "starting data services (postgres, redis, clickhouse, kafka)"
 "${COMPOSE[@]}" up -d --wait --wait-timeout 240 postgres redis clickhouse kafka </dev/null ||
   die "data services failed to become healthy; the running app was not changed"
+
+if [ "$CH_CONFIG_CHANGED" -eq 1 ]; then
+  log "ClickHouse config changed; restarting ClickHouse to apply it"
+  "${COMPOSE[@]}" restart clickhouse </dev/null ||
+    die "could not restart ClickHouse; the running app was not changed"
+
+  CH_READY=0
+  for _ in $(seq 1 40); do
+    if "${COMPOSE[@]}" exec -T clickhouse clickhouse-client -q 'SELECT 1' >/dev/null 2>&1; then
+      CH_READY=1
+      log "ClickHouse is answering after the config restart"
+      break
+    fi
+    sleep 3
+  done
+  [ "$CH_READY" -eq 1 ] || die "ClickHouse did not answer after a config restart"
+fi
 
 log "backing up PostgreSQL before migration"
 RUNTIME_DIR="$RUNTIME_DIR" BACKUP_DIR="$BACKUP_DIR" \

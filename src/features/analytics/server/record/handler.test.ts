@@ -1,10 +1,7 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { parseCollectorCacheToken } from '@/features/analytics/lib/collector-cache';
 import { getClientInfo, hasBlockedIp } from '@/features/analytics/lib/detect';
-import {
-  countReplayChunks,
-  saveRecording,
-} from '@/features/analytics/server/queries/sql/replays/saveRecording';
+import { saveRecording } from '@/features/analytics/server/queries/sql/replays/saveRecording';
 import { getWorkspaceEntitlements } from '@/lib/entitlements';
 import { getPlan } from '@/lib/plans';
 import { parseRequest } from '@/lib/request';
