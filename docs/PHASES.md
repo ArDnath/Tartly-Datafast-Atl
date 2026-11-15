@@ -72,11 +72,16 @@
   pageview with UTM parameters, and a `data-talivia-event` custom event all
   reached PostgreSQL with visitor and session IDs. The stats API returned
   `pageviews 4 / visitors 2 / visits 3` for the test website.
-- **Still unverified:** the production dashboard through a signed-in browser
-  session, the new worker's dead-letter path under a forced ClickHouse outage,
-  and a high-volume replay. These are recorded as follow-ups, not claimed.
-- **N/A:** tracker payload shape change (none), database migration (none), new
-  dependency (none).
+- **Production read path verified:** a temporary test membership was granted to
+  a throwaway account, the signed-in `GET /api/websites/:id/stats` call returned
+  `pageviews 2 / visitors 2 / visits 2 / revenue 0 / first_touch` from
+  ClickHouse, and the account, membership, Postgres rows, and ClickHouse test
+  rows were deleted afterwards. The production event store is back to zero
+  fabricated rows.
+- **Still unverified:** the new worker's dead-letter path under a forced
+  ClickHouse outage, and a high-volume replay. These are recorded as
+  follow-ups, not claimed.
+- **N/A:** database migration (none), new dependency (none).
 
 ## 2026-11-15 — Release-blocker slice: idempotency, entitlements, billing period
 
