@@ -10,7 +10,9 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
-const { consumeRateLimit, hashRateLimitSubject, rateLimitKey } = await import('./rate-limit');
+const { consumeRateLimit, hashRateLimitSubject, isAllowedByRateLimit, rateLimitKey } = await import(
+  './rate-limit'
+);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -53,4 +55,10 @@ test('builds scoped keys and hashes subjects', () => {
   expect(rateLimitKey('login:ip', 'one', undefined, 'two')).toBe('login:ip:one:two');
   expect(hashRateLimitSubject('203.0.113.9')).toHaveLength(32);
   expect(hashRateLimitSubject('203.0.113.9')).not.toContain('203.0.113.9');
+});
+
+test('allows the first request and rejects only above the limit', () => {
+  expect(isAllowedByRateLimit(1, 1_200)).toBe(true);
+  expect(isAllowedByRateLimit(1_200, 1_200)).toBe(true);
+  expect(isAllowedByRateLimit(1_201, 1_200)).toBe(false);
 });

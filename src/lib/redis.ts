@@ -1,5 +1,6 @@
 import debug from 'debug';
 import { createClient, type RedisClientType } from 'redis';
+import { isAllowedByRateLimit } from './rate-limit';
 
 const log = debug('talivia:redis-client');
 
@@ -78,7 +79,7 @@ class TaliviaRedisClient {
       await this.client.expire(key, seconds);
     }
 
-    return res >= limit;
+    return isAllowedByRateLimit(res, limit);
   }
 
   async fetch(key: string, query: () => Promise<any>, time?: number) {
