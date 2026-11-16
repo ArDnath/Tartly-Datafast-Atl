@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 
 const DEPLOY_SCRIPT = new URL('../deploy/production/deploy.sh', import.meta.url);
+const DEPLOY_WORKFLOW = new URL('../.github/workflows/deploy.yml', import.meta.url);
 
 // The deploy workflow pipes this script to `bash -s` over SSH, so the script
 // itself is on stdin. A command that inherits stdin can consume the remaining
@@ -39,4 +40,25 @@ test('deploy script never reads interactive credentials', async () => {
   const offenders = lines.filter(line => /^\s*(?:sudo\s+)?(?:ssh|scp|git clone|read)\s/.test(line));
 
   assert.deepEqual(offenders, [], `unexpected interactive command:\n${offenders.join('\n')}`);
+});
+
+test('deploy workflow stages the script as a file, never as stdin', async () => {
+  const workflow = await readFile(DEPLOY_WORKFLOW, 'utf8');
+
+  assert.doesNotMatch(
+    workflow,
+    /bash\s+-s\b/,
+    "deploy.yml must not run the script from stdin: a rollback runs the target commit's own deploy.sh, and an old revision can consume stdin and exit 0 mid-deploy",
+  );
+  assert.match(
+    workflow,
+    /mktemp \/tmp\/tartly-deploy\.XXXXXX/,
+    'workflow must stage the script in a temp file',
+  );
+  assert.ok(
+    workflow.includes('cat > \\"\\$script\\"'),
+    'workflow must copy the script from stdin into the temp file',
+  );
+  assert.ok(workflow.includes('bash \\"\\$script\\"'), 'workflow must execute the staged file');
+  assert.ok(workflow.includes('rm -f \\"\\$script\\"'), 'workflow must remove the staged file');
 });

@@ -71,6 +71,15 @@ Fix is a code fix: every command in `deploy.sh` that can read stdin must
 redirect it (`</dev/null`). `scripts/deploy-script.test.mjs` fails the gate if a
 compose invocation loses that redirect. Then re-run the deploy for the same SHA.
 
+The workflow also stages the script into `/tmp/tartly-deploy.XXXXXX` on the host
+and runs it as a file, so a rollback that executes an older revision's script is
+not exposed to this class of bug at all. Keep both guards.
+
+A failed run of an old script also leaves the checkout and the synced runtime
+config at the target revision (the exit status was 0, so the restore trap did not
+fire). After recovering, redeploy the current main SHA so
+`clickhouse/low-memory.xml` returns to the committed version.
+
 ### Deploy fails with "another deploy is already running"
 
 `deploy.sh` holds `flock` on `$RUNTIME_DIR/deploy.lock`. The lock prevents two

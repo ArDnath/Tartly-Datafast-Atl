@@ -152,6 +152,11 @@ jobs:
           case "$TARGET_SHA" in
             (*[!0-9a-f]*|'') echo "::error::Invalid commit SHA"; exit 1 ;;
           esac
+          # Stage the script as a file on the host instead of running it from
+          # stdin. A rollback runs the target commit's own deploy.sh, and old
+          # revisions can contain commands that read stdin; when the script is
+          # stdin, those commands swallow the rest of it and the step exits 0
+          # mid-deploy. A staged file makes stdin harmless for every revision.
           ssh -i "$RUNNER_TEMP/deploy-ssh/id_ed25519" \
             -o UserKnownHostsFile="$RUNNER_TEMP/deploy-ssh/known_hosts" \
             -o IdentitiesOnly=yes \
@@ -159,7 +164,7 @@ jobs:
             -o ServerAliveInterval=30 \
             -o ConnectTimeout=20 \
             "$DEPLOY_USER@$DEPLOY_HOST" \
-            "APP_DIR='$APP_DIR' RUNTIME_DIR='$RUNTIME_DIR' APP_URL='$APP_URL' ALLOW_NON_HEAD='$ALLOW_NON_HEAD' bash -s -- '$TARGET_SHA'" \
+            "umask 077; script=\$(mktemp /tmp/tartly-deploy.XXXXXX) && cat > \"\$script\" && chmod 700 \"\$script\" && APP_DIR='$APP_DIR' RUNTIME_DIR='$RUNTIME_DIR' APP_URL='$APP_URL' ALLOW_NON_HEAD='$ALLOW_NON_HEAD' bash \"\$script\" '$TARGET_SHA'; status=\$?; rm -f \"\$script\"; exit \$status" \
             < deploy/production/deploy.sh
 
       # Readiness and a 200 are not enough. Verify the public routes and the
