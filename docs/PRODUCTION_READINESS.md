@@ -49,16 +49,16 @@ the phase.
 
 ### PR-0 — Truth, hygiene, green CI (gate R1)
 
-| Task                                                               | Status   | Exit evidence                                                              |
-| ------------------------------------------------------------------ | -------- | -------------------------------------------------------------------------- |
-| One readiness plan, one docs index, one leak register              | VERIFIED | this file, `docs/README.md`, leak register                                 |
-| Plan facts generated, not restated                                 | VERIFIED | `pnpm docs:check` + `src/lib/plan-facts.test.ts`                           |
-| Stale website limits corrected (Pro = 20)                          | VERIFIED | `pnpm docs:check`; `src/lib/plan-facts.test.ts` rejects any other limit    |
-| Pin the formatter so dependency PRs can pass                       | VERIFIED | `@biomejs/biome` = `2.6.6` in `package.json`; #58/#59/#60/#62 Verify green |
-| Production build has no external network dependency                | VERIFIED | Inter is bundled in `src/fonts/`; `next/font/local`; build passes          |
-| Deploy-lock recovery documented for a cancelled build              | VERIFIED | `docs/RUNBOOK.md` → "another deploy is already running"                    |
-| Deploy script survives rollback revisions (no stdin capture)       | VERIFIED | `scripts/deploy-script.test.mjs`; rollback run 43936817147                 |
-| Current `main` deploy run is green (not a lock-contention failure) | VERIFIED | run 43934092294 for `2e88ca5`; readiness returns that SHA                  |
+| Task                                                               | Status   | Exit evidence                                                               |
+| ------------------------------------------------------------------ | -------- | --------------------------------------------------------------------------- |
+| One readiness plan, one docs index, one leak register              | VERIFIED | this file, `docs/README.md`, leak register                                  |
+| Plan facts generated, not restated                                 | VERIFIED | `pnpm docs:check` + `src/lib/plan-facts.test.ts`                            |
+| Stale website limits corrected (Pro = 20)                          | VERIFIED | `pnpm docs:check`; `src/lib/plan-facts.test.ts` rejects any other limit     |
+| Pin the formatter so dependency PRs can pass                       | VERIFIED | `@biomejs/biome` = `2.6.6`; Dependabot ignores Biome; #58/#59/#60/#62 green |
+| Production build has no external network dependency                | VERIFIED | Inter is bundled in `src/fonts/`; `next/font/local`; build passes           |
+| Deploy-lock recovery documented for a cancelled build              | VERIFIED | `docs/RUNBOOK.md` → "another deploy is already running"                     |
+| Deploy script survives rollback revisions (no stdin capture)       | VERIFIED | `scripts/deploy-script.test.mjs`; rollback run 43936817147                  |
+| Current `main` deploy run is green (not a lock-contention failure) | VERIFIED | run 43934092294 for `2e88ca5`; readiness returns that SHA                   |
 
 ### PR-1 — Isolation and data lifecycle (gates R2, R3)
 
@@ -149,6 +149,7 @@ release gate on their own.
 | 2026-11-17 | R1   | Rollback run 43936817147 served `577c7a0`; forward run 43938446979 restored `2e88ca5`              | VERIFIED                                           |
 | 2026-11-17 | R1   | Deploy-script stdin capture found (runs 43913859561, 43927454606) and fixed (#68, #69)             | VERIFIED — regression test in gate                 |
 | 2026-11-17 | core | `docker builder prune` reclaimed 31.11 GB; host disk 76% → 46%                                     | VERIFIED                                           |
+| 2026-11-17 | R1   | Dependabot excludes `@biomejs/biome`; #61 closed (its only failure was the 2.6.7 Markdown format)  | VERIFIED — policy in `.github/dependabot.yml`      |
 
 ## 4. Ownership and human actions
 

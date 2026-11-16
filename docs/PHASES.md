@@ -46,6 +46,24 @@
 Append-only. Newest first. Every entry states what was proven, what remains
 **UNVERIFIED**, and what was **N/A**. Do not edit old entries; add a new one.
 
+## 2026-11-17 — Biome updates excluded from Dependabot
+
+- **#61 could not pass by rebasing.** The `build-minor-patch` group included
+  `@biomejs/biome` 2.6.6 → 2.6.7. Biome 2.6.7 re-indents Markdown list
+  continuations, so the format gate fails on `docs/PHASES.md` and
+  `docs/market-intelligence/COMPETITOR_PRICING.md` even though the repo is
+  formatted with its pinned version. Rebasing onto `main` did not help: the bump
+  itself is the cause.
+- **Policy instead of a one-off reformat.** `.github/dependabot.yml` now ignores
+  `@biomejs/biome` version updates and excludes it from the development group.
+  A formatter upgrade must be deliberate: raise the pin, reformat the repo, and
+  merge both together. Security updates remain available.
+- **Effect on R1.** The four remaining dependency PRs (#58, #59, #60, #62) pass
+  Verify on the pinned formatter; #61 is closed with this reason recorded. R1's
+  "every open dependency update can pass CI" is satisfied and cannot regress
+  from the formatter group.
+- **N/A:** no application, schema, or runtime dependency change.
+
 ## 2026-11-17 — R1 closed: deploy path repaired, rollback rehearsed on production
 
 - **Production is current.** `/api/health/ready` returns
