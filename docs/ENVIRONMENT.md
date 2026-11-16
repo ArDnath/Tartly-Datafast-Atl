@@ -260,7 +260,11 @@ The complete template is `deploy/production/.env.example`.
 
 ---
 
-## 8. Verified baseline
+## 8. Verified baseline (historical snapshot)
+
+> This section records the 2026-11-04 baseline. It is **not** current status;
+> the current gate and its evidence live in `docs/PRODUCTION_READINESS.md`.
+> `pnpm gate` is green today.
 
 On 2026-11-04, with Node 24.13.0, pnpm 10.10.0 and PostgreSQL 17:
 

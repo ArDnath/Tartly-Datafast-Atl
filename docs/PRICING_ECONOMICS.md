@@ -6,7 +6,7 @@
 - **Two paid plans.** No third plan.
 - **No free trial and no free tier.** Unpaid workspaces can finish onboarding
   with one website and one member, but ingestion requires a paid subscription.
-- **Website limits fixed:** Starter **1**, Pro **up to 50**.
+- **Website limits fixed:** Starter **1**, Pro **up to 20**.
 - **Traffic slider:** eight tiers from 10k to 2M Starter events. Pro scales
   from 100k to 10M events. Prices rise with the tier and stay below DataFast's
   published entry prices at the 10k comparison point.
@@ -31,7 +31,7 @@
 
 **Takeaway:** the market entry point is $9–$20/mo for 10k–100k monthly units.
 Our $7.99 Starter includes 100k events and is the cheapest paid entry among
-these. Our $14.99 Pro includes 1M events and up to 50 websites, so it sits
+these. Our $14.99 Pro includes 1M events and up to 20 websites, so it sits
 between Fathom's 100k and 1M tiers while including revenue attribution.
 
 **Talivia-specific caution:** Talivia Cloud's founding offer is temporarily
@@ -44,20 +44,29 @@ limits are monthly and that overage pauses rather than surprises.
 
 ## 2. Our plan proposal
 
-|                         | **Starter**        | **Pro**                                        |
-| ----------------------- | ------------------ | ---------------------------------------------- |
-| Monthly                 | **$7.99**          | **$14.99**                                     |
-| Annual (2 months free)  | **$79.90**         | **$149.90**                                    |
-| Free trial              | **none**           | **none**                                       |
-| Websites                | **1**              | **up to 50**                                   |
-| Members                 | 1                  | 10                                             |
-| Billable events / month | **100,000**        | **1,000,000**                                  |
-| Analytics retention     | **90 days**        | **365 days**                                   |
-| Session replay          | **not included**   | **2,000 sessions/mo**, 30-day replay retention |
-| Payment connections     | 1                  | unlimited                                      |
-| Revenue attribution     | first + last touch | first + last touch, funnels, journeys          |
-| Support                 | email              | priority email                                 |
-| Export                  | CSV                | CSV + full backup                              |
+The numeric plan facts are generated from `src/lib/plans.ts`. `pnpm docs:check`
+fails if this block and the config disagree; do not edit it by hand.
+
+<!-- BEGIN GENERATED: plan-facts -->
+|                          | **Starter**  | **Pro**                             |
+| ------------------------ | ------------ | ----------------------------------- |
+| Monthly                  | $7.99        | $14.99                              |
+| Annual (two months free) | $79.90       | $149.90                             |
+| Free trial               | none         | none                                |
+| Websites                 | 1            | 20                                  |
+| Members                  | 1            | 10                                  |
+| Billable events / month  | 100,000      | 1,000,000                           |
+| Analytics retention      | 90 days      | 365 days                            |
+| Session replay           | not included | 2,000 sessions/mo, 30-day retention |
+| Payment connections      | 1            | unlimited                           |
+<!-- END GENERATED: plan-facts -->
+
+Qualitative differences (not limits):
+
+- Revenue attribution: first and last touch on both plans; funnels and journeys
+  on Pro.
+- Support: email on Starter; priority email on Pro.
+- Export: CSV on both; full backup on Pro.
 
 Why these limits:
 
@@ -68,8 +77,9 @@ Why these limits:
   retention job.
 - **Replay only on Pro** because rrweb payloads are 10–100× an event row. It
   becomes the main upgrade reason and protects the Starter margin.
-- **50 websites on Pro** raises the previous 20-site cap above DataFast
-  Growth's 30 sites, while the entry price stays below Growth's $19/mo.
+- **20 websites on Pro** is enough for a small agency and keeps event and
+  replay storage bounded. DataFast Growth includes 30 sites; we compete on
+  revenue attribution and price, not on site count.
 - Annual at two months free is offered only because the modelled margin stays
   above 85% at every volume tier (below).
 

@@ -17,14 +17,16 @@ description. A box that does not apply is ticked with a one-line reason
 
 For every feature, bug fix, or phase slice:
 
-1. **Read** `docs/PHASES.md`, this file, and the owning feature module.
+1. **Read** `docs/PRODUCTION_READINESS.md` (current gate), `docs/PHASES.md`
+   (history), this file, and the owning feature module.
 2. **Verify before assuming** — inspect the real code, schema, lockfile, and tests.
 3. **Design** the smallest change that respects the existing architecture.
 4. **Branch** from `main` as `feature/<phase>-<slug>`.
 5. **Build** code and tests together.
 6. **Tick the gate** in the PR description while working, not afterwards.
-7. **Run** `pnpm gate` locally (format, lint, typecheck, tests, deploy-script
-   and smoke checks, production build). Fix everything; never merge red.
+7. **Run** `pnpm gate` locally (format, lint, typecheck, docs:check, tests,
+   deploy-script and smoke checks, production build). Fix everything; never
+   merge red.
 8. **Push**, open a PR, wait for CI, squash/merge, delete the branch.
 9. **Update** `docs/PHASES.md` (status, proof, caveats, next step).
 10. **Repeat** the loop until the phase is complete and the next phase begins.
@@ -139,3 +141,43 @@ trigger.
 
 No fabricated numbers. No "should work". No green check without a stored row,
 passing test, or captured command output.
+
+## 6. Production release gate
+
+The per-feature gate above answers "may this change merge?". This gate answers
+"may this product take money?". Both apply to a release; neither substitutes
+for the other.
+
+| #   | Release gate      | Evidence that closes it                                                                    | Format                                   |
+| --- | ----------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------- |
+| R1  | Code and pipeline | `pnpm gate` green; CI and the current-head deploy green; dependency updates pass CI        | command log                              |
+| R2  | Tenant isolation  | Live cross-workspace probe on production; zero leakage                                     | status codes + row counts                |
+| R3  | Data lifecycle    | Retention job deletes seeded old rows; deletion purges every store; off-host restore works | job log + restored counts                |
+| R4  | Money             | Dodo test-mode checkout → webhook → entitlement → portal → cancel                          | session IDs, webhook row, access JSON    |
+| R5  | Trust             | Transactional email from the verified domain; OAuth round trip; legal sign-off             | inbox capture, session, written sign-off |
+| R6  | Operations        | Uptime, disk, worker, cron, backup-age, and deploy alerts fire                             | test notification                        |
+| R7  | Scale             | Deployed load test with p50/p95/p99, error rate, saturation, cost per million events       | raw output in `docs/LOAD_TEST.md`        |
+
+Rules:
+
+- A gate about the real environment cannot be closed by a unit test.
+- A gate that cannot be run yet is **BLOCKED** with the missing credential or
+  human action, never silently deferred.
+- Gate status and the evidence ledger live only in
+  `docs/PRODUCTION_READINESS.md`. Do not create a second readiness list.
+- New isolation controls add a row to `docs/production/LEAK_REGISTER.md` in the
+  same pull request.
+
+## 7. Documentation truth
+
+- Code is the source for every number that can drift: prices, limits, retention
+  windows, page counts. `pnpm docs:check` fails if `docs/PRICING_ECONOMICS.md`
+  disagrees with `src/lib/plans.ts`. Run
+  `pnpm docs:check --write` after an intentional plan change and commit the
+  result.
+- `docs/README.md` says which document is canonical for which question. When
+  two documents disagree, that table decides.
+- Historical snapshots (dated audits, session reports) carry a banner and are
+  never cited as current proof.
+- A "VERIFIED" claim needs a date and an artefact. A "UNVERIFIED" claim names
+  the missing credential or environment and the human action.

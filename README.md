@@ -122,12 +122,14 @@ by a database vendor.
 - `deploy/production/docker-compose.yml` — the production stack and resource caps.
 - `deploy/production/.env.example` — the complete production variable template.
 - `docs/CI_CD.md` — automatic deploy, migrations, backups, and host bootstrap.
-- `docs/LAUNCH_CHECKLIST.md` — what is verified and what needs a human.
+- `docs/PRODUCTION_READINESS.md` — the release-gate plan (R1–R7, PR-0–PR-6).
+- `docs/production/LEAK_REGISTER.md` — isolation and privacy controls, mapped to code and tests.
+- `docs/LAUNCH_CHECKLIST.md` — sign-off sheet derived from the release gates.
 - `docs/RUNBOOK.md` — deploy, rollback, outages, worker, ClickHouse, backups.
 - `docs/BACKUP_AND_RECOVERY.md` — self-hosted PostgreSQL/ClickHouse restore.
 - `docs/SECRETS_ROTATION.md` — `APP_SECRET`, database, and provider rotation.
 - `docs/ENGINEERING_STANDARDS.md` — the mandatory per-feature gate.
-- `docs/PHASES.md` — current status, proof, and remaining external blockers.
+- `docs/PHASES.md` — append-only history with dated proof.
 
 ## Configuration
 
@@ -171,7 +173,12 @@ docs/             phase tracker, design system, tenancy, pricing, operations
 
 ## Documentation
 
-- `docs/PHASES.md` — current phase and remaining work.
+Start at `docs/README.md` — it says which document is canonical for which
+question.
+
+- `docs/PRODUCTION_READINESS.md` — release gates, phase plan, evidence, blockers.
+- `docs/PHASES.md` — append-only history with dated proof.
+- `docs/production/LEAK_REGISTER.md` — isolation and privacy controls.
 - `docs/UI_DESIGN_SYSTEM.md` — visual language and source layout.
 - `docs/TENANCY.md` — workspace isolation rules.
 - `docs/PRICING_ECONOMICS.md` — plans, costs, and margin model.

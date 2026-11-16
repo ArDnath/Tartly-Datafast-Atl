@@ -1,4 +1,10 @@
-# Production-readiness audit (20-point skill matrix)
+# Production-readiness audit (20-point skill matrix) — historical snapshot
+
+> **Historical.** This is the 2026-11-06 audit snapshot. It is **not** current
+> status and must not be cited as proof of a live claim. Current status lives in
+> [`docs/PRODUCTION_READINESS.md`](PRODUCTION_READINESS.md); isolation controls
+> live in [`docs/production/LEAK_REGISTER.md`](production/LEAK_REGISTER.md).
+> Counts and test totals below are frozen at their audit date.
 
 Audited against `.opencode/skills/production-backend-readiness/SKILL.md` on
 2026-11-06. Status values: **PASS**, **PARTIAL**, **STAGED** (deliberately

@@ -138,9 +138,18 @@ Tailwind/shadcn dashboard that ignores the existing Talivia component system.
 
 ## Progress tracking (mandatory)
 
-Maintain `docs/PHASES.md` at all times. Update it at the start and end of every
-work session. Read it first in every new session to know where the project
-stands.
+Maintain two documents at all times:
+
+- `docs/PRODUCTION_READINESS.md` — the forward plan (release gates R1–R7,
+  phases PR-0–PR-6, evidence ledger, ownership). Read this first to know what is
+  left.
+- `docs/PHASES.md` — the append-only history (what was built, proven, and what
+  remains **UNVERIFIED**). Add a dated entry at the end of every work session;
+  never rewrite old entries.
+
+Isolation and privacy controls are tracked in
+`docs/production/LEAK_REGISTER.md`. The launch sign-off is
+`docs/LAUNCH_CHECKLIST.md`.
 
 ## Working style
 

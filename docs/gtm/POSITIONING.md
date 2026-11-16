@@ -40,7 +40,7 @@ for teams with a marketing budget.
   cohorts, realtime, and session replay (Pro).
 - Stripe, Dodo Payments, Lemon Squeezy, Polar, Yolfi, and a manual payment API.
 - Two plans: Starter $7.99/month (1 website, 100k events) and Pro $14.99/month
-  (up to 50 websites, 1M events). No free tier and no trial.
+  (up to 20 websites, 1M events). No free tier and no trial.
 - No invented invoices. No fake customer counts.
 
 ## Message hierarchy
@@ -71,7 +71,7 @@ Two plans, deliberately narrow, with no free tier:
 
 - **Starter $7.99** — one website, 100k events, the full revenue loop, for a
   founder proving the first channel.
-- **Pro $14.99** — up to 50 websites, 1M events, replay, longer retention, for a
+- **Pro $14.99** — up to 20 websites, 1M events, replay, longer retention, for a
   small team or agency.
 
 The entry price is below DataFast Starter ($9), Plausible Starter ($9), Fathom's
