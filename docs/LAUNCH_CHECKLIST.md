@@ -17,8 +17,10 @@ human action.
 - [x] `pnpm gate` green on `8068012` (2026-11-16).
 - [x] Public surfaces return 200/307 and the health endpoint reports the
   deployed SHA (2026-11-16).
-- [ ] Formatter is pinned so dependency-update PRs pass CI.
-- [ ] Latest `Deploy production` run for `main` is green.
+- [x] Formatter is pinned so dependency-update PRs pass CI (2026-11-17;
+  `@biomejs/biome` `2.6.6`; #58/#59/#60/#62 green).
+- [x] Latest `Deploy production` run for `main` is green (2026-11-17; run
+  `43934092294` for `2e88ca5`; readiness returns that SHA).
 - [x] Plans and limits are enforced server-side from one config module.
 
 ## R2 — Tenant isolation
@@ -55,7 +57,8 @@ human action.
 
 - [ ] Uptime, disk, worker-lag, cron, backup-age, and deploy alerts fire.
 - [ ] A named on-call contact exists.
-- [ ] Rollback was exercised on the current host.
+- [x] Rollback was exercised on the current host (2026-11-17; rollback run
+  `43936817147` served `577c7a0`, forward run `43938446979` restored `2e88ca5`).
 
 ## R7 — Scale
 

@@ -1,7 +1,7 @@
 # Production readiness program
 
-- **Status date:** 2026-11-16
-- **Production revision:** `80680129cce9c34b2b135e6a8317e790907f1392`
+- **Status date:** 2026-11-17
+- **Production revision:** `2e88ca5ab47f61bca76f0f92e874033b53bf113e`
 - **Verdict:** **NOT READY TO CHARGE CUSTOMERS.** The product is deployed and
   the core tracking path is proven end to end; gates R2–R7 below are open.
 - **This is the only forward-looking readiness plan.** `docs/PHASES.md` is the
@@ -49,15 +49,16 @@ the phase.
 
 ### PR-0 — Truth, hygiene, green CI (gate R1)
 
-| Task                                                               | Status   | Exit evidence                                                           |
-| ------------------------------------------------------------------ | -------- | ----------------------------------------------------------------------- |
-| One readiness plan, one docs index, one leak register              | VERIFIED | this file, `docs/README.md`, leak register                              |
-| Plan facts generated, not restated                                 | VERIFIED | `pnpm docs:check` + `src/lib/plan-facts.test.ts`                        |
-| Stale website limits corrected (Pro = 20)                          | VERIFIED | `pnpm docs:check`; `src/lib/plan-facts.test.ts` rejects any other limit |
-| Pin the formatter so dependency PRs can pass                       | **OPEN** | `@biomejs/biome` stays at an exact version; 4 Dependabot PRs green      |
-| Production build has no external network dependency                | VERIFIED | Inter is bundled in `src/fonts/`; `next/font/local`; build passes       |
-| Deploy-lock recovery documented for a cancelled build              | VERIFIED | `docs/RUNBOOK.md` → "another deploy is already running"                 |
-| Current `main` deploy run is green (not a lock-contention failure) | **OPEN** | latest `Deploy production` run for `main` is `success`                  |
+| Task                                                               | Status   | Exit evidence                                                              |
+| ------------------------------------------------------------------ | -------- | -------------------------------------------------------------------------- |
+| One readiness plan, one docs index, one leak register              | VERIFIED | this file, `docs/README.md`, leak register                                 |
+| Plan facts generated, not restated                                 | VERIFIED | `pnpm docs:check` + `src/lib/plan-facts.test.ts`                           |
+| Stale website limits corrected (Pro = 20)                          | VERIFIED | `pnpm docs:check`; `src/lib/plan-facts.test.ts` rejects any other limit    |
+| Pin the formatter so dependency PRs can pass                       | VERIFIED | `@biomejs/biome` = `2.6.6` in `package.json`; #58/#59/#60/#62 Verify green |
+| Production build has no external network dependency                | VERIFIED | Inter is bundled in `src/fonts/`; `next/font/local`; build passes          |
+| Deploy-lock recovery documented for a cancelled build              | VERIFIED | `docs/RUNBOOK.md` → "another deploy is already running"                    |
+| Deploy script survives rollback revisions (no stdin capture)       | VERIFIED | `scripts/deploy-script.test.mjs`; rollback run 43936817147                 |
+| Current `main` deploy run is green (not a lock-contention failure) | VERIFIED | run 43934092294 for `2e88ca5`; readiness returns that SHA                  |
 
 ### PR-1 — Isolation and data lifecycle (gates R2, R3)
 
@@ -133,15 +134,21 @@ Append only. One row per proof. Never overwrite a VERIFIED row; add a new one.
 `core` rows record that the product works; they support R1 but do not close a
 release gate on their own.
 
-| Date       | Gate | Evidence                                                                                           | Result                                     |
-| ---------- | ---- | -------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| 2026-11-16 | R1   | `pnpm gate` on `8068012` (235 files, 1,156 tests, 78 pages)                                        | PASS — `/tmp/opencode/gate-rate-limit.log` |
-| 2026-11-16 | R1   | `/api/health/ready` returned `8068012`, `database:"up"`                                            | VERIFIED                                   |
-| 2026-11-16 | R1   | 9 public routes returned 200/307 (health, `/`, pricing, docs, login, signup, app, robots, sitemap) | VERIFIED                                   |
-| 2026-11-16 | R1   | `/pricing` rendered "1 website" / "20 websites"                                                    | VERIFIED — matches `src/lib/plans.ts`      |
-| 2026-11-16 | core | Firefox → production tracker → ClickHouse; stats API 1/1/1; test rows deleted                      | VERIFIED — see `docs/PHASES.md` 2026-11-16 |
-| 2026-11-16 | R3   | Six ClickHouse global TTLs applied and present in `system.tables`                                  | PARTIAL — tenant-scoped job not run        |
-| 2026-11-16 | R6   | No alerting configuration exists (no uptime check, no error tracker, no disk alert)                | FAIL — open                                |
+| Date       | Gate | Evidence                                                                                           | Result                                             |
+| ---------- | ---- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| 2026-11-16 | R1   | `pnpm gate` on `8068012` (235 files, 1,156 tests, 78 pages)                                        | PASS — `/tmp/opencode/gate-rate-limit.log`         |
+| 2026-11-16 | R1   | `/api/health/ready` returned `8068012`, `database:"up"`                                            | VERIFIED                                           |
+| 2026-11-16 | R1   | 9 public routes returned 200/307 (health, `/`, pricing, docs, login, signup, app, robots, sitemap) | VERIFIED                                           |
+| 2026-11-16 | R1   | `/pricing` rendered "1 website" / "20 websites"                                                    | VERIFIED — matches `src/lib/plans.ts`              |
+| 2026-11-16 | core | Firefox → production tracker → ClickHouse; stats API 1/1/1; test rows deleted                      | VERIFIED — see `docs/PHASES.md` 2026-11-16         |
+| 2026-11-16 | R3   | Six ClickHouse global TTLs applied and present in `system.tables`                                  | PARTIAL — tenant-scoped job not run                |
+| 2026-11-16 | R6   | No alerting configuration exists (no uptime check, no error tracker, no disk alert)                | FAIL — open                                        |
+| 2026-11-17 | R1   | `pnpm gate` on `91abed0` (236 files, 1,160 tests, 78 pages)                                        | PASS — `/tmp/opencode/gate-deploy-script-file.log` |
+| 2026-11-17 | R1   | CI green on `main` `2e88ca5` (run 43932610094)                                                     | VERIFIED                                           |
+| 2026-11-17 | R1   | Deploy run 43934092294 for `2e88ca5`; `/api/health/ready` returns that SHA; 8/8 smoke routes 200   | VERIFIED                                           |
+| 2026-11-17 | R1   | Rollback run 43936817147 served `577c7a0`; forward run 43938446979 restored `2e88ca5`              | VERIFIED                                           |
+| 2026-11-17 | R1   | Deploy-script stdin capture found (runs 43913859561, 43927454606) and fixed (#68, #69)             | VERIFIED — regression test in gate                 |
+| 2026-11-17 | core | `docker builder prune` reclaimed 31.11 GB; host disk 76% → 46%                                     | VERIFIED                                           |
 
 ## 4. Ownership and human actions
 
@@ -204,3 +211,4 @@ measurement is a guess; label it as one.
 | Date       | Change                                                            |
 | ---------- | ----------------------------------------------------------------- |
 | 2026-11-16 | Program created; supersedes four overlapping readiness documents. |
+| 2026-11-17 | R1 pipeline evidence recorded; deploy stdin bug found and fixed.  |

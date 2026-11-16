@@ -46,6 +46,51 @@
 Append-only. Newest first. Every entry states what was proven, what remains
 **UNVERIFIED**, and what was **N/A**. Do not edit old entries; add a new one.
 
+## 2026-11-17 — R1 closed: deploy path repaired, rollback rehearsed on production
+
+- **Production is current.** `/api/health/ready` returns
+  `2e88ca5ab47f61bca76f0f92e874033b53bf113e`; deploy run `43934092294` is green
+  and the 8-route smoke passes. `main` = `2e88ca5`.
+- **Two deploy failures, one root cause.** `deploy.sh` is piped to `bash -s`
+  over SSH, so the script itself is stdin. The ClickHouse readiness probe added
+  in `7165777` (a config-restart path that runs only when
+  `clickhouse/low-memory.xml` changed) inherited that stdin, consumed the rest
+  of the script, and made bash exit **0** at that point. The workflow step
+  reported success; the image was built but never started. Run `43913859561`:
+  `runtime-app-1` stayed on `f20d234`, `last-deploy` unchanged, no pre-deploy
+  backup, smoke failed on the version. Minimal reproduction on the host:
+  `printf 'echo BEFORE\ndocker compose ... exec -T clickhouse clickhouse-client -q "SELECT 1"\necho AFTER\n' | bash -s`
+  printed only `BEFORE`.
+- **Fix, part one (#68, `577c7a0`).** `</dev/null` on the probe plus
+  `scripts/deploy-script.test.mjs` (fails if any `COMPOSE[@]` line loses its
+  stdin redirect) and a RUNBOOK diagnostic. Deploy of `577c7a0` succeeded.
+- **Fix, part two (#69, `2e88ca5`).** The rollback rehearsal exposed the rest:
+  a rollback checks out the **target** commit and runs **that revision's**
+  script, so rolling back to `f20d234` ran the old buggy script again (run
+  `43927454606`). The workflow now stages the script in
+  `/tmp/tartly-deploy.XXXXXX` on the host and runs it as a file, which makes
+  stdin harmless for every historical revision. The test asserts `deploy.yml`
+  never returns to `bash -s`.
+- **Rollback rehearsal recorded.** Run `43936817147` (target `577c7a0`,
+  `allow_previous=true`) served `577c7a0` with smoke green; run `43938446979`
+  restored `2e88ca5` and the final smoke passed. Checkout, `last-deploy`, and
+  ClickHouse config all match `2e88ca5` afterwards.
+- **Disk recovered.** Pre-build images and cache had grown the host to 76%
+  (24 GB free). `docker builder prune` reclaimed **31.11 GB** (46% used,
+  53 GB free) with no data loss; the live images and volumes were untouched.
+- **R1 status.** `pnpm gate` green on the deploy fix (`91abed0`, log
+  `/tmp/opencode/gate-deploy-script-file.log`; 236 files / 1,160 tests / 78
+  pages). CI green on `2e88ca5`. Biome is pinned at `2.6.6` on `main` (#67
+  carried the pin; #66 was closed as an empty diff). #58/#59/#60/#62 pass
+  Verify; #61 was rebased onto `main` to clear a stale Markdown format failure.
+- **UNVERIFIED:** ClickHouse still reports ~70% CPU while idle. The `#67`
+  config disables new system-log writes, but `system.trace_log` (74.5M rows)
+  and `system.asynchronous_metric_log` (55.5M rows) from before the change are
+  still being merged, so the CPU drops only as that backlog drains. Track in
+  PR-4/R6 (host alerting) rather than dropping system tables silently.
+- **N/A:** no application code, schema, dependency, or tracker change; all
+  edits are deploy pipeline, tests, and docs.
+
 ## 2026-11-16 — Bound the deploy build; fail fast on host headroom
 
 - **Second deploy timeout, different cause.** `Deploy production` for `32c1d00`
