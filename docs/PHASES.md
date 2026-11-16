@@ -46,6 +46,34 @@
 Append-only. Newest first. Every entry states what was proven, what remains
 **UNVERIFIED**, and what was **N/A**. Do not edit old entries; add a new one.
 
+## 2026-11-16 — Bound the deploy build; fail fast on host headroom
+
+- **Second deploy timeout, different cause.** `Deploy production` for `32c1d00`
+  ran 30 minutes and was cancelled while webpack was still in "Creating an
+  optimized production build ...". There was no `@next/font` retry, so the
+  bundled font fix worked as intended; the remaining failure is host capacity
+  (2 vCPU, shared with PostgreSQL, Redis, Kafka, and ClickHouse), not the font.
+  Production stayed on `8068012` and remained healthy.
+- **The deploy no longer hangs silently.** `deploy.sh` now logs host headroom
+  before the build (`disk_free`, `mem_available`, `swap_free`) and refuses to
+  start with less than 10 GB free disk or 768 MB available memory. The image
+  build is wrapped in `timeout 2400`; a timeout exits with a specific message
+  ("image build exceeded 40 minutes ... check host disk, memory, and
+  `docker stats`") instead of a cancelled job. The workflow job limit moved
+  from 30 to 50 minutes so the script's own bound produces the error.
+- **Why this matters:** a GitHub-cancelled deploy leaves the remote build alive
+  holding `flock`, which is why every later deploy failed in one second. A
+  bounded build that fails on its own releases the lock cleanly.
+- **Gate:** `pnpm gate` exit 0 — **236 test files passed / 1 skipped**, **1,160
+  tests passed / 1 skipped**, coverage **68.5 / 58.47 / 66.09 / 68.95**, 78
+  static pages; `pnpm gate:deploy` passed (10 tests).
+- **UNVERIFIED:** the host has not been measured from this environment. The
+  operator action is in `docs/RUNBOOK.md` §1: inspect `docker stats`, `free -m`,
+  `df -h`, and `dmesg` for an OOM kill, prune images, then re-run the deploy.
+  Until a deploy lands, production remains `8068012` and the two merged commits
+  are not live.
+- **N/A:** no schema, dependency, or runtime-behaviour change.
+
 ## 2026-11-16 — Reproducible build (bundled Inter); deploy-lock recovery
 
 - **The docs commit did not reach production.** `Deploy production` for

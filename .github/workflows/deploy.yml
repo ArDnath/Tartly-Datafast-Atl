@@ -45,7 +45,10 @@ jobs:
         github.event.workflow_run.event == 'push' &&
         github.event.workflow_run.head_branch == 'main'))
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # The deploy script bounds the image build at 40 minutes and reports a
+    # clear error. This limit only catches a stuck SSH session, so it sits just
+    # above the build budget.
+    timeout-minutes: 50
     environment:
       name: production
       url: ${{ vars.APP_URL }}
