@@ -41,6 +41,28 @@ die() {
   exit 1
 }
 
+# A deploy that runs out of disk or memory does not fail cleanly: the image
+# build stalls with no output until the workflow kills it, and the cancelled
+# remote build keeps the flock. Check headroom first so the operator gets a
+# one-line reason instead of a 30-minute silence.
+check_host_headroom() {
+  local disk_free_kb mem_available_kb swap_free_kb
+
+  disk_free_kb=$(df -Pk "$RUNTIME_DIR" | awk 'NR==2 {print $4}')
+  mem_available_kb=$(awk '/^MemAvailable:/ {print $2}' /proc/meminfo)
+  swap_free_kb=$(awk '/^SwapFree:/ {print $2}' /proc/meminfo)
+
+  log "host headroom before build: disk_free=${disk_free_kb}KB mem_available=${mem_available_kb}KB swap_free=${swap_free_kb}KB"
+
+  if [ "$disk_free_kb" -lt $((10 * 1024 * 1024)) ]; then
+    die "less than 10 GB free on the runtime filesystem; prune images (docker image prune -a) or grow the volume, then retry"
+  fi
+
+  if [ "$mem_available_kb" -lt $((768 * 1024)) ]; then
+    die "less than 768 MB of available memory; the image build would swap or be OOM-killed. Free memory or add RAM, then retry"
+  fi
+}
+
 read_env_value() {
   # Read a single non-secret key without sourcing .env. Dotenv comments and the
   # common quoted forms are handled; values are never echoed.
@@ -273,9 +295,19 @@ if env_is_set KAFKA_URL && env_is_set KAFKA_BROKER && env_is_set CLICKHOUSE_URL;
   COMPOSE+=(--profile streaming)
 fi
 
-log "building image tartly-app:$TARGET_SHA"
-"${COMPOSE[@]}" build --pull app </dev/null ||
+check_host_headroom
+
+log "building image tartly-app:$TARGET_SHA (40 minute limit)"
+BUILD_STATUS=0
+timeout 2400 "${COMPOSE[@]}" build --pull app </dev/null || BUILD_STATUS=$?
+
+if [ "$BUILD_STATUS" -eq 124 ]; then
+  die "image build exceeded 40 minutes and was stopped; the running app was not changed. Check host disk, memory, and 'docker stats' before retrying"
+fi
+
+if [ "$BUILD_STATUS" -ne 0 ]; then
   die "image build failed; the running app was not changed"
+fi
 
 log "starting data services (postgres, redis, clickhouse, kafka)"
 "${COMPOSE[@]}" up -d --wait --wait-timeout 240 postgres redis clickhouse kafka </dev/null ||

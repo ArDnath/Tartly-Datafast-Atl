@@ -41,6 +41,11 @@ After either path:
    website.
 4. Keep the previous commit SHA for rollback.
 
+The script logs host headroom before the build and refuses to start with less
+than 10 GB free disk or 768 MB available memory. The image build is bounded at
+40 minutes; the workflow job limit is 50 minutes, so a slow build fails with a
+deploy-script error instead of a silent cancellation.
+
 If all five deploy values are missing, the job skips when `DEPLOY_ENABLED` is
 not `true`; it never attempts an unauthenticated or unpinned-host deploy.
 
