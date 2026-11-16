@@ -320,7 +320,10 @@ if [ "$CH_CONFIG_CHANGED" -eq 1 ]; then
 
   CH_READY=0
   for _ in $(seq 1 40); do
-    if "${COMPOSE[@]}" exec -T clickhouse clickhouse-client -q 'SELECT 1' >/dev/null 2>&1; then
+    # The whole script is fed to `bash -s` over SSH on stdin. Any command that
+    # inherits that stdin can consume the rest of the script, so bash reaches
+    # EOF and exits 0 mid-deploy with no error. Always redirect stdin.
+    if "${COMPOSE[@]}" exec -T clickhouse clickhouse-client -q 'SELECT 1' </dev/null >/dev/null 2>&1; then
       CH_READY=1
       log "ClickHouse is answering after the config restart"
       break
