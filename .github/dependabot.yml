@@ -10,6 +10,16 @@ updates:
       timezone: UTC
     open-pull-requests-limit: 5
     versioning-strategy: increase
+    # The formatter is pinned exactly. A patch bump can change how it prints
+    # Markdown (2.6.7 re-indents list continuations), which fails the format gate
+    # on every dependency PR. Upgrade Biome deliberately, reformat the repo in
+    # the same PR, then raise the pin.
+    ignore:
+      - dependency-name: "@biomejs/biome"
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+          - version-update:semver-patch
     groups:
       runtime-minor-patch:
         dependency-type: production
@@ -17,6 +27,7 @@ updates:
       build-minor-patch:
         dependency-type: development
         update-types: [minor, patch]
+        exclude-patterns: ["@biomejs/biome"]
     labels: [dependencies, security]
 
   - package-ecosystem: github-actions
