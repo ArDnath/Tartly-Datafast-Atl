@@ -38,8 +38,16 @@ this notice.
 
 ## Fonts
 
-No font files are bundled. The UI uses the system stack with Inter as the first
-preference. If Inter is later bundled, include its SIL Open Font License notice.
+Inter is bundled as a single variable WOFF2 at
+`src/fonts/inter-latin-variable.woff2` and loaded with `next/font/local`, so
+the production build never calls out to Google Fonts.
+
+- Copyright (c) 2016 The Inter Project Authors
+  (<https://github.com/rsms/inter>).
+- Licensed under the SIL Open Font License, Version 1.1. The full licence text
+  is saved at `src/fonts/OFL.txt` and ships with the repository.
+- Scope: Latin subset, weights 100–900 (variable). Other subsets are not
+  bundled; the UI renders Latin text only.
 
 ## Dependency inventory
 

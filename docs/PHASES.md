@@ -46,6 +46,40 @@
 Append-only. Newest first. Every entry states what was proven, what remains
 **UNVERIFIED**, and what was **N/A**. Do not edit old entries; add a new one.
 
+## 2026-11-16 — Reproducible build (bundled Inter); deploy-lock recovery
+
+- **The docs commit did not reach production.** `Deploy production` for
+  `8aa539a` built the image on the host, stalled in `@next/font`'s Google
+  fetcher (`Retrying 1/3...`), hit the workflow's 30-minute limit, and was
+  cancelled. The cancelled remote `bash` kept `flock` on
+  `/opt/tartly/runtime/deploy.lock`, so a re-run failed in one second with
+  "another deploy is already running". Production stayed on `8068012` and
+  remained healthy (`/api/health/ready` `ok`, `database:"up"`).
+- **Root cause fixed.** Inter is now bundled at
+  `src/fonts/inter-latin-variable.woff2` (Latin variable subset, 48 KB) and
+  loaded with `next/font/local`, so `next build` no longer calls
+  `fonts.googleapis.com`. The SIL OFL text ships at `src/fonts/OFL.txt` and
+  `THIRD_PARTY_NOTICES.md` records the licence and subset. A local
+  `SKIP_DB_CHECK=1 pnpm build` compiled in 67 s and generated all 78 pages with
+  zero font fetches.
+- **Recovery documented.** `docs/RUNBOOK.md` now has the exact diagnosis
+  (`fuser -v /opt/tartly/runtime/deploy.lock`, `ps ...`) and the recovery
+  (`fuser -k` the lock holder, confirm services, re-run the deploy), plus the
+  rule not to delete the lock file while a holder is alive.
+- **Program updated.** PR-0 gains "production build has no external network
+  dependency" and "deploy-lock recovery documented"; PR-3 gains the
+  `ua-parser-js` AGPL-3.0 licence risk from `THIRD_PARTY_NOTICES.md`, which must
+  close before launch.
+- **Gate:** `pnpm gate` exit 0 — **236 test files passed / 1 skipped**, **1,160
+  tests passed / 1 skipped**, coverage **68.5 / 58.47 / 66.09 / 68.95**, 78
+  static pages. Log: `/tmp/opencode/gate-font-local-2.log`.
+- **UNVERIFIED:** the host lock holder has not been stopped from this
+  environment (no SSH access). Until the operator runs the RUNBOOK commands,
+  every deploy fails at the lock. The fix removes the cause; it does not clear
+  the current orphan.
+- **N/A:** no schema, dependency, or infrastructure change; the font is an
+  asset already licensed for redistribution.
+
 ## 2026-11-16 — Production readiness program and documentation restructure
 
 - **One plan of record.** `docs/PRODUCTION_READINESS.md` defines release gates
