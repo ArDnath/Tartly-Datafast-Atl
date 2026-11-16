@@ -1,30 +1,32 @@
 # Production readiness
 
-- **Evaluated:** 2026-11-15
-- **Revision:** `feature/15-release-blockers` on top of `80bd25c` (2026-11-15)
-- **Gate evidence:** `/tmp/opencode/gate-feature15-r2.log` (local run, 7.1 GB host)
+- **Evaluated:** 2026-11-16
+- **Revision:** `80680129cce9c34b2b135e6a8317e790907f1392` deployed to production
+- **Gate evidence:** `/tmp/opencode/gate-rate-limit.log` (local run, 7.1 GB host)
 - **Verdict:** **NOT PRODUCTION READY** until the critical items below close.
   The core product runs and is tested; the privacy-retention and billing-proof
   gaps are real and are not hidden behind a green build.
 
 ## Gate results
 
-| Area                       | Status  | Evidence                                                                     |
-| -------------------------- | ------- | ---------------------------------------------------------------------------- |
-| Format, lint, typecheck    | PASS    | `pnpm gate` exit 0                                                           |
-| Unit + integration tests   | PASS    | 234 files passed / 1 skipped; 1,152 tests passed / 1 skipped                 |
-| Coverage threshold         | PASS    | 68.33% statements, 58.38% branches, 65.74% functions, 68.78% lines           |
-| Production build           | PASS    | Next.js build compiled; 78 static pages; postbuild ran                       |
-| Deploy script/smoke checks | PASS    | `gate:deploy` in the same run                                                |
-| Local ingestion E2E        | PASS    | `pnpm smoke:local`: pageviews 1 / visitors 1 / visits 1                      |
-| Cookieless E2E             | PASS    | `POST /api/send` with no tokens created visitor + session; row `/cookieless` |
-| Tracker size               | PASS    | 10,355 B raw / 4.22 KB gzip; zero `document.cookie`                          |
-| Live provider billing      | BLOCKED | No verified Dodo test checkout/webhook/portal in this environment            |
-| Live email                 | BLOCKED | No Resend key/domain                                                         |
-| Real browser walkthrough   | BLOCKED | No connected desktop browser; no replay/consent visual pass                  |
-| Deployed load test         | BLOCKED | Not run against the VPS                                                      |
-| Off-host backup copy       | BLOCKED | Documented, not rehearsed here                                               |
-| Legal review               | BLOCKED | Drafts only; not lawyer-reviewed                                             |
+| Area                       | Status  | Evidence                                                                          |
+| -------------------------- | ------- | --------------------------------------------------------------------------------- |
+| Format, lint, typecheck    | PASS    | `pnpm gate` exit 0                                                                |
+| Unit + integration tests   | PASS    | 235 files passed / 1 skipped; 1,156 tests passed / 1 skipped                      |
+| Coverage threshold         | PASS    | 68.42% statements, 58.46% branches, 65.79% functions, 68.87% lines                |
+| Production build           | PASS    | Next.js build compiled; 78 static pages; postbuild ran                            |
+| Deploy script/smoke checks | PASS    | `gate:deploy` in the same run                                                     |
+| Local ingestion E2E        | PASS    | `pnpm smoke:local`: pageviews 1 / visitors 1 / visits 1                           |
+| Cookieless E2E             | PASS    | `POST /api/send` with no tokens created visitor + session; row `/cookieless`      |
+| Tracker size               | PASS    | 10,355 B raw / 4.22 KB gzip; zero `document.cookie`                               |
+| Live tracking E2E          | PASS    | Firefox -> production tracker -> ClickHouse; stats API 1/1/1; test rows removed   |
+| Production deploy          | PASS    | `8068012` live; all containers healthy; worker connected with no insert errors    |
+| Live provider billing      | BLOCKED | No verified Dodo test checkout/webhook/portal in this environment                 |
+| Live email                 | BLOCKED | No Resend key/domain                                                              |
+| Real browser walkthrough   | PARTIAL | Headless Firefox proved tracking + custom events; replay/consent/visual pass open |
+| Deployed load test         | BLOCKED | Not run against the VPS; only the local 10k-event probe exists                    |
+| Off-host backup copy       | BLOCKED | Documented, not rehearsed here                                                    |
+| Legal review               | BLOCKED | Drafts only; not lawyer-reviewed                                                  |
 
 ## Release-gate detail
 
@@ -50,11 +52,11 @@
 - PASS: no tracker cookies; session token is tab-scoped; visitor key is a keyed
   rotating hash; raw IP is not stored; retention exists for PostgreSQL.
 - PASS: consent gate, GPC, and opt-in DNT.
-- **IMPLEMENTED, UNVERIFIED:** a ClickHouse retention helper now deletes the
-  payload tables by plan cutoff, a global 365-day TTL migration is checked in,
-  and website deletion purges all ClickHouse payload rows. Unit tests cover the
-  SQL shape and tenant scoping, but no ClickHouse instance was available here.
-  Until it runs on the VPS, do not claim the 90/365-day retention promise.
+- **LIVE TTL APPLIED, JOB STILL UNVERIFIED:** the six 365-day TTL statements are
+  applied on the production ClickHouse and verified in `system.tables`.
+  `session_replay` required `toDateTime(created_at)` because its column is
+  `DateTime64(6)`. The scheduled tenant-scoped retention job has not run against
+  seeded old rows, so do not claim the 90/365-day plan promise yet.
 - **BLOCKED:** privacy policy wording and subprocessor list need legal review.
 
 ### Developer experience
@@ -123,11 +125,12 @@
 
 ## Required before charging customers
 
-1. Run and verify ClickHouse retention/deletion on the real stack (code and
-   tests are in place; the live statement is unverified).
+1. Run the tenant-scoped ClickHouse retention job against seeded old rows; the
+   six global TTLs are applied on production, but the job has not run.
 2. Run a real Dodo test-mode checkout + webhook + portal journey.
-3. Run the browser journey: onboarding → install → first event → revenue page,
-   including consent and replay.
+3. Complete the signed-in browser journey: onboarding → install → first event →
+   revenue page, including consent and replay. Tracking and custom events are
+   proven; the visual and replay passes are not.
 4. Run the deployed streaming load test and record cost per million events.
 5. Rehearse an off-host backup restore.
 6. Obtain legal review of the privacy/cookies/DPA drafts.

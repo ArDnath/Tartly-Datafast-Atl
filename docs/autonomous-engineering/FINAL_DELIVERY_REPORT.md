@@ -171,9 +171,34 @@ load and records the host's CPU/disk/egress.
 8. Soft-launch to 10 design partners, instrument activation (first event, first
    attributed payment), and iterate on the install step (week 4).
 
+## 2026-11-16 update — live deploy and tracking proof
+
+- **Deployed:** `80680129cce9c34b2b135e6a8317e790907f1392` on the production VPS.
+  `/api/health/ready` returns that exact SHA; app, worker, PostgreSQL, Redis,
+  Kafka, and ClickHouse are healthy.
+- **Closed the live tracking outage:**
+  - ClickHouse memory ceiling fixed (717 MB -> 1.5 GB inside a 2 GB container).
+  - Kafka worker dead-letters a failed batch after bounded retries instead of
+    blocking the partition; dashboard reads fall back to PostgreSQL.
+  - Collector rate limiter fixed from `count >= limit` to `count <= limit`.
+  - ClickHouse migration runner ignores semicolons in SQL comments; the
+    `session_replay` TTL casts `DateTime64(6)` to `DateTime`.
+- **Production browser proof:** Firefox loaded `https://tartly.in/script.js`
+  from a third-party page and sent one pageview plus one custom event.
+  ClickHouse stored 2 events / 1 visitor / 1 session; the signed-in stats API
+  returned 1 pageview / 1 visitor / 1 visit / 0 revenue / first_touch. The
+  temporary user, membership, event rows, and hourly aggregates were deleted.
+- **Gate:** `pnpm gate` exit 0, 235 files / 1,156 tests, coverage 68.42%
+  statements, 78 static pages. Evidence: `/tmp/opencode/gate-rate-limit.log`.
+- **Remaining blockers are external or human:** Dodo test-mode checkout and
+  webhook, Resend delivery, Google OAuth round trip, the signed-in visual and
+  replay pass, a deployed load test, off-host restore rehearsal, the tenant
+  retention job run, and legal review.
+
 ## Final status
 
-**NOT PRODUCTION READY.** The core is built, tested, and far more honest than the
-starting state, but live ClickHouse retention, missing event idempotency, and
-unverified live billing are release blockers. They are documented with exact
-next actions rather than hidden.
+**NOT PRODUCTION READY.** Tracking, idempotency, dashboard reads, and the
+production deploy are now verified. The remaining release blockers are the
+unrun tenant retention job, unverified live billing/email/OAuth, the signed-in
+visual and replay pass, the deployed load test, off-host restore, and legal
+review. They are documented with exact next actions rather than hidden.
