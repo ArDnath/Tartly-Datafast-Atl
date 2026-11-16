@@ -49,6 +49,28 @@ deploy-script error instead of a silent cancellation.
 If all five deploy values are missing, the job skips when `DEPLOY_ENABLED` is
 not `true`; it never attempts an unauthenticated or unpinned-host deploy.
 
+### Deploy step is green but the old SHA still runs
+
+`deploy.sh` is piped to `bash -s` over SSH, so the script arrives on stdin. A
+compose command that inherits stdin can consume the rest of the script; bash
+then reaches EOF and exits 0, the workflow step reports success, and the post
+deploy smoke fails with `version is <old>, expected <new>`. This happened on
+2026-11-16: the ClickHouse readiness probe in the config-restart path had no
+`</dev/null`.
+
+Diagnose by confirming the image exists but the container did not restart:
+
+```bash
+cd /opt/tartly/runtime
+docker image ls tartly-app --format '{{.Tag}} {{.CreatedSince}}'
+cat last-deploy                       # still the previous SHA
+docker inspect runtime-app-1 --format '{{.Config.Image}} {{.State.StartedAt}}'
+```
+
+Fix is a code fix: every command in `deploy.sh` that can read stdin must
+redirect it (`</dev/null`). `scripts/deploy-script.test.mjs` fails the gate if a
+compose invocation loses that redirect. Then re-run the deploy for the same SHA.
+
 ### Deploy fails with "another deploy is already running"
 
 `deploy.sh` holds `flock` on `$RUNTIME_DIR/deploy.lock`. The lock prevents two
