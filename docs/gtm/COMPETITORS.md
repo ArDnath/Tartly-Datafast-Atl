@@ -25,7 +25,7 @@ one shown by the vendor. Nothing here is inferred. Re-verify on launch day.
   Umami Pro ($20) as displayed on 2026-11-07.
 - Tartly Pro ($14.99, 1M events) is below DataFast Growth ($19, 10k events),
   Fathom's $15 entry plan, Simple Analytics' $20, and Umami Pro's $20, while
-  allowing up to 50 websites.
+  allowing up to 20 websites.
 - Tartly includes revenue attribution on both plans. Plausible lists
   ecommerce revenue attribution on its Business plan ($19) in the fetched page.
 - Tartly has no free tier or trial: Starter is $7.99/month for 100k events and

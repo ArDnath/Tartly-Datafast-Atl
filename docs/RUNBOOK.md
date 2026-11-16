@@ -239,3 +239,43 @@ find /opt/tartly/backups/clickhouse -maxdepth 1 -mindepth 1 -type d -printf '%TY
 
 A backup job that writes 0 bytes is a failure, not a backup. Record the result
 and the last restore rehearsal date in `docs/PHASES.md`.
+
+## 16. Monitoring and alerting
+
+**Current state: nothing is monitored by an external system.** There is no
+uptime check, no error tracker, no disk alert, and no notification on a failed
+deploy or a silent cron job. This section is the required configuration for
+release gate R6; until it exists, R6 is open in
+`docs/PRODUCTION_READINESS.md`.
+
+Configure one channel (email or webhook) and one receiver who is on call. Every
+alert names the runbook section that resolves it.
+
+| Alert              | Condition                                     | Runbook |
+| ------------------ | --------------------------------------------- | ------- |
+| App down           | `/api/health/ready` fails twice in a row      | §3      |
+| Readiness degraded | 200 but `database != "up"`                    | §3      |
+| Collector errors   | `POST /api/send` 5xx > 1% for 5 min           | §4      |
+| Ingestion stale    | worker heartbeat older than 5 min             | §13     |
+| Consumer lag       | latest event older than 60 s at p95           | §13     |
+| Disk pressure      | host disk > 75% warning, > 85% critical       | §14     |
+| Backup missing     | newest backup older than 8 h                  | §15     |
+| Cron silent        | a daily job has not logged completion in 26 h | §12     |
+| Deploy failed      | `Deploy production` run conclusion is failure | §1, §2  |
+| Certificate expiry | TLS expires in < 14 days                      | —       |
+
+Thresholds are initial targets. Phase PR-5 replaces them with measured values.
+
+## 17. Operational drills
+
+Run these on a schedule and record the date and result in
+`docs/PRODUCTION_READINESS.md`.
+
+| Drill                          | Cadence     | Pass condition                                    |
+| ------------------------------ | ----------- | ------------------------------------------------- |
+| Restore PostgreSQL from backup | monthly     | row counts match the source                       |
+| Restore ClickHouse from backup | monthly     | schema, ledger, and row counts match              |
+| Rollback to the previous SHA   | per release | previous SHA serves traffic, then forward-restore |
+| Alert delivery                 | monthly     | a synthetic failure reaches the on-call receiver  |
+| Retention job on seeded rows   | monthly     | seeded rows are gone; live rows are intact        |
+| Access review                  | quarterly   | every workspace member and API key is expected    |

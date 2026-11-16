@@ -7,46 +7,91 @@
   `.github/rulesets/main-protection.json`)
 - **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
   forked locally at `/home/ariyaman/Dev/fight/efforts/revenuelens`
-- **Last updated:** 2026-11-15
-- **Current phase:** Phases 10, 11, and 12 are implemented. The 2026-11-14
-  activation/security slice makes the landing → login → onboarding → app →
-  upgrade path continuous, preserves website and checkout intent across auth,
-  and closes the tenant-isolation, share-redaction, collector, OAuth-linking,
-  webhook, replay, and request-size findings from the production audit. The
-  2026-11-13 setup-continuity slice unifies `/app/new` with the first-run
-  onboarding flow, auto-selects the detected framework guide, adds an AI-agent
-  install prompt, and adds a live bottom-corner reminder until the tracker
-  sends its first event. The 2026-11-13 first-party install slice adds
-  strict-policy preflight and same-origin proxy guides for Next.js, Vercel,
-  Netlify, and Cloudflare Pages; the tracker and ingestion remain intact. The
-  2026-11-12 platform-checkout slice connects the landing pricing cards,
-  the onboarding setup allowance, the `/app` paywall, and Dodo subscription
-  management. The free trial was removed: a workspace finishes onboarding
-  (one website) and must subscribe before ingestion or paid features unlock.
-  A real local ingestion run (10,000 events, 50 concurrent clients, 157 req/s,
-  p95 412 ms, 0 errors) is recorded in `docs/LOAD_TEST.md`, and the run exposed
-  and fixed a deleted-workspace session leak. Production is now a self-hosted
-  single-VPS Docker stack: PostgreSQL, Redis, ClickHouse, and Kafka run on the
-  host with persistent volumes, a Kafka-to-ClickHouse worker, and 6-hourly
-  backups. There is no Neon production dependency. The remaining work is
-  external verification: live Dodo/Resend/provider credentials, a real browser
-  walkthrough, an encrypted off-host backup copy, a deployed streaming-path
-  load test, and lawyer review. All are
-  labelled **UNVERIFIED** with the exact human action. The
-  source restructure remains enforced: `src/app` is routing only, every domain
-  owns its UI/hooks/lib/server/queries, and `src/lib`/`src/queries` are
-  allowlisted shared kernels.
+- **Last updated:** 2026-11-16
+- **Current phase:** production-readiness phase **PR-0** in
+  [`docs/PRODUCTION_READINESS.md`](PRODUCTION_READINESS.md). All product phases
+  0–12 are implemented and deployed; the remaining work is release gates R1–R7.
+  **This file is the append-only history. Read the program document first if
+  you need to know what is left.**
+- **Phase index:** product phases 0–12 are complete in code (see the dated
+  entries below). Readiness phases PR-0 … PR-6 supersede "phase 13" as the
+  forward plan. The product-phase milestones are grouped as:
+  - 2026-11-06 → 2026-11-12: plans, billing, paywall, CI/CD, VPS cutover.
+  - 2026-11-12 → 2026-11-14: first-party install, setup continuity, consent,
+    activation, production audit fixes.
+  - 2026-11-15 → 2026-11-16: release blockers, tracking pipeline recovery,
+    retention/TTLs, live tracking proof.
+- **Runtime shape (unchanged):** self-hosted single-VPS Docker stack —
+  PostgreSQL, Redis, ClickHouse, Kafka, a Kafka-to-ClickHouse worker, and
+  6-hourly backups. No Neon production dependency. `src/app` is routing only;
+  each domain owns its UI/hooks/lib/server/queries; `src/lib` and `src/queries`
+  are allowlisted shared kernels.
 - **Mandatory engineering gate:** the two repository skills
   (`.opencode/skills/production-backend-readiness/SKILL.md`,
   `.opencode/skills/high-scale-low-cost-deployment/SKILL.md`) are binding.
-  `docs/ENGINEERING_STANDARDS.md` defines the per-feature checklist and
-  `pnpm gate` enforces format, lint, typecheck, tests, the deploy-script/smoke
-  checks, and the production build.
+  `docs/ENGINEERING_STANDARDS.md` defines the per-feature checklist and the
+  production release gate; `pnpm gate` enforces format, lint, typecheck, docs
+  consistency, tests, the deploy-script/smoke checks, and the production build.
 - **Delivery enforcement:** `main` requires the three CI checks through the
   active `main-protection` ruleset. Production deploys only the current `main`
   head automatically after CI (no approval click), verify the running
   `BUILD_VERSION`, run public smoke checks, and roll back on failure. See
   `docs/CI_CD.md` → Deployment invariants.
+- **Docs of record:** `docs/README.md` lists which document is canonical for
+  which question. Security controls: `docs/production/LEAK_REGISTER.md`.
+  Launch sign-off: `docs/LAUNCH_CHECKLIST.md`.
+
+## Historical log
+
+Append-only. Newest first. Every entry states what was proven, what remains
+**UNVERIFIED**, and what was **N/A**. Do not edit old entries; add a new one.
+
+## 2026-11-16 — Production readiness program and documentation restructure
+
+- **One plan of record.** `docs/PRODUCTION_READINESS.md` defines release gates
+  R1–R7 and phases PR-0 … PR-6 with exit evidence, an append-only evidence
+  ledger, an ownership split, and an operational floor (SLO targets and the
+  required alert catalogue). It replaces four overlapping readiness lists:
+  `docs/autonomous-engineering/PRODUCTION_READINESS.md` (now a pointer),
+  `docs/PRODUCTION_READINESS_AUDIT.md` (now a dated snapshot),
+  `docs/LAUNCH_CHECKLIST.md` (now a derived sign-off sheet), and the status
+  paragraph that used to live in this file.
+- **Leak register.** `docs/production/LEAK_REGISTER.md` maps 14 leak classes —
+  cross-workspace read/write, share links, API keys, collector abuse, secrets,
+  analytics PII, replay, billing-context confusion, webhooks, admin, retention,
+  backups, dependency compromise — to the enforcing file, the automated test,
+  live proof, and a status. Ten rows are **UNVERIFIED** pending PR-1; L13
+  (off-host backup) is **OPEN**.
+- **Docs of record.** `docs/README.md` states which document is canonical for
+  which question; historical dirs carry banners; the retired blocked-task sheet
+  is superseded. All relative `docs/**/*.md` links resolve (72 files checked).
+- **Plan numbers can no longer drift.** `docs/PRICING_ECONOMICS.md` renders a
+  generated block from `src/lib/plans.ts`; `pnpm docs:check` (new, and wired
+  into `pnpm gate` and the CI Verify job) fails on disagreement.
+  `src/lib/plan-facts.test.ts` also rejects any current doc that says "up to N
+  websites" with N ≠ 20. Pro's stale 50-site claim was corrected in
+  PRICING_ECONOMICS, gtm/POSITIONING, and gtm/COMPETITORS.
+- **Operational practice, not just prose.** `docs/RUNBOOK.md` gained the
+  required alert catalogue (uptime, collector 5xx, worker lag, disk, backup
+  age, cron silence, deploy failure) and a drill schedule (monthly restore and
+  alert tests, per-release rollback). A PR template now carries the per-feature
+  gate and the release-gate impact. `docs/ENVIRONMENT.md`'s 2026-11-04 baseline
+  is marked historical.
+- **Gate:** `pnpm gate` exit 0 — **236 test files passed / 1 skipped**, **1,160
+  tests passed / 1 skipped**, coverage **68.5% statements / 58.47% branches /
+  66.09% functions / 68.95% lines**, deploy-script/smoke and docs checks
+  passed, production build green with all **78** static pages. Log:
+  `/tmp/opencode/gate-readiness-program-5.log`.
+- **UNVERIFIED / BLOCKED (unchanged, now with gate IDs):** R2 live isolation
+  probe, R3 retention/deletion/off-host restore, R4 Dodo test-mode journey, R5
+  Resend + Google OAuth + legal review, R6 alerting, R7 deployed load test.
+  Each has an owner and exact action in the program document.
+- **R1 remains open on two items:** pin `@biomejs/biome` so the four Dependabot
+  PRs pass the format check (their lockfiles resolve 2.6.8, which reformats
+  Markdown), and obtain a green `Deploy production` run for `main` (the latest
+  is a `flock` contention failure, not a bad release).
+- **N/A:** no schema, runtime dependency, or infrastructure change; tracker and
+  ingestion untouched.
 
 ## 2026-11-16 — Production deploy recovered; live tracking proven end to end
 

@@ -75,6 +75,11 @@ jobs:
       - name: Typecheck
         run: pnpm exec tsc --noEmit
 
+      # Plan prices and limits are rendered into the docs, not restated by
+      # hand. A merge must fail if the document and the config disagree.
+      - name: Docs consistency
+        run: pnpm gate:docs
+
       # The deploy contract is code too: the script must parse, the smoke
       # harness must run, and a stale/invalid target must never reach the host.
       - name: Validate deployment scripts and smoke harness

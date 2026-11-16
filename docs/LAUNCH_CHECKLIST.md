@@ -1,153 +1,75 @@
 # Launch checklist
 
-Every line is either ticked with evidence or marked **UNVERIFIED** with the exact
-human action. No launch claim is allowed without a stored result.
+This is the **sign-off sheet**, not the plan. It is derived from
+`docs/PRODUCTION_READINESS.md`: each line maps to release gate R1–R7. If a line
+here and a line there disagree, the program document wins.
 
-## Product and plans
+A line is ticked only with a dated evidence row in the program's evidence
+ledger. A line is unticked with **UNVERIFIED** or **BLOCKED** and the exact
+human action.
 
-- [x] Two paid plans, no free trial or free tier: Starter $7.99/100k events/1
-  website, Pro $14.99/1M events/50 websites (`src/lib/plans.ts`, tests).
-  Onboarding keeps a one-website setup allowance; ingestion requires payment.
-- [x] Plan limits enforced server-side; no hardcoded limits in components.
-- [x] Landing, pricing, docs, legal, login, signup reachable.
-- [x] Onboarding: welcome → workspace → website → install → verify → payments →
-  first report.
-- [x] Analytics surfaces: revenue, attribution, journeys, sessions, events,
-  realtime, breakdown, goals, funnels, retention, cohorts, UTM,
-  performance, compare, replays.
-- [x] Rendered-surface smoke: 17 public + 12 authenticated routes return 200
-  (`docs/RENDER_SMOKE.md`).
-- [ ] Real browser walkthrough of onboarding, motion, and replay masking.
-  **UNVERIFIED**: the desktop browser was not connected; run it against a
-  deployed preview.
+- **Sign-off date:** _not signed_
+- **Signed by:** _owner_
+- **Production revision at sign-off:** _unset_
 
-## Tenant isolation and auth
+## R1 — Code and pipeline
 
-- [x] Central authorization and static route-boundary test.
-- [x] A/B workspace isolation suite (10 scenarios).
-- [x] Webhook and background-job isolation tests.
-- [x] Password reset, verification, session revocation, suspension.
-- [x] CSRF origin check on cookie-authenticated mutations.
-- [x] Rate limits on login, registration, reset, and abuse-prone paths.
-- [x] No default admin credentials; platform-admin allowlist.
+- [x] `pnpm gate` green on `8068012` (2026-11-16).
+- [x] Public surfaces return 200/307 and the health endpoint reports the
+  deployed SHA (2026-11-16).
+- [ ] Formatter is pinned so dependency-update PRs pass CI.
+- [ ] Latest `Deploy production` run for `main` is green.
+- [x] Plans and limits are enforced server-side from one config module.
 
-## Billing (context A)
+## R2 — Tenant isolation
 
-- [x] Plan config, checkout, portal, cancel-at-period-end, plan changes.
-- [x] Signed webhook verification, idempotency, out-of-order convergence.
-- [x] Entitlements read provider-backed subscription state.
-- [x] Invoice/renewal history from provider rows only.
-- [ ] Live Dodo test-mode checkout, webhook, portal, proration.
-  **UNVERIFIED**: needs `DODO_PAYMENTS_API_KEY`, webhook secret, and four
-  product IDs. Steps: `docs/PLATFORM_BILLING.md`.
+- [x] Code + unit proof for workspace scoping (`docs/production/LEAK_REGISTER.md`
+  L1–L4).
+- [ ] Live cross-workspace probe on production: read, write, delete, export.
+- [ ] Expired share link returns nothing.
 
-## Analytics integrations (context B)
+## R3 — Data lifecycle
 
-- [x] Per-website connections for Stripe, Dodo, Lemon Squeezy, Polar, Yolfi,
-  manual API; encrypted credentials; deduplicated webhooks.
-- [x] First/last-touch attribution journeys and recurring/direct/unattributed
-  cases.
-- [x] 48-assertion PostgreSQL analytics smoke.
-- [ ] Live webhook delivery for each provider.
-  **UNVERIFIED**: needs provider test accounts and signing secrets.
+- [x] Retention jobs and TTLs exist and are unit-tested.
+- [ ] Tenant-scoped analytics retention ran against seeded old rows.
+- [ ] Website deletion purges PostgreSQL and ClickHouse.
+- [ ] Account deletion purges every store.
+- [ ] Restore from an encrypted off-host backup succeeded.
 
-## Privacy and compliance
+## R4 — Money
 
-- [x] Account export (`GET /api/me/export`) and account deletion.
-- [x] Replay input masking by default and consent gate.
-- [x] Plan-based analytics/replay retention job; dry-run mode.
-- [x] Legal drafts (privacy, terms, cookies, DPA, subprocessors, acceptable
-  use) with a lawyer-review notice.
-- [ ] Lawyer review of every legal page.
-  **UNVERIFIED**: requires qualified counsel.
-- [ ] Confirm subprocessor list (VPS host, Resend, Dodo, error tracker) against
-  the actual production deployment. PostgreSQL, Redis, ClickHouse, and Kafka
-  are self-hosted.
-  **UNVERIFIED**: depends on the final hosts.
+- [x] Checkout, webhook, entitlement, portal, and cancellation code is tested.
+- [ ] Dodo test-mode checkout for both plans and both intervals.
+- [ ] Signed webhook unlocks the workspace; a replay changes nothing.
+- [ ] Portal shows the real subscription; cancellation keeps access until the
+  period ends.
 
-## Abuse and operations
+## R5 — Trust
 
-- [x] Registration rate limits, disposable-domain rejection, bot filtering,
-  blocked-IP support, optional tracker-origin enforcement.
-- [x] Platform-admin suspension for users and workspaces with audit events.
-- [x] Structured JSON logs with secret redaction and optional error tracking.
-- [x] `/api/health/live`, `/api/health/ready`, `/api/health`.
-- [x] Transactional email: verification, reset, invitation, usage warning/limit,
-  payment failure; dev outbox fallback.
-- [ ] Live Resend delivery from a verified domain.
-  **UNVERIFIED**: needs `RESEND_API_KEY` and DNS records.
-- [x] Backup/restore and secret-rotation procedures documented.
-- [ ] Self-hosted PostgreSQL and ClickHouse restore rehearsal, plus an
-  encrypted off-host copy of `/opt/tartly/backups`.
-  **UNVERIFIED**: the backup directory is currently on the same VPS.
-- [x] Audit log writes verified for suspension/unsuspension; other actions are code-reviewed and grep-verified (`docs/LIVE_SMOKE.md`).
-- [x] Verification/reset token lifecycle exercised through the real routes and the local outbox.
-- [ ] Live Resend delivery and inbox links remain **UNVERIFIED**.
+- [x] Security headers configured; CSP/HSTS in production.
+- [ ] Resend delivers every transactional email from the verified domain.
+- [ ] Google OAuth completes a real sign-in.
+- [ ] Legal pages reviewed; subprocessors confirmed.
 
-## Security
+## R6 — Operations
 
-- [x] Security headers (CSP, HSTS in prod, nosniff, frame/referrer/permissions).
-- [x] Collector CORS narrowed; body/validation limits in place.
-- [x] Dependency audit: 0 critical; remaining highs are build/dev tooling.
-- [x] Secrets absent from git and responses; provider credentials encrypted.
-- [x] `docs/SECURITY_REVIEW.md` OWASP mapping.
-- [ ] External penetration test or independent review.
-  **UNVERIFIED**: optional pre-scale; schedule after first revenue.
+- [ ] Uptime, disk, worker-lag, cron, backup-age, and deploy alerts fire.
+- [ ] A named on-call contact exists.
+- [ ] Rollback was exercised on the current host.
 
-## Performance and scale
+## R7 — Scale
 
-- [x] Indexed tenant/event/session/usage/billing paths; bounded payloads.
-- [x] Plan metering, grace, pause; retention; connection pool settings.
-- [x] `scripts/load-ingest.mjs` load generator.
-- [ ] Sustained load test with recorded p50/p95/p99, error rate, and DB
-  saturation.
-  **UNVERIFIED**: needs a deployed environment and a load window.
-- [ ] Cache-stampede and parallel-ingestion concurrency proof.
-  **UNVERIFIED**: needs multi-instance staging.
-
-## Deployment and CI
-
-- [x] CI: install, Prisma, lint, typecheck, coverage-enforced tests,
-  PostgreSQL analytics smoke, high-severity production audit, production
-  build (`docs/CI_CD.md`).
-- [x] Security CI: gitleaks, CodeQL extended/quality queries, dependency
-  review, blocking Trivy filesystem and container scans, and SARIF upload. A
-  full-history gitleaks audit before the public flip found 13
-  `generic-api-key` entries, all fake test fixtures (no real credentials).
-- [x] Deployment pipeline with current-`main` enforcement, immutable SHA tag,
-  direct-URL migrations, version-checked readiness, public smoke checks, and
-  automatic rollback (`deploy/production/deploy.sh`,
-  `scripts/deploy-smoke.mjs`).
-- [x] Multi-stage Docker image, non-root user, health check, compose stack.
-- [x] Environment reference, production Compose stack, and backup guide.
-- [x] Runbook, backup/recovery, secrets rotation.
-- [x] Hosting account, domain/DNS, TLS, custom tracker domain.
-  Evidence: `https://tartly.in` serves HTTP/2 with a valid certificate;
-  `/`, `/pricing`, and `/docs` return 200.
-- [x] Production environment variables and first deploy.
-  Evidence: VPS `201.18.197.194`, non-root `deploy` user, `production`
-  environment secrets/variables, and deploy run 42397381387 for
-  `04d7023`. `/api/health/live` and `/api/health/ready` return 200 with the
-  deployed version; `/api/health/ready` reports `database: up`.
-- [x] Production environment restricts deployments to `main` and has no
-  reviewer gate, so a green merge deploys automatically; `main` requires the
-  Verify, Security, and Container checks, resolved conversations, and rejects
-  force-pushes and branch deletion (`docs/CI_CD.md`).
-
-## Go-to-market
-
-- [x] Positioning, pricing narrative, comparison framework, SEO plan, launch
-  plan, email sequence, metrics (see `docs/gtm/`).
-- [ ] Every competitor price re-verified on launch day with URL and date.
-- [ ] Product Hunt/Indie Hackers/Show HN drafts reviewed against community rules.
-- [ ] Support inbox and status page live.
+- [ ] Sustained load test with p50/p95/p99, error rate, and saturation.
+- [ ] Cost per million events recorded.
+- [ ] Retention still completes under load.
 
 ## Final gate
 
 ```bash
+pnpm docs:check
 pnpm gate
 ```
 
-Must pass. Then complete this checklist's **UNVERIFIED** lines or explicitly
-defer them with an owner and date. A launch with unresolved blockers is a
-business decision, not an engineering one.
+Both must pass. Then every line above is either ticked with a ledger row or
+explicitly deferred by the owner with a date. Launching with an open gate is a
+business decision, and it is recorded as one — not hidden.

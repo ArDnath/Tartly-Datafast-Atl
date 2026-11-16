@@ -1,5 +1,11 @@
 # Blocked tasks
 
+> **Superseded (2026-11-16).** This list was the working blocked-task sheet for
+> the 2026-11-14/15 sessions. The authoritative blocker list is now the
+> ownership table and phase plan in
+> [`docs/PRODUCTION_READINESS.md`](../PRODUCTION_READINESS.md). Rows below are
+> kept for provenance; do not add new blockers here.
+
 Each row states the exact human or external action. Nothing here is silently
 skipped.
 

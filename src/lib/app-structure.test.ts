@@ -118,6 +118,7 @@ const SHARED_LIB_MODULES = new Set([
   'logger.ts',
   'params.ts',
   'password.ts',
+  'plan-facts.ts',
   'plans.ts',
   'platform-admin.ts',
   'prisma-error.ts',
