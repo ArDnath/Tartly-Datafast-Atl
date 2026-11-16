@@ -39,8 +39,8 @@ the phase.
 
 | Phase | Goal                         | Gate   | Owner               | Status                            |
 | ----- | ---------------------------- | ------ | ------------------- | --------------------------------- |
-| PR-0  | Truth, hygiene, green CI     | R1     | engineering         | IN PROGRESS                       |
-| PR-1  | Isolation and data lifecycle | R2, R3 | engineering + VPS   | BLOCKED (VPS access)              |
+| PR-0  | Truth, hygiene, green CI     | R1     | engineering         | COMPLETE — R1 VERIFIED            |
+| PR-1  | Isolation and data lifecycle | R2, R3 | engineering + VPS   | IN PROGRESS (VPS access granted)  |
 | PR-2  | Money path                   | R4     | human + engineering | BLOCKED (Dodo credentials)        |
 | PR-3  | Trust path                   | R5     | human + engineering | BLOCKED (Resend, Google, counsel) |
 | PR-4  | Operational floor            | R6     | engineering + human | NOT STARTED                       |
@@ -150,6 +150,7 @@ release gate on their own.
 | 2026-11-17 | R1   | Deploy-script stdin capture found (runs 43913859561, 43927454606) and fixed (#68, #69)             | VERIFIED — regression test in gate                 |
 | 2026-11-17 | core | `docker builder prune` reclaimed 31.11 GB; host disk 76% → 46%                                     | VERIFIED                                           |
 | 2026-11-17 | R1   | Dependabot excludes `@biomejs/biome`; #61 closed (its only failure was the 2.6.7 Markdown format)  | VERIFIED — policy in `.github/dependabot.yml`      |
+| 2026-11-17 | R1   | Deploy run for `f85ab11` green; `/api/health/ready` returns `f85ab11`                              | VERIFIED — R1 closed                               |
 
 ## 4. Ownership and human actions
 
