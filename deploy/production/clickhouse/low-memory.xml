@@ -30,6 +30,38 @@
         <enabled>false</enabled>
     </send_crash_reports>
 
+    <!--
+      System log tables are diagnostics, but by default ClickHouse writes them
+      aggressively and merges them continuously. Measured on this 2 vCPU host
+      (2026-11-16, no customer query running):
+
+        clickhouse-server   ~110% CPU of 200% available
+        system.trace_log              68.4M rows / 1.16 GiB,  9 active parts
+        system.asynchronous_metric_log 53.5M rows / 36.7 MiB, 10 active parts
+        system.metric_log             merges of 836 MiB in flight
+
+      That merge stream competed with the image build: webpack compile went
+      from 3.7 min (2026-11-12, while ClickHouse was still memory-capped and
+      failed every insert) to 30.0 min (2026-11-16). Disabling trace spans,
+      sampling the metric collectors once a minute, and dropping the text-log
+      level to warnings removes the diagnostics load that is not needed in
+      production.
+    -->
+    <trace_log remove="1"/>
+    <query_thread_log remove="1"/>
+    <session_log remove="1"/>
+
+    <metric_log>
+        <collect_interval_milliseconds>60000</collect_interval_milliseconds>
+    </metric_log>
+    <asynchronous_metric_log>
+        <collect_interval_milliseconds>60000</collect_interval_milliseconds>
+    </asynchronous_metric_log>
+
+    <text_log>
+        <level>warning</level>
+    </text_log>
+
     <!-- Native BACKUP/RESTORE support used by deploy/production/backup.sh. -->
     <backups>
         <allowed_disk>backups</allowed_disk>

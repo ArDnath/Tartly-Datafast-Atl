@@ -263,6 +263,14 @@ docker compose --env-file .env exec -T clickhouse clickhouse-client \
 - Schema changes are applied by the one-shot `clickhouse-migrate` service on
   every deploy. A failed migration stops the deploy before the app restarts.
 - Native backups live in `/opt/tartly/backups/clickhouse`.
+- System log tables (`trace_log`, `query_thread_log`, `session_log`) are
+  **disabled** in `clickhouse/low-memory.xml`, and the metric collectors sample
+  once a minute. On this 2 vCPU host their default write and merge rate held
+  one core continuously with no customer queries running, which starved image
+  builds. Do not re-enable them without measuring CPU on an idle instance first.
+- If `clickhouse` fails to start after a config change, the deploy stops before
+  switching the app. Read `docker compose logs clickhouse` and revert the
+  `config.d` file; the previous image and app are untouched.
 
 ## 15. Backup verification
 
