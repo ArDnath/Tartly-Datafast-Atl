@@ -55,6 +55,8 @@ the phase.
 | Plan facts generated, not restated                                 | VERIFIED | `pnpm docs:check` + `src/lib/plan-facts.test.ts`                        |
 | Stale website limits corrected (Pro = 20)                          | VERIFIED | `pnpm docs:check`; `src/lib/plan-facts.test.ts` rejects any other limit |
 | Pin the formatter so dependency PRs can pass                       | **OPEN** | `@biomejs/biome` stays at an exact version; 4 Dependabot PRs green      |
+| Production build has no external network dependency                | VERIFIED | Inter is bundled in `src/fonts/`; `next/font/local`; build passes       |
+| Deploy-lock recovery documented for a cancelled build              | VERIFIED | `docs/RUNBOOK.md` → "another deploy is already running"                 |
 | Current `main` deploy run is green (not a lock-contention failure) | **OPEN** | latest `Deploy production` run for `main` is `success`                  |
 
 ### PR-1 — Isolation and data lifecycle (gates R2, R3)
@@ -82,12 +84,13 @@ the phase.
 
 ### PR-3 — Trust path (gate R5)
 
-| Task                                                            | Status     | Exit evidence                                 |
-| --------------------------------------------------------------- | ---------- | --------------------------------------------- |
-| Resend delivers verification, reset, invitation, usage, dunning | BLOCKED    | inbox captures from the verified domain       |
-| Google OAuth completes sign-in and creates a session            | BLOCKED    | session cookie + `/api/me` identity           |
-| Security headers verified live (HSTS, CSP, nosniff, frame)      | UNVERIFIED | `curl -I` output recorded                     |
-| Legal pages reviewed by counsel                                 | BLOCKED    | written sign-off; subprocessor list confirmed |
+| Task                                                            | Status     | Exit evidence                                                             |
+| --------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------- |
+| Resend delivers verification, reset, invitation, usage, dunning | BLOCKED    | inbox captures from the verified domain                                   |
+| Google OAuth completes sign-in and creates a session            | BLOCKED    | session cookie + `/api/me` identity                                       |
+| Security headers verified live (HSTS, CSP, nosniff, frame)      | UNVERIFIED | `curl -I` output recorded                                                 |
+| Licence risk closed: `ua-parser-js` is AGPL-3.0-or-later        | **OPEN**   | replaced with a permissive parser, or a commercial licence, before launch |
+| Legal pages reviewed by counsel                                 | BLOCKED    | written sign-off; subprocessor list confirmed                             |
 
 ### PR-4 — Operational floor (gate R6)
 

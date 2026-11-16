@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import { Inter } from 'next/font/google';
+import localFont from 'next/font/local';
 import { Suspense } from 'react';
 import { BRAND } from '@/lib/brand';
 import { getBaseUrl } from '@/lib/get-base-url';
@@ -13,11 +13,19 @@ import './global.css';
  * Tartly uses Inter throughout — dashboard chrome, figures and the marketing
  * page. Loading it as a CSS variable keeps `--font-family` in global.css as
  * the single switch that every surface (CSS modules included) reads.
+ *
+ * The font file is bundled (SIL OFL, see `src/fonts/OFL.txt`) instead of
+ * fetched from Google at build time: a production build must not depend on an
+ * external network call. A stalled font fetch previously hung the host build
+ * until the deploy job timed out. Refresh the file deliberately, not silently.
  */
-const inter = Inter({
-  subsets: ['latin'],
+const inter = localFont({
+  src: '../fonts/inter-latin-variable.woff2',
+  weight: '100 900',
+  style: 'normal',
   display: 'swap',
   variable: '--font-inter',
+  fallback: ['system-ui', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
 });
 
 const FAVICON_VERSION = '20261106';

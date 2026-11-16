@@ -44,6 +44,37 @@ After either path:
 If all five deploy values are missing, the job skips when `DEPLOY_ENABLED` is
 not `true`; it never attempts an unauthenticated or unpinned-host deploy.
 
+### Deploy fails with "another deploy is already running"
+
+`deploy.sh` holds `flock` on `$RUNTIME_DIR/deploy.lock`. The lock prevents two
+deploys from racing, but a deploy cancelled by the workflow timeout can leave
+its remote `bash` (and the `docker build`/`next build` under it) alive. The
+orphan keeps the lock and every later deploy fails in one second.
+
+Diagnose on the host:
+
+```bash
+fuser -v /opt/tartly/runtime/deploy.lock
+ps -eo pid,lstart,cmd | grep -E "deploy.sh|next build|docker.*compose.*build" | grep -v grep
+```
+
+If the holder is an old build (no active deploy run in GitHub Actions), stop it
+so the lock is released, then re-run the deploy:
+
+```bash
+sudo fuser -k /opt/tartly/runtime/deploy.lock   # kills the lock holder
+cd /opt/tartly/runtime && docker compose --env-file .env ps   # confirm services
+gh workflow run deploy.yml -f sha=<main-sha>
+```
+
+Do not delete `deploy.lock` by hand while the holder is alive; the kernel keeps
+it locked and the file is recreated by the next deploy anyway.
+
+Root cause to avoid: a build that waits on an external network call. Fonts are
+bundled (`src/fonts/`), so `next build` no longer fetches them. If a build
+still hangs, capture the step that is waiting before killing it, and record it
+in `docs/PHASES.md`.
+
 ### Deploy fails at "fetching origin/main"
 
 `fatal: could not read Username for 'https://github.com'` means the host clone
