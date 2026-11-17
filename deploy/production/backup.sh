@@ -141,4 +141,18 @@ if [ -d "$BACKUP_DIR/clickhouse" ]; then
   find "$BACKUP_DIR/clickhouse" -mindepth 1 -maxdepth 1 -type d -mtime +"$BACKUP_RETENTION_DAYS" -exec rm -rf {} +
 fi
 
+RCLONE_REMOTE=$(read_env_value RCLONE_REMOTE)
+RCLONE_DEST=$(read_env_value RCLONE_DEST)
+if [ -n "$RCLONE_REMOTE" ] && [ -n "$RCLONE_DEST" ]; then
+  if ! command -v rclone >/dev/null 2>&1; then
+    die "RCLONE_REMOTE is set but rclone is not installed"
+  fi
+
+  log "copying backup off-host to $RCLONE_DEST"
+  RCLONE_CONFIG="$RUNTIME_DIR/rclone.conf" rclone copy "$BACKUP_DIR" "$RCLONE_DEST" \
+    --transfers 4 --checkers 8 --retries 3 --low-level-retries 10 \
+    || die "off-host copy failed; the local backup is intact"
+  log "off-host copy complete"
+fi
+
 log "backup complete (retention ${BACKUP_RETENTION_DAYS}d)"
