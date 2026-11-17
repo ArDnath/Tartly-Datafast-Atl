@@ -1,0 +1,12 @@
+{
+  "name": "picomatch",
+  "version": "4.0.8+tartly.0.1",
+  "description": "Blazing fast and accurate glob matcher written in JavaScript.",
+  "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+  "license": "MIT",
+  "homepage": "https://github.com/micromatch/picomatch",
+  "repository": "micromatch/picomatch",
+  "main": "index.js",
+  "files": ["index.js", "posix.js", "lib"],
+  "engines": { "node": ">=12" }
+}

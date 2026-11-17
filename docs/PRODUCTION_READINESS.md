@@ -1,6 +1,6 @@
 # Production readiness program
 
-- **Status date:** 2026-11-17
+- **Status date:** 2026-11-18
 - **Production revision:** `2e88ca5ab47f61bca76f0f92e874033b53bf113e`
 - **Verdict:** **NOT READY TO CHARGE CUSTOMERS.** The product is deployed and
   the core tracking path is proven end to end; gates R2–R7 below are open.
@@ -37,15 +37,15 @@ is not a gate; it is a precondition.
 Each phase has one exit gate. Work that does not move a gate does not belong in
 the phase.
 
-| Phase | Goal                         | Gate   | Owner               | Status                            |
-| ----- | ---------------------------- | ------ | ------------------- | --------------------------------- |
-| PR-0  | Truth, hygiene, green CI     | R1     | engineering         | COMPLETE — R1 VERIFIED            |
-| PR-1  | Isolation and data lifecycle | R2, R3 | engineering + VPS   | COMPLETE — R2/R3 VERIFIED         |
-| PR-2  | Money path                   | R4     | human + engineering | BLOCKED (Dodo credentials)        |
-| PR-3  | Trust path                   | R5     | human + engineering | BLOCKED (Resend, Google, counsel) |
-| PR-4  | Operational floor            | R6     | engineering + human | NOT STARTED                       |
-| PR-5  | Scale proof                  | R7     | human (load window) | BLOCKED                           |
-| PR-6  | Launch review                | R1–R7  | owner               | NOT STARTED                       |
+| Phase | Goal                         | Gate   | Owner               | Status                                           |
+| ----- | ---------------------------- | ------ | ------------------- | ------------------------------------------------ |
+| PR-0  | Truth, hygiene, green CI     | R1     | engineering         | IN PROGRESS — R1 BLOCKED (high dependency audit) |
+| PR-1  | Isolation and data lifecycle | R2, R3 | engineering + VPS   | COMPLETE — R2/R3 VERIFIED                        |
+| PR-2  | Money path                   | R4     | human + engineering | BLOCKED (Dodo credentials)                       |
+| PR-3  | Trust path                   | R5     | human + engineering | BLOCKED (Resend, Google, counsel)                |
+| PR-4  | Operational floor            | R6     | engineering + human | NOT STARTED                                      |
+| PR-5  | Scale proof                  | R7     | human (load window) | BLOCKED                                          |
+| PR-6  | Launch review                | R1–R7  | owner               | NOT STARTED                                      |
 
 ### PR-0 — Truth, hygiene, green CI (gate R1)
 
@@ -59,6 +59,7 @@ the phase.
 | Deploy-lock recovery documented for a cancelled build              | VERIFIED | `docs/RUNBOOK.md` → "another deploy is already running"                     |
 | Deploy script survives rollback revisions (no stdin capture)       | VERIFIED | `scripts/deploy-script.test.mjs`; rollback run 43936817147                  |
 | Current `main` deploy run is green (not a lock-contention failure) | VERIFIED | run 43934092294 for `2e88ca5`; readiness returns that SHA                   |
+| Production dependency audit has no high finding                    | BLOCKED  | PR #81 CI run 44139533787 fails on GHSA-fc5q-39xc-vjpf (`picomatch@4.0.7`)  |
 
 ### PR-1 — Isolation and data lifecycle (gates R2, R3)
 
@@ -160,6 +161,10 @@ release gate on their own.
 | 2026-11-17 | R3   | Account deletion: tombstoned, login 401, analytics purged by the job                                                                                                                   | VERIFIED                                           |
 | 2026-11-17 | R3   | Off-host restore: no S3/B2 configured (L13 OPEN)                                                                                                                                       | BLOCKED — human                                    |
 | 2026-11-17 | R3   | Off-host restore drill: rclone copy to B2; pg_restore 0 errors; counts match source; drill cleaned up                                                                                  | VERIFIED                                           |
+
+| 2026-11-17 | R1 | PR #81 CI run 44139533787: `pnpm audit --prod --audit-level high` reports high GHSA-fc5q-39xc-vjpf on `picomatch@4.0.7` | BLOCKED — audit finding |
+| 2026-11-18 | R1 | Candidate forks: Node smoke checked six extglob regexes and five match semantics per major; offline lockfile-only install resolved 1,146 packages | UNVERIFIED — CI pending |
+| 2026-11-18 | R1 | Local audit registry request failed `EAI_AGAIN`; full local gate not run with 1.5 GiB available and 2.6 GiB swap in use | UNVERIFIED — CI required |
 
 ## 4. Ownership and human actions
 

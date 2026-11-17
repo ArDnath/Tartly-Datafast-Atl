@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!!**/dist", "!!src/assets"]
+    "includes": ["**", "!!**/dist", "!!src/assets", "!!vendor/picomatch-2", "!!vendor/picomatch-4"]
   },
   "formatter": {
     "enabled": true,
