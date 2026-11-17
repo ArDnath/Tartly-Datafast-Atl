@@ -37,15 +37,15 @@ is not a gate; it is a precondition.
 Each phase has one exit gate. Work that does not move a gate does not belong in
 the phase.
 
-| Phase | Goal                         | Gate   | Owner               | Status                                                    |
-| ----- | ---------------------------- | ------ | ------------------- | --------------------------------------------------------- |
-| PR-0  | Truth, hygiene, green CI     | R1     | engineering         | COMPLETE — R1 VERIFIED                                    |
-| PR-1  | Isolation and data lifecycle | R2, R3 | engineering + VPS   | IN PROGRESS (R2 VERIFIED; R3 blocked on off-host restore) |
-| PR-2  | Money path                   | R4     | human + engineering | BLOCKED (Dodo credentials)                                |
-| PR-3  | Trust path                   | R5     | human + engineering | BLOCKED (Resend, Google, counsel)                         |
-| PR-4  | Operational floor            | R6     | engineering + human | NOT STARTED                                               |
-| PR-5  | Scale proof                  | R7     | human (load window) | BLOCKED                                                   |
-| PR-6  | Launch review                | R1–R7  | owner               | NOT STARTED                                               |
+| Phase | Goal                         | Gate   | Owner               | Status                            |
+| ----- | ---------------------------- | ------ | ------------------- | --------------------------------- |
+| PR-0  | Truth, hygiene, green CI     | R1     | engineering         | COMPLETE — R1 VERIFIED            |
+| PR-1  | Isolation and data lifecycle | R2, R3 | engineering + VPS   | COMPLETE — R2/R3 VERIFIED         |
+| PR-2  | Money path                   | R4     | human + engineering | BLOCKED (Dodo credentials)        |
+| PR-3  | Trust path                   | R5     | human + engineering | BLOCKED (Resend, Google, counsel) |
+| PR-4  | Operational floor            | R6     | engineering + human | NOT STARTED                       |
+| PR-5  | Scale proof                  | R7     | human (load window) | BLOCKED                           |
+| PR-6  | Launch review                | R1–R7  | owner               | NOT STARTED                       |
 
 ### PR-0 — Truth, hygiene, green CI (gate R1)
 
@@ -62,15 +62,15 @@ the phase.
 
 ### PR-1 — Isolation and data lifecycle (gates R2, R3)
 
-| Task                                                                   | Status   | Exit evidence                                                      |
-| ---------------------------------------------------------------------- | -------- | ------------------------------------------------------------------ |
-| Live cross-workspace probe on production (read, write, delete, export) | VERIFIED | 2026-11-17: A vs B IDs; every probe 401; B data intact; see PHASES |
-| Analytics retention job with seeded old rows (ClickHouse)              | VERIFIED | 2026-11-17: PG+CH old rows deleted, fresh kept; see PHASES         |
-| Operational retention job (webhook payloads, audit IPs, billing rows)  | BLOCKED  | job exists; not exercised in this phase                            |
-| Website deletion purges PostgreSQL and ClickHouse                      | VERIFIED | 2026-11-17: all 8 PG tables + 5 CH tables = 0                      |
-| Account deletion purges every store                                    | VERIFIED | 2026-11-17: B tombstoned, login 401, analytics 0; see PHASES       |
-| Share links expire after 30 days                                       | VERIFIED | 2026-11-17: active 200, expired 404, cross-tenant 401              |
-| Restore from an off-host backup                                        | BLOCKED  | no S3/B2 configured (L13 OPEN); needs human                        |
+| Task                                                                   | Status   | Exit evidence                                                          |
+| ---------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------- |
+| Live cross-workspace probe on production (read, write, delete, export) | VERIFIED | 2026-11-17: A vs B IDs; every probe 401; B data intact; see PHASES     |
+| Analytics retention job with seeded old rows (ClickHouse)              | VERIFIED | 2026-11-17: PG+CH old rows deleted, fresh kept; see PHASES             |
+| Operational retention job (webhook payloads, audit IPs, billing rows)  | BLOCKED  | job exists; not exercised in this phase                                |
+| Website deletion purges PostgreSQL and ClickHouse                      | VERIFIED | 2026-11-17: all 8 PG tables + 5 CH tables = 0                          |
+| Account deletion purges every store                                    | VERIFIED | 2026-11-17: B tombstoned, login 401, analytics 0; see PHASES           |
+| Share links expire after 30 days                                       | VERIFIED | 2026-11-17: active 200, expired 404, cross-tenant 401                  |
+| Restore from an off-host backup                                        | VERIFIED | 2026-11-17: pg_restore 0 errors; counts match source; drill cleaned up |
 
 ### PR-2 — Money path (gate R4)
 
@@ -157,6 +157,7 @@ release gate on their own.
 | 2026-11-17 | R3   | Website deletion: 8 PG tables + 5 CH tables = 0 for the deleted website                                                                                       | VERIFIED                                           |
 | 2026-11-17 | R3   | Account deletion: tombstoned, login 401, analytics purged by the job                                                                                          | VERIFIED                                           |
 | 2026-11-17 | R3   | Off-host restore: no S3/B2 configured (L13 OPEN)                                                                                                              | BLOCKED — human                                    |
+| 2026-11-17 | R3   | Off-host restore drill: rclone copy to B2; pg_restore 0 errors; counts match source; drill cleaned up                                                         | VERIFIED                                           |
 
 ## 4. Ownership and human actions
 
