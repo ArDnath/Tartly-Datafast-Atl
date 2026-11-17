@@ -217,7 +217,7 @@
     "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-delete": "^3.0.2",
     "rollup-plugin-dts": "^6.4.1",
-    "rollup-plugin-node-externals": "^8.1.1",
+    "rollup-plugin-node-externals": "^9.0.1",
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "rollup-plugin-postcss": "^4.0.2",
     "ts-morph": "^27.0.2",
