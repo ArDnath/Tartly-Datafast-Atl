@@ -27,15 +27,19 @@ human action.
 
 - [x] Code + unit proof for workspace scoping (`docs/production/LEAK_REGISTER.md`
   L1–L4).
-- [ ] Live cross-workspace probe on production: read, write, delete, export.
-- [ ] Expired share link returns nothing.
+- [x] Live cross-workspace probe on production: read, write, delete, export
+  (2026-11-17; 11 attempts, all 401, B data intact).
+- [x] Expired share link returns nothing (2026-11-17; active 200, expired 404).
 
 ## R3 — Data lifecycle
 
 - [x] Retention jobs and TTLs exist and are unit-tested.
-- [ ] Tenant-scoped analytics retention ran against seeded old rows.
-- [ ] Website deletion purges PostgreSQL and ClickHouse.
-- [ ] Account deletion purges every store.
+- [x] Tenant-scoped analytics retention ran against seeded old rows
+  (2026-11-17; PG+CH old rows deleted, fresh kept).
+- [x] Website deletion purges PostgreSQL and ClickHouse (2026-11-17; all
+  stores 0).
+- [x] Account deletion purges every store (2026-11-17; tombstoned, login 401,
+  analytics purged).
 - [ ] Restore from an encrypted off-host backup succeeded.
 
 ## R4 — Money

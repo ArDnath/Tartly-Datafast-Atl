@@ -46,6 +46,60 @@
 Append-only. Newest first. Every entry states what was proven, what remains
 **UNVERIFIED**, and what was **N/A**. Do not edit old entries; add a new one.
 
+## 2026-11-17 — PR-1 isolation and data lifecycle proven on production
+
+- **Production SHA during the run:** `0033aa90378649d35c42d82f71433d965cfbf1a5`.
+- **Throwaway tenants (created, probed, deleted).**
+  - A: user `b967f12c-5267-4ef6-9c8f-3659274738a9`, workspace
+    `99766994-4327-4661-9f9d-480e09700abf`, website
+    `5b0eb4b7-cd1f-4e3a-b629-4d781a5ad565` (Starter, 90-day retention).
+  - B: user `a7f1a875-ad51-4aa9-94f8-419a4c9c4e7c`, workspace
+    `24ae93ff-9b12-44ee-b035-09688d9029af`, website
+    `9d917be0-ca96-43bb-954f-8498bd700023` (Pro, 365-day retention).
+  - B's workspace was temporarily set to `plan_id='pro'`,
+    `subscription_status='active'` to exercise Pro-only shares; the account
+    deletion cleaned it up.
+- **R2 — cross-tenant probe (A session against B IDs).** Every attempt returned
+  `401 {"error":{"message":"Unauthorized"}}` with no data:
+  `GET /api/websites?workspaceId=B`, `GET/PATCH-rename/DELETE /api/websites/B`,
+  `GET /api/websites/B/stats`, `/export`, `/backup`, `/api-keys`, `/shares`,
+  `/event-data`, `/reset`, `/revenue-attribution/recalculate`, `POST
+  /api/websites {workspaceId:B}`, `GET /api/share/id/B`. B's website stayed
+  `200`, name `pr1-b-test.example`, `deletedAt=null`.
+- **R2 — share expiry (L3).** Share `8e1a3061-de8e-4dea-8b3c-c2a45d821633`
+  (`slug hIvicztdAJDGxRdc`): active → `200` with a signed token; after
+  `UPDATE share SET expires_at = now() - 1 day` → `404 Not found`; cross-tenant
+  read of `/api/share/id/{id}` as A → `401`.
+- **R2 — API-key scope (L4).** A key issued to B returns `websiteId=B` on
+  `GET /api/developer/events` even with `?websiteId=A` appended; after
+  `DELETE /api/websites/B/api-keys/{id}` the same key returns `401
+  invalid-api-key`.
+- **R3 — retention (L12).** Seeded A (Starter, 90 days) with old rows (120 days)
+  and fresh rows (1 day):
+  - Job result: `events 1, eventData 1, sessionData 1, replays 1, sessions 1`
+    deleted; `clickhouse.tables=6`; `clickhouse_failed` not logged.
+  - PostgreSQL before/after: `website_event 4→3`, `session 4→3`,
+    `event_data 2→1`, `session_data 2→1`, `session_replay 1→0`.
+  - ClickHouse: `website_event 4→3`, `session_replay 1→0`, 0 pending mutations.
+  - Production proof of the bug: the 03:30Z cron run logged
+    `retention.clickhouse_failed` for all 3 websites with code 344.
+- **R3 — website deletion.** `DELETE /api/websites/A` returned 200; every store
+  for A is 0: `website, session, website_event, event_data, session_data,
+  session_replay, share, audit_event` in PostgreSQL and `website_event,
+  event_data, session_data, session_replay, website_revenue` in ClickHouse.
+- **R3 — account deletion.** B's account deleted via `DELETE /api/me/account`
+  (`{"ok":true}`), login now `401 invalid-credentials`, user row tombstoned
+  (`deleted-…@invalid.local`, `deleted_at` set). The retention job then ran for
+  the closed tenant: `events 1, replays 1` deleted; PG and ClickHouse stores for
+  B are 0; workspace soft-deleted.
+- **Export-then-delete.** `GET /api/me/export` returned 200 (1 workspace) and
+  the website export returned a 1310-byte file before deletion.
+- **BLOCKED.** Off-host restore (L13): no S3/B2 credentials in the production
+  `.env`; `docs/BACKUP_AND_RECOVERY.md` describes the needed setup. Needs the
+  owner to provision storage.
+- **N/A.** No schema, dependency, or runtime-behaviour change in this phase;
+  the only code change is the ClickHouse retention fix (`0033aa9`).
+
 ## 2026-11-17 — Biome updates excluded from Dependabot
 
 - **#61 could not pass by rebasing.** The `build-minor-patch` group included
