@@ -1,9 +1,10 @@
 # Production readiness program
 
 - **Status date:** 2026-11-17
-- **Production revision:** `2e88ca5ab47f61bca76f0f92e874033b53bf113e`
+- **Production revision:** `51988e4a1c4b07527b023b51e744819d7b610d16` (readiness verified 2026-11-17)
 - **Verdict:** **NOT READY TO CHARGE CUSTOMERS.** The product is deployed and
-  the core tracking path is proven end to end; gates R2–R7 below are open.
+  the core tracking path is proven end to end; R1 is verified and gates R2–R7
+  below remain open.
 - **This is the only forward-looking readiness plan.** `docs/PHASES.md` is the
   historical record; `docs/LAUNCH_CHECKLIST.md` is the derived sign-off sheet;
   `docs/production/LEAK_REGISTER.md` holds the isolation controls.
@@ -49,16 +50,19 @@ the phase.
 
 ### PR-0 — Truth, hygiene, green CI (gate R1)
 
-| Task                                                               | Status   | Exit evidence                                                               |
-| ------------------------------------------------------------------ | -------- | --------------------------------------------------------------------------- |
-| One readiness plan, one docs index, one leak register              | VERIFIED | this file, `docs/README.md`, leak register                                  |
-| Plan facts generated, not restated                                 | VERIFIED | `pnpm docs:check` + `src/lib/plan-facts.test.ts`                            |
-| Stale website limits corrected (Pro = 20)                          | VERIFIED | `pnpm docs:check`; `src/lib/plan-facts.test.ts` rejects any other limit     |
-| Pin the formatter so dependency PRs can pass                       | VERIFIED | `@biomejs/biome` = `2.6.6`; Dependabot ignores Biome; #58/#59/#60/#62 green |
-| Production build has no external network dependency                | VERIFIED | Inter is bundled in `src/fonts/`; `next/font/local`; build passes           |
-| Deploy-lock recovery documented for a cancelled build              | VERIFIED | `docs/RUNBOOK.md` → "another deploy is already running"                     |
-| Deploy script survives rollback revisions (no stdin capture)       | VERIFIED | `scripts/deploy-script.test.mjs`; rollback run 43936817147                  |
-| Current `main` deploy run is green (not a lock-contention failure) | VERIFIED | run 43934092294 for `2e88ca5`; readiness returns that SHA                   |
+| Task                                                               | Status   | Exit evidence                                                                                   |
+| ------------------------------------------------------------------ | -------- | ----------------------------------------------------------------------------------------------- |
+| One readiness plan, one docs index, one leak register              | VERIFIED | this file, `docs/README.md`, leak register                                                      |
+| Plan facts generated, not restated                                 | VERIFIED | `pnpm docs:check` + `src/lib/plan-facts.test.ts`                                                |
+| Stale website limits corrected (Pro = 20)                          | VERIFIED | `pnpm docs:check`; `src/lib/plan-facts.test.ts` rejects any other limit                         |
+| Pin the formatter so dependency PRs can pass                       | VERIFIED | `@biomejs/biome` = `2.6.6`; Dependabot ignores Biome; #58/#59/#60/#62 green                     |
+| Production build has no external network dependency                | VERIFIED | Inter is bundled in `src/fonts/`; `next/font/local`; build passes                               |
+| Deploy-lock recovery documented for a cancelled build              | VERIFIED | `docs/RUNBOOK.md` → "another deploy is already running"                                         |
+| Deploy script survives rollback revisions (no stdin capture)       | VERIFIED | `scripts/deploy-script.test.mjs`; rollback run 43936817147                                      |
+| Current `main` deploy run is green (not a lock-contention failure) | VERIFIED | run 44126978246 for `51988e4`; readiness SHA matches; 8/8 public smoke                          |
+| Open dependency updates pass CI                                    | VERIFIED | #58/#72/#62/#60/#59; all five required checks succeeded                                         |
+| Host headroom and active deploy-lock state inspected               | VERIFIED | 2 CPUs, 4,974 MB available, disk 78% (22 GB free), no OOM lines, no holder or build; see PHASES |
+| Production rollback and forward restoration rehearsed              | VERIFIED | runs 43936817147 and 43938446979; see PHASES                                                    |
 
 ### PR-1 — Isolation and data lifecycle (gates R2, R3)
 
@@ -160,6 +164,10 @@ release gate on their own.
 | 2026-11-17 | R3   | Account deletion: tombstoned, login 401, analytics purged by the job                                                                                                                   | VERIFIED                                           |
 | 2026-11-17 | R3   | Off-host restore: no S3/B2 configured (L13 OPEN)                                                                                                                                       | BLOCKED — human                                    |
 | 2026-11-17 | R3   | Off-host restore drill: rclone copy to B2; pg_restore 0 errors; counts match source; drill cleaned up                                                                                  | VERIFIED                                           |
+| 2026-11-17 | R1   | Recheck from local `main` `51988e4`: readiness curl exited 6 (`Could not resolve host: tartly.in`); no production response or SHA was observed                                         | BLOCKED — local DNS                                |
+| 2026-11-17 | R1   | GitHub `main` head `51988e4`; CI run 44125009622 and deploy run 44126978246 succeeded; live readiness reports exact SHA/database up; public smoke passed 8/8                           | VERIFIED                                           |
+| 2026-11-17 | R1   | Open dependency PRs #58/#72/#62/#60/#59 each have 5/5 checks completed successfully (Verify, Container, Security, CodeQL, Trivy)                                                       | VERIFIED                                           |
+| 2026-11-17 | R1   | VPS sample: 2 CPUs; 7,935 MB total / 4,974 MB available; swap 1,345 MB used; root disk 78% / 22 GB free; no OOM matches; no lock holder/build; ClickHouse 107.12% CPU; cache 41.04 GB  | VERIFIED — read-only SSH                           |
 
 ## 4. Ownership and human actions
 

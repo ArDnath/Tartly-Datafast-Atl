@@ -46,6 +46,75 @@
 Append-only. Newest first. Every entry states what was proven, what remains
 **UNVERIFIED**, and what was **N/A**. Do not edit old entries; add a new one.
 
+## 2026-11-17 — PR-0 / R1 verified on current main
+
+- **Current main:** GitHub reports `51988e4a1c4b07527b023b51e744819d7b610d16`
+  as the latest `main` commit. CI run `44125009622` and production deploy run
+  `44126978246` completed successfully for that SHA. Check runs on the commit
+  are green for Verify, Container build/image scan, Security, and Deploy.
+- **Live readiness from the VPS:** HTTP/2 200,
+  `{"ok":true,"service":"tartly","database":"up","version":"51988e4a1c4b07527b023b51e744819d7b610d16"}`.
+  The deployed checkout at `/opt/tartly/app` has the same SHA.
+- **Public smoke:** ran the repository's `scripts/deploy-smoke.mjs` inside
+  `runtime-app-1` using Node `v22.23.5`; `/api/health/live`,
+  `/api/health/ready`, `/`, `/pricing`, `/docs`, `/login`, `/robots.txt`, and
+  `/sitemap.xml` all returned 200. Smoke passed for the exact SHA.
+- **Open dependency updates:** #58, #72, #62, #60, and #59 each have 5/5
+  completed-success check runs: Verify, Container build/image scan, Security,
+  CodeQL, and Trivy.
+- **Host headroom sample (read-only SSH, 2026-11-17):** 2 CPUs; `free -m`
+  showed 7,935 MB total, 4,974 MB available, and 1,345 MB swap used. `/` was
+  78% used with 22 GB free. `dmesg` had no matching OOM-kill lines. Load
+  averages were 1.33 / 1.48 / 1.68. `docker stats --no-stream` showed
+  ClickHouse at 107.12% CPU and 577.9 MiB; `docker system df` showed 41.04 GB
+  build cache (14.92 GB reclaimable). No cache was pruned.
+- **Deploy lock:** `fuser -v /opt/tartly/runtime/deploy.lock` found no holder;
+  the process check found no build or deploy process. No process was killed and
+  the lock file was not removed.
+- **Build-time diagnosis:** this confirms the documented 2-vCPU shared-host
+  constraint; at the sample time ClickHouse used more than one CPU and Docker
+  retained a large build cache while disk use was 78%. This supports the prior
+  capacity diagnosis for the 30-minute build timeout. The snapshot showed no
+  matching OOM-kill lines.
+- The local readiness curl earlier failed because this workspace could not
+  resolve `tartly.in`; the VPS and app container resolved the service and
+  returned the exact live SHA. The local resolver error was not a production
+  outage.
+- **R1 — VERIFIED.** No deployment was initiated by this inspection; production
+  already served current `main`. The prior rollback/forward rehearsal remains
+  recorded under runs `43936817147` and `43938446979`.
+- No production test data, deletion, or paid action was involved. **N/A:** no
+  application code, schema, or dependency change.
+
+## 2026-11-17 — PR-0 current live-state recheck blocked from workspace
+
+- Read `AGENTS.md`, `docs/PRODUCTION_READINESS.md`,
+  `docs/production/LEAK_REGISTER.md`, the newest `docs/PHASES.md` entries,
+  `docs/ENGINEERING_STANDARDS.md`, and `docs/RUNBOOK.md` in the requested order.
+- **Local state:** `git log --oneline -3` → `51988e4`, `13f983f`, `7ac5fc9`;
+  `git status --short` was empty; Node `v24.13.0`; pnpm `10.10.0`.
+- **Readiness request:** `curl --connect-timeout 5 --max-time 15 -sS -i
+  https://tartly.in/api/health/ready` exited 6 with
+  `Could not resolve host: tartly.in`. This proves only that this workspace
+  could not resolve the hostname; it does not prove production is down.
+- **R1:** the earlier ledger proves the `2e88ca5` deploy and rollback rehearsal;
+  the newer 2026-11-17 billing incident entry records a live check at
+  `13f983f9552be3b79686f0974cd38eafccd40953`. Current `main` is `51988e4`, so
+  its live SHA remains **UNVERIFIED** and R1 revalidation is **BLOCKED** pending
+  SSH or an operator-run check. The forward ledger records the failed attempt.
+- **Documentation checks:** `pnpm exec biome format --write
+  docs/PRODUCTION_READINESS.md docs/PHASES.md` formatted the two files;
+  `pnpm exec biome check` passed. `pnpm docs:check` hit sandbox `tsx` IPC
+  `listen EPERM`; the equivalent `node --import tsx
+  scripts/check-plan-facts.ts` passed with `docs:check: plan facts match
+  src/lib/plans.ts.`
+- **UNVERIFIED:** full `pnpm gate` has not run on this branch and is required
+  before any merge.
+- No deploy, production test-data mutation, deletion, or paid action was run.
+- **N/A:** no application code, schema, dependency, or runtime behavior changed.
+- **Next:** get the Round 1 SSH/operator response, inspect production headroom,
+  then confirm the current readiness SHA and public smoke before closing R1.
+
 ## 2026-11-17 — Billing 503 incident: provider errors were blind-caught and misreported
 
 - **Symptom.** `POST /api/billing/change-plan` on production returned
