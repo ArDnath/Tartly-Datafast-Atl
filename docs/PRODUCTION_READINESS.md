@@ -37,15 +37,15 @@ is not a gate; it is a precondition.
 Each phase has one exit gate. Work that does not move a gate does not belong in
 the phase.
 
-| Phase | Goal                         | Gate   | Owner               | Status                                                        |
-| ----- | ---------------------------- | ------ | ------------------- | ------------------------------------------------------------- |
-| PR-0  | Truth, hygiene, green CI     | R1     | engineering         | COMPLETE — R1 VERIFIED                                        |
-| PR-1  | Isolation and data lifecycle | R2, R3 | engineering + VPS   | IN PROGRESS (R2 VERIFIED; R3 PG/CH verified; restore BLOCKED) |
-| PR-2  | Money path                   | R4     | human + engineering | BLOCKED (Dodo credentials)                                    |
-| PR-3  | Trust path                   | R5     | human + engineering | BLOCKED (Resend, Google, counsel)                             |
-| PR-4  | Operational floor            | R6     | engineering + human | NOT STARTED                                                   |
-| PR-5  | Scale proof                  | R7     | human (load window) | BLOCKED                                                       |
-| PR-6  | Launch review                | R1–R7  | owner               | NOT STARTED                                                   |
+| Phase | Goal                         | Gate   | Owner               | Status                                                    |
+| ----- | ---------------------------- | ------ | ------------------- | --------------------------------------------------------- |
+| PR-0  | Truth, hygiene, green CI     | R1     | engineering         | COMPLETE — R1 VERIFIED                                    |
+| PR-1  | Isolation and data lifecycle | R2, R3 | engineering + VPS   | IN PROGRESS (R2 VERIFIED; R3 blocked on off-host restore) |
+| PR-2  | Money path                   | R4     | human + engineering | BLOCKED (Dodo credentials)                                |
+| PR-3  | Trust path                   | R5     | human + engineering | BLOCKED (Resend, Google, counsel)                         |
+| PR-4  | Operational floor            | R6     | engineering + human | NOT STARTED                                               |
+| PR-5  | Scale proof                  | R7     | human (load window) | BLOCKED                                                   |
+| PR-6  | Launch review                | R1–R7  | owner               | NOT STARTED                                               |
 
 ### PR-0 — Truth, hygiene, green CI (gate R1)
 
