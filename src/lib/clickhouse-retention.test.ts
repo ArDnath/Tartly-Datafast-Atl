@@ -49,7 +49,7 @@ test('deletes rebuild projections instead of failing on website_event', async ()
   for (const call of client.command.mock.calls) {
     expect(call[0].query).toMatch(/^ALTER TABLE talivia\./);
     expect(call[0].query).toContain('DELETE WHERE website_id = {websiteId:UUID}');
-    expect(call[0].clickhouse_settings).toEqual({ mutations_sync: 1 });
+    expect(call[0].clickhouse_settings).toEqual({ mutations_sync: '1' });
   }
 });
 

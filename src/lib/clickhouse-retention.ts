@@ -44,7 +44,7 @@ async function deleteRows(
       ...(cutoff ? { cutoff: clickhouse.getUTCString(cutoff) } : {}),
     },
     clickhouse_settings: {
-      mutations_sync: 1,
+      mutations_sync: '1',
     },
   });
 }
