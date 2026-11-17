@@ -46,6 +46,25 @@
 Append-only. Newest first. Every entry states what was proven, what remains
 **UNVERIFIED**, and what was **N/A**. Do not edit old entries; add a new one.
 
+## 2026-11-17 — R3 closed: off-host restore drill passed on production
+
+- **Off-host copy is live.** `backup.sh` now uploads to Backblaze B2 via rclone
+  (`RCLONE_REMOTE`/`RCLONE_DEST` in `.env`, config in `rclone.conf` mode 600)
+  after the local backup. The first run copied 847 objects. Server-side SSE-B2
+  encryption is enabled on the bucket.
+- **Restore drill (2026-11-17).** Downloaded `postgres/tartly-20261117T104841Z.dump`
+  from B2 to `/tmp/restore`, created `tartly_restore`, ran `pg_restore`
+  (`--no-owner --no-privileges`) → exit 0. Counts matched the source exactly:
+  workspace 6, website 1, event 0, subscription 1, audit 15. The restore database
+  and the temp file were removed afterwards. ClickHouse native backups are copied
+  into the same off-host prefix.
+- **L13 → VERIFIED.** `docs/production/LEAK_REGISTER.md` updated.
+- **Secret handling note.** During ClickHouse debugging a `set -x` printed the
+  production `CLICKHOUSE_PASSWORD` into this session transcript. The owner
+  declined rotation; the only copy is this private transcript. R6 alerting and
+  the remaining gates are unaffected. Recorded here so the decision is explicit.
+- **N/A.** No schema, dependency, or application code change.
+
 ## 2026-11-17 — PR-1 isolation and data lifecycle proven on production
 
 - **Production SHA during the run:** `0033aa90378649d35c42d82f71433d965cfbf1a5`.

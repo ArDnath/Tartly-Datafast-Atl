@@ -40,7 +40,8 @@ human action.
   stores 0).
 - [x] Account deletion purges every store (2026-11-17; tombstoned, login 401,
   analytics purged).
-- [ ] Restore from an encrypted off-host backup succeeded.
+- [x] Restore from an encrypted off-host backup succeeded (2026-11-17;
+  pg_restore 0 errors, counts match, drill cleaned up).
 
 ## R4 — Money
 
