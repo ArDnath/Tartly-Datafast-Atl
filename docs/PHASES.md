@@ -46,6 +46,55 @@
 Append-only. Newest first. Every entry states what was proven, what remains
 **UNVERIFIED**, and what was **N/A**. Do not edit old entries; add a new one.
 
+## 2026-11-17 — Billing 503 incident: provider errors were blind-caught and misreported
+
+- **Symptom.** `POST /api/billing/change-plan` on production returned
+  `503 {"code":"billing-provider-unavailable","message":"The billing provider is
+  unavailable. Try again in a moment."}` with no server-side trace.
+- **Root cause (verified, not guessed).** The production Dodo test-mode key was
+  used from the app container to call `subscriptions.previewChangePlan` on
+  `sub_0Ns8syv4q8MeS99E9sG2S`, which returned the live response
+  `409 {"code":"PREVIOUS_PAYMENT_PENDING","message":"Cannot change plan as
+  previous payment is not successful yet"}`. Timeline from production Postgres:
+  checkout 12:13:06 → `payment.succeeded` 12:13:57 → plan change
+  starter→pro succeeded 12:18:39 → `payment.processing` 12:18:46 (no terminal
+  payment event since) → customer retry 12:24:10 → Dodo 409 → the committed
+  `catch { 503 }` turned it into "provider unavailable". Dodo's API was never
+  down; container → `test.dodopayments.com` connectivity was verified live
+  (HTTP 403 with a fake bearer token = server alive, auth rejected).
+- **Second gap.** The four billing handlers (checkout, change-plan, cancel,
+  portal) had no failure logging at all, and a failed provider call wrote no
+  audit event, so the incident was invisible server-side. An earlier session
+  had drafted improved catch blocks but never committed them; production was
+  built from committed main without them.
+- **Fix (#79, `13f983f`).** Shared `mapProviderError`
+  (`src/features/billing/server/provider-error.ts`): SDK errors shaped
+  `{ status, error: { code, message } }` map 409→conflict, 404→not-found,
+  other 4xx→bad request, each surfacing the provider's own code and message;
+  only connection failures and 5xx keep the 503. Every failure logs a
+  structured `billing.*.failed` warn event. All four handlers use it; a failed
+  provider call still grants nothing and writes nothing.
+- **Proof.** 16 new tests (`provider-error.test.ts`, change-plan handler
+  regression incl. the PREVIOUS_PAYMENT_PENDING 409); full suite 1,173 passed
+  / 1 skipped. Local gate green (format, lint, typecheck, docs:check, tests,
+  deploy checks, production build). CI run 44115122035 all pass. Deploys:
+  dispatch 44118022166 and auto 44119574655 both succeeded;
+  `/api/health/ready` returned `13f983f9552be3b79686f0974cd38eafccd40953`;
+  `deploy-smoke` passed for that SHA; deployed bundle contains
+  `change_plan.failed` + `billing-provider-conflict`.
+- **Operator note (UNVERIFIED).** The production Dodo API key scopes are
+  write-only (`subscriptions|products|customers|checkout_sessions:write`,
+  no `payments:read`), so pending payments cannot be reconciled via API until
+  the owner adds `payments:read` in the Dodo dashboard. A customer retrying a
+  plan change now sees Dodo's real 409 message ("Cannot change plan as previous
+  payment is not successful yet") instead of the fake 503; live UX confirmation
+  awaits the next real attempt.
+- **Ops note.** The first attempt to run the full local `pnpm gate` twice
+  back-to-back OOM'd the workstation (7 GB RAM; build + tests + swap). Gate is
+  now run step-by-step with `--max-old-space-size=2560`, `nice`, and a memory
+  watchdog (`/tmp/opencode/memwatch.sh`) that killed one 1.4 GB process at the
+  400 MB threshold; the machine survived and the gate completed green.
+
 ## 2026-11-17 — R3 closed: off-host restore drill passed on production
 
 - **Off-host copy is live.** `backup.sh` now uploads to Backblaze B2 via rclone
