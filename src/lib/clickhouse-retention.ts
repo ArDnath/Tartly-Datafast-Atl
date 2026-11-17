@@ -29,11 +29,22 @@ async function deleteRows(
 ) {
   const cutoffClause = cutoff ? 'AND created_at < {cutoff:DateTime}' : '';
 
+  // `website_event` carries two materialized projections. A lightweight
+  // `DELETE FROM` is refused on such a table while the server keeps
+  // `lightweight_mutation_projection_mode=throw`, and a query-level override of
+  // that setting is ignored for this check (ClickHouse 25.3). Every ClickHouse
+  // retention run therefore failed while PostgreSQL had already deleted its
+  // rows. A mutation (`ALTER TABLE … DELETE`) rebuilds the projections and is
+  // the supported path; `mutations_sync=1` waits for it so the job reports a
+  // deterministic result.
   await client.command({
-    query: `DELETE FROM talivia.${table} WHERE website_id = {websiteId:UUID} ${cutoffClause}`,
+    query: `ALTER TABLE talivia.${table} DELETE WHERE website_id = {websiteId:UUID} ${cutoffClause}`,
     query_params: {
       websiteId,
       ...(cutoff ? { cutoff: clickhouse.getUTCString(cutoff) } : {}),
+    },
+    clickhouse_settings: {
+      mutations_sync: '1',
     },
   });
 }
