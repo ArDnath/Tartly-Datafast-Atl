@@ -8,6 +8,8 @@ ARG PNPM_VERSION
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY vendor/picomatch-2 ./vendor/picomatch-2
+COPY vendor/picomatch-4 ./vendor/picomatch-4
 RUN npm install -g pnpm@${PNPM_VERSION}
 RUN pnpm install --frozen-lockfile
 
@@ -18,6 +20,8 @@ ARG PNPM_VERSION
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY vendor/picomatch-2 ./vendor/picomatch-2
+COPY vendor/picomatch-4 ./vendor/picomatch-4
 RUN npm install -g pnpm@${PNPM_VERSION}
 RUN pnpm install --frozen-lockfile --prod
 
