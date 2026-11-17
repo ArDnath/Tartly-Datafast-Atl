@@ -35,6 +35,24 @@ test('retention deletes every payload table with the plan cutoff and is tenant-s
   }
 });
 
+test('deletes rebuild projections instead of failing on website_event', async () => {
+  // Production runs ClickHouse 25.3 with two materialized projections on
+  // website_event and the server default lightweight_mutation_projection_mode
+  // = throw. A lightweight DELETE fails with code 344 and no ClickHouse payload
+  // is ever deleted, so objections are removed with a synchronous mutation.
+  await deleteClickHousePayloads({
+    websiteId: '11111111-1111-4111-8111-111111111111',
+    eventCutoff: new Date('2026-01-01T00:00:00.000Z'),
+    replayCutoff: new Date('2026-01-01T00:00:00.000Z'),
+  });
+
+  for (const call of client.command.mock.calls) {
+    expect(call[0].query).toMatch(/^ALTER TABLE talivia\./);
+    expect(call[0].query).toContain('DELETE WHERE website_id = {websiteId:UUID}');
+    expect(call[0].clickhouse_settings).toEqual({ mutations_sync: 1 });
+  }
+});
+
 test('a plan without replay deletes all replay rows for the tenant', async () => {
   await deleteClickHousePayloads({
     websiteId: '11111111-1111-4111-8111-111111111111',

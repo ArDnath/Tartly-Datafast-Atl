@@ -294,6 +294,13 @@ docker compose --env-file .env exec -T clickhouse clickhouse-client \
 - Schema changes are applied by the one-shot `clickhouse-migrate` service on
   every deploy. A failed migration stops the deploy before the app restarts.
 - Native backups live in `/opt/tartly/backups/clickhouse`.
+- `website_event` has two materialized projections (`url_path`,
+  `referrer_domain`). A lightweight `DELETE FROM` is refused while
+  `lightweight_mutation_projection_mode=throw`, and a query-level override is
+  ignored in ClickHouse 25.3. Retention and tenant deletion use
+  `ALTER TABLE … DELETE` with `mutations_sync=1` instead. If the job logs
+  `retention.clickhouse_failed`, ClickHouse payloads are still present while
+  PostgreSQL has been purged; fix the statement before the next run.
 - System log tables (`trace_log`, `query_thread_log`, `session_log`) are
   **disabled** in `clickhouse/low-memory.xml`, and the metric collectors sample
   once a minute. On this 2 vCPU host their default write and merge rate held
