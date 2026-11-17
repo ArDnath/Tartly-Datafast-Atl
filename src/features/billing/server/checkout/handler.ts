@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { billingSubscriptionHasAccess } from '@/lib/billing-lifecycle';
 import { getPublicOrigin } from '@/lib/get-base-url';
-import { logger } from '@/lib/logger';
 import { DEFAULT_TRAFFIC_TIER_INDEX, PLAN_IDS, TRAFFIC_TIERS } from '@/lib/plans';
 import { consumeRateLimit, rateLimitKey } from '@/lib/rate-limit';
 import { parseRequest } from '@/lib/request';
@@ -9,6 +8,7 @@ import { badRequest, forbidden, json, serviceUnavailable, tooManyRequests } from
 import { requireWorkspaceAccess } from '@/lib/workspace-auth';
 import { getBillingConfig, findBillingProduct } from '@/features/billing/server/provider';
 import { getDodoBillingProvider } from '@/features/billing/server/providers/dodo';
+import { mapProviderError } from '@/features/billing/server/provider-error';
 import { recordAuditEvent } from '@/queries/prisma';
 import prisma from '@/lib/prisma';
 
@@ -159,17 +159,15 @@ export async function POST(request: Request) {
 
     return json({ url: session.url, sessionId: session.sessionId });
   } catch (cause) {
-    logger.warn('billing.checkout.failed', {
-      workspaceId: body.workspaceId,
-      planId: body.planId,
-      interval: body.interval,
-      tierIndex: body.tierIndex,
-      error: cause instanceof Error ? cause.name : 'unknown',
-    });
-
-    return serviceUnavailable({
-      code: 'billing-provider-unavailable',
-      message: 'The billing provider is unavailable. Try again in a moment.',
+    return mapProviderError({
+      cause,
+      event: 'billing.checkout.failed',
+      fields: {
+        workspaceId: body.workspaceId,
+        planId: body.planId,
+        interval: body.interval,
+        tierIndex: body.tierIndex,
+      },
     });
   }
 }

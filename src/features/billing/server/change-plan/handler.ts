@@ -7,6 +7,7 @@ import prisma from '@/lib/prisma';
 import { recordAuditEvent } from '@/queries/prisma';
 import { findBillingProduct, getBillingConfig } from '@/features/billing/server/provider';
 import { getDodoBillingProvider } from '@/features/billing/server/providers/dodo';
+import { mapProviderError } from '@/features/billing/server/provider-error';
 
 const schema = z.strictObject({
   workspaceId: z.uuid(),
@@ -124,10 +125,11 @@ export async function POST(request: Request) {
     });
 
     return json({ ok: true, pending: true });
-  } catch {
-    return serviceUnavailable({
-      code: 'billing-provider-unavailable',
-      message: 'The billing provider is unavailable. Try again in a moment.',
+  } catch (cause) {
+    return mapProviderError({
+      cause,
+      event: 'billing.change_plan.failed',
+      fields: { workspaceId: body.workspaceId, planId: body.planId, tierIndex },
     });
   }
 }
