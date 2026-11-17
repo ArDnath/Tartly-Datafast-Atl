@@ -7,7 +7,7 @@
   `.github/rulesets/main-protection.json`)
 - **Upstream:** <https://github.com/talivia-group/talivia> (MIT, `upstream`),
   forked locally at `/home/ariyaman/Dev/fight/efforts/revenuelens`
-- **Last updated:** 2026-11-16
+- **Last updated:** 2026-11-18
 - **Current phase:** production-readiness phase **PR-0** in
   [`docs/PRODUCTION_READINESS.md`](PRODUCTION_READINESS.md). All product phases
   0–12 are implemented and deployed; the remaining work is release gates R1–R7.
@@ -45,6 +45,45 @@
 
 Append-only. Newest first. Every entry states what was proven, what remains
 **UNVERIFIED**, and what was **N/A**. Do not edit old entries; add a new one.
+
+## 2026-11-18 — R1 reopened: high `picomatch` finding blocks production readiness
+
+- **Evidence that reopened R1.** PR #81 CI run 44139533787 failed at
+  `pnpm audit --prod --audit-level high` with one high advisory,
+  GHSA-fc5q-39xc-vjpf, for `picomatch@4.0.7` through
+  `next-intl > @parcel/watcher > picomatch`. The local dependency graph also
+  contains `picomatch@2.3.2` in development tooling. No package or lockfile
+  changes were present in PR #81.
+- **Candidate remediation (not merged or deployed).** On an isolated source
+  export of current `main` (`51988e4`), add a small same-major fork of 4.0.7
+  with the repeated-extglob collapse from upstream commit `1bf0d04`, plus a
+  backport to 2.3.2 so both resolved parser lines are covered. The local package
+  versions `4.0.8+tartly.0.1` and `2.3.3+tartly.0.1` are internal identifiers,
+  not upstream releases. Preserve the upstream MIT licenses and document
+  provenance/retirement conditions in each vendor directory. Exact overrides
+  map only the observed vulnerable versions; no audit suppression is added. The
+  advisory currently labels every version `<=4.0.7` affected with no patched
+  version, so the custom 2.x backport may still appear in a full (dev-inclusive)
+  audit; it is development-only, while CI gates the deployed dependency graph
+  with `pnpm audit --prod --audit-level high`. Do not describe the full audit as
+  clean unless a later run proves that.
+- **Local proof.** Direct Node smoke compiled six repeated-extglob patterns
+  through both vendor packages; each reported six safe generated regexes and
+  five matching-semantic checks passed. `pnpm install --lockfile-only --offline
+  --ignore-scripts` exited 0 (`Scope: all 3 workspace projects`, 1,146 packages,
+  `Done in 4.4s using pnpm v10.10.0`). This is source/lockfile evidence only,
+  not the full CI gate.
+- **Limitations.** Local `pnpm audit --audit-level high` could not reach the
+  registry (`EAI_AGAIN registry.npmjs.org`). No potentially blocking malicious
+  string match was run. No production deployment or data change occurred. The
+  workstation sample showed 1.5 GiB available RAM and 2.6 GiB swap in use, so
+  the full `pnpm gate` is delegated to GitHub CI to avoid adding pressure.
+- **R1 status: BLOCKED / UNVERIFIED.** The candidate needs a green full CI gate,
+  merge, deployment of the exact resulting SHA, readiness returning that SHA,
+  and the public smoke before R1 can be re-verified. Until then, keep PR #81
+  unmerged.
+- **N/A.** No schema, tenant authorization, billing, or production data change;
+  those gates are unaffected by this dependency-only remediation.
 
 ## 2026-11-17 — Billing 503 incident: provider errors were blind-caught and misreported
 

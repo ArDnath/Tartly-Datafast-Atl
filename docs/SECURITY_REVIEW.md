@@ -102,6 +102,24 @@ Command: `pnpm audit` on 2026-11-06.
   The only remaining prod-path high is `@prisma/config > deepmerge-ts` (CLI
   transitive, patched only in a new major — not forced).
 
+### Re-audit 2026-11-18 — production gate blocker
+
+PR #81 CI run 44139533787 reports one high production dependency advisory:
+GHSA-fc5q-39xc-vjpf, `picomatch@4.0.7` through
+`next-intl > @parcel/watcher`. The local graph also resolves `picomatch@2.3.2`
+in development tooling. The prior clean production audit from 2026-11-11 is
+superseded by this later CI result.
+
+A candidate local fork carries the upstream repeated-extglob fix logic into
+both observed major lines. It is **UNVERIFIED** until the production dependency
+audit and full CI gate pass; it has not been deployed. The advisory currently
+labels every version `<=4.0.7` affected and lists no patched version, so the
+custom 2.x development-only backport may still appear in a full dev-inclusive
+audit. CI gates production dependencies with
+`pnpm audit --prod --audit-level high`; do not claim the full audit is clean.
+Local audit access failed with `EAI_AGAIN registry.npmjs.org`, so CI is the
+verification path. No slow attacker-controlled match was executed locally.
+
 ### Re-audit 2026-11-11
 
 `pnpm audit --prod` reports **0 vulnerabilities**. The full (dev included)
