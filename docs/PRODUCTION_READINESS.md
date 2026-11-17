@@ -37,15 +37,15 @@ is not a gate; it is a precondition.
 Each phase has one exit gate. Work that does not move a gate does not belong in
 the phase.
 
-| Phase | Goal                         | Gate   | Owner               | Status                            |
-| ----- | ---------------------------- | ------ | ------------------- | --------------------------------- |
-| PR-0  | Truth, hygiene, green CI     | R1     | engineering         | COMPLETE — R1 VERIFIED            |
-| PR-1  | Isolation and data lifecycle | R2, R3 | engineering + VPS   | IN PROGRESS (VPS access granted)  |
-| PR-2  | Money path                   | R4     | human + engineering | BLOCKED (Dodo credentials)        |
-| PR-3  | Trust path                   | R5     | human + engineering | BLOCKED (Resend, Google, counsel) |
-| PR-4  | Operational floor            | R6     | engineering + human | NOT STARTED                       |
-| PR-5  | Scale proof                  | R7     | human (load window) | BLOCKED                           |
-| PR-6  | Launch review                | R1–R7  | owner               | NOT STARTED                       |
+| Phase | Goal                         | Gate   | Owner               | Status                                                        |
+| ----- | ---------------------------- | ------ | ------------------- | ------------------------------------------------------------- |
+| PR-0  | Truth, hygiene, green CI     | R1     | engineering         | COMPLETE — R1 VERIFIED                                        |
+| PR-1  | Isolation and data lifecycle | R2, R3 | engineering + VPS   | IN PROGRESS (R2 VERIFIED; R3 PG/CH verified; restore BLOCKED) |
+| PR-2  | Money path                   | R4     | human + engineering | BLOCKED (Dodo credentials)                                    |
+| PR-3  | Trust path                   | R5     | human + engineering | BLOCKED (Resend, Google, counsel)                             |
+| PR-4  | Operational floor            | R6     | engineering + human | NOT STARTED                                                   |
+| PR-5  | Scale proof                  | R7     | human (load window) | BLOCKED                                                       |
+| PR-6  | Launch review                | R1–R7  | owner               | NOT STARTED                                                   |
 
 ### PR-0 — Truth, hygiene, green CI (gate R1)
 
@@ -62,15 +62,15 @@ the phase.
 
 ### PR-1 — Isolation and data lifecycle (gates R2, R3)
 
-| Task                                                                   | Status     | Exit evidence                                                       |
-| ---------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------- |
-| Live cross-workspace probe on production (read, write, delete, export) | BLOCKED    | 401/403/404 responses and empty bodies recorded in `docs/PHASES.md` |
-| Analytics retention job with seeded old rows (ClickHouse)              | BLOCKED    | job log with per-table deleted counts, seeded rows gone             |
-| Operational retention job (webhook payloads, audit IPs, billing rows)  | BLOCKED    | job log with counts; a preserved Stripe invoice row still present   |
-| Website deletion purges PostgreSQL and ClickHouse                      | UNVERIFIED | deletion request + per-table count of 0                             |
-| Account deletion purges every store                                    | UNVERIFIED | export-then-delete flow + login fails afterwards                    |
-| Share links expire after 30 days                                       | UNVERIFIED | expired token returns 404; active token returns 200                 |
-| Restore from an off-host backup                                        | BLOCKED    | restored dump counts match source; replayed into a clean container  |
+| Task                                                                   | Status   | Exit evidence                                                      |
+| ---------------------------------------------------------------------- | -------- | ------------------------------------------------------------------ |
+| Live cross-workspace probe on production (read, write, delete, export) | VERIFIED | 2026-11-17: A vs B IDs; every probe 401; B data intact; see PHASES |
+| Analytics retention job with seeded old rows (ClickHouse)              | VERIFIED | 2026-11-17: PG+CH old rows deleted, fresh kept; see PHASES         |
+| Operational retention job (webhook payloads, audit IPs, billing rows)  | BLOCKED  | job exists; not exercised in this phase                            |
+| Website deletion purges PostgreSQL and ClickHouse                      | VERIFIED | 2026-11-17: all 8 PG tables + 5 CH tables = 0                      |
+| Account deletion purges every store                                    | VERIFIED | 2026-11-17: B tombstoned, login 401, analytics 0; see PHASES       |
+| Share links expire after 30 days                                       | VERIFIED | 2026-11-17: active 200, expired 404, cross-tenant 401              |
+| Restore from an off-host backup                                        | BLOCKED  | no S3/B2 configured (L13 OPEN); needs human                        |
 
 ### PR-2 — Money path (gate R4)
 
@@ -134,23 +134,29 @@ Append only. One row per proof. Never overwrite a VERIFIED row; add a new one.
 `core` rows record that the product works; they support R1 but do not close a
 release gate on their own.
 
-| Date       | Gate | Evidence                                                                                           | Result                                             |
-| ---------- | ---- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| 2026-11-16 | R1   | `pnpm gate` on `8068012` (235 files, 1,156 tests, 78 pages)                                        | PASS — `/tmp/opencode/gate-rate-limit.log`         |
-| 2026-11-16 | R1   | `/api/health/ready` returned `8068012`, `database:"up"`                                            | VERIFIED                                           |
-| 2026-11-16 | R1   | 9 public routes returned 200/307 (health, `/`, pricing, docs, login, signup, app, robots, sitemap) | VERIFIED                                           |
-| 2026-11-16 | R1   | `/pricing` rendered "1 website" / "20 websites"                                                    | VERIFIED — matches `src/lib/plans.ts`              |
-| 2026-11-16 | core | Firefox → production tracker → ClickHouse; stats API 1/1/1; test rows deleted                      | VERIFIED — see `docs/PHASES.md` 2026-11-16         |
-| 2026-11-16 | R3   | Six ClickHouse global TTLs applied and present in `system.tables`                                  | PARTIAL — tenant-scoped job not run                |
-| 2026-11-16 | R6   | No alerting configuration exists (no uptime check, no error tracker, no disk alert)                | FAIL — open                                        |
-| 2026-11-17 | R1   | `pnpm gate` on `91abed0` (236 files, 1,160 tests, 78 pages)                                        | PASS — `/tmp/opencode/gate-deploy-script-file.log` |
-| 2026-11-17 | R1   | CI green on `main` `2e88ca5` (run 43932610094)                                                     | VERIFIED                                           |
-| 2026-11-17 | R1   | Deploy run 43934092294 for `2e88ca5`; `/api/health/ready` returns that SHA; 8/8 smoke routes 200   | VERIFIED                                           |
-| 2026-11-17 | R1   | Rollback run 43936817147 served `577c7a0`; forward run 43938446979 restored `2e88ca5`              | VERIFIED                                           |
-| 2026-11-17 | R1   | Deploy-script stdin capture found (runs 43913859561, 43927454606) and fixed (#68, #69)             | VERIFIED — regression test in gate                 |
-| 2026-11-17 | core | `docker builder prune` reclaimed 31.11 GB; host disk 76% → 46%                                     | VERIFIED                                           |
-| 2026-11-17 | R1   | Dependabot excludes `@biomejs/biome`; #61 closed (its only failure was the 2.6.7 Markdown format)  | VERIFIED — policy in `.github/dependabot.yml`      |
-| 2026-11-17 | R1   | Deploy run for `f85ab11` green; `/api/health/ready` returns `f85ab11`                              | VERIFIED — R1 closed                               |
+| Date       | Gate | Evidence                                                                                                                                                      | Result                                             |
+| ---------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| 2026-11-16 | R1   | `pnpm gate` on `8068012` (235 files, 1,156 tests, 78 pages)                                                                                                   | PASS — `/tmp/opencode/gate-rate-limit.log`         |
+| 2026-11-16 | R1   | `/api/health/ready` returned `8068012`, `database:"up"`                                                                                                       | VERIFIED                                           |
+| 2026-11-16 | R1   | 9 public routes returned 200/307 (health, `/`, pricing, docs, login, signup, app, robots, sitemap)                                                            | VERIFIED                                           |
+| 2026-11-16 | R1   | `/pricing` rendered "1 website" / "20 websites"                                                                                                               | VERIFIED — matches `src/lib/plans.ts`              |
+| 2026-11-16 | core | Firefox → production tracker → ClickHouse; stats API 1/1/1; test rows deleted                                                                                 | VERIFIED — see `docs/PHASES.md` 2026-11-16         |
+| 2026-11-16 | R3   | Six ClickHouse global TTLs applied and present in `system.tables`                                                                                             | PARTIAL — tenant-scoped job not run                |
+| 2026-11-16 | R6   | No alerting configuration exists (no uptime check, no error tracker, no disk alert)                                                                           | FAIL — open                                        |
+| 2026-11-17 | R1   | `pnpm gate` on `91abed0` (236 files, 1,160 tests, 78 pages)                                                                                                   | PASS — `/tmp/opencode/gate-deploy-script-file.log` |
+| 2026-11-17 | R1   | CI green on `main` `2e88ca5` (run 43932610094)                                                                                                                | VERIFIED                                           |
+| 2026-11-17 | R1   | Deploy run 43934092294 for `2e88ca5`; `/api/health/ready` returns that SHA; 8/8 smoke routes 200                                                              | VERIFIED                                           |
+| 2026-11-17 | R1   | Rollback run 43936817147 served `577c7a0`; forward run 43938446979 restored `2e88ca5`                                                                         | VERIFIED                                           |
+| 2026-11-17 | R1   | Deploy-script stdin capture found (runs 43913859561, 43927454606) and fixed (#68, #69)                                                                        | VERIFIED — regression test in gate                 |
+| 2026-11-17 | core | `docker builder prune` reclaimed 31.11 GB; host disk 76% → 46%                                                                                                | VERIFIED                                           |
+| 2026-11-17 | R1   | Dependabot excludes `@biomejs/biome`; #61 closed (its only failure was the 2.6.7 Markdown format)                                                             | VERIFIED — policy in `.github/dependabot.yml`      |
+| 2026-11-17 | R2   | A/B probe on production: 11 cross-tenant attempts returned 401; B data intact                                                                                 | VERIFIED                                           |
+| 2026-11-17 | R2   | Share expiry: active 200, expired 404, cross-tenant share id 401                                                                                              | VERIFIED                                           |
+| 2026-11-17 | R2   | API-key scope: key reads only its website; param ignored; revoked → 401                                                                                       | VERIFIED                                           |
+| 2026-11-17 | R3   | Retention job on seeded rows: PG events/eventData/sessionData/replays/sessions 1 each deleted; fresh kept; CH 1 event + 1 replay deleted; 0 pending mutations | VERIFIED                                           |
+| 2026-11-17 | R3   | Website deletion: 8 PG tables + 5 CH tables = 0 for the deleted website                                                                                       | VERIFIED                                           |
+| 2026-11-17 | R3   | Account deletion: tombstoned, login 401, analytics purged by the job                                                                                          | VERIFIED                                           |
+| 2026-11-17 | R3   | Off-host restore: no S3/B2 configured (L13 OPEN)                                                                                                              | BLOCKED — human                                    |
 
 ## 4. Ownership and human actions
 
