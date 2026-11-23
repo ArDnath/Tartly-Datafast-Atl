@@ -717,6 +717,8 @@
 .landing-root .lp-hero-preview-in {
   opacity: 0;
   animation: lp-hero-preview-in 900ms var(--lp-ease) both;
+  position: relative;
+  z-index: 1;
 }
 
 @keyframes lp-hero-preview-in {
@@ -2659,4 +2661,40 @@
   .landing-root[data-motion="on"] .lp-step-shell[data-revealed="true"] .lp-step-band {
     animation: none;
   }
+}
+
+.landing-root .lp-hero-side-square {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  background: #f8c94b;
+  border-radius: 3px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.landing-root .lp-hero-side-square-left {
+  left: 7%;
+  top: 6.5rem;
+  transform: rotate(10deg);
+}
+
+.landing-root .lp-hero-side-square-right {
+  right: 6%;
+  top: 4.5rem;
+  transform: rotate(-12deg);
+}
+
+.landing-root .lp-hero-side-square-left2 {
+  left: 12%;
+  top: 18rem;
+  transform: rotate(-8deg);
+  opacity: 0.7;
+}
+
+.landing-root .lp-hero-side-square-right2 {
+  right: 11%;
+  top: 20rem;
+  transform: rotate(14deg);
+  opacity: 0.7;
 }

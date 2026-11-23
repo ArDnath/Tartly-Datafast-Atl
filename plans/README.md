@@ -1,6 +1,6 @@
 # Animation plans
 
-Audit basis: `improve-animations`, commit `fb71c67`.
+Audit basis: `improve-animations`, commits `fb71c67`, `8500206`.
 
 | #   | Title                                                  | Severity | Status |
 | --- | ------------------------------------------------------ | -------- | ------ |
@@ -14,6 +14,11 @@ Audit basis: `improve-animations`, commit `fb71c67`.
 | 008 | Grow the revenue bars once on reveal                   | LOW      | DONE   |
 | 009 | Revenue callout: one outline ending in an arrow        | MEDIUM   | DONE   |
 | 010 | Feature section: leaner copy, line-only figures        | MEDIUM   | DONE   |
+| 011 | Feature story rail progress tracks each step segment   | HIGH     | DONE   |
+| 012 | Feature story stage swap is wired and animated         | HIGH     | DONE   |
+| 013 | Feature story body reveal uses compositor-only motion  | MEDIUM   | DONE   |
+| 014 | Figure bubble reposition uses landing motion token     | LOW      | TODO   |
+| 015 | Tune landing reveal duration to a crisper budget       | LOW      | TODO   |
 
 Executed 2026-11-20 on commit `fb71c67` + working tree; verified by biome
 format/lint, PostCSS parse, a Tailwind CLI compile, `tsc --noEmit`, and 74

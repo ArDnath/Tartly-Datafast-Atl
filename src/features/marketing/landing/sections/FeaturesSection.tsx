@@ -1,10 +1,6 @@
 import { FigureStage } from '../figures/FigureStage';
 import { Reveal } from '../motion/Reveal';
-import { StorySteps, type StoryStep } from './StorySteps';
-
-/* ------------------------------------------------------------------ */
-/* Feature data                                                        */
-/* ------------------------------------------------------------------ */
+import { type StoryStep, StorySteps } from './StorySteps';
 
 const FEATURES: StoryStep[] = [
   {
@@ -41,10 +37,6 @@ const FEATURES: StoryStep[] = [
     ),
   },
 ];
-
-/* ------------------------------------------------------------------ */
-/* Layout                                                              */
-/* ------------------------------------------------------------------ */
 
 export function FeaturesSection() {
   return (

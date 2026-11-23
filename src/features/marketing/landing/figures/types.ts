@@ -1,9 +1,9 @@
 /**
  * The shape every feature figure speaks: a list of things to paint, back to
- * front. A solid is a silhouette plus one crease; a bead is a flat dot; a bubble
- * is a thought cloud with one arrow, carrying the dollars of the column it names.
- * The order never changes between frames, so the stage binds to it once and then
- * only rewrites what moved.
+ * front. A solid is a silhouette; a bead is a flat dot; a bubble is a thought
+ * cloud with one arrow, carrying the dollars of the column it names. The order
+ * never changes between frames, so the stage binds to it once and then only
+ * rewrites what moved.
  */
 
 export type Tone = 'dot' | 'dot m' | 'dot off';
@@ -12,7 +12,6 @@ export interface SolidItem {
   kind: 'solid';
   key: string;
   sil: string;
-  crease: string;
   hi?: boolean;
 }
 
@@ -30,8 +29,13 @@ export interface BubbleItem {
   kind: 'bubble';
   key: string;
   path: string;
+  /** Group anchor in screen coords. */
   x: number;
+  /** Group anchor in screen coords. */
   y: number;
+  /** Label position in local coords. Defaults to the group origin. */
+  tx?: number;
+  ty?: number;
   text: string;
 }
 

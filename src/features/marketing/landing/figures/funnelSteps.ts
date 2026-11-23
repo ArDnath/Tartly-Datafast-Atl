@@ -1,14 +1,24 @@
 import type { Camera, Point, Projector } from './iso';
-import { camera, clamp, contains, facing, frameTo, lerp, projector, rings, solidGeom } from './iso';
+import {
+  camera,
+  clamp,
+  contains,
+  facing,
+  frameTo,
+  lerp,
+  projector,
+  r2,
+  rings,
+  solidGeom,
+} from './iso';
 import type { Item } from './types';
 
 /**
  * A funnel as a stair: three terraces, each a solid rising from the plinth to
  * its own height, narrowing as the drop goes on. Beads run along the top of a
  * terrace and spill over its lip onto the next, easing into the ride and
- * accelerating down the face, so the falling traffic is the subject and keeps
- * going. The bright stroke tours the terraces and names each step. Hovering a
- * terrace holds the spill and names it too.
+ * accelerating down the face. The bright stroke and cloud callout follow the
+ * active step.
  */
 
 const W0 = 120;
@@ -55,7 +65,6 @@ interface Tier {
   z: number;
   outline: Point[];
   sil: string;
-  crease: string;
 }
 
 const tiers: Tier[] = TIERS.map((tier, i) => {
@@ -73,84 +82,80 @@ const tiers: Tier[] = TIERS.map((tier, i) => {
     z: tier.z,
     outline: g.outline,
     sil: g.sil,
-    crease: g.crease,
   };
 });
-
-/** Beads ease into the ride, then fall under gravity down the face. */
-const easeInOut = (x: number) => (x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2);
-const easeIn = (x: number) => x * x;
-
-interface Bead {
-  cx: number;
-  cy: number;
-  /** Vertical stretch while falling: squash and stretch, the oldest trick. */
-  stretch: number;
-}
-
-/**
- * A bead at stage `u` in 0..3: it glides along the top of terrace i from its
- * back to its lip, arcs a little over the surface, then accelerates down the
- * face to the next terrace. The ride is long, the hop is short, so a bead
- * reads as traffic finding the drop.
- */
-function beadAt(u: number): Bead {
-  const last = tiers.length - 1;
-  const i = clamp(Math.floor(u), 0, last);
-  const f = clamp(u - i, 0, 1);
-  const a = tiers[i];
-  const b = tiers[Math.min(i + 1, last)];
-  const ride = 0.62;
-
-  if (f < ride) {
-    const k = easeInOut(f / ride);
-    const x = lerp(a.x0 + 10, a.x1 - 10, k * 0.42);
-    const y = lerp(a.y0 + 5, a.y1 + 1, k);
-    const z = a.z + 1.7 + Math.sin(k * Math.PI) * 0.9;
-    const [cx, cy] = P(x, y, z);
-    return { cx, cy, stretch: 1 };
-  }
-
-  const k = easeIn((f - ride) / (1 - ride));
-  const x = lerp(lerp(a.x0 + 10, a.x1 - 10, 0.42), b.x0 + 10, k);
-  const y = lerp(a.y1 + 1, b.y0 + 5, k);
-  const z = lerp(a.z + 1.7, b.z + 1.7, k);
-  const [cx, cy] = P(x, y, z);
-  return { cx, cy, stretch: 1 + 0.34 * k };
-}
-
-const BEADS = 6;
-const PERIOD = 3000;
 
 let t = 0;
 let held: string | null = null;
 const holdIndex = () => (held ? tiers.findIndex(s => s.key === held) : -1);
-
-/** The beads at clock `at`. Rest and every frame share it, so their keys match. */
-function beads(at: number, bright = false): Item[] {
-  return Array.from({ length: BEADS }, (_, b) => {
-    const u = ((at / PERIOD + b / BEADS) % 1) * tiers.length;
-    const bead = beadAt(u);
-    const lead = bright && b === 0;
-    const base = (lead ? 3.3 : 2.9) * (1 + 0.05 * Math.sin(at / 320 + b * 1.3));
-    const { stretch } = bead;
-    return {
-      kind: 'dot' as const,
-      key: `bead-${b}`,
-      cx: bead.cx,
-      cy: bead.cy,
-      rx: (base / Math.sqrt(stretch)) * C.S,
-      ry: base * C.S * C.k * stretch,
-      tone: lead ? ('dot' as const) : ('dot m' as const),
-    };
-  });
-}
 
 /** How long the bright stroke sits on each step before moving on. */
 const TOUR = 1600;
 const tourIndex = () => Math.floor(t / TOUR) % tiers.length;
 
 const LABELS = ['step 1 · visits', 'step 2 · trials', 'step 3 · paid'];
+const CLOUD = ['Visits 1,284', 'Trials 312', 'Paid 84'];
+
+const CLOUD_W = 74;
+const CLOUD_H = 20;
+const CLOUD_R = 6;
+const CLOUD_TAIL = 3;
+const CLOUD_TIP = 11;
+const CLOUD_GAP = 5;
+
+function callout(w: number, h: number, r: number, tail: number, tip: number): string {
+  const hw = w / 2;
+  const top = -h;
+  const rr = Math.min(r, hw, h / 2);
+  return [
+    `M${r2(-tail)} 0`,
+    `L${r2(-hw + rr)} 0`,
+    `A${rr} ${rr} 0 0 1 ${r2(-hw)} ${r2(-rr)}`,
+    `L${r2(-hw)} ${r2(top + rr)}`,
+    `A${rr} ${rr} 0 0 1 ${r2(-hw + rr)} ${r2(top)}`,
+    `L${r2(hw - rr)} ${r2(top)}`,
+    `A${rr} ${rr} 0 0 1 ${r2(hw)} ${r2(top + rr)}`,
+    `L${r2(hw)} ${r2(-rr)}`,
+    `A${rr} ${rr} 0 0 1 ${r2(hw - rr)} 0`,
+    `L${r2(tail)} 0`,
+    `L0 ${r2(tip)}`,
+    'Z',
+  ].join('');
+}
+
+const CLOUD_PATH = callout(CLOUD_W, CLOUD_H, CLOUD_R, CLOUD_TAIL, CLOUD_TIP);
+
+function topOfSilhouette(sil: string) {
+  const nums = sil.match(/-?\d+(?:\.\d+)?/g) ?? [];
+  let top = Infinity;
+  for (let i = 1; i < nums.length; i += 2) top = Math.min(top, Number(nums[i]));
+  return top;
+}
+
+function centerOfSilhouette(sil: string) {
+  const nums = sil.match(/-?\d+(?:\.\d+)?/g) ?? [];
+  let sum = 0;
+  let count = 0;
+  for (let i = 0; i + 1 < nums.length; i += 2) {
+    sum += Number(nums[i]);
+    count += 1;
+  }
+  return count ? sum / count : 200;
+}
+
+function cloudFor(index: number, sil: string): Item {
+  const halfW = CLOUD_W / 2;
+  return {
+    kind: 'bubble',
+    key: 'funnel-cloud',
+    path: CLOUD_PATH,
+    x: Math.round(clamp(centerOfSilhouette(sil), halfW + 4, 396 - halfW)),
+    y: Math.round(topOfSilhouette(sil) - CLOUD_GAP - CLOUD_TIP),
+    tx: 0,
+    ty: Math.round(-CLOUD_H / 2 + 1),
+    text: CLOUD[index] ?? '',
+  };
+}
 
 export const funnelSteps = {
   view: '0 0 400 320',
@@ -162,19 +167,16 @@ export const funnelSteps = {
   watch: () => tiers[tourIndex()].key,
 
   rest(): Item[] {
-    const items: Item[] = [
-      { kind: 'solid', key: 'plinth', sil: plinth.sil, crease: plinth.crease },
-    ];
+    const items: Item[] = [{ kind: 'solid', key: 'plinth', sil: plinth.sil }];
     for (const tier of tiers) {
       items.push({
         kind: 'solid',
         key: tier.key,
         sil: tier.sil,
-        crease: tier.crease,
         hi: tier.key === tiers[0].key,
       });
     }
-    items.push(...beads(0, true));
+    items.push(cloudFor(0, tiers[0].sil));
     return items;
   },
 
@@ -193,19 +195,16 @@ export const funnelSteps = {
     const hold = holdIndex();
     if (hold < 0) t += dt;
     const focus = hold >= 0 ? hold : tourIndex();
-    const items: Item[] = [
-      { kind: 'solid', key: 'plinth', sil: plinth.sil, crease: plinth.crease },
-    ];
+    const items: Item[] = [{ kind: 'solid', key: 'plinth', sil: plinth.sil }];
     tiers.forEach((tier, i) => {
       items.push({
         kind: 'solid',
         key: tier.key,
         sil: tier.sil,
-        crease: tier.crease,
         hi: i === focus,
       });
     });
-    items.push(...beads(t, hold < 0));
+    items.push(cloudFor(focus, tiers[focus].sil));
     return items;
   },
 };

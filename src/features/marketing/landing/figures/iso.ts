@@ -1,10 +1,9 @@
 /**
  * The isometric core the feature figures are drawn from: a 2:1 camera, rounded
- * rings, and solids built as the hull of two rings with one inner crease.
+ * rings, and solids built as the hull of two rings.
  *
  * A solid never draws its vertical corners. Its silhouette is the outline of
- * its top and base rings; its crease is the front run of an inset ring, one or
- * two world units inside the silhouette. Bright outside, dim inside.
+ * its top and base rings. Bright outside, quiet inside.
  */
 
 export interface Camera {
@@ -151,7 +150,7 @@ export function capsule(
   return out;
 }
 
-/** A capsule pulled in by `b` on every side, for a rail's crease. */
+/** A capsule pulled in by `b` on every side, for an inset ring. */
 export function capsuleInset(
   ax: number,
   ay: number,
@@ -232,24 +231,21 @@ export const openPath = (pts: Point[]) =>
 export interface SolidGeom {
   /** The outer outline: the hull of the top and base rings, and nothing else. */
   sil: string;
-  /** The one dim line inside it: the front run of the inset ring. */
-  crease: string;
   /** The same outline as points, for a hit test against the rest pose. */
   outline: Point[];
 }
 
 export function solidGeom(
   P: Projector,
-  front: (q: Sample) => boolean,
+  _front: (q: Sample) => boolean,
   ring: Sample[],
-  inner: Sample[],
+  _inner: Sample[],
   z0: number,
   z1: number,
 ): SolidGeom {
   const outline = hull(ringAt(P, ring, z1).concat(ringAt(P, ring, z0)));
   return {
     sil: poly(outline),
-    crease: inner.length ? openPath(ringAt(P, run(inner, front), z1)) : '',
     outline,
   };
 }

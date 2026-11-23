@@ -4,12 +4,9 @@ import type { Item } from './types';
 
 /**
  * Twelve columns on a low plinth, read as a bar chart you could walk around.
- * A travelling swell runs along the row and never stops. The bright stroke
- * tours the row in a slow loop, naming each column's revenue as it passes, and
- * a cloud callout carries that column's dollars just above the bar, its arrow
- * pointing down at the bar's crown. Point at a column and the swell settles
- * towards it and the read-out holds that column's dollars, so a hand on the row
- * holds the reading still.
+ * A travelling swell runs along the row and never stops. Point at a column and
+ * the swell settles towards it; the bright stroke and the cloud callout follow,
+ * carrying that column's dollars just above the bar's crown.
  */
 
 const N = 12;
@@ -65,7 +62,6 @@ interface Column {
   h: number;
   outline: [number, number][];
   sil: string;
-  crease: string;
 }
 
 const columns: Column[] = HEIGHTS.map((h, i) => {
@@ -82,54 +78,45 @@ const columns: Column[] = HEIGHTS.map((h, i) => {
     h,
     outline: g.outline,
     sil: g.sil,
-    crease: g.crease,
   };
 });
 
 /**
- * The callout outline, drawn once around its own origin: a scalloped cloud body
- * whose base runs out into one straight-sided arrow.
- *
- * The bumps sit on an ellipse and are joined by arcs sized as a fraction of each
- * chord, so the whole thing is a single continuous line — no free-standing
- * puffs. The base is left open between -half and +half and those two points run
- * down to one point at `tip`, so the tail reads as a pointer rather than a bead.
- *
- * Fixed extents, which the anchoring and the tests rely on:
- *   body top = -ry, base = ry * 0.86, arrow point = +tip.
+ * Rounded rectangular callout, centred horizontally around its origin with the
+ * body above y=0 and a small pointer dropping below it. The pointer tip sits at
+ * `tipY`, which is what we anchor a fixed gap above the highlighted bar.
  */
-const CLOUD_RX = 27;
-const CLOUD_RY = 10.5;
-const CLOUD_HALF = 4;
-const CLOUD_TIP = 16;
-/** Clearance between the arrow's point and the crown of the bar it names. */
+const CLOUD_W = 56;
+const CLOUD_H = 24;
+const CLOUD_R = 8;
+const CLOUD_TAIL = 4;
+const CLOUD_TIP = 14;
+/** Clearance between the pointer tip and the crown of the bar it names. */
 const CLOUD_GAP = 7;
 
-function thoughtCloud(rx: number, ry: number, half: number, tip: number): string {
-  const bumps = 9;
-  const bulge = 0.6;
-  const base = ry * 0.86;
-  const pts: [number, number][] = [];
-  for (let i = 0; i < bumps; i += 1) {
-    const a = -Math.PI / 2 + (i / bumps) * Math.PI * 2;
-    pts.push([Math.cos(a) * rx, Math.sin(a) * ry]);
-  }
-
-  // Start at the left edge of the base gap and run clockwise, so the base stays
-  // open for the tail instead of closing underneath it.
-  const start = pts.findIndex(p => p[0] < 0 && p[1] > 0);
-  let d = `M${r2(-half)} ${r2(base)}L${r2(pts[start][0])} ${r2(pts[start][1])}`;
-  for (let k = 1; k < bumps; k += 1) {
-    const [x0, y0] = pts[(start + k - 1) % bumps];
-    const [x1, y1] = pts[(start + k) % bumps];
-    const r = r2(Math.hypot(x1 - x0, y1 - y0) * bulge);
-    d += `A${r} ${r} 0 0 1 ${r2(x1)} ${r2(y1)}`;
-  }
-
-  return `${d}L${r2(half)} ${r2(base)}L0 ${r2(tip)}Z`;
+function callout(w: number, h: number, r: number, tail: number, tip: number): string {
+  const hw = w / 2;
+  const top = -h;
+  const right = hw;
+  const left = -hw;
+  const rr = Math.min(r, hw, h / 2);
+  return [
+    `M${r2(-tail)} 0`,
+    `L${r2(left + rr)} 0`,
+    `A${rr} ${rr} 0 0 1 ${r2(left)} ${r2(-rr)}`,
+    `L${r2(left)} ${r2(top + rr)}`,
+    `A${rr} ${rr} 0 0 1 ${r2(left + rr)} ${r2(top)}`,
+    `L${r2(right - rr)} ${r2(top)}`,
+    `A${rr} ${rr} 0 0 1 ${r2(right)} ${r2(top + rr)}`,
+    `L${r2(right)} ${r2(-rr)}`,
+    `A${rr} ${rr} 0 0 1 ${r2(right - rr)} 0`,
+    `L${r2(tail)} 0`,
+    `L0 ${r2(tip)}`,
+    'Z',
+  ].join('');
 }
 
-const CLOUD = thoughtCloud(CLOUD_RX, CLOUD_RY, CLOUD_HALF, CLOUD_TIP);
+const CLOUD = callout(CLOUD_W, CLOUD_H, CLOUD_R, CLOUD_TAIL, CLOUD_TIP);
 
 /** The topmost screen y of a silhouette, read back off its path data. */
 function topOfSilhouette(sil: string) {
@@ -151,12 +138,19 @@ function topOfSilhouette(sil: string) {
 function revenueCloud(i: number, sil: string): Item {
   const col = columns[i];
   const [sx] = P(col.cx, col.cy, 0);
+  const halfW = CLOUD_W / 2;
+  const top = topOfSilhouette(sil);
+  const minY = CLOUD_H + 1;
+  const bottomLimit = Math.max(minY, Math.floor(top - CLOUD_TIP));
+  const y = clamp(Math.floor(top - CLOUD_GAP - CLOUD_TIP), minY, bottomLimit);
   return {
     kind: 'bubble',
     key: 'revenue-cloud',
     path: CLOUD,
-    x: Math.round(clamp(sx, CLOUD_RX + 4, 396 - CLOUD_RX)),
-    y: Math.round(topOfSilhouette(sil) - CLOUD_GAP - CLOUD_TIP),
+    x: Math.round(clamp(sx, halfW + 4, 396 - halfW)),
+    y,
+    tx: 0,
+    ty: Math.round(-CLOUD_H / 2 + 1),
     text: money(revenueOf(i)),
   };
 }
@@ -172,14 +166,23 @@ function swell(i: number, t: number, hold: number) {
 const heightOf = (i: number, t: number, hold: number) =>
   Math.max(FLOOR, columns[i].h + swell(i, t, hold) * WAVE);
 
-/** How long the bright stroke spends on each column before moving on. */
-const TOUR = 1000;
-
 let t = 0;
-let tour = 0;
 let held: string | null = null;
 const holdIndex = () => (held ? columns.findIndex(c => c.key === held) : -1);
-const tourIndex = () => Math.floor(tour / TOUR) % N;
+
+const peakAt = (at: number, hold: number) => {
+  if (hold >= 0) return hold;
+  let best = 0;
+  let bestValue = -Infinity;
+  for (let i = 0; i < N; i += 1) {
+    const value = swell(i, at, -1);
+    if (value > bestValue) {
+      best = i;
+      bestValue = value;
+    }
+  }
+  return best;
+};
 
 export const revenueColumns = {
   view: '0 0 400 320',
@@ -188,22 +191,25 @@ export const revenueColumns = {
     if (!key) return 'rest';
     return `revenue ${money(revenueOf(Number(key.slice(4))))}`;
   },
-  watch: () => columns[tourIndex()].key,
+  watch: () => columns[peakAt(t, holdIndex())].key,
 
   rest(): Item[] {
-    const items: Item[] = [
-      { kind: 'solid', key: 'plinth', sil: plinth.sil, crease: plinth.crease },
-    ];
-    for (const col of columns) {
+    const peak = peakAt(0, -1);
+    const items: Item[] = [{ kind: 'solid', key: 'plinth', sil: plinth.sil }];
+    let peakSil = columns[peak].sil;
+    for (let i = 0; i < N; i += 1) {
+      const col = columns[i];
+      const h = heightOf(i, 0, -1);
+      const g = solidGeom(P, front, col.ring, col.inner, 0, h);
+      if (i === peak) peakSil = g.sil;
       items.push({
         kind: 'solid',
         key: col.key,
-        sil: col.sil,
-        crease: col.crease,
-        hi: col.key === columns[0].key,
+        sil: g.sil,
+        hi: i === peak,
       });
     }
-    items.push(revenueCloud(0, columns[0].sil));
+    items.push(revenueCloud(peak, peakSil));
     return items;
   },
 
@@ -221,11 +227,8 @@ export const revenueColumns = {
   frame(dt: number): Item[] {
     t += dt;
     const hold = holdIndex();
-    if (hold < 0) tour += dt;
-    const mark = hold >= 0 ? hold : tourIndex();
-    const items: Item[] = [
-      { kind: 'solid', key: 'plinth', sil: plinth.sil, crease: plinth.crease },
-    ];
+    const mark = peakAt(t, hold);
+    const items: Item[] = [{ kind: 'solid', key: 'plinth', sil: plinth.sil }];
     let markSil = columns[mark].sil;
     for (let i = 0; i < N; i++) {
       const col = columns[i];
@@ -236,7 +239,6 @@ export const revenueColumns = {
         kind: 'solid',
         key: col.key,
         sil: g.sil,
-        crease: g.crease,
         hi: i === mark,
       });
     }

@@ -243,6 +243,70 @@ export function HeroSection() {
         <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-lp-canvas to-transparent" />
       </div>
 
+
+
+      {/*
+        Decorative "profit" snapshots scattered across the hero at random-ish
+        positions. They load eagerly so they are part of the first paint.
+      */}
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
+
+        <img
+          src="/hero-profit/profit-2.png"
+          alt=""
+          width={252}
+          height={275}
+          loading="eager"
+          fetchPriority="high"
+          className="absolute left-[3%] top-[5%] w-44 -rotate-8 opacity-90"
+        />
+        <img
+          src="/hero-profit/profit-3.png"
+          alt=""
+          width={143}
+          height={154}
+          loading="eager"
+          fetchPriority="high"
+          className="absolute right-[30%] bottom-[6%] w-36 rotate-3 opacity-85"
+        />
+        <img
+          src="/hero-profit/profit-4.png"
+          alt=""
+          width={201}
+          height={163}
+          loading="eager"
+          fetchPriority="high"
+          className="absolute left-[7%] bottom-[8%] w-40 -rotate-4 opacity-85"
+        />
+        <img
+          src="/hero-profit/profit-3.png"
+          alt=""
+          width={143}
+          height={154}
+          loading="eager"
+          fetchPriority="high"
+          className="absolute right-[2%] top-[10%] w-64 -rotate-2 opacity-95"
+        />
+        <img
+          src="/hero-profit/see-which-pages-profit.png"
+          alt=""
+          width={105}
+          height={109}
+          loading="eager"
+          fetchPriority="high"
+          className="absolute left-[18%] top-[22%] w-48 rotate-6 opacity-90"
+        />
+        <img
+          src="/hero-profit/see-which-pages-profit.png"
+          alt=""
+          width={105}
+          height={109}
+          loading="eager"
+          fetchPriority="high"
+          className="absolute right-[12%] bottom-[14%] w-52 -rotate-5 opacity-90"
+        />
+      </div>
+
       <div className="lp-hero relative z-10 mx-auto w-full max-w-5xl px-5 sm:px-6">
         <h1
           aria-label={`See which ${SWAP_WORDS[channelIndex]} actually make ${REVENUE_WORDS[revenueIndex]}`}
@@ -346,6 +410,7 @@ export function HeroSection() {
 
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-12 md:px-6 md:pb-16">
         <DemoAnnotation />
+
         <div
           className="lp-hero-preview-in relative mx-auto w-full max-w-6xl"
           style={{ animationDelay: '620ms' }}

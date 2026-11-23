@@ -3,10 +3,12 @@ import {
   camera,
   capsule,
   capsuleInset,
+  clamp,
   contains,
   facing,
   frameTo,
   projector,
+  r2,
   rings,
   solidGeom,
 } from './iso';
@@ -16,9 +18,8 @@ import type { Item } from './types';
  * A Y-junction lying on a plinth. Two arms come in from the far corners, meet
  * at a small collar, and leave as one long leg towards the viewer. The arms
  * are the first touch and the last; the leg is the payment both end in. The
- * bright stroke tours the three hands in a slow loop — first touch, last
- * touch, paid — so the read-out narrates the join even before a pointer
- * arrives. The mark at the collar breathes, so the join stays alive.
+ * bright stroke and the cloud callout follow the active hand, so the read-out
+ * narrates the join.
  */
 
 const W = 100;
@@ -54,7 +55,6 @@ const plinth = solidGeom(P, front, ...rings(-PAD, -PAD, W + PAD, DEEP + PAD, 8, 
 interface Leg {
   key: string;
   sil: string;
-  crease: string;
   outline: Point[];
 }
 
@@ -63,7 +63,7 @@ function legOf(key: string, ax: number, ay: number, bx: number, by: number): Leg
   const foot = capsule(ax, ay, bx, by, RAIL, 9);
   const inset = capsuleInset(ax, ay, bx, by, RAIL, 1.7, 9);
   const g = solidGeom(P, front, foot, inset, 0, H);
-  return { key, sil: g.sil, crease: g.crease, outline: g.outline };
+  return { key, sil: g.sil, outline: g.outline };
 }
 
 /*
@@ -130,6 +130,74 @@ const LABELS: Record<string, string> = {
   collar: 'match',
 };
 
+const CLOUD: Record<string, string> = {
+  'arm-0': 'Google',
+  'arm-1': 'Direct',
+  leg: '$249',
+  collar: 'Matched',
+};
+
+const CLOUD_W = 52;
+const CLOUD_H = 22;
+const CLOUD_R = 7;
+const CLOUD_TAIL = 3.5;
+const CLOUD_TIP = 12;
+const CLOUD_GAP = 6;
+
+function callout(w: number, h: number, r: number, tail: number, tip: number): string {
+  const hw = w / 2;
+  const top = -h;
+  const rr = Math.min(r, hw, h / 2);
+  return [
+    `M${r2(-tail)} 0`,
+    `L${r2(-hw + rr)} 0`,
+    `A${rr} ${rr} 0 0 1 ${r2(-hw)} ${r2(-rr)}`,
+    `L${r2(-hw)} ${r2(top + rr)}`,
+    `A${rr} ${rr} 0 0 1 ${r2(-hw + rr)} ${r2(top)}`,
+    `L${r2(hw - rr)} ${r2(top)}`,
+    `A${rr} ${rr} 0 0 1 ${r2(hw)} ${r2(top + rr)}`,
+    `L${r2(hw)} ${r2(-rr)}`,
+    `A${rr} ${rr} 0 0 1 ${r2(hw - rr)} 0`,
+    `L${r2(tail)} 0`,
+    `L0 ${r2(tip)}`,
+    'Z',
+  ].join('');
+}
+
+const CLOUD_PATH = callout(CLOUD_W, CLOUD_H, CLOUD_R, CLOUD_TAIL, CLOUD_TIP);
+
+function topOfSilhouette(sil: string) {
+  const nums = sil.match(/-?\d+(?:\.\d+)?/g) ?? [];
+  let top = Infinity;
+  for (let i = 1; i < nums.length; i += 2) top = Math.min(top, Number(nums[i]));
+  return top;
+}
+
+function centerOfSilhouette(sil: string) {
+  const nums = sil.match(/-?\d+(?:\.\d+)?/g) ?? [];
+  let sum = 0;
+  let count = 0;
+  for (let i = 0; i + 1 < nums.length; i += 2) {
+    sum += Number(nums[i]);
+    count += 1;
+  }
+  return count ? sum / count : 200;
+}
+
+function cloudFor(key: string, sil: string): Item {
+  const halfW = CLOUD_W / 2;
+  return {
+    kind: 'bubble',
+    key: 'attribution-cloud',
+    path: CLOUD_PATH,
+    x: Math.round(clamp(centerOfSilhouette(sil), halfW + 4, 396 - halfW)),
+    y: Math.round(topOfSilhouette(sil) - CLOUD_GAP - CLOUD_TIP),
+    tx: 0,
+    ty: Math.round(-CLOUD_H / 2 + 1),
+    text: CLOUD[key] ?? 'rest',
+  };
+}
+
 /** How long the bright stroke sits on each hand before moving to the next. */
 const TOUR = 1400;
 
@@ -147,20 +215,18 @@ export const attributionRails = {
   watch: () => legs[tourIndex()].key,
 
   rest(): Item[] {
-    const items: Item[] = [
-      { kind: 'solid', key: 'plinth', sil: plinth.sil, crease: plinth.crease },
-    ];
+    const items: Item[] = [{ kind: 'solid', key: 'plinth', sil: plinth.sil }];
     for (const l of legs) {
       items.push({
         kind: 'solid',
         key: l.key,
         sil: l.sil,
-        crease: l.crease,
         hi: l.key === legs[0].key,
       });
     }
-    items.push({ kind: 'solid', key: 'collar', sil: collar.sil, crease: collar.crease });
+    items.push({ kind: 'solid', key: 'collar', sil: collar.sil });
     items.push(...punches());
+    items.push(cloudFor(legs[0].key, legs[0].sil));
     return items;
   },
 
@@ -180,15 +246,14 @@ export const attributionRails = {
     t += dt;
     if (held === null) tour += dt;
     const mark = held ?? legs[tourIndex()].key;
-    const items: Item[] = [
-      { kind: 'solid', key: 'plinth', sil: plinth.sil, crease: plinth.crease },
-    ];
+    const items: Item[] = [{ kind: 'solid', key: 'plinth', sil: plinth.sil }];
+    let markSil = collar.sil;
     for (const l of legs) {
+      if (l.key === mark) markSil = l.sil;
       items.push({
         kind: 'solid',
         key: l.key,
         sil: l.sil,
-        crease: l.crease,
         hi: l.key === mark,
       });
     }
@@ -196,10 +261,10 @@ export const attributionRails = {
       kind: 'solid',
       key: 'collar',
       sil: collar.sil,
-      crease: collar.crease,
       hi: held === 'collar',
     });
     items.push(...punches(t));
+    items.push(cloudFor(mark, markSil));
     return items;
   },
 };

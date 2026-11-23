@@ -11,7 +11,7 @@ import type { Figure, Item } from './types';
  *     reader asked for reduced motion. Offscreen figures are not drawn at all.
  */
 
-type Sink = (items: Item[]) => void;
+type Sink = (items: Item[], dt: number) => void;
 
 interface Board {
   figure: Figure;
@@ -54,7 +54,7 @@ function tick(now: number) {
 
   for (const board of boards) {
     if (!board.visible) continue;
-    board.sink(board.figure.frame(dt));
+    board.sink(board.figure.frame(dt), dt);
     board.last = now;
   }
 
@@ -103,8 +103,8 @@ function onVisibility() {
  */
 export function animate(figure: Figure, element: Element, sink: Sink) {
   if (reducedMotion()) {
-    const redraw = () => sink(figure.frame(0));
-    sink(figure.rest());
+    const redraw = () => sink(figure.frame(0), 0);
+    sink(figure.rest(), 0);
     return { stop: () => {}, redraw };
   }
 
@@ -132,5 +132,5 @@ export function animate(figure: Figure, element: Element, sink: Sink) {
     }
   };
 
-  return { stop, redraw: () => sink(figure.frame(0)) };
+  return { stop, redraw: () => sink(figure.frame(0), 0) };
 }

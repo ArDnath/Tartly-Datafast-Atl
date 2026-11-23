@@ -26,10 +26,15 @@ const dotClass = (tone: string) =>
 
 interface Node {
   sil?: SVGPathElement;
-  crease?: SVGPathElement;
   dot?: SVGEllipseElement;
+  bubble?: SVGGElement;
   cloud?: SVGPathElement;
   label?: SVGElement;
+  bx?: number;
+  by?: number;
+  btx?: number;
+  bty?: number;
+  bTransUntil?: number;
 }
 
 /**
@@ -50,44 +55,56 @@ function bind(svg: SVGSVGElement, items: Item[]) {
       svg.appendChild(dot);
       nodes.set(item.key, {
         sil: document.createElementNS(NS, 'path'),
-        crease: document.createElementNS(NS, 'path'),
         dot,
       });
       continue;
     }
     if (item.kind === 'bubble') {
       const group = document.createElementNS(NS, 'g');
+      group.setAttribute('class', 'lp-fig-bubble');
+      group.style.transform = `translate(${item.x}px, ${item.y}px)`;
+      group.style.transition = 'none';
       const cloud = document.createElementNS(NS, 'path');
       cloud.setAttribute('d', item.path);
       cloud.setAttribute('class', 'lp-fig-cloud');
       group.appendChild(cloud);
       const label = document.createElementNS(NS, 'text');
-      label.setAttribute('x', String(item.x));
-      label.setAttribute('y', String(item.y));
+      label.setAttribute('x', String(item.tx ?? 0));
+      label.setAttribute('y', String(item.ty ?? 0));
       label.setAttribute('class', 'lp-fig-bubble-text');
       label.textContent = item.text;
       group.appendChild(label);
       svg.appendChild(group);
-      nodes.set(item.key, { cloud, label });
+      nodes.set(item.key, {
+        bubble: group,
+        cloud,
+        label,
+        bx: item.x,
+        by: item.y,
+        btx: item.tx ?? 0,
+        bty: item.ty ?? 0,
+      });
       continue;
     }
     const group = document.createElementNS(NS, 'g');
     const sil = document.createElementNS(NS, 'path');
-    const crease = document.createElementNS(NS, 'path');
     sil.setAttribute('d', item.sil);
     sil.setAttribute('class', 'lp-fig-solid');
-    crease.setAttribute('d', item.crease);
-    crease.setAttribute('class', 'lp-fig-crease');
     group.appendChild(sil);
-    group.appendChild(crease);
     svg.appendChild(group);
-    nodes.set(item.key, { sil, crease });
+    nodes.set(item.key, { sil });
   }
   return nodes;
 }
 
 /** Writes a pose onto the nodes, touching only what changed. */
-function paint(nodes: Map<string, Node>, items: Item[]) {
+const reducedMotion = () =>
+  typeof window !== 'undefined' &&
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function paint(nodes: Map<string, Node>, items: Item[], dt: number) {
+  const reduce = reducedMotion();
   for (const item of items) {
     const node = nodes.get(item.key);
     if (!node) continue;
@@ -107,21 +124,40 @@ function paint(nodes: Map<string, Node>, items: Item[]) {
     if (item.kind === 'bubble') {
       const cloud = node.cloud;
       const label = node.label;
-      if (!cloud || !label) continue;
+      const group = node.bubble;
+      if (!cloud || !label || !group) continue;
+      if (node.bx !== item.x || node.by !== item.y) {
+        const dx = item.x - (node.bx ?? item.x);
+        const dy = item.y - (node.by ?? item.y);
+        const jump = Math.hypot(dx, dy);
+        if (!reduce && jump > 12) {
+          group.style.transition = 'transform 240ms cubic-bezier(0.22, 1, 0.36, 1)';
+          node.bTransUntil = performance.now() + 260;
+        } else if ((node.bTransUntil ?? 0) < performance.now()) {
+          group.style.transition = 'none';
+        }
+        group.style.transform = `translate(${item.x}px, ${item.y}px)`;
+        node.bx = item.x;
+        node.by = item.y;
+      }
       if (cloud.getAttribute('d') !== item.path) cloud.setAttribute('d', item.path);
-      const x = String(Math.round(item.x * 100) / 100);
-      const y = String(Math.round(item.y * 100) / 100);
-      if (label.getAttribute('x') !== x) label.setAttribute('x', x);
-      if (label.getAttribute('y') !== y) label.setAttribute('y', y);
+      const tx = item.tx ?? 0;
+      const ty = item.ty ?? 0;
+      if (node.btx !== tx) {
+        label.setAttribute('x', String(tx));
+        node.btx = tx;
+      }
+      if (node.bty !== ty) {
+        label.setAttribute('y', String(ty));
+        node.bty = ty;
+      }
       if (label.textContent !== item.text) label.textContent = item.text;
       continue;
     }
 
     const sil = node.sil;
-    const crease = node.crease;
-    if (!sil || !crease) continue;
+    if (!sil) continue;
     if (sil.getAttribute('d') !== item.sil) sil.setAttribute('d', item.sil);
-    if (crease.getAttribute('d') !== item.crease) crease.setAttribute('d', item.crease);
     const cls = `lp-fig-solid${item.hi ? ' hi' : ''}`;
     if (sil.getAttribute('class') !== cls) sil.setAttribute('class', cls);
   }
@@ -142,16 +178,19 @@ function FigureStill({ figure, describe }: { figure: Figure; describe: string })
             className={dotClass(item.tone)}
           />
         ) : item.kind === 'bubble' ? (
-          <g key={item.key}>
+          <g
+            key={item.key}
+            className="lp-fig-bubble"
+            style={{ transform: `translate(${item.x}px, ${item.y}px)` }}
+          >
             <path d={item.path} className="lp-fig-cloud" />
-            <text x={item.x} y={item.y} className="lp-fig-bubble-text">
+            <text x={item.tx ?? 0} y={item.ty ?? 0} className="lp-fig-bubble-text">
               {item.text}
             </text>
           </g>
         ) : (
           <g key={item.key}>
             <path d={item.sil} className="lp-fig-solid" />
-            <path d={item.crease} className="lp-fig-crease" />
           </g>
         ),
       )}
@@ -192,8 +231,8 @@ export function FigureStage({ id, describe }: { id: string; describe: string }) 
     };
 
     let binding: ReturnType<typeof animate> | null = null;
-    binding = animate(figure, element, items => {
-      paint(nodes, items);
+    binding = animate(figure, element, (items, dt) => {
+      paint(nodes, items, dt);
       readNow();
     });
 

@@ -174,15 +174,18 @@ describe('the figures read out what they show', () => {
         throw new Error('missing cloud or bright column');
       }
 
-      // The path's fixed extents: -10.5 above the anchor, +16 below it, ±27 wide.
-      expect(cloud.y - 10.5).toBeGreaterThan(0);
-      expect(cloud.y + 16).toBeLessThan(320);
-      expect(cloud.x - 27).toBeGreaterThan(0);
-      expect(cloud.x + 27).toBeLessThan(400);
+      // Rounded-rect callout extents: body top at -24, pointer tip at +14, ±28 wide.
+      expect(cloud.y - 24).toBeGreaterThanOrEqual(0);
+      expect(cloud.y + 14).toBeLessThan(320);
+      expect(cloud.x - 28).toBeGreaterThan(0);
+      expect(cloud.x + 28).toBeLessThan(400);
 
-      // The arrow stops above the crown of the bar it names, and clears it.
-      expect(cloud.y + 16).toBeLessThan(top(bar.sil));
-      expect(top(bar.sil) - (cloud.y + 16)).toBeGreaterThanOrEqual(6);
+      // The pointer aims at the bar crown. When a very tall bar reaches the top
+      // frame edge, the callout hugs the frame rather than clipping out of view.
+      if (cloud.y - 24 > 0) {
+        expect(cloud.y + 14).toBeLessThanOrEqual(top(bar.sil) + 2);
+      }
+      expect(cloud.y + 14).toBeLessThan(top(bar.sil) + 18);
     }
   });
 

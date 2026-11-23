@@ -98,7 +98,7 @@ export function StorySteps({ steps, flip = false, variant = 'rail' }: StorySteps
   }, [stacked]);
 
   useEffect(() => {
-    let shownProgress = -1;
+    const fills: number[] = [];
 
     const update = () => {
       const track = trackRef.current;
@@ -113,19 +113,28 @@ export function StorySteps({ steps, flip = false, variant = 'rail' }: StorySteps
       // The rail scrolls with the page; a viewport-fixed reading line is what
       // makes steps activate as they pass through the pinned/sticky region.
       const line = window.innerHeight * 0.44;
-      const progress = Math.min(Math.max((line - trackRect.top) / trackRect.height, 0), 1);
-      const rounded = Math.round(progress * 1000) / 1000;
-
-      if (rounded !== shownProgress) {
-        shownProgress = rounded;
-        track.style.setProperty('--lp-story-progress', String(rounded));
-      }
 
       let next = 0;
       for (let index = 0; index < stepRefs.current.length; index += 1) {
         const step = stepRefs.current[index];
-        if (step && step.getBoundingClientRect().top <= line) {
+        if (!step) {
+          continue;
+        }
+
+        const rect = step.getBoundingClientRect();
+        if (rect.top <= line) {
           next = index;
+        }
+
+        // Each step owns its rail segment; fill it as the reading line travels
+        // through the step, so the progress tracks the step you are on rather
+        // than painting every segment at once.
+        const fill =
+          rect.height > 0 ? Math.min(Math.max((line - rect.top) / rect.height, 0), 1) : 0;
+        const rounded = Math.round(fill * 1000) / 1000;
+        if (rounded !== fills[index]) {
+          fills[index] = rounded;
+          step.style.setProperty('--lp-step-progress', String(rounded));
         }
       }
 
@@ -135,10 +144,6 @@ export function StorySteps({ steps, flip = false, variant = 'rail' }: StorySteps
     return subscribeScroll(update);
   }, [stacked]);
 
-  const current = steps[active] ?? steps[0];
-  const currentNumber = String(active + 1).padStart(2, '0');
-  const total = String(steps.length).padStart(2, '0');
-
   return (
     <div
       ref={containerRef}
@@ -146,11 +151,7 @@ export function StorySteps({ steps, flip = false, variant = 'rail' }: StorySteps
       data-flip={flip ? 'true' : 'false'}
       data-variant={variant}
     >
-      <ol
-        ref={trackRef}
-        className="lp-story-rail"
-        style={{ '--lp-story-progress': 0 } as React.CSSProperties}
-      >
+      <ol ref={trackRef} className="lp-story-rail">
         {steps.map((step, index) => {
           const number = String(index + 1).padStart(2, '0');
           const isActive = index === active;
@@ -164,9 +165,8 @@ export function StorySteps({ steps, flip = false, variant = 'rail' }: StorySteps
               className="lp-story-step"
               data-active={isActive ? 'true' : 'false'}
               aria-current={isActive ? 'step' : undefined}
+              style={{ '--lp-step-progress': 0 } as React.CSSProperties}
             >
-              <span className="lp-story-node" aria-hidden="true" />
-
               <div className="lp-story-card">
                 {step.kicker ? (
                   <span className="lp-story-badge">
@@ -194,28 +194,21 @@ export function StorySteps({ steps, flip = false, variant = 'rail' }: StorySteps
 
       <div className="lp-story-stage">
         <div ref={stickyRef} className="lp-story-sticky">
-          <div className="lp-story-swap" key={current.key}>
-            <div className="lp-story-stage-card">
-              <div className="lp-story-stage-head">
-                <span className="lp-story-stage-num">{currentNumber}</span>
-                {current.kicker ? (
-                  <span className="lp-story-stage-kicker">{current.kicker}</span>
-                ) : null}
-                {current.stat ? <span className="lp-story-stage-stat">{current.stat}</span> : null}
-              </div>
-
-              <div className="lp-story-stage-visual">{current.visual}</div>
-
-              <div className="lp-story-stage-foot" aria-hidden="true">
-                <span className="lp-story-ticks">
-                  {steps.map((step, index) => (
-                    <span key={step.key} data-on={index <= active ? 'true' : 'false'} />
-                  ))}
-                </span>
-                <span className="lp-story-stage-count">
-                  {currentNumber} / {total}
-                </span>
-              </div>
+          <div className="lp-story-stage-card">
+            <div className="lp-story-stage-visuals">
+              {steps.map((step, index) => {
+                const isActive = index === active;
+                return (
+                  <div
+                    key={step.key}
+                    className="lp-story-stage-panel"
+                    data-active={isActive ? 'true' : 'false'}
+                    aria-hidden={isActive ? undefined : 'true'}
+                  >
+                    {step.visual}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

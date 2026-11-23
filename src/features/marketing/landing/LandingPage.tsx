@@ -24,10 +24,10 @@ export function LandingPage() {
       <main aria-label={`${BRAND.name} overview`} className="relative">
         <HeroSection />
         <TrustedBrand />
-        <FounderBand />
         <FeaturesSection />
         <TaglineReveal />
         <BuildProcess />
+        <FounderBand />
         <PricingSection />
         <CapabilitiesMarquee />
         <FaqSection />
