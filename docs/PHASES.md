@@ -46,6 +46,40 @@
 Append-only. Newest first. Every entry states what was proven, what remains
 **UNVERIFIED**, and what was **N/A**. Do not edit old entries; add a new one.
 
+## 2026-11-20 — Process section closes with a CTA; cards settle on reveal
+
+- Added an "add your site" handoff directly under the three process cards, using
+  the same field and submit as the hero so the section ends where the reader is
+  ready to act. Two factual sub-lines (one script tag; first event before you
+  pay) rather than the 14-day-trial claim DataFast makes — there is no trial.
+- Motion, gated on the existing `data-revealed` / `data-motion` plumbing:
+  each photograph settles from `scale(1.07)` and `opacity: 0` to rest over
+  `1000ms` with the shared `--lp-ease`, and each product still rises `10px` over
+  `560ms` starting at `260ms + 90ms × card`, so the artifact lands after its
+  photograph. No new library; pure CSS on `transform`/`opacity`.
+- Hover no longer scales the photograph. An animation with `fill: both` wins
+  over a hover transition on the same property, so hover now tints saturation
+  only (`@media (hover: hover) and (pointer: fine)`).
+- **Bug found and fixed by verification:** the reduced-motion override was
+  written as `.lp-step-shell[data-revealed] …` (`0,4,0`) while the animation
+  rule is `.landing-root[data-motion=on] .lp-step-shell[data-revealed] …`
+  (`0,5,0`). The media query lost the cascade, so a reduced-motion visitor
+  would have seen the cards stuck at the keyframe's `from` state — invisible.
+  The override now carries the same `[data-motion=on]` prefix.
+- **Proof:** 74 landing tests pass (one new: the CTA posts to `/signup` with
+  `returnUrl=/onboarding`); `tsc --noEmit` clean; `biome check` clean. Sampled
+  the live animations through the Web Animations API against the dev server's
+  compiled CSS: photo `0ms → op 0.00, scale 1.070`; `500ms → 0.94, 1.004`;
+  `1000ms → 1.00, 1.000`; band arrives at its `260ms` delay. Under
+  `--force-prefers-reduced-motion`: `animationName=none`, `opacity=1`, no
+  transform, CTA present.
+- **UNVERIFIED:** how the settle feels at real speed on a physical display. The
+  values are exact but the pacing is a judgement call. The `process-*.webp`
+  background plates referenced by this section were present during the original
+  session but are not in the working tree now; restore them before shipping.
+- **N/A:** no API, database, tenant-isolation, or deployment changes; no new
+  dependency.
+
 ## 2026-11-17 — Billing 503 incident: provider errors were blind-caught and misreported
 
 - **Symptom.** `POST /api/billing/change-plan` on production returned
@@ -2941,6 +2975,24 @@ feature is waiting on code.
 
 ## Changelog
 
+- 2026-11-21 — **Feature section: leaner copy, line-only figures** (plan 010,
+  reapplied). Three changes to `#features`. (1) Copy cut from ~90 words of body
+  to one line per step: titles are now "Traffic, meet revenue" / "Every payment,
+  traced" / "See where they drop", each with a single sentence; `kicker` and
+  `stat` removed from feature data. `StoryStep.kicker` is now optional in
+  `StorySteps.tsx` so the rail variant keeps its badge. (2) The three label
+  treatments above each drawing (bordered pill + tinted numeral chip + orange
+  uppercase stat) collapsed to one bare tabular numeral, sand by default and
+  signal orange on the active step — colour only, no movement. `.lp-story-num`
+  added to the reduced-motion transition-off list. (3) `.lp-fig-solid` and
+  `.lp-fig-cloud` fill changed from `#fffdf6`/translucent cream to `#fffbeb`,
+  the section ground, so the isometric figures read as line drawings on the page
+  instead of brighter plates laid over it. Fill stays opaque, so nearer solids
+  still occlude. Proof: 60/63 in `src/features/marketing/landing`
+  (`NODE_ENV=test`); the 3 failures are pre-existing in-flight process/provider
+  tests unrelated to this plan. `tsc --noEmit` and `biome check` clean on the
+  four edited files in the prior session; browser feel check at 1440/390 not run
+  in this session (no local browser tooling).
 - 2026-11-10 — **Icon system replaced with Iconoir:** removed `lucide-react`
   and the generated `src/components/svg` set (`src/assets` + `@svgr/cli` /
   `build-icons`). All 102 icon names across 67 files now map to Iconoir
@@ -3384,6 +3436,73 @@ feature is waiting on code.
 - 2026-11-04 — Tracker created; repo cloned; commercial contract fixed at two
   paid plans; Tartly UI/onboarding mandate recorded.
 
+- 2026-11-19 — **Landing feature figures: narrated tours.** The three feature
+  figures now narrate themselves instead of waiting for a pointer.
+
+  `revenue-columns`: the bright stroke tours all twelve bars on a 1 s beat
+  (12 s loop) and the read-out names the dollars on the marked bar
+  (`revenue $4,216`), scaled from the same height data the drawing uses.
+  `attribution-rails`: the flowing beads are removed (per request); the bright
+  stroke tours the three hands — first touch → last touch → paid — on a 1.4 s
+  beat, and the read-out cycles those names with no hover. The collar punch
+  breathes so the join stays alive. `funnel-steps`: the same tour names
+  `step 1 · visits`, `step 2 · trials`, `step 3 · paid`; beads now ease into
+  the terrace ride, arc over the top, accelerate down the face, and squash and
+  stretch on the drop. Cover dots on the revenue caps breathe.
+
+  The readOut contract gained an optional `watch()`; `FigureStage` now reads
+  `hovered ?? watch()` every painted frame and writes the text node only when
+  it changes. Hover still pins the stroke and the read-out. All three figures
+  are framed ~12% larger (`frameTo` envelopes now include every reachable
+  column/terrace/hand top, so the bigger drawing still sits inside 400 × 320).
+  Reduced motion still stops the loop and hides the read-out.
+
+  Proof: `figures.test.ts` (27 tests) adds tour-narration and clean
+  hand-back-on-release assertions; all nine marketing test files pass (68
+  tests) with `NODE_ENV=test`, and `tsc --noEmit` + `biome check` are clean.
+  Browser motion QA remains **UNVERIFIED** (no Chrome/Chromium here).
+
+- 2026-11-19 — **Landing feature + process: pinned scroll story.** Rebuilt both
+  sections on one shared primitive, `sections/StorySteps.tsx`, modelled on
+  unfair.so's feature block (owner reference): numbered stations scroll past a
+  visual that stays pinned, the station nearest the reading line opens in place,
+  and the rest fold to their label with a scroll-filled rail. The feature
+  section keeps its three isometric figures and the process section keeps its
+  four integration previews; the copy is unchanged.
+
+  The stage swaps through a keyed re-mount so each change animates its own
+  entrance. Everything is driven by the existing shared scroll bus
+  (`motion/scrollFrame.ts`) — no extra listener, no per-frame React render: the
+  rail fill is a single CSS variable and `setActive` only fires on a step
+  change. The two-column pinned layout is gated on `[data-motion="on"]` and
+  `lg`, so without JavaScript, or under `prefers-reduced-motion`, the section
+  is a single readable column with every step's visual inline — the inline copy
+  is the same figure, mounted twice on purpose. Titles dim only on the desktop
+  pinned layout, never on mobile or reduced motion.
+
+  Proof: `LandingPage.test.tsx` updated for the new markup (`#features
+  .lp-story-step` ×3, four feature figures now that the stage also mounts one,
+  new `#process` story test); all eight marketing test files pass (68 tests)
+  with `NODE_ENV=test`, and `tsc --noEmit` + `biome check` are clean. Verified
+  by hand in Chromium via `agent-browser` at 1440×900 and 390×844: step
+  activation, sticky stage swap, rail fill, mobile single-column, and
+  reduced-motion fallback all render as intended.
+
+- 2026-11-21 — **Landing ECharts crash: `getRawIndex` on undefined data.** The
+  hero workspace charts threw `Cannot read properties of undefined (reading
+  'getRawIndex')` when the pointer crossed a chart in the frame after its option
+  changed. `EChart` passed `lazyUpdate: true` with `notMerge: true`: ECharts
+  swapped the series models immediately but built their data on the next frame,
+  so a tooltip in that gap resolved a series with no `getData()` and crashed in
+  `getDataParams`. The second `setOption` is now synchronous (`notMerge` only),
+  which closes the gap; `lazyUpdate` is documented as forbidden there.
+
+  Proof: a real ECharts SSR reproduction with the composed option throws with
+  `lazyUpdate: true` and returns a valid data index without it. New
+  `EChart.test.tsx` asserts updates reach `setOption` with `{ notMerge: true }`
+  and no `lazyUpdate`. Chart + landing suites pass (32 tests, `NODE_ENV=test`);
+  `tsc --noEmit` clean; `biome check` clean on the changed files.
+
 ## Risk register
 
 | Risk                                                                                                              | Severity | Mitigation                                                                                                                              |
@@ -3398,3 +3517,48 @@ feature is waiting on code.
 | Plan limits are not yet modelled against real costs                                                               | High     | Phase 6 economics doc before enabling billing                                                                                           |
 | Competitor price claims can go stale                                                                              | Medium   | Cite URL + fetch date; re-check before launch                                                                                           |
 | Event/replay retention deletion is destructive                                                                    | High     | Idempotent, tenant-scoped jobs + dry-run tests                                                                                          |
+
+### 2026-11-23 — Landing hero highlights and fold motion
+
+The landing headline now uses the requested two-line composition on the cream
+canvas, with an organic yellow marker behind the rotating channel and revenue
+words. The channel word uses the React Bits slide rotation at a slower 4.2-second
+interval and advances on click; static headline fragments use the paper FoldText
+effect. The 💸 remains as the only hero emoji, and the existing SVG underline
+path and wipe animation remain intact. Added direct `motion` and `gsap`
+dependencies; `clsx` and `tailwind-merge` are declared directly because the
+existing `src/lib/utils.ts` imports them.
+
+Proof: the focused hero test passes (`pnpm exec vitest run
+src/features/marketing/landing/LandingPage.test.tsx -t 'renders the hero,
+features, and every configured plan'`, 1 passed), and targeted Biome checks pass
+on the hero, motion components, styles, and test. `pnpm gate` is **BLOCKED** at
+format by the already-dirty `plans/010-feature-section-leaner-copy-and-line-figures.md`
+and `src/features/marketing/landing/sections/BuildProcess.tsx`. `pnpm typecheck`
+reports existing errors in `figures/figures.test.ts` and
+`figures/revenueColumns.ts`. Browser motion QA is **UNVERIFIED** because the
+Playwright browser cannot find Chrome at `/opt/google/chrome/chrome`; provide a
+Chrome-enabled browser environment to inspect desktop, mobile, and reduced
+motion behavior. Changes remain uncommitted because the checkout contains other
+pre-existing dirty landing work that must not be bundled into this feature.
+
+### 2026-11-23 — Hero fold effect runs on hover
+
+Follow-up steering changes the static headline FoldText trigger from mount to
+hover. The words remain visible at rest and play the paper unfold when the
+pointer enters each FoldText headline fragment; channel-word rotation and click
+behavior are unchanged.
+
+Proof: targeted Biome check and the focused hero test pass. Browser motion QA
+remains **UNVERIFIED** until Chrome is available, as recorded above.
+
+### 2026-11-23 — Correct FoldText hover behavior
+
+The previous hover-trigger interpretation replayed the unfold on pointer enter.
+The intended React Bits behavior is now configured: FoldText unfolds on mount,
+then nearby panels tilt back up to 45 degrees within a 140 px pointer radius and
+ease back open as the pointer passes. This uses the component's
+`hoverRefold` pointer tracking rather than its `trigger="hover"` mode.
+
+Proof: targeted Biome check and the focused hero test pass. Browser motion QA
+remains **UNVERIFIED** because Chrome is unavailable at `/opt/google/chrome/chrome`.

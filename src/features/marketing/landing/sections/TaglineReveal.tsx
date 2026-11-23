@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { ArrowRight as ArrowRightIcon } from '@/components/icons';
 import { Parallax } from '../motion/Parallax';
 import { Reveal } from '../motion/Reveal';
 import { WordReveal } from '../motion/WordReveal';
@@ -37,6 +39,16 @@ export function TaglineReveal() {
           text={TAGLINE}
           className="lp-display mt-6 text-center text-3xl text-pretty sm:text-4xl md:text-5xl lg:text-6xl"
         />
+
+        <Reveal delay={120} className="mt-10 flex justify-center md:mt-12">
+          <Link
+            href="/login"
+            className="lp-btn-shadow flex h-12 items-center justify-center gap-2 rounded-md bg-lp-primary px-7 text-[13px] font-black tracking-[0.14em] whitespace-nowrap text-white uppercase"
+          >
+            Get started
+            <ArrowRightIcon className="size-4" strokeWidth={3} aria-hidden="true" />
+          </Link>
+        </Reveal>
       </div>
     </section>
   );

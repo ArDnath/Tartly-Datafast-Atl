@@ -181,3 +181,26 @@ Rules:
   never cited as current proof.
 - A "VERIFIED" claim needs a date and an artefact. A "UNVERIFIED" claim names
   the missing credential or environment and the human action.
+
+## 8. Feature gate record — 2026-11-23 marketing hero motion
+
+- [x] Architecture/API: implementation stays in `src/features/marketing/landing`;
+  route, REST, OpenAPI, pagination, and persistence checks are N/A because this
+  change adds no endpoint or data access.
+- [x] Validation/data and security/tenancy: N/A because no request input,
+  tenant-owned data, authentication, secrets, or provider credentials are touched.
+- [x] Reliability/operations and scale/cost: N/A because the change adds no
+  network call, worker, storage, query, cache, or ingestion work.
+- [x] Regression coverage: `LandingPage.test.tsx` exercises the two-line hero,
+  FoldText integration, highlight clicks, and the preserved SVG path. FoldText
+  unfolds on mount and uses pointer-driven hover refolding.
+- [x] History: `docs/PHASES.md` records the command results and remaining
+  verification steps.
+- [ ] `pnpm gate`: blocked at format by the existing dirty
+  `plans/010-feature-section-leaner-copy-and-line-figures.md` and
+  `BuildProcess.tsx`; `pnpm typecheck` also reports existing figure type errors
+  in `figures.test.ts` and `revenueColumns.ts`.
+- [ ] Browser motion QA is **UNVERIFIED**: Playwright cannot start because
+  Chrome is missing at `/opt/google/chrome/chrome`. Human action: provide a
+  Chrome-enabled browser environment and inspect desktop, mobile, and reduced
+  motion behavior.

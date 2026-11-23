@@ -23,6 +23,19 @@ export function scrollLandingToTop() {
 }
 
 /**
+ * Scroll the marketing page by a wheel delta. Used by nested scroll containers
+ * (the hero demo) to hand the gesture back to the page once they hit an edge.
+ */
+export function scrollLandingBy(delta: number) {
+  if (activeLenis) {
+    activeLenis.scrollTo(activeLenis.targetScroll + delta, { programmatic: false });
+    return;
+  }
+
+  window.scrollBy({ top: delta });
+}
+
+/**
  * Smooth wheel scrolling and anchor offset for the marketing page only.
  * The dashboard keeps native scrolling; Lenis is mounted here, not globally.
  */

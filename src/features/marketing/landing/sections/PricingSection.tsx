@@ -193,9 +193,9 @@ export function PricingSection() {
                 <Reveal key={plan.id} delay={index * 100} className="h-full">
                   <article
                     data-plan={plan.id}
-                    className={`relative flex h-full flex-col rounded-lg border p-5 md:p-7 ${
+                    className={`lp-plan-card relative flex h-full flex-col rounded-lg border p-5 md:p-7 ${
                       plan.highlight
-                        ? 'lp-hard z-10 border-lp-primary bg-lp-primary/[0.04] lg:-translate-y-2'
+                        ? 'lp-plan-card-featured lp-hard z-10 border-lp-primary bg-lp-primary/[0.04]'
                         : 'border-lp-line bg-lp-card'
                     }`}
                   >

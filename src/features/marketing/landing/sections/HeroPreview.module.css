@@ -527,6 +527,13 @@
   scrollbar-width: thin;
 }
 
+/* Touch cannot be forwarded in JS, so let the browser chain the gesture. */
+@media (any-pointer: coarse) {
+  .scrollArea {
+    overscroll-behavior: auto;
+  }
+}
+
 .scrollArea::-webkit-scrollbar {
   width: 8px;
 }
@@ -1693,20 +1700,8 @@
 }
 
 /* ---------------------------------------------------------------------- */
-/* Caption and responsive layout                                           */
+/* Responsive layout                                                       */
 /* ---------------------------------------------------------------------- */
-
-.caption {
-  padding: 7px 14px;
-  border-top: 1px solid var(--d-line);
-  background: var(--d-chrome);
-  color: var(--d-faint);
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 8.5px;
-  letter-spacing: 0.08em;
-  text-align: center;
-  text-transform: uppercase;
-}
 
 @media (max-width: 1000px) {
   .navHint {

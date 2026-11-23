@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { BrandMark } from '@/components/brand/BrandMark';
 import {
   type ChartColors,
@@ -25,6 +25,7 @@ import {
   Xmark,
 } from '@/components/icons';
 import { BRAND } from '@/lib/brand';
+import { scrollLandingBy } from '../LandingScroll';
 import { getChartLabels, getComparisonSeries, getDemoSankey } from '../demo/chart-data';
 import {
   type BreakdownCard,
@@ -117,6 +118,16 @@ function resample(values: number[], target: number): number[] {
     const end = Math.max(start + 1, Math.floor((index + 1) * size));
     return values.slice(start, end).reduce((sum, value) => sum + value, 0);
   });
+}
+
+function wheelDelta(event: WheelEvent) {
+  if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) {
+    return event.deltaY * 16;
+  }
+  if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
+    return event.deltaY * window.innerHeight;
+  }
+  return event.deltaY;
 }
 
 function KpiStrip({ kpis, factor, conv }: { kpis: Kpi[]; factor: number; conv?: number }) {
@@ -811,6 +822,34 @@ export function HeroPreview() {
   const moreRef = useRef<HTMLDetailsElement>(null);
   const projectRef = useRef<HTMLDetailsElement>(null);
 
+  useEffect(() => {
+    const area = scrollRef.current;
+    if (!area) {
+      return;
+    }
+
+    // The preview owns the wheel while its content can still move, then hands
+    // the gesture to the page so the landing page keeps scrolling at the edges.
+    const onWheel = (event: WheelEvent) => {
+      const delta = wheelDelta(event);
+      if (delta === 0) {
+        return;
+      }
+
+      const atStart = delta < 0 && area.scrollTop <= 0;
+      const atEnd = delta > 0 && area.scrollTop + area.clientHeight >= area.scrollHeight - 1;
+      if (!atStart && !atEnd) {
+        return;
+      }
+
+      event.preventDefault();
+      scrollLandingBy(delta);
+    };
+
+    area.addEventListener('wheel', onWheel, { passive: false });
+    return () => area.removeEventListener('wheel', onWheel);
+  }, []);
+
   const config = VIEWS[view];
   const filter = filters[view] ?? null;
   const siteFactor = PROJECTS.find(item => item.id === project)?.factor ?? 1;
@@ -1091,8 +1130,6 @@ export function HeroPreview() {
           )}
         </div>
       </div>
-
-      <figcaption className={styles.caption}>Illustrative preview · {BRAND.name}</figcaption>
     </figure>
   );
 }

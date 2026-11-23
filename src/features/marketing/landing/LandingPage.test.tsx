@@ -17,6 +17,7 @@ vi.mock('react-fast-marquee', () => ({
 
 vi.mock('lenis', () => ({
   default: class {
+    targetScroll = 0;
     scrollTo = scrollTo;
     raf() {}
     destroy() {}
@@ -25,20 +26,117 @@ vi.mock('lenis', () => ({
 
 describe('marketing landing page', () => {
   test('renders the hero, features, and every configured plan', () => {
-    render(<LandingPage />);
+    const { container } = render(<LandingPage />);
 
     expect(
       screen.getByRole('heading', { level: 1, name: /See which channels actually make money/i }),
     ).toBeInTheDocument();
+    expect(container.querySelectorAll('#home .lp-hero-line')).toHaveLength(2);
+    expect(container.querySelectorAll('#home h1 .fold-text')).toHaveLength(3);
+    const channelWord = screen.getByRole('button', {
+      name: 'Change the channel word (currently channels)',
+    });
+    const revenueWord = screen.getByRole('button', {
+      name: 'Change the revenue word (currently money)',
+    });
+    fireEvent.click(channelWord);
     expect(
-      screen.getByRole('heading', { name: /Traffic and revenue together/i }),
+      screen.getByRole('button', { name: 'Change the channel word (currently campaigns)' }),
     ).toBeInTheDocument();
+    fireEvent.click(revenueWord);
+    expect(
+      screen.getByRole('button', { name: 'Change the revenue word (currently revenue)' }),
+    ).toBeInTheDocument();
+    expect(container.querySelector('#home .lp-mark-swirl-line path')).toHaveAttribute(
+      'd',
+      'M6 17C50 17 80 5 130 8c25 1.5 38 4 30 9-8 5-28 0-20-8 10-10 40-6 70-2 30 4 60 8 84 2',
+    );
+    expect(screen.getByRole('heading', { name: /Traffic, meet revenue/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /OUR PRICING/i })).toBeInTheDocument();
     expect(screen.getAllByText(/No free tier/i).length).toBeGreaterThan(0);
+    const heroForm = screen
+      .getByRole('textbox', { name: /Your website/i })
+      .closest('form') as HTMLFormElement;
+    const heroSubmit = within(heroForm).getByRole('button', { name: /^Start tracking$/ });
+    expect(heroSubmit).toHaveClass('lp-hero-3d');
+    expect(heroSubmit).toHaveAttribute('type', 'submit');
+    expect(screen.getByRole('textbox', { name: /Your website/i }).parentElement).toHaveClass(
+      'lp-hero-input-wrap',
+    );
+    const heroPrice = container.querySelector('#home .lp-hero-price');
+    expect(heroPrice).not.toBeNull();
+    expect(heroPrice).toHaveTextContent('$7.99/mo');
+    expect(container.querySelectorAll('#features .lp-story-step')).toHaveLength(3);
+    expect(container.querySelectorAll('#features .lp-story-badge')).toHaveLength(0);
+    expect(container.querySelectorAll('#features .lp-story-num')).toHaveLength(3);
+    expect(container.querySelectorAll('#features .lp-fig svg')).toHaveLength(4);
+    expect(container.querySelectorAll('#features .lp-fig-solid').length).toBeGreaterThan(0);
 
     for (const plan of PLANS) {
       expect(screen.getByRole('heading', { name: plan.name })).toBeInTheDocument();
     }
+  });
+
+  test('lays the four build steps out on the scroll story', () => {
+    const { container } = render(<LandingPage />);
+
+    expect(
+      screen.getByRole('heading', {
+        name: /FROM ONE SCRIPT TAG TO REVENUE YOU CAN ACT ON/i,
+      }),
+    ).toBeInTheDocument();
+    expect(container.querySelectorAll('#process .lp-story-step')).toHaveLength(4);
+    expect(container.querySelectorAll('#process .lp-story-step[data-active="true"]')).toHaveLength(
+      1,
+    );
+  });
+
+  test('places the integrations manifest after the FAQ, in the closing stretch', () => {
+    render(<LandingPage />);
+
+    const faq = screen.getByRole('region', { name: /questions before you start/i });
+    const integrations = screen.getByRole('region', { name: /works with your stack/i });
+
+    expect(
+      faq.compareDocumentPosition(integrations) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  test('walks through the three-step process with drawn product stills', () => {
+    const { container } = render(<LandingPage />);
+
+    expect(screen.getByRole('region', { name: /FROM ONE SCRIPT TAG/i })).toBeInTheDocument();
+    expect(screen.getByText('1. Install Tartly')).toBeInTheDocument();
+    expect(screen.getByText('2. Connect revenue data')).toBeInTheDocument();
+    expect(screen.getByText('3. Grow what pays')).toBeInTheDocument();
+    // The provider step names the integrations it supports. Scope to the process
+    // card so this doesn't collide with the providers strip lower on the page.
+    const process = screen.getByRole('region', { name: /FROM ONE SCRIPT TAG/i });
+    expect(within(process).getByLabelText('Works with')).toBeInTheDocument();
+    expect(within(process).getByText('Lemon Squeezy')).toBeInTheDocument();
+    expect(screen.getByText('Manual API')).toBeInTheDocument();
+    expect(container.querySelectorAll('#process .lp-step-band')).toHaveLength(3);
+    // Each band carries a decorative photograph behind the product still.
+    expect(container.querySelectorAll('#process .lp-step-photo[alt=""]')).toHaveLength(3);
+    expect(
+      within(screen.getByRole('region', { name: /FROM ONE SCRIPT TAG/i })).getAllByRole('heading', {
+        level: 3,
+      }),
+    ).toHaveLength(3);
+  });
+
+  test('closes the process section with an add-your-site handoff', () => {
+    render(<LandingPage />);
+
+    const process = screen.getByRole('region', { name: /FROM ONE SCRIPT TAG/i });
+    const form = within(process)
+      .getByRole('textbox', { name: /Website to add/i })
+      .closest('form') as HTMLFormElement;
+
+    expect(form).toHaveAttribute('action', '/signup');
+    expect(form).toHaveAttribute('method', 'get');
+    expect(form.querySelector('input[name="returnUrl"]')).toHaveValue('/onboarding');
+    expect(within(form).getByRole('button', { name: /Add your site/i })).toBeInTheDocument();
   });
 
   test('squares out the supported no-code and framework stacks', () => {
@@ -155,11 +253,10 @@ describe('marketing landing page', () => {
     expect(screen.queryByText(/testimonial/i)).not.toBeInTheDocument();
   });
 
-  test('labels the hero workspace as an illustrative preview and switches views', async () => {
+  test('switches hero workspace views', async () => {
     const { user } = render(<LandingPage />);
     const nav = screen.getByRole('navigation', { name: /Dashboard sections/i });
 
-    expect(screen.getByText(/Illustrative preview · Tartly/i)).toBeInTheDocument();
     expect(within(nav).getByRole('button', { name: 'Overview' })).toHaveAttribute(
       'aria-pressed',
       'true',
@@ -192,6 +289,16 @@ describe('marketing landing page', () => {
     expect(within(details).getByText('Ankita Shil')).toBeInTheDocument();
   });
 
+  test('hands the wheel back to the page when the demo preview reaches an edge', () => {
+    render(<LandingPage />);
+    const preview = screen.getByLabelText('Scrollable dashboard preview');
+
+    scrollTo.mockClear();
+    fireEvent.wheel(preview, { deltaY: 120 });
+
+    expect(scrollTo).toHaveBeenCalledWith(120, { programmatic: false });
+  });
+
   test('points the closing hand asset at the primary call to action', () => {
     const { container } = render(<LandingPage />);
     const hand = container.querySelector('img[src*="hand.png"]');
@@ -212,6 +319,31 @@ describe('marketing landing page', () => {
     expect(screen.getByText(/Which payment providers can I connect\?/i)).toBeInTheDocument();
     expect(screen.getByText(/Is there a free plan\?/i)).toBeInTheDocument();
     expect(screen.getByText(/Can I cancel anytime\?/i)).toBeInTheDocument();
+  });
+
+  test('shows the illustrative photography band with descriptive alt text', () => {
+    const { container } = render(<LandingPage />);
+    const band = screen.getByRole('region', { name: /built for the solo founder/i });
+
+    expect(within(band).getAllByRole('img')).toHaveLength(3);
+    expect(container.querySelectorAll('.lp-who-card')).toHaveLength(3);
+    // The index numerals were removed; the captions are title plus one line.
+    expect(container.querySelectorAll('.lp-who-index')).toHaveLength(0);
+
+    for (const image of within(band).getAllByRole('img')) {
+      expect(image.getAttribute('alt')).toBeTruthy();
+    }
+  });
+
+  test('closes the audience band with a start-now call to action', () => {
+    render(<LandingPage />);
+
+    const band = screen.getByRole('region', { name: /built for the solo founder/i });
+
+    expect(within(band).getByRole('link', { name: /Start now/i })).toHaveAttribute(
+      'href',
+      '/signup',
+    );
   });
 
   test('renders the payment providers that connect in settings', () => {
