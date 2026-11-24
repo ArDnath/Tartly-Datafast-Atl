@@ -757,7 +757,10 @@
     animation: none;
   }
 
-  .landing-root[data-motion="on"] .lp-step-card .lp-process-web path,
+  .landing-root[data-motion="on"]
+    .lp-step-card:not(:hover):not([data-expanded="true"])
+    .lp-process-web
+    path,
   .landing-root[data-motion="on"] .lp-step-card:hover .lp-process-web path,
   .landing-root[data-motion="on"] .lp-step-card[data-expanded="true"] .lp-process-web path {
     animation: none;
