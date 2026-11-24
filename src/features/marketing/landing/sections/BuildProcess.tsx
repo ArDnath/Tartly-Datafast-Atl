@@ -26,7 +26,7 @@ const STEPS: Step[] = [
     description:
       'Add the script to your site. One tag, any framework, no plugin to keep in sync. The first event shows up before you pay.',
     detail: "One lightweight script. That's all it takes.",
-    photo: '/images/landing/process-reach.webp',
+    photo: '/images/landing/process-install-bg.webp',
     visual: live => <CodeCard live={live} />,
   },
   {
@@ -35,7 +35,7 @@ const STEPS: Step[] = [
     description:
       'Link Stripe, Dodo, Lemon Squeezy, Polar, or Yolfi, or send payments through the manual API. Your checkout stays where it is.',
     detail: 'Connect Stripe, Dodo, Lemon Squeezy, Polar, or your own payment API.',
-    photo: '/images/landing/process-connect.webp',
+    photo: '/images/landing/process-connect-bg.webp',
     visual: live => <ProviderCard live={live} />,
   },
   {
@@ -44,7 +44,7 @@ const STEPS: Step[] = [
     description:
       'See which channel, campaign, and landing page produced the payment. Move budget toward what earns, not what just gets clicks.',
     detail: 'Discover which channels and landing pages actually generate revenue.',
-    photo: '/images/landing/process-grow.webp',
+    photo: '/images/landing/process-revenue-bg.webp',
     visual: (live, stillDelay) => <RevenueCard live={live} stillDelay={stillDelay} />,
   },
 ];
@@ -65,7 +65,7 @@ export function BuildProcess() {
       aria-label="From one script tag to revenue in 3 steps"
       className="border-b border-lp-line bg-lp-secondary/35 px-6 py-20 md:px-12 md:py-28"
     >
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-[88rem]">
         <div className="flex flex-col items-center text-center">
           <Reveal>
             <p className="lp-eyebrow">How it works</p>

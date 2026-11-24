@@ -51,7 +51,7 @@ export function ProcessCard({
       as="article"
       delay={delay}
       distance={28}
-      className="lp-step-shell lp-process-item w-full max-w-lg lg:min-w-0 lg:flex-1"
+      className="lp-step-shell lp-process-item w-full max-w-lg lg:min-w-0 lg:max-w-none lg:flex-1"
     >
       <div
         ref={ref}

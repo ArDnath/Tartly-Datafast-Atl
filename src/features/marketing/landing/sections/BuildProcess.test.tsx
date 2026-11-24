@@ -47,6 +47,19 @@ describe('build process section', () => {
     expect(code?.textContent).toContain('</script>');
   });
 
+  test('uses the supplied images as the three card backgrounds', () => {
+    const { container } = render(<BuildProcess />);
+    const photos = Array.from(container.querySelectorAll<HTMLImageElement>('.lp-step-photo'));
+
+    expect(photos).toHaveLength(3);
+    expect(photos.map(photo => photo.getAttribute('alt'))).toEqual(['', '', '']);
+    expect(photos.map(photo => decodeURIComponent(photo.getAttribute('src') ?? ''))).toEqual([
+      expect.stringContaining('/images/landing/process-install-bg.webp'),
+      expect.stringContaining('/images/landing/process-connect-bg.webp'),
+      expect.stringContaining('/images/landing/process-revenue-bg.webp'),
+    ]);
+  });
+
   test('toggles the detail drawer from its own button', async () => {
     const { user } = render(<BuildProcess />);
     const process = processRegion();
