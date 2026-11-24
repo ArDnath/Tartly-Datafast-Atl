@@ -1,0 +1,464 @@
+/*
+ * Process — three cards, one interactive story.
+ *
+ * The base plate (shell, card, photograph, veil, grain, window, chips, bars)
+ * stays in landing.css. This file only adds the interaction the section now
+ * has:
+ *
+ *   - the truthful lift, because every card is clickable;
+ *   - the grid-row detail drawer;
+ *   - the stepped code reveal and its install status;
+ *   - the drawn connector arrows;
+ *   - the CTA focus/error states.
+ *
+ * Motion is gated on `.landing-root[data-motion="on"]`, which LandingMotion
+ * writes only after hydration and only when the visitor has not asked for
+ * reduced motion. Without JavaScript the complete section is already visible.
+ *
+ * The existing photo/still settle rules in landing.css are keyed on
+ * `.lp-step-shell[data-revealed]`; Reveal still renders that attribute, but it
+ * now also carries `lp-process-item`, so the equivalents below use the more
+ * explicit process class and keep the same timing.
+ */
+
+/* ------------------------------------------------------------------------- */
+/* Card interaction                                                          */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-step-shell.lp-process-item {
+  transition:
+    translate 220ms var(--lp-ease),
+    scale 220ms var(--lp-ease),
+    background-color 180ms var(--lp-ease),
+    box-shadow 220ms var(--lp-ease);
+}
+
+.landing-root .lp-process-card {
+  cursor: pointer;
+  transition:
+    border-color 220ms var(--lp-ease),
+    box-shadow 220ms var(--lp-ease);
+}
+
+.landing-root .lp-process-card:focus-within {
+  border-color: #ff4f00;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .landing-root .lp-step-shell.lp-process-item:hover {
+    translate: 0 -10px;
+    scale: 1.02;
+    background: #f7efdb;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 79, 0, 0.18),
+      0 22px 44px -28px rgba(23, 23, 23, 0.4),
+      0 8px 18px -14px rgba(23, 23, 23, 0.26);
+  }
+
+  .landing-root .lp-step-shell.lp-process-item:hover .lp-process-card {
+    border-color: rgba(255, 79, 0, 0.52);
+    box-shadow: 0 10px 26px -20px rgba(255, 79, 0, 0.42);
+  }
+}
+
+/*
+ * Expanded is persistent, not a hover: the shell keeps an accent ring and a
+ * small lift so it is obvious which card the detail belongs to.
+ */
+.landing-root .lp-step-shell.lp-process-item:has(.lp-process-card[data-expanded="true"]) {
+  translate: 0 -4px;
+  background: #fbefdb;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 79, 0, 0.3),
+    0 18px 36px -26px rgba(23, 23, 23, 0.36);
+}
+
+.landing-root
+  .lp-step-shell.lp-process-item:has(.lp-process-card[data-expanded="true"])
+  .lp-process-card {
+  border-color: #ff4f00;
+}
+
+/* Photo settle, now keyed on the process item rather than the shell alone. */
+.landing-root[data-motion="on"] .lp-process-item[data-revealed="true"] .lp-step-photo {
+  animation: lp-step-settle 1000ms var(--lp-ease) 90ms both;
+}
+
+.landing-root[data-motion="on"] .lp-process-item[data-revealed="true"] .lp-step-band {
+  animation: lp-step-still-in 560ms var(--lp-ease) var(--lp-still-delay, 260ms) both;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Detail drawer                                                             */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-process-detail {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows 260ms var(--lp-ease),
+    visibility 0s linear 260ms;
+}
+
+.landing-root .lp-process-detail[data-expanded="true"] {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition:
+    grid-template-rows 260ms var(--lp-ease),
+    visibility 0s;
+}
+
+.landing-root .lp-process-detail-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.landing-root .lp-process-detail-copy {
+  margin: 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid #ece1ce;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #4a453f;
+  text-wrap: pretty;
+}
+
+.landing-root .lp-process-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.9rem;
+  padding: 0.2rem 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b6660;
+  transition: color 160ms var(--lp-ease);
+}
+
+.landing-root .lp-process-toggle:hover {
+  color: #ff4f00;
+}
+
+.landing-root .lp-process-toggle:focus-visible {
+  outline: 2px solid #ff4f00;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.landing-root .lp-process-toggle-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  transition: rotate 220ms var(--lp-ease);
+}
+
+.landing-root .lp-process-toggle[aria-expanded="true"] .lp-process-toggle-icon {
+  rotate: 180deg;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Code plate                                                                */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-process-code {
+  position: relative;
+}
+
+.landing-root .lp-process-code-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+  min-height: 6.1rem;
+  padding: 0.7rem 0.9rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: #3a3631;
+  white-space: pre;
+  text-align: left;
+}
+
+.landing-root .lp-process-code-line {
+  display: block;
+  overflow: hidden;
+  clip-path: inset(0 0 0 0);
+}
+
+.landing-root .lp-process-code-tag {
+  color: #ff4f00;
+}
+
+.landing-root .lp-process-code-value {
+  color: #3a3631;
+}
+
+.landing-root[data-motion="on"] .lp-process-code[data-live="false"] .lp-process-code-line {
+  clip-path: inset(0 100% 0 0);
+}
+
+.landing-root[data-motion="on"] .lp-process-code[data-live="true"] .lp-process-code-line {
+  animation: lp-process-type 460ms steps(22, end) both;
+}
+
+.landing-root[data-motion="on"]
+  .lp-process-code[data-live="true"]
+  .lp-process-code-line:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.landing-root[data-motion="on"]
+  .lp-process-code[data-live="true"]
+  .lp-process-code-line:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+.landing-root[data-motion="on"]
+  .lp-process-code[data-live="true"]
+  .lp-process-code-line:nth-child(4) {
+  animation-delay: 360ms;
+}
+
+@keyframes lp-process-type {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.landing-root .lp-process-code-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0.9rem;
+  padding: 0.55rem 0 0.75rem;
+  border-top: 1px solid #e9dfcd;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #15803d;
+}
+
+.landing-root .lp-process-code-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.14);
+}
+
+.landing-root .lp-process-code-check {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex-shrink: 0;
+  color: #15803d;
+}
+
+.landing-root[data-motion="on"] .lp-process-code[data-live="false"] .lp-process-code-status {
+  opacity: 0;
+  translate: 0 4px;
+}
+
+.landing-root[data-motion="on"] .lp-process-code[data-live="true"] .lp-process-code-status {
+  animation: lp-process-status 320ms var(--lp-ease) 620ms both;
+}
+
+@keyframes lp-process-status {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Connector arrows                                                          */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-process-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff4f00;
+}
+
+.landing-root .lp-process-arrow-svg {
+  width: 3.5rem;
+  height: auto;
+  overflow: visible;
+}
+
+.landing-root .lp-process-arrow-line,
+.landing-root .lp-process-arrow-head {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+.landing-root .lp-process-arrow-dot {
+  opacity: 0;
+}
+
+.landing-root[data-motion="on"]
+  .lp-process-arrow:not([data-revealed="true"])
+  .lp-process-arrow-line,
+.landing-root[data-motion="on"]
+  .lp-process-arrow:not([data-revealed="true"])
+  .lp-process-arrow-head {
+  stroke-dashoffset: 1;
+}
+
+.landing-root[data-motion="on"] .lp-process-arrow[data-revealed="true"] .lp-process-arrow-line {
+  animation: lp-process-arrow-draw 420ms var(--lp-ease) both;
+}
+
+.landing-root[data-motion="on"] .lp-process-arrow[data-revealed="true"] .lp-process-arrow-head {
+  animation: lp-process-arrow-draw 260ms var(--lp-ease) 340ms both;
+}
+
+.landing-root[data-motion="on"] .lp-process-arrow[data-revealed="true"] .lp-process-arrow-dot {
+  animation: lp-process-arrow-travel 760ms var(--lp-ease) 360ms both;
+}
+
+@keyframes lp-process-arrow-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes lp-process-arrow-travel {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: 45px 0;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .landing-root .lp-process-arrow-svg {
+    width: 2.5rem;
+    rotate: 90deg;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* CTA                                                                       */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-process-input:focus {
+  border-color: #ff4f00;
+  box-shadow: 0 0 0 3px rgba(255, 79, 0, 0.16);
+  outline: none;
+}
+
+.landing-root .lp-process-input[aria-invalid="true"] {
+  border-color: #b45309;
+  box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.14);
+}
+
+.landing-root .lp-process-error {
+  margin-top: 0.55rem;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.4;
+  color: #b45309;
+}
+
+.landing-root .lp-btn-shadow.lp-process-submit {
+  transition:
+    translate 160ms var(--lp-ease),
+    scale 120ms var(--lp-ease),
+    box-shadow 140ms var(--lp-ease),
+    opacity 140ms var(--lp-ease);
+}
+
+.landing-root .lp-process-submit-arrow {
+  transition: translate 160ms var(--lp-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .landing-root .lp-btn-shadow.lp-process-submit:hover {
+    translate: 0 -2px;
+  }
+
+  .landing-root .lp-process-submit:hover .lp-process-submit-arrow {
+    translate: 3px 0;
+  }
+}
+
+.landing-root .lp-btn-shadow.lp-process-submit:active {
+  translate: 0 0;
+  scale: 0.98;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Reduced motion                                                            */
+/* ------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-root .lp-step-shell.lp-process-item,
+  .landing-root .lp-step-shell.lp-process-item:hover,
+  .landing-root .lp-step-shell.lp-process-item:has(.lp-process-card[data-expanded="true"]) {
+    translate: none;
+    scale: 1;
+    transition: none;
+  }
+
+  .landing-root .lp-btn-shadow.lp-process-submit,
+  .landing-root .lp-btn-shadow.lp-process-submit:hover {
+    translate: none;
+    scale: 1;
+    transition: none;
+  }
+
+  .landing-root .lp-process-submit:hover .lp-process-submit-arrow {
+    translate: none;
+  }
+
+  .landing-root .lp-process-detail,
+  .landing-root .lp-process-detail[data-expanded="true"] {
+    transition: none;
+  }
+
+  .landing-root[data-motion="on"] .lp-process-item[data-revealed="true"] .lp-step-photo,
+  .landing-root[data-motion="on"] .lp-process-item[data-revealed="true"] .lp-step-band,
+  .landing-root[data-motion="on"] .lp-process-code[data-live="true"] .lp-process-code-line,
+  .landing-root[data-motion="on"] .lp-process-code[data-live="true"] .lp-process-code-status,
+  .landing-root[data-motion="on"] .lp-process-arrow[data-revealed="true"] .lp-process-arrow-line,
+  .landing-root[data-motion="on"] .lp-process-arrow[data-revealed="true"] .lp-process-arrow-head,
+  .landing-root[data-motion="on"] .lp-process-arrow[data-revealed="true"] .lp-process-arrow-dot {
+    animation: none;
+  }
+
+  .landing-root[data-motion="on"] .lp-process-code[data-live="false"] .lp-process-code-line,
+  .landing-root[data-motion="on"] .lp-process-code[data-live="false"] .lp-process-code-status {
+    clip-path: none;
+    opacity: 1;
+    translate: none;
+  }
+
+  .landing-root .lp-process-toggle-icon {
+    transition: none;
+  }
+}

@@ -66,29 +66,34 @@ describe('marketing landing page', () => {
     const heroPrice = container.querySelector('#home .lp-hero-price');
     expect(heroPrice).not.toBeNull();
     expect(heroPrice).toHaveTextContent('$7.99/mo');
-    expect(container.querySelectorAll('#features .lp-story-step')).toHaveLength(3);
-    expect(container.querySelectorAll('#features .lp-story-badge')).toHaveLength(0);
-    expect(container.querySelectorAll('#features .lp-story-num')).toHaveLength(3);
-    expect(container.querySelectorAll('#features .lp-fig svg')).toHaveLength(4);
-    expect(container.querySelectorAll('#features .lp-fig-solid').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('#features .rj-step')).toHaveLength(3);
+    expect(container.querySelectorAll('#features .rj-step-number')).toHaveLength(3);
+    expect(container.querySelectorAll('#features .rj-step[data-active="true"]')).toHaveLength(1);
+    expect(container.querySelector('#features .rj-step[aria-current="step"]')).not.toBeNull();
+    expect(container.querySelectorAll('#features .rj-inline .rj-scene')).toHaveLength(3);
+    expect(container.querySelectorAll('#features .rj-stage-panel')).toHaveLength(3);
+    // Three inline drawings for small screens plus three in the sticky stage.
+    expect(container.querySelectorAll('#features .rj-svg')).toHaveLength(6);
+    expect(container.querySelectorAll('#features .rj-wire').length).toBeGreaterThan(0);
+    // Every stage ships a complete, server-rendered still with its callouts.
+    expect(container.querySelectorAll('#features .rj-tip')).toHaveLength(6);
+    expect(screen.getByText('TRAFFIC, MEET REVENUE')).toBeInTheDocument();
 
     for (const plan of PLANS) {
       expect(screen.getByRole('heading', { name: plan.name })).toBeInTheDocument();
     }
   });
 
-  test('lays the four build steps out on the scroll story', () => {
+  test('lays the three interactive build steps out in the process section', () => {
     const { container } = render(<LandingPage />);
 
     expect(
       screen.getByRole('heading', {
-        name: /FROM ONE SCRIPT TAG TO REVENUE YOU CAN ACT ON/i,
+        name: /FROM ONE SCRIPT TAG TO REVENUE IN 3 STEPS/i,
       }),
     ).toBeInTheDocument();
-    expect(container.querySelectorAll('#process .lp-story-step')).toHaveLength(4);
-    expect(container.querySelectorAll('#process .lp-story-step[data-active="true"]')).toHaveLength(
-      1,
-    );
+    expect(container.querySelectorAll('#process .lp-process-item')).toHaveLength(3);
+    expect(container.querySelectorAll('#process .lp-process-card')).toHaveLength(3);
   });
 
   test('places the integrations manifest after the FAQ, in the closing stretch', () => {
@@ -106,18 +111,25 @@ describe('marketing landing page', () => {
     const { container } = render(<LandingPage />);
 
     expect(screen.getByRole('region', { name: /FROM ONE SCRIPT TAG/i })).toBeInTheDocument();
-    expect(screen.getByText('1. Install Tartly')).toBeInTheDocument();
-    expect(screen.getByText('2. Connect revenue data')).toBeInTheDocument();
-    expect(screen.getByText('3. Grow what pays')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 3, name: /1\. Install Tartly/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 3, name: /2\. Connect revenue data/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 3, name: /3\. See what converts/i }),
+    ).toBeInTheDocument();
     // The provider step names the integrations it supports. Scope to the process
     // card so this doesn't collide with the providers strip lower on the page.
     const process = screen.getByRole('region', { name: /FROM ONE SCRIPT TAG/i });
     expect(within(process).getByLabelText('Works with')).toBeInTheDocument();
     expect(within(process).getByText('Lemon Squeezy')).toBeInTheDocument();
     expect(screen.getByText('Manual API')).toBeInTheDocument();
+    // Each of the three cards carries one product still and one photograph.
     expect(container.querySelectorAll('#process .lp-step-band')).toHaveLength(3);
-    // Each band carries a decorative photograph behind the product still.
-    expect(container.querySelectorAll('#process .lp-step-photo[alt=""]')).toHaveLength(3);
+    expect(container.querySelectorAll('#process .lp-step-figure')).toHaveLength(3);
+    expect(container.querySelectorAll('#process .lp-step-photo')).toHaveLength(3);
     expect(
       within(screen.getByRole('region', { name: /FROM ONE SCRIPT TAG/i })).getAllByRole('heading', {
         level: 3,
@@ -349,10 +361,13 @@ describe('marketing landing page', () => {
   test('renders the payment providers that connect in settings', () => {
     render(<LandingPage />);
 
-    expect(
-      screen.getByText(/Connects to the payment providers you already use/i),
-    ).toBeInTheDocument();
-    expect(screen.getByText('Dodo Payments')).toBeInTheDocument();
-    expect(screen.getByText('Lemon Squeezy')).toBeInTheDocument();
+    // The process cards now name Lemon Squeezy too, so scope this to the
+    // providers strip rather than querying the whole page.
+    const providers = screen.getByRole('region', {
+      name: /Connects to the payment providers you already use/i,
+    });
+
+    expect(within(providers).getByText('Dodo Payments')).toBeInTheDocument();
+    expect(within(providers).getByText('Lemon Squeezy')).toBeInTheDocument();
   });
 });

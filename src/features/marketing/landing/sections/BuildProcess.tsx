@@ -1,11 +1,12 @@
-import Image from 'next/image';
+'use client';
+
 import { Fragment } from 'react';
-import {
-  ArrowRight as ArrowRightIcon,
-  Check as CheckIcon,
-  Globe as GlobeIcon,
-} from '@/components/icons';
 import { Reveal } from '../motion/Reveal';
+import { CodeCard } from '../process/CodeCard';
+import { ProcessArrow } from '../process/ProcessArrow';
+import { ProcessCard } from '../process/ProcessCard';
+import { ProcessCta } from '../process/ProcessCta';
+import '../process/process.css';
 
 const PROVIDERS = [
   { name: 'Stripe', logo: '/images/payments/stripe.svg' },
@@ -19,40 +20,16 @@ type Step = {
   key: string;
   title: string;
   description: string;
+  detail: string;
   photo: string;
-  visual: React.ReactNode;
+  visual: (live: boolean) => React.ReactNode;
 };
 
-function SnipVisual() {
-  return (
-    <div className="lp-step-band lp-step-band--code">
-      <div className="lp-step-window">
-        <div className="lp-step-window-bar">
-          <span className="lp-step-dots" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </span>
-          <span className="lp-step-window-name">index.html</span>
-        </div>
-        <div className="lp-step-code">
-          <span className="lp-step-code-dim">&lt;</span>
-          <span className="lp-step-code-tag">script</span>{' '}
-          <span className="lp-step-code-attr">defer</span>{' '}
-          <span className="lp-step-code-attr">src</span>
-          <span className="lp-step-code-dim">="</span>https://tartly.in/t.js
-          <span className="lp-step-code-dim">"</span>{' '}
-          <span className="lp-step-code-attr">data-site</span>
-          <span className="lp-step-code-dim">="</span>site_8f2a
-          <span className="lp-step-code-dim">"&gt;&lt;/</span>
-          <span className="lp-step-code-tag">script</span>
-          <span className="lp-step-code-dim">&gt;</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
+/**
+ * Plate 2 — the payment sources. Task 2 replaces this with the interactive
+ * provider web; for now it stays the shipped static chip grid so the section
+ * already names every integration it supports.
+ */
 function ProvidersVisual() {
   return (
     <div className="lp-step-band lp-step-band--pay">
@@ -82,6 +59,11 @@ function ProvidersVisual() {
   );
 }
 
+/**
+ * Plate 3 — the revenue panel, clearly marked as sample data. Task 2 replaces
+ * this with the counted-up dashboard; the labels and values are already the
+ * final ones so the story reads correctly today.
+ */
 function GrowthVisual() {
   const rows = [
     { label: 'Organic / Google', value: '$4,280', pct: 100 },
@@ -120,24 +102,27 @@ const STEPS: Step[] = [
     title: 'Install Tartly',
     description:
       'Add the script to your site. One tag, any framework, no plugin to keep in sync. The first event shows up before you pay.',
+    detail: "One lightweight script. That's all it takes.",
     photo: '/images/landing/process-reach.webp',
-    visual: <SnipVisual />,
+    visual: live => <CodeCard live={live} />,
   },
   {
     key: 'connect',
     title: 'Connect revenue data',
     description:
       'Link Stripe, Dodo, Lemon Squeezy, Polar, or Yolfi, or send payments through the manual API. Your checkout stays where it is.',
+    detail: 'Connect Stripe, Dodo, Lemon Squeezy, Polar, or your own payment API.',
     photo: '/images/landing/process-connect.webp',
-    visual: <ProvidersVisual />,
+    visual: () => <ProvidersVisual />,
   },
   {
     key: 'grow',
-    title: 'Grow what pays',
+    title: 'See what converts',
     description:
       'See which channel, campaign, and landing page produced the payment. Move budget toward what earns, not what just gets clicks.',
+    detail: 'Discover which channels and landing pages actually generate revenue.',
     photo: '/images/landing/process-grow.webp',
-    visual: <GrowthVisual />,
+    visual: () => <GrowthVisual />,
   },
 ];
 
@@ -145,6 +130,10 @@ const STEPS: Step[] = [
  * Three cards, one story. The structure follows the DataFast process section:
  * centred eyebrow and headline, then three inset-ring cards with a drawn product
  * still floating over a photographic plate. Colour and motion are Tartly's.
+ *
+ * The section is interactive now: every card lifts on hover and expands on
+ * click (or through its own button), the snippet types itself once, the arrows
+ * draw once, and the handoff validates the website before leaving the page.
  */
 export function BuildProcess() {
   return (
@@ -163,101 +152,43 @@ export function BuildProcess() {
               FROM ONE SCRIPT TAG TO REVENUE IN 3 STEPS
             </h2>
           </Reveal>
+          <Reveal delay={200}>
+            <p className="mt-5 max-w-2xl text-pretty text-[15px] leading-relaxed text-lp-fg-muted">
+              One lightweight script, your payment tools, and a revenue view that tells you what to
+              do next.
+            </p>
+          </Reveal>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-center gap-6 md:mt-20 lg:flex-row lg:items-stretch">
+        <div className="mt-12 flex flex-col items-center justify-center gap-6 md:mt-16 lg:flex-row lg:items-stretch">
           {STEPS.map((step, index) => (
             <Fragment key={step.key}>
-              {index > 0 ? (
-                <ArrowRightIcon
-                  className="lp-step-arrow size-6 shrink-0 max-lg:rotate-90 lg:self-center"
-                  strokeWidth={1.75}
-                  aria-hidden="true"
-                />
-              ) : null}
+              <ProcessCard
+                stepKey={step.key}
+                index={index}
+                title={step.title}
+                description={step.description}
+                detail={step.detail}
+                photo={step.photo}
+                delay={280 + index * 150}
+                visual={step.visual}
+              />
 
-              <Reveal
-                as="article"
-                delay={index * 90}
-                distance={24}
-                className="lp-step-shell w-full max-w-lg lg:min-w-0 lg:flex-1"
-              >
-                <div
-                  className="lp-step-card"
-                  style={{ '--lp-still-delay': `${260 + index * 90}ms` } as React.CSSProperties}
+              {index < STEPS.length - 1 ? (
+                <Reveal
+                  delay={355 + index * 150}
+                  distance={8}
+                  className="lp-process-arrow shrink-0 max-lg:self-center"
                 >
-                  <figure className="lp-step-figure">
-                    <Image
-                      src={step.photo}
-                      alt=""
-                      fill
-                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 80vw, 100vw"
-                      className="lp-step-photo"
-                    />
-                    {step.visual}
-                    <span aria-hidden="true" className="lp-step-veil" />
-                    <span aria-hidden="true" className="lp-step-grain" />
-                  </figure>
-                  <div className="lp-step-body">
-                    <h3 className="lp-step-title">
-                      <span className="lp-step-num">{index + 1}.</span> {step.title}
-                    </h3>
-                    <p className="lp-step-copy">{step.description}</p>
-                  </div>
-                </div>
-              </Reveal>
+                  <ProcessArrow />
+                </Reveal>
+              ) : null}
             </Fragment>
           ))}
         </div>
 
         <Reveal delay={120} className="mt-10 flex flex-col items-center md:mt-12">
-          <form
-            action="/signup"
-            method="get"
-            className="flex w-full max-w-xl flex-col items-stretch gap-3 sm:flex-row"
-          >
-            <input type="hidden" name="returnUrl" value="/onboarding" />
-            <div className="lp-hero-input-wrap relative flex-1">
-              <GlobeIcon
-                className="lp-hero-input-icon pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-lp-fg-muted"
-                aria-hidden="true"
-              />
-              <label htmlFor="process-website" className="sr-only">
-                Website to add
-              </label>
-              <input
-                id="process-website"
-                name="website"
-                type="text"
-                autoComplete="url"
-                required
-                placeholder="yourwebsite.com"
-                className="lp-hero-input h-12 w-full rounded-md border border-lp-line bg-lp-card pr-4 pl-10 text-[14px] font-medium text-lp-ink transition-colors placeholder:text-lp-fg-muted/60 hover:border-2 hover:border-lp-ink focus:border-[3px] focus:border-lp-ink"
-              />
-            </div>
-            <button
-              type="submit"
-              className="lp-btn-shadow lp-hero-submit flex h-12 shrink-0 items-center justify-center gap-2 rounded-md bg-lp-primary px-6 text-[13px] font-black tracking-[0.14em] whitespace-nowrap text-white uppercase"
-            >
-              Add your site
-              <ArrowRightIcon
-                className="lp-hero-submit-arrow size-4"
-                strokeWidth={3}
-                aria-hidden="true"
-              />
-            </button>
-          </form>
-
-          <p className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[11px] font-medium text-lp-fg-muted">
-            <span className="inline-flex items-center gap-1.5">
-              <CheckIcon className="size-3.5 text-emerald-600" strokeWidth={3} aria-hidden="true" />
-              One script tag
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <CheckIcon className="size-3.5 text-emerald-600" strokeWidth={3} aria-hidden="true" />
-              First event before you pay
-            </span>
-          </p>
+          <ProcessCta />
         </Reveal>
       </div>
     </section>
