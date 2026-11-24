@@ -318,8 +318,24 @@ export default function FoldText({
       }
     };
 
+    let cachedBox: DOMRect | null = null;
+    let boxFrame = 0;
+
+    const refreshBox = () => {
+      cachedBox = root.getBoundingClientRect();
+      return cachedBox;
+    };
+
+    const scheduleBoxRefresh = () => {
+      if (boxFrame) return;
+      boxFrame = window.requestAnimationFrame(() => {
+        boxFrame = 0;
+        refreshBox();
+      });
+    };
+
     const aim = () => {
-      const box = root.getBoundingClientRect();
+      const box = cachedBox ?? refreshBox();
       const near = Boolean(
         pointer &&
           pointer.x > box.left - safeRadius &&
@@ -366,6 +382,7 @@ export default function FoldText({
 
     const handleMove = (event: PointerEvent) => {
       pointer = { x: event.clientX, y: event.clientY };
+      scheduleBoxRefresh();
       aim();
     };
     const handleLeave = () => {
@@ -373,13 +390,16 @@ export default function FoldText({
       aim();
     };
     const handleScroll = () => {
-      if (pointer) aim();
+      if (!pointer) return;
+      scheduleBoxRefresh();
+      aim();
     };
 
     if (refold) {
       window.addEventListener('pointermove', handleMove, { passive: true });
       window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
       document.documentElement.addEventListener('pointerleave', handleLeave);
+      window.addEventListener('resize', scheduleBoxRefresh, { passive: true });
     }
 
     return () => {
@@ -387,6 +407,8 @@ export default function FoldText({
       window.removeEventListener('pointermove', handleMove);
       window.removeEventListener('scroll', handleScroll, { capture: true });
       document.documentElement.removeEventListener('pointerleave', handleLeave);
+      window.removeEventListener('resize', scheduleBoxRefresh);
+      if (boxFrame) window.cancelAnimationFrame(boxFrame);
       gsap.ticker.remove(relax);
       scrollTrigger?.kill();
       timeline?.kill();

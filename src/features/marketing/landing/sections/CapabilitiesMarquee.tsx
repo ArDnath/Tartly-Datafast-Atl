@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Marquee from 'react-fast-marquee';
 import {
   ArrowUpRight as ArrowUpRightIcon,
@@ -29,8 +29,7 @@ interface Capability {
 const CAPABILITIES: Capability[] = [
   {
     question: 'Which channel pays?',
-    answer:
-      'Open revenue by channel for any date range. Each row shows visitors, revenue, and the source that brought them.',
+    answer: 'Open revenue by channel for any range. See visitors, revenue, and source.',
     tag: 'Attribution',
     availability: 'Starter and Pro',
     icon: BarChart3Icon,
@@ -38,15 +37,14 @@ const CAPABILITIES: Capability[] = [
   {
     question: 'What did a customer do first?',
     answer:
-      'First-touch attribution keeps the visit that created the lead, including the referrer, campaign, and landing page.',
+      'First-touch keeps the visit that created the lead, including referrer, campaign, and landing page.',
     tag: 'First touch',
     availability: 'Starter and Pro',
     icon: MousePointerClickIcon,
   },
   {
     question: 'What closed the sale?',
-    answer:
-      'Last-touch attribution shows the visit closest to payment, so you can see what actually converted.',
+    answer: 'Last-touch shows the visit closest to payment, so you see what actually converted.',
     tag: 'Last touch',
     availability: 'Starter and Pro',
     icon: CreditCardIcon,
@@ -54,15 +52,14 @@ const CAPABILITIES: Capability[] = [
   {
     question: 'Where does the funnel leak?',
     answer:
-      'Goals and funnels show the drop between visit, signup, checkout, and payment. Fix the step that loses the most.',
+      'Funnels show the drop between visit, signup, checkout, and payment. Fix the step that loses the most.',
     tag: 'Funnels',
     availability: 'Starter and Pro',
     icon: FilterIcon,
   },
   {
     question: 'What happened before checkout?',
-    answer:
-      'Open a session to see pageviews, events, and the payment in one ordered timeline, with the source attached.',
+    answer: 'Open a session to see pageviews, events, and the payment in one ordered timeline.',
     tag: 'Journeys',
     availability: 'Pro',
     icon: RouteIcon,
@@ -86,7 +83,7 @@ const CAPABILITIES: Capability[] = [
   {
     question: 'Do customers come back?',
     answer:
-      'Cohorts and retention show whether the customers you win keep paying, not just whether the first payment landed.',
+      'Cohorts and retention show whether customers you win keep paying, not just the first payment.',
     tag: 'Retention',
     availability: 'Pro',
     icon: UsersIcon,
@@ -103,7 +100,7 @@ const FIRST_ROW = CAPABILITIES.slice(0, 4);
 const SECOND_ROW = CAPABILITIES.slice(4);
 
 function usePrefersReducedMotion() {
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(true);
 
   useEffect(() => {
     const query = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -118,11 +115,30 @@ function usePrefersReducedMotion() {
   return reducedMotion;
 }
 
+function useSectionVisible<T extends HTMLElement>() {
+  const ref = useRef<T | null>(null);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(entries => {
+      setVisible(entries[0]?.isIntersecting ?? true);
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, visible };
+}
+
 export function CapabilitiesMarquee() {
   const reducedMotion = usePrefersReducedMotion();
+  const { ref: sectionRef, visible } = useSectionVisible<HTMLElement>();
 
   return (
     <section
+      ref={sectionRef}
       aria-labelledby="capabilities-title"
       className="relative overflow-hidden border-b border-lp-line bg-lp-card/40"
     >
@@ -145,8 +161,8 @@ export function CapabilitiesMarquee() {
           </Reveal>
           <Reveal delay={140}>
             <p className="mt-4 max-w-xl text-center text-sm/6 text-lp-fg-muted">
-              Eight questions between the first click and the payment. Every card is a live report
-              in the workspace. Hover or tap to pause the tour and read one.
+              Eight questions between the first click and the payment. Every card is a live report.
+              Hover or tap to pause and read one.
             </p>
           </Reveal>
         </div>
@@ -160,12 +176,19 @@ export function CapabilitiesMarquee() {
             </div>
           ) : (
             <div className="marquee-fade mt-12 space-y-4">
-              <Marquee autoFill pauseOnClick pauseOnHover play speed={32}>
+              <Marquee autoFill pauseOnClick pauseOnHover play={visible} speed={32}>
                 {FIRST_ROW.map(item => (
                   <CapabilityCard key={item.question} item={item} />
                 ))}
               </Marquee>
-              <Marquee autoFill direction="right" pauseOnClick pauseOnHover play speed={32}>
+              <Marquee
+                autoFill
+                direction="right"
+                pauseOnClick
+                pauseOnHover
+                play={visible}
+                speed={32}
+              >
                 {SECOND_ROW.map(item => (
                   <CapabilityCard key={item.question} item={item} />
                 ))}
@@ -203,7 +226,7 @@ function CapabilityCard({ item, fluid = false }: { item: Capability; fluid?: boo
 
   return (
     <article
-      className={`lp-card-lift group flex h-[16.5rem] shrink-0 flex-col rounded-lg border border-lp-line bg-lp-card p-5 text-left ${
+      className={`lp-card-lift group flex h-[16.5rem] shrink-0 flex-col rounded-lg border border-lp-line bg-lp-canvas p-5 text-left ${
         fluid ? 'w-full' : 'mx-2 w-[19rem]'
       }`}
     >

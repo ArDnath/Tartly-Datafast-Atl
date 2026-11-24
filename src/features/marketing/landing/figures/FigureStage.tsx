@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { attributionRails } from './attributionRails';
 import { funnelSteps } from './funnelSteps';
 import { animate } from './loop';
-import { revenueColumns } from './revenueColumns';
+import { trafficRevenue } from './trafficRevenue';
 import type { Figure, Item } from './types';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -15,23 +15,29 @@ const NS = 'http://www.w3.org/2000/svg';
  * section names a figure by id and ships only its description.
  */
 const FIGURES: Record<string, Figure> = {
-  'revenue-columns': revenueColumns,
+  'traffic-revenue': trafficRevenue,
   'attribution-rails': attributionRails,
   'funnel-steps': funnelSteps,
 };
 
-/** The class a dot takes, from its tone. These three weights are the whole palette. */
+/** The class a dot takes, from its tone. Four weights are the whole palette. */
 const dotClass = (tone: string) =>
-  `lp-fig-dot ${tone === 'dot' ? 'on' : tone === 'dot m' ? 'mid' : 'off'}`;
+  `lp-fig-dot ${
+    tone === 'dot' ? 'on' : tone === 'dot m' ? 'mid' : tone === 'dot signal' ? 'signal' : 'off'
+  }`;
+
+const wireClass = (active: boolean | undefined) => `lp-fig-wire${active ? ' on' : ''}`;
 
 interface Node {
   sil?: SVGPathElement;
+  wire?: SVGPathElement;
   dot?: SVGEllipseElement;
   bubble?: SVGGElement;
   cloud?: SVGPathElement;
   label?: SVGElement;
   bx?: number;
   by?: number;
+  bs?: number;
   btx?: number;
   bty?: number;
   bTransUntil?: number;
@@ -59,10 +65,22 @@ function bind(svg: SVGSVGElement, items: Item[]) {
       });
       continue;
     }
+    if (item.kind === 'wire') {
+      const wire = document.createElementNS(NS, 'path');
+      wire.setAttribute('d', item.d);
+      wire.setAttribute('class', wireClass(item.active));
+      // A unit path length makes the dash offset a plain 0–1 draw progress.
+      wire.setAttribute('pathLength', '1');
+      wire.style.strokeDasharray = '1';
+      wire.style.strokeDashoffset = String(1 - item.progress);
+      svg.appendChild(wire);
+      nodes.set(item.key, { wire });
+      continue;
+    }
     if (item.kind === 'bubble') {
       const group = document.createElementNS(NS, 'g');
       group.setAttribute('class', 'lp-fig-bubble');
-      group.style.transform = `translate(${item.x}px, ${item.y}px)`;
+      group.style.transform = `translate(${item.x}px, ${item.y}px) scale(${item.scale ?? 1})`;
       group.style.transition = 'none';
       const cloud = document.createElementNS(NS, 'path');
       cloud.setAttribute('d', item.path);
@@ -81,6 +99,7 @@ function bind(svg: SVGSVGElement, items: Item[]) {
         label,
         bx: item.x,
         by: item.y,
+        bs: item.scale ?? 1,
         btx: item.tx ?? 0,
         bty: item.ty ?? 0,
       });
@@ -89,7 +108,7 @@ function bind(svg: SVGSVGElement, items: Item[]) {
     const group = document.createElementNS(NS, 'g');
     const sil = document.createElementNS(NS, 'path');
     sil.setAttribute('d', item.sil);
-    sil.setAttribute('class', 'lp-fig-solid');
+    sil.setAttribute('class', `lp-fig-solid${item.hi ? ' hi' : ''}`);
     group.appendChild(sil);
     svg.appendChild(group);
     nodes.set(item.key, { sil });
@@ -97,13 +116,67 @@ function bind(svg: SVGSVGElement, items: Item[]) {
   return nodes;
 }
 
-/** Writes a pose onto the nodes, touching only what changed. */
+/** The rest pose as markup, so the card is complete in the server's HTML. */
+function FigureStill({ figure, describe }: { figure: Figure; describe: string }) {
+  return (
+    <svg viewBox={figure.view} role="img" aria-label={describe} className="lp-fig-svg">
+      {figure.rest().map(item => {
+        if (item.kind === 'dot') {
+          return (
+            <ellipse
+              key={item.key}
+              cx={item.cx}
+              cy={item.cy}
+              rx={item.rx}
+              ry={item.ry}
+              className={dotClass(item.tone)}
+            />
+          );
+        }
+        if (item.kind === 'wire') {
+          return (
+            <path
+              key={item.key}
+              d={item.d}
+              className={wireClass(item.active)}
+              pathLength={1}
+              style={{ strokeDasharray: 1, strokeDashoffset: 1 - item.progress }}
+            />
+          );
+        }
+        if (item.kind === 'bubble') {
+          return (
+            <g
+              key={item.key}
+              className="lp-fig-bubble"
+              style={{
+                transform: `translate(${item.x}px, ${item.y}px) scale(${item.scale ?? 1})`,
+              }}
+            >
+              <path d={item.path} className="lp-fig-cloud" />
+              <text x={item.tx ?? 0} y={item.ty ?? 0} className="lp-fig-bubble-text">
+                {item.text}
+              </text>
+            </g>
+          );
+        }
+        return (
+          <g key={item.key}>
+            <path d={item.sil} className={`lp-fig-solid${item.hi ? ' hi' : ''}`} />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 const reducedMotion = () =>
   typeof window !== 'undefined' &&
   typeof window.matchMedia === 'function' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-function paint(nodes: Map<string, Node>, items: Item[], dt: number) {
+/** Writes a pose onto the nodes, touching only what changed. */
+function paint(nodes: Map<string, Node>, items: Item[]) {
   const reduce = reducedMotion();
   for (const item of items) {
     const node = nodes.get(item.key);
@@ -121,12 +194,24 @@ function paint(nodes: Map<string, Node>, items: Item[], dt: number) {
       continue;
     }
 
+    if (item.kind === 'wire') {
+      const wire = node.wire;
+      if (!wire) continue;
+      if (wire.getAttribute('d') !== item.d) wire.setAttribute('d', item.d);
+      const offset = String(Math.round((1 - item.progress) * 1000) / 1000);
+      if (wire.style.strokeDashoffset !== offset) wire.style.strokeDashoffset = offset;
+      const cls = wireClass(item.active);
+      if (wire.getAttribute('class') !== cls) wire.setAttribute('class', cls);
+      continue;
+    }
+
     if (item.kind === 'bubble') {
       const cloud = node.cloud;
       const label = node.label;
       const group = node.bubble;
       if (!cloud || !label || !group) continue;
-      if (node.bx !== item.x || node.by !== item.y) {
+      const scale = item.scale ?? 1;
+      if (node.bx !== item.x || node.by !== item.y || node.bs !== scale) {
         const dx = item.x - (node.bx ?? item.x);
         const dy = item.y - (node.by ?? item.y);
         const jump = Math.hypot(dx, dy);
@@ -136,9 +221,10 @@ function paint(nodes: Map<string, Node>, items: Item[], dt: number) {
         } else if ((node.bTransUntil ?? 0) < performance.now()) {
           group.style.transition = 'none';
         }
-        group.style.transform = `translate(${item.x}px, ${item.y}px)`;
+        group.style.transform = `translate(${item.x}px, ${item.y}px) scale(${scale})`;
         node.bx = item.x;
         node.by = item.y;
+        node.bs = scale;
       }
       if (cloud.getAttribute('d') !== item.path) cloud.setAttribute('d', item.path);
       const tx = item.tx ?? 0;
@@ -161,41 +247,6 @@ function paint(nodes: Map<string, Node>, items: Item[], dt: number) {
     const cls = `lp-fig-solid${item.hi ? ' hi' : ''}`;
     if (sil.getAttribute('class') !== cls) sil.setAttribute('class', cls);
   }
-}
-
-/** The rest pose as markup, so the card is complete in the server's HTML. */
-function FigureStill({ figure, describe }: { figure: Figure; describe: string }) {
-  return (
-    <svg viewBox={figure.view} role="img" aria-label={describe} className="lp-fig-svg">
-      {figure.rest().map(item =>
-        item.kind === 'dot' ? (
-          <ellipse
-            key={item.key}
-            cx={item.cx}
-            cy={item.cy}
-            rx={item.rx}
-            ry={item.ry}
-            className={dotClass(item.tone)}
-          />
-        ) : item.kind === 'bubble' ? (
-          <g
-            key={item.key}
-            className="lp-fig-bubble"
-            style={{ transform: `translate(${item.x}px, ${item.y}px)` }}
-          >
-            <path d={item.path} className="lp-fig-cloud" />
-            <text x={item.tx ?? 0} y={item.ty ?? 0} className="lp-fig-bubble-text">
-              {item.text}
-            </text>
-          </g>
-        ) : (
-          <g key={item.key}>
-            <path d={item.sil} className="lp-fig-solid" />
-          </g>
-        ),
-      )}
-    </svg>
-  );
 }
 
 /**
@@ -231,8 +282,8 @@ export function FigureStage({ id, describe }: { id: string; describe: string }) 
     };
 
     let binding: ReturnType<typeof animate> | null = null;
-    binding = animate(figure, element, (items, dt) => {
-      paint(nodes, items, dt);
+    binding = animate(figure, element, items => {
+      paint(nodes, items);
       readNow();
     });
 

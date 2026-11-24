@@ -21,9 +21,6 @@ export interface LegalDocument {
   sections: LegalSection[];
 }
 
-export const LEGAL_DRAFT_NOTICE =
-  'Draft for lawyer review. This document describes the behaviour implemented in this repository, but it is not legal advice and must be reviewed by qualified counsel before launch.';
-
 const CONTACT = `Questions: ${BRAND.supportEmail}.`;
 
 export const LEGAL_DOCUMENTS: LegalDocument[] = [

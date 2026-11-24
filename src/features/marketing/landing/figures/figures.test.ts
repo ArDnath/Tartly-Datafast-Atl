@@ -1,11 +1,11 @@
 import { describe, expect, test } from 'vitest';
 import { attributionRails } from './attributionRails';
 import { funnelSteps } from './funnelSteps';
-import { revenueColumns } from './revenueColumns';
+import { trafficRevenue } from './trafficRevenue';
 import type { Figure, Item } from './types';
 
 const figures: [string, Figure][] = [
-  ['revenue columns', revenueColumns],
+  ['traffic revenue', trafficRevenue],
   ['attribution rails', attributionRails],
   ['funnel steps', funnelSteps],
 ];
@@ -14,7 +14,12 @@ const figures: [string, Figure][] = [
 function points(items: Item[]): [number, number][] {
   const out: [number, number][] = [];
   for (const item of items) {
-    if (item.kind === 'bubble') {
+    if (item.kind === 'bubble') continue;
+    if (item.kind === 'wire') {
+      const nums = item.d.match(/-?\d+(?:\.\d+)?/g) ?? [];
+      for (let i = 0; i + 1 < nums.length; i += 2) {
+        out.push([Number(nums[i]), Number(nums[i + 1])]);
+      }
       continue;
     }
     if (item.kind === 'dot') {
@@ -127,78 +132,74 @@ describe.each(figures)('%s', (_name, figure) => {
     }
     expect(seen.size).toBeGreaterThan(1);
   });
+
+  test('every wire is a unit-length dash that is drawn or hidden, never half a dash', () => {
+    for (let i = 0; i < 12; i += 1) {
+      for (const item of figure.frame(200)) {
+        if (item.kind !== 'wire') continue;
+        expect(item.progress).toBeGreaterThanOrEqual(0);
+        expect(item.progress).toBeLessThanOrEqual(1);
+        expect(item.d.startsWith('M')).toBe(true);
+      }
+    }
+  });
 });
 
 describe('the figures read out what they show', () => {
-  test('a revenue column names the dollars it earned', () => {
-    expect(revenueColumns.label('col-0')).toMatch(/revenue \$[\d,]+/);
+  test('the traffic scene shows a source, a drawn route, a payment and the $249 tooltip', () => {
+    const rest = trafficRevenue.rest();
+    expect(rest.map(item => item.key)).toContain('source');
+    expect(rest.map(item => item.key)).toContain('route');
+    expect(rest.map(item => item.key)).toContain('payment');
+    const wire = rest.find(item => item.kind === 'wire');
+    const cloud = rest.find(item => item.kind === 'bubble');
+    expect(wire?.kind === 'wire' && wire.progress).toBe(1);
+    expect(cloud?.kind === 'bubble' && cloud.text).toBe('$249');
+    expect(cloud?.kind === 'bubble' && cloud.scale).toBe(1);
+    expect(trafficRevenue.label('payment')).toBe('payment $249');
   });
 
-  test('the revenue cloud carries the dollars of the column it is over', () => {
-    for (let i = 0; i < 6; i += 1) {
-      const pose = revenueColumns.frame(250);
-      const cloud = pose.find(item => item.kind === 'bubble');
-      const bright = pose.find(item => item.kind === 'solid' && item.hi && item.key !== 'plinth');
-
-      expect(cloud?.kind).toBe('bubble');
-      expect(bright).toBeDefined();
-      if (cloud?.kind !== 'bubble' || !bright) {
-        throw new Error('missing cloud or bright column');
-      }
-
-      // The cloud and the read-out name the same column on every frame.
-      expect(cloud.text).toBe(revenueColumns.label(bright.key).replace('revenue ', ''));
+  test('the tooltip springs in only after the visitor has travelled', () => {
+    trafficRevenue.select(null);
+    const scales: number[] = [];
+    for (let i = 0; i < 24; i += 1) {
+      const cloud = trafficRevenue.frame(200).find(item => item.kind === 'bubble');
+      if (cloud?.kind === 'bubble') scales.push(cloud.scale ?? 1);
     }
+    expect(Math.min(...scales)).toBeLessThan(0.2);
+    expect(Math.max(...scales)).toBeGreaterThan(0.95);
   });
 
-  test('the revenue figure marks its column with the bright stroke, not beads', () => {
-    expect(revenueColumns.rest().some(item => item.kind === 'dot')).toBe(false);
-    for (let i = 0; i < 12; i += 1) {
-      expect(revenueColumns.frame(400).some(item => item.kind === 'dot')).toBe(false);
-    }
-  });
-
-  test('the revenue callout points at its bar, stays in frame and never touches it', () => {
-    const top = (sil: string) => {
-      const nums = (sil.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number);
-      let t = Infinity;
-      for (let i = 1; i < nums.length; i += 2) t = Math.min(t, nums[i]);
-      return t;
-    };
-
-    for (let i = 0; i < 60; i += 1) {
-      const pose = revenueColumns.frame(313);
-      const cloud = pose.find(item => item.kind === 'bubble');
-      const bar = pose.find(item => item.kind === 'solid' && item.hi);
-      if (cloud?.kind !== 'bubble' || bar?.kind !== 'solid') {
-        throw new Error('missing cloud or bright column');
-      }
-
-      // Rounded-rect callout extents: body top at -24, pointer tip at +14, ±28 wide.
-      expect(cloud.y - 24).toBeGreaterThanOrEqual(0);
-      expect(cloud.y + 14).toBeLessThan(320);
-      expect(cloud.x - 28).toBeGreaterThan(0);
-      expect(cloud.x + 28).toBeLessThan(400);
-
-      // The pointer aims at the bar crown. When a very tall bar reaches the top
-      // frame edge, the callout hugs the frame rather than clipping out of view.
-      if (cloud.y - 24 > 0) {
-        expect(cloud.y + 14).toBeLessThanOrEqual(top(bar.sil) + 2);
-      }
-      expect(cloud.y + 14).toBeLessThan(top(bar.sil) + 18);
-    }
-  });
-
-  test('the rails name both touches and the payment', () => {
-    expect(attributionRails.label('arm-0')).toBe('first touch');
-    expect(attributionRails.label('arm-1')).toBe('last touch');
+  test('the rails draw three paths from three sources into one payment', () => {
+    const rest = attributionRails.rest();
+    const wires = rest.filter(item => item.kind === 'wire');
+    expect(wires).toHaveLength(3);
+    expect(wires.every(item => item.kind === 'wire' && item.progress === 1)).toBe(true);
+    expect(rest.filter(item => item.kind === 'dot' && item.tone === 'dot signal')).toHaveLength(3);
+    expect(attributionRails.label('arm-2')).toBe('email touch');
     expect(attributionRails.label('leg')).toBe('paid');
     expect(attributionRails.label('collar')).toBe('match');
   });
 
-  test('the funnel names each step', () => {
-    expect(funnelSteps.label('step-0')).toBe('step 1 · visits');
-    expect(funnelSteps.label('step-1')).toBe('step 2 · trials');
+  test('one attribution path stays selected while the other two go muted', () => {
+    attributionRails.select('arm-1');
+    const pose = attributionRails.frame(1);
+    const active = pose.filter(item => item.kind === 'wire' && item.active);
+    expect(active).toHaveLength(1);
+    expect(active[0].key).toBe('wire-arm-1');
+    attributionRails.select(null);
+  });
+
+  test('the funnel names each step and lands one visitor on paid', () => {
+    expect(funnelSteps.label('step-0')).toBe('step 1 · signup');
+    expect(funnelSteps.label('step-1')).toBe('step 2 · trial');
     expect(funnelSteps.label('step-2')).toBe('step 3 · paid');
+
+    const rest = funnelSteps.rest();
+    const bright = rest.filter(item => item.kind === 'dot' && item.tone === 'dot');
+    const dropped = rest.filter(item => item.kind === 'dot' && item.tone === 'dot off');
+    expect(bright).toHaveLength(1);
+    expect(dropped).toHaveLength(2);
+    expect(bright[0].key).toBe('visitor-0');
   });
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { BrandMark } from '@/components/brand/BrandMark';
 import {
   type ChartColors,
@@ -219,7 +219,11 @@ function BreakdownCardView({
               aria-pressed={active}
               onClick={() => onRow(row, tab)}
             >
-              <span className={styles.rowFill} style={{ width: `${width}%` }} aria-hidden="true" />
+              <span
+                className={styles.rowFill}
+                style={{ transform: `scaleX(${(width / 100).toFixed(4)})` }}
+                aria-hidden="true"
+              />
               <span className={styles.rowLabel}>
                 {row.flag && (
                   <span className={styles.flag} aria-hidden="true">
@@ -352,7 +356,7 @@ function FunnelPanel({
                 <span className={styles.funnelPercent}>{percent.toFixed(1)}%</span>
               </div>
               <div className={styles.funnelTrack}>
-                <span style={{ width: `${Math.max(percent, 2)}%` }} />
+                <span style={{ transform: `scaleX(${(Math.max(percent, 2) / 100).toFixed(4)})` }} />
               </div>
               {index > 0 && <span className={styles.dropoff}>−{dropoff.toFixed(1)}% drop-off</span>}
             </div>
@@ -808,7 +812,7 @@ function ViewBody({
   );
 }
 
-export function HeroPreview() {
+export const HeroPreview = memo(function HeroPreview() {
   const [theme, setTheme] = useState<Theme>('light');
   const [view, setView] = useState<ViewId>('overview');
   const [range, setRange] = useState<RangeKey>('30d');
@@ -1132,4 +1136,4 @@ export function HeroPreview() {
       </div>
     </figure>
   );
-}
+});

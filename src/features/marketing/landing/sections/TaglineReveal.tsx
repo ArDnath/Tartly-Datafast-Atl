@@ -29,10 +29,6 @@ export function TaglineReveal() {
       </div>
 
       <div className="relative z-10 mx-auto max-w-5xl px-6 py-16 md:py-24">
-        <Reveal>
-          <p className="lp-eyebrow text-center">The revenue lens</p>
-        </Reveal>
-
         <WordReveal
           as="h2"
           id="tagline-title"

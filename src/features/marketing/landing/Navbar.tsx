@@ -84,7 +84,7 @@ export function Navbar() {
     <>
       <nav
         aria-label="Main"
-        className={`lp-nav-in fixed top-0 right-0 left-0 z-40 transition-[transform] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${showNavbar ? 'translate-y-0' : '-translate-y-full'}`}
+        className={`lp-nav-in fixed top-0 right-0 left-0 z-40 transition-[transform] duration-300 ease-(--lp-ease) motion-reduce:transition-none ${showNavbar ? 'translate-y-0' : '-translate-y-full'}`}
       >
         <div
           className={`mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-4 rounded-b-xl border border-t-0 border-lp-line bg-lp-canvas/85 px-4 backdrop-blur-md transition-shadow duration-200 md:px-5 ${
@@ -143,7 +143,7 @@ export function Navbar() {
 
       <div
         id="landing-mobile-menu"
-        className={`lp-menu-overlay fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 overflow-y-auto overscroll-contain bg-lp-canvas/95 text-lg font-medium backdrop-blur-md transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none md:hidden ${isOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}
+        className={`lp-menu-overlay fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 overflow-y-auto overscroll-contain bg-lp-canvas/95 text-lg font-medium backdrop-blur-md transition-[transform,opacity] duration-300 ease-(--lp-ease) motion-reduce:transition-none md:hidden ${isOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}
         data-open={isOpen}
         aria-hidden={!isOpen}
         inert={!isOpen}

@@ -17,7 +17,7 @@ test('shows the larger Tartly lockup above a single Google sign-in action', () =
   ).toBeInTheDocument();
   expect(
     screen.getByText(
-      'See which channels make money. Use Google to sign in or create your Tartly workspace. No password needed.',
+      'See which channels make money. Sign in with Google or create your Tartly workspace. No password needed.',
     ),
   ).toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Back to Tartly' })).toHaveAttribute('href', '/');

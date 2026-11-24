@@ -22,6 +22,7 @@
   --font-sans:
     var(--font-inter), Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
+  --font-poppins: "Poppins", var(--font-sans);
   --font-mono: ui-monospace, "SFMono-Regular", "Geist Mono", Menlo, Consolas, monospace;
   --color-canvas: var(--marketing-canvas);
   --color-lp-canvas: #fffbeb;
@@ -50,8 +51,16 @@
   --marketing-blush-soft: #ffd9c7;
   --marketing-blush-ink: #ffffff;
 
+  /* The revenue-journey palette. #features overrides these two to the exact
+     values in the design spec; the rest of the page keeps the shared accent. */
+  --lp-signal: #ff4f00;
+  --lp-ink: #171717;
+
   /* One weighted curve for every entrance. Never a browser default. */
   --lp-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* On-screen movement: the existing segmented-control / price-tick curve. */
+  --lp-move: cubic-bezier(0.2, 0, 0, 1);
 
   /* Inter is the only typeface on the landing page, including mono utilities. */
   --font-mono: var(--font-sans);
@@ -261,42 +270,46 @@
   }
 }
 
+/*
+ * Pressed state: the lift retracts back toward the surface, mirroring the
+ * hard-offset button's press language. Works on coarse pointers, where there
+ * is no hover to read.
+ */
+.landing-root .lp-card-lift:active {
+  translate: 2px 2px;
+}
+
 /* Pointing hand under the closing CTA: lift it off the card without a frame. */
 .landing-root .lp-hand {
   filter: drop-shadow(0 18px 30px rgba(23, 23, 23, 0.12));
 }
 
 .landing-root .lp-rise {
-  animation: lp-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: lp-rise 640ms var(--lp-ease) both;
 }
 
 /* One-shot entrance for the sample dashboard: values settle, never loop. */
 .landing-root .lp-kpi-in {
-  animation: lp-kpi-in 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: lp-kpi-in 520ms var(--lp-ease) both;
 }
 
 .landing-root .lp-bar-in {
   transform-origin: bottom center;
-  animation: lp-bar-rise 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: lp-bar-rise 680ms var(--lp-ease) both;
 }
 
 .landing-root .lp-row-in {
-  animation: lp-row-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: lp-row-in 420ms var(--lp-ease) both;
 }
 
 /* Price re-reads on a billing or traffic change: short, high-frequency feedback. */
 .landing-root .lp-price-tick {
-  animation: lp-price-tick 180ms cubic-bezier(0.2, 0, 0, 1) both;
+  animation: lp-price-tick 180ms var(--lp-move) both;
 }
 
 /* One-shot attention ring used when the closing CTA returns to the hero form. */
 .landing-root .lp-attention {
   animation: lp-attention 720ms var(--lp-ease);
-}
-
-/* Answer fade when a native details element opens. */
-.landing-root details[open] .lp-faq-answer {
-  animation: lp-faq-in 420ms var(--lp-ease) both;
 }
 
 @keyframes lp-mark-draw {
@@ -379,17 +392,6 @@
   }
 }
 
-@keyframes lp-faq-in {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 6px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
 /* ------------------------------------------------------------------------- */
 /* Hero                                                                      */
 /* ------------------------------------------------------------------------- */
@@ -403,7 +405,7 @@
 .landing-root .lp-hero-title {
   margin: 0 auto;
   max-width: 20ch;
-  font-family: var(--font-sans);
+  font-family: "Poppins", var(--font-sans);
   font-size: clamp(2.2rem, 6.1vw, 5.5rem);
   font-weight: 700;
   line-height: 0.96;
@@ -477,6 +479,11 @@
   color: #171717;
   cursor: pointer;
   isolation: isolate;
+  transition: transform 160ms ease-out;
+}
+
+.landing-root .lp-swap:active {
+  transform: scale(0.97);
 }
 
 .landing-root .lp-swap::before {
@@ -644,12 +651,17 @@
   }
 
   .landing-root .lp-hero-input-icon {
-    top: 1.45rem;
+    top: 50%;
+    translate: 0 -50%;
     transform: none;
   }
 
-  .landing-root .lp-hero-3d {
-    width: 100%;
+  /*
+   * Floating snapshots crowd the single-column copy on phones, so the hero
+   * keeps only the dotted field behind the copy on small screens.
+   */
+  .landing-root .lp-hero-decor {
+    display: none;
   }
 }
 
@@ -1001,21 +1013,11 @@
   background: #ff4f00;
 }
 
-.landing-root .stack-socket-node {
-  width: 7px;
-  height: 7px;
-  border: 1px solid #ddd5cc;
-  background: #fffbeb;
-  rotate: 45deg;
-}
-
 .landing-root .stack-tile {
   border-color: #ddd5cc;
   background: #fffdf6;
   transition:
-    translate 180ms var(--lp-ease),
     border-color 180ms var(--lp-ease),
-    box-shadow 180ms var(--lp-ease),
     background-color 180ms var(--lp-ease);
 }
 
@@ -1028,8 +1030,7 @@
 @media (hover: hover) {
   .landing-root .stack-tile:hover {
     border-color: color-mix(in srgb, var(--tile-tint) 50%, #b8afa2);
-    translate: 0 -1px;
-    box-shadow: 2px 2px 0 0 color-mix(in srgb, var(--tile-tint) 18%, transparent);
+    background: #fffbeb;
   }
 
   .landing-root .stack-tile:hover .stack-tile-mark {
@@ -1040,8 +1041,7 @@
 
 .landing-root .stack-tile:focus-visible {
   border-color: color-mix(in srgb, var(--tile-tint) 50%, #b8afa2);
-  translate: 0 -1px;
-  box-shadow: 2px 2px 0 0 color-mix(in srgb, var(--tile-tint) 18%, transparent);
+  background: #fffbeb;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1080,9 +1080,9 @@
   bottom: 4px;
   left: 4px;
   width: calc(50% - 4px);
-  background: #ff4f00;
+  background: #171717;
   border-radius: 4px;
-  transition: translate 200ms cubic-bezier(0.2, 0, 0, 1);
+  transition: translate 200ms var(--lp-move);
 }
 
 .landing-root .lp-seg-thumb[data-position="annual"] {
@@ -1187,8 +1187,7 @@
   .landing-root .lp-demo-note,
   .landing-root .lp-demo-note-text,
   .landing-root .lp-demo-note-line,
-  .landing-root .lp-demo-note-head,
-  .landing-root details[open] .lp-faq-answer {
+  .landing-root .lp-demo-note-head {
     animation: none;
   }
 
@@ -1205,8 +1204,6 @@
   .landing-root .stack-tile img,
   .landing-root .stack-tile-mark,
   .landing-root .payment-cell,
-  .landing-root .payment-cell-glow,
-  .landing-root .payment-cell-rule,
   .landing-root .payment-cell-logo,
   .landing-root .lp-btn-shadow,
   .landing-root .lp-card-lift,
@@ -1217,7 +1214,6 @@
   .landing-root .lp-story-title,
   .landing-root .lp-story-body,
   .landing-root .lp-story-rail::after,
-  .landing-root .lp-story-ticks span,
   .landing-root .stack-socket-node,
   .landing-root .lp-faq-item,
   .landing-root .lp-faq-index,
@@ -1231,13 +1227,19 @@
     transform: none;
   }
 
-  .landing-root .lp-story-swap {
-    animation: none;
+  .landing-root .lp-story-stage-panel {
+    opacity: 0;
+    transform: none;
+    transition: none;
+  }
+
+  .landing-root .lp-story-stage-panel[data-active="true"] {
+    opacity: 1;
   }
 
   .landing-root .lp-story-body {
-    grid-template-rows: 1fr;
     opacity: 1;
+    transform: none;
   }
 
   .landing-root .lp-mark-swirl-line {
@@ -1262,6 +1264,10 @@
     transform: none !important;
     will-change: auto;
   }
+
+  .landing-root .lp-swap:active {
+    transform: none;
+  }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1271,26 +1277,7 @@
 .landing-root .lp-faq-item {
   border: 1px solid #ddd5cc;
   border-radius: 10px;
-  background: color-mix(in srgb, #fffdf6 55%, transparent);
-  transition:
-    border-color 220ms var(--lp-ease),
-    background-color 220ms var(--lp-ease),
-    box-shadow 220ms var(--lp-ease);
-}
-
-@media (hover: hover) {
-  .landing-root .lp-faq-item:not([open]):hover {
-    border-color: color-mix(in srgb, #ff4f00 24%, #ddd5cc);
-    background: #fffdf6;
-  }
-}
-
-.landing-root .lp-faq-item[open] {
-  border-color: color-mix(in srgb, #ff4f00 38%, #ddd5cc);
-  background: #fffdf6;
-  box-shadow:
-    inset 2px 0 0 #ff4f00,
-    3px 3px 0 0 rgba(255, 79, 0, 0.1);
+  background: transparent;
 }
 
 .landing-root .lp-faq-index {
@@ -1300,47 +1287,6 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   font-variant-numeric: tabular-nums;
-  transition: color 220ms var(--lp-ease);
-}
-
-.landing-root .lp-faq-item[open] .lp-faq-index {
-  color: #ff4f00;
-}
-
-.landing-root .lp-faq-toggle {
-  display: flex;
-  width: 2rem;
-  height: 2rem;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #ddd5cc;
-  border-radius: 999px;
-  color: #6b6660;
-  transition:
-    background-color 220ms var(--lp-ease),
-    border-color 220ms var(--lp-ease),
-    color 220ms var(--lp-ease);
-}
-
-@media (hover: hover) {
-  .landing-root .lp-faq-item:not([open]):hover .lp-faq-toggle {
-    border-color: color-mix(in srgb, #ff4f00 45%, #ddd5cc);
-    color: #ff4f00;
-  }
-}
-
-.landing-root .lp-faq-item[open] .lp-faq-toggle {
-  border-color: #ff4f00;
-  background: #ff4f00;
-  color: #ffffff;
-}
-
-.landing-root .lp-faq-icon {
-  transition: rotate 300ms cubic-bezier(0.2, 0, 0, 1);
-}
-
-.landing-root .lp-faq-item[open] .lp-faq-icon {
-  rotate: 45deg;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1355,6 +1301,14 @@
  * reduced motion, the section is an ordinary document with every step open and
  * its visual inline.
  */
+/* The Revenue Journey uses the exact spec palette, scoped so the hero and the
+   other landing sections keep their existing accent. */
+#features {
+  --lp-signal: #ff4b0b;
+  --lp-ink: #191817;
+  --color-lp-primary: #ff4b0b;
+}
+
 .landing-root .lp-story {
   display: grid;
   gap: 1.5rem;
@@ -1386,10 +1340,11 @@
 }
 
 .landing-root .lp-story-rail::after {
-  background: linear-gradient(180deg, #ff4f00, #f2b4cb);
+  background: var(--lp-signal);
   transform: scaleY(var(--lp-story-progress, 0));
   transform-origin: top center;
-  transition: transform 140ms linear;
+  /* A 500 ms fill is slow enough to read as progress, not a jump. */
+  transition: transform 500ms var(--lp-ease);
 }
 
 .landing-root .lp-story-step {
@@ -1417,9 +1372,9 @@
 }
 
 .landing-root .lp-story-step[data-active="true"] .lp-story-node {
-  border-color: #ff4f00;
-  background: #ff4f00;
-  box-shadow: 0 0 0 4px rgba(255, 79, 0, 0.12);
+  border-color: var(--lp-signal);
+  background: var(--lp-signal);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--lp-signal) 12%, transparent);
 }
 
 .landing-root .lp-story-card {
@@ -1486,18 +1441,19 @@
 }
 
 .landing-root .lp-story-step[data-active="true"] .lp-story-num {
-  color: #ff4f00;
+  color: var(--lp-signal);
 }
 
 .landing-root .lp-story-title {
   margin-top: 0.9rem;
-  color: #171717;
+  color: var(--lp-ink);
   font-size: 1.3rem;
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.14;
   text-wrap: balance;
-  transition: color 320ms var(--lp-ease);
+  /* 250 ms step activation from the motion spec. */
+  transition: color 250ms var(--lp-ease);
 }
 
 /* Only the hydrated, motion-ready desktop dims rows the reader has not reached. */
@@ -1508,8 +1464,8 @@
 }
 
 .landing-root .lp-story-body {
-  display: grid;
-  grid-template-rows: 1fr;
+  opacity: 1;
+  transform: none;
 }
 
 .landing-root .lp-story-body-inner {
@@ -1529,7 +1485,7 @@
 .landing-root .lp-story-stat {
   display: inline-flex;
   margin-top: 0.9rem;
-  color: #a63a00;
+  color: var(--lp-signal);
   font-family: var(--font-mono);
   font-size: 9.5px;
   font-weight: 700;
@@ -1576,97 +1532,42 @@
   padding-top: 0;
 }
 
-.landing-root .lp-story-swap {
-  animation: lp-story-swap 520ms var(--lp-ease) both;
-}
-
 .landing-root .lp-story-stage-card {
   position: relative;
-  overflow: hidden;
-  border: 1px solid #e6ddcd;
-  border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 7rem),
-    linear-gradient(180deg, #fffdf7 0%, #fbf5e8 100%);
-  box-shadow:
-    0 40px 80px -56px rgba(23, 23, 23, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
-/* A faint dot field fills the quieter previews without touching the content. */
-.landing-root .lp-story-stage-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-image: radial-gradient(circle, rgba(23, 23, 23, 0.07) 0.6px, transparent 1.4px);
-  background-size: 20px 20px;
-  mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+.landing-root .lp-story-stage-visuals {
+  display: grid;
+  place-items: center;
+}
+
+.landing-root .lp-story-stage-panel {
+  grid-area: 1 / 1;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translate3d(0, 8px, 0) scale(0.992);
+  transition:
+    opacity 240ms var(--lp-ease),
+    transform 240ms var(--lp-ease);
   pointer-events: none;
 }
 
-.landing-root .lp-story-stage-card > * {
-  position: relative;
-  z-index: 1;
+.landing-root .lp-story-stage-panel[data-active="true"] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
 }
 
-.landing-root .lp-story-stage-head {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.9rem 1.35rem;
-  border-bottom: 1px solid #eee5d4;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.landing-root .lp-story-stage-num {
-  display: inline-flex;
-  min-width: 1.35rem;
-  height: 1.35rem;
-  align-items: center;
-  justify-content: center;
-  padding: 0 0.25rem;
-  border-radius: 4px;
-  background: #ff4f00;
-  color: #ffffff;
-  font-variant-numeric: tabular-nums;
-}
-
-.landing-root .lp-story-stage-kicker {
-  color: #6b6660;
-}
-
-.landing-root .lp-story-stage-stat {
-  margin-left: auto;
-  color: #a63a00;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-}
-
-.landing-root .lp-story-stage-visual {
-  display: flex;
-  min-height: 15rem;
-  align-items: center;
-  justify-content: center;
-  padding: 1.25rem 1.75rem 1.5rem;
-}
-
-.landing-root .lp-story-stage-visual > * {
+.landing-root .lp-story-stage-panel > * {
   width: 100%;
-  max-width: 26rem;
+  max-width: min(44rem, 86vh);
   margin-inline: auto;
 }
 
 /* Stacked feature stage: the drawing carries the meaning, so the chrome goes. */
-.landing-root .lp-story[data-variant="stacked"] .lp-story-stage-head,
-.landing-root .lp-story[data-variant="stacked"] .lp-story-stage-foot {
-  display: none;
-}
-
 .landing-root .lp-story[data-variant="stacked"] .lp-story-title {
   margin-top: 0.55rem;
   font-size: 1.15rem;
@@ -1679,61 +1580,6 @@
   max-width: 24rem;
   font-size: 0.9rem;
   line-height: 1.55;
-}
-
-.landing-root .lp-story[data-variant="stacked"] .lp-story-stage-visual {
-  min-height: 0;
-  padding: 1.25rem;
-}
-
-.landing-root .lp-story[data-variant="stacked"] .lp-story-stage-visual > * {
-  max-width: min(50rem, 86vh);
-}
-
-.landing-root .lp-story-stage-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.8rem 1.35rem 0.9rem;
-  border-top: 1px solid #eee5d4;
-}
-
-.landing-root .lp-story-ticks {
-  display: inline-flex;
-  gap: 5px;
-}
-
-.landing-root .lp-story-ticks span {
-  width: 1.5rem;
-  height: 3px;
-  border-radius: 999px;
-  background: #e6ddcd;
-  transition: background-color 320ms var(--lp-ease);
-}
-
-.landing-root .lp-story-ticks span[data-on="true"] {
-  background: #ff4f00;
-}
-
-.landing-root .lp-story-stage-count {
-  color: #a09889;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  font-variant-numeric: tabular-nums;
-}
-
-@keyframes lp-story-swap {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 14px, 0) scale(0.99);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 @media (min-width: 1024px) {
@@ -1801,21 +1647,22 @@
     align-self: stretch;
   }
 
-  /* Collapse the bodies only where the pinned stage can stand in for them. */
+  /* Fade and lift only where the pinned stage can stand in for the copy.
+     No grid/height animation: transforms and opacity stay on the compositor. */
   .landing-root[data-motion="on"] .lp-story-body {
-    grid-template-rows: 0fr;
     opacity: 0;
+    transform: translate3d(0, 8px, 0);
     transition:
-      grid-template-rows 480ms var(--lp-ease),
-      opacity 240ms var(--lp-ease);
+      opacity 240ms var(--lp-ease),
+      transform 240ms var(--lp-ease);
   }
 
   .landing-root[data-motion="on"] .lp-story-step[data-active="true"] .lp-story-body {
-    grid-template-rows: 1fr;
     opacity: 1;
+    transform: none;
     transition:
-      grid-template-rows 520ms var(--lp-ease),
-      opacity 300ms var(--lp-ease) 90ms;
+      opacity 300ms var(--lp-ease) 90ms,
+      transform 300ms var(--lp-ease) 90ms;
   }
 }
 
@@ -2057,9 +1904,9 @@
 }
 
 .landing-root .lp-fig-solid.hi {
-  fill: rgba(255, 79, 0, 0.04);
-  stroke: rgba(28, 27, 24, 0.9);
-  stroke-width: 1.35;
+  fill: color-mix(in srgb, var(--lp-signal) 5%, #fffbeb);
+  stroke: var(--lp-signal);
+  stroke-width: 1.5;
 }
 
 .landing-root .lp-fig-crease {
@@ -2088,6 +1935,31 @@
 
 .landing-root .lp-fig-dot.off {
   fill: rgba(110, 105, 96, 0.22);
+}
+
+/* The orange entry/source marker. Signal is a third weight, not a new hue. */
+.landing-root .lp-fig-dot.signal {
+  fill: var(--lp-signal);
+}
+
+/*
+ * A wire is drawn with a unit path length, so a dash offset of 1 hides it and
+ * 0 shows the whole line. Only the chosen attribution path turns orange; the
+ * other paths stay a quiet warm grey.
+ */
+.landing-root .lp-fig-wire {
+  fill: none;
+  stroke: rgba(110, 105, 96, 0.38);
+  stroke-width: 1.15;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+  transition: stroke 250ms var(--lp-ease);
+}
+
+.landing-root .lp-fig-wire.on {
+  stroke: var(--lp-signal);
+  stroke-width: 1.6;
 }
 
 .landing-root .lp-fig-callout {
@@ -2169,6 +2041,8 @@
 @media (prefers-reduced-motion: reduce) {
   .landing-root .lp-fig-solid,
   .landing-root .lp-fig-dot,
+  .landing-root .lp-fig-wire,
+  .landing-root .lp-fig-bubble,
   .landing-root .lp-fig-callout-text {
     transition: none;
   }

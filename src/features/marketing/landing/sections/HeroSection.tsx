@@ -243,14 +243,14 @@ export function HeroSection() {
         <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-lp-canvas to-transparent" />
       </div>
 
-
-
       {/*
         Decorative "profit" snapshots scattered across the hero at random-ish
         positions. They load eagerly so they are part of the first paint.
       */}
-      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
-
+      <div
+        className="lp-hero-decor pointer-events-none absolute inset-0 z-0 overflow-hidden"
+        aria-hidden="true"
+      >
         <img
           src="/hero-profit/profit-2.png"
           alt=""
@@ -305,12 +305,30 @@ export function HeroSection() {
           fetchPriority="high"
           className="absolute right-[12%] bottom-[14%] w-52 -rotate-5 opacity-90"
         />
+        <img
+          src="/hero-profit/see-which-pages-profit-5.png"
+          alt=""
+          width={122}
+          height={150}
+          loading="eager"
+          fetchPriority="high"
+          className="absolute right-[8%] top-[6%] w-40 rotate-4 opacity-85"
+        />
+        <img
+          src="/hero-profit/see-which-pages-profit-6.png"
+          alt=""
+          width={80}
+          height={96}
+          loading="eager"
+          fetchPriority="high"
+          className="absolute right-[4%] top-[32%] w-36 -rotate-6 opacity-90"
+        />
       </div>
 
       <div className="lp-hero relative z-10 mx-auto w-full max-w-5xl px-5 sm:px-6">
         <h1
           aria-label={`See which ${SWAP_WORDS[channelIndex]} actually make ${REVENUE_WORDS[revenueIndex]}`}
-          className="lp-hero-title lp-hero-rise"
+          className="lp-hero-title lp-hero-rise font-poppins"
           style={{ animationDelay: '80ms' }}
         >
           <span className="lp-hero-line lp-hero-line-first">
@@ -351,12 +369,12 @@ export function HeroSection() {
         </h1>
 
         <p className="lp-hero-hint lp-hero-rise" style={{ animationDelay: '220ms' }}>
-          Tap a highlighted word to swap it <span aria-hidden="true">↗</span>
+          Tap a word to swap it <span aria-hidden="true">↗</span>
         </p>
 
         <p className="lp-hero-lede lp-hero-rise" style={{ animationDelay: '300ms' }}>
-          <b>Connect your site and your payment provider.</b> See the referrers, campaigns, and
-          pages behind every payment — then fix the ones that do not pay.
+          <b>Connect your site and your payment provider.</b> See which channels and pages make
+          money — then fix the rest.
         </p>
 
         <form
@@ -400,7 +418,7 @@ export function HeroSection() {
           <span aria-hidden="true" className="lp-hero-dot">
             ·
           </span>
-          <span>Paid access starts after checkout · cancel anytime</span>
+          <span>Cancel anytime</span>
         </p>
 
         <p className="sr-only">
@@ -415,7 +433,16 @@ export function HeroSection() {
           className="lp-hero-preview-in relative mx-auto w-full max-w-6xl"
           style={{ animationDelay: '620ms' }}
         >
-          <HeroPreview />
+          <img
+            src="/hero-profit/interactive-demo-bg.png"
+            alt=""
+            aria-hidden="true"
+            loading="eager"
+            className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-full w-[190%] max-w-none -translate-x-1/2 -translate-y-1/2 object-center object-cover opacity-80 blur-[1px]"
+          />
+          <div className="relative z-10">
+            <HeroPreview />
+          </div>
         </div>
       </div>
     </section>

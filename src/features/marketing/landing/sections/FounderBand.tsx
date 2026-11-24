@@ -52,10 +52,6 @@ export function FounderBand() {
       className="border-b border-lp-line bg-lp-canvas"
     >
       <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 md:py-28">
-        <Reveal>
-          <p className="lp-eyebrow">Who it's for</p>
-        </Reveal>
-
         <Reveal delay={80}>
           <h2 id="who-title" className="lp-who-statement mt-5">
             <span className="lp-who-line">Built for the solo founder</span>

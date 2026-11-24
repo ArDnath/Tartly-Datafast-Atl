@@ -11,7 +11,7 @@ const FAQS = [
   {
     question: `How does ${BRAND.name} match revenue to traffic?`,
     answer:
-      'The tracker assigns each visitor a session ID. When a payment fires, that ID is attached to it. So every payment carries its full visit history: source, campaign, landing page, and pages seen before checkout. First-touch and last-touch views are both included.',
+      'The tracker assigns each visitor a session ID. When a payment fires, that ID is attached to it, so every payment carries its full visit history: source, campaign, landing page, and pages seen before checkout. First- and last-touch are both included.',
   },
   {
     question: 'What do I actually install?',
@@ -21,21 +21,21 @@ const FAQS = [
   {
     question: 'Which payment providers can I connect?',
     answer:
-      'Stripe, Dodo Payments, Lemon Squeezy, Polar, and Yolfi. For anything else — your own checkout, a custom flow — the manual payment API accepts POST requests. Credentials are encrypted at rest.',
+      'Stripe, Dodo Payments, Lemon Squeezy, Polar, and Yolfi. Custom checkouts use the manual payment API. Credentials are encrypted at rest.',
   },
   {
     question: 'Is there a free plan?',
     answer:
-      'No. There are two paid plans, Starter and Pro, and no free tier or trial. Create your first website before checkout so the workspace is ready as soon as payment is confirmed.',
+      'No. There are two paid plans, Starter and Pro, and no free tier or trial. Add your site before checkout so the workspace is ready when payment confirms.',
   },
   {
     question: 'What does it cost?',
-    answer: `Starter is ${formatMonthlyPrice(starter)}/mo. Pro is ${formatMonthlyPrice(pro)}/mo. Both scale with traffic — move the pricing slider to see the price at your event volume. Annual billing takes two months off.`,
+    answer: `Starter is ${formatMonthlyPrice(starter)}/mo. Pro is ${formatMonthlyPrice(pro)}/mo. Both scale with traffic — drag the pricing slider to see your price. Annual billing takes two months off.`,
   },
   {
     question: 'Can I cancel anytime?',
     answer:
-      'Yes. Cancellation is scheduled for the end of the current billing period, so you keep access until the period you already paid for ends.',
+      'Yes. Cancellation runs at the end of the billing period, so you keep access until it ends.',
   },
 ] as const;
 

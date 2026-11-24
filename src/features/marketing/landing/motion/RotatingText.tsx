@@ -360,7 +360,6 @@ const RotatingText = forwardRef<RotatingTextHandle, RotatingTextProps>((props, r
       <motion.span
         key={activeIndex}
         className={splitBy === 'lines' ? 'text-rotate-lines' : 'text-rotate-content'}
-        layout={!highlight}
         aria-hidden="true"
       >
         {elements.map((word, wordIndex, allWords) => {
@@ -405,7 +404,6 @@ const RotatingText = forwardRef<RotatingTextHandle, RotatingTextProps>((props, r
         style={blockStyle}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        layout={!highlight}
         transition={transition ?? LAYOUT_SPRING}
       >
         <span className="text-rotate-sr-only">{texts[activeIndex]}</span>

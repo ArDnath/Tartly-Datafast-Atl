@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { BrandWordmark } from '@/components/brand/BrandMark';
-import { Check } from '@/components/icons';
+import { ArrowUpRight, Check } from '@/components/icons';
 import { buildCheckoutPath } from '@/features/billing/lib/checkout-intent';
 import { BRAND } from '@/lib/brand';
 import {
@@ -86,74 +86,90 @@ export function PricingPage() {
       </header>
 
       <section className={styles.hero}>
-        <p className={styles.eyebrow}>Two plans. No free tier.</p>
-        <h1 className={styles.title}>Revenue analytics that grows with your traffic.</h1>
-        <p className={styles.subtitle}>
-          Pick the plan that matches your traffic. Move the slider to see the event allowance and
-          price for each plan. No per-seat surprises.
-        </p>
+        <div className={styles.decor} aria-hidden="true">
+          <svg className={styles.decorArcs} viewBox="0 0 1200 560" preserveAspectRatio="none">
+            <path d="M -80 520 C 200 250 560 180 1280 -40" />
+            <path d="M -40 560 C 300 330 720 260 1240 80" />
+          </svg>
+        </div>
 
-        <div className={styles.trafficPanel}>
-          <div className={styles.trafficHead}>
-            <div>
-              <p className={styles.trafficLabel}>Monthly traffic</p>
-              <p className={styles.trafficValue}>
-                Starter {formatTrafficEvents(tier.starterEventsPerMonth)} · Pro{' '}
-                {formatTrafficEvents(tier.proEventsPerMonth)} events
-              </p>
-            </div>
-            <span className={styles.trafficPill}>
-              Up to {formatTrafficEvents(tier.starterEventsPerMonth)} events / month
-            </span>
-          </div>
-          <input
-            type="range"
-            min={0}
-            max={TRAFFIC_TIERS.length - 1}
-            step={1}
-            value={tierIndex}
-            onChange={event => setTierIndex(Number(event.target.value))}
-            aria-label="Monthly traffic"
-            aria-valuetext={`${tier.starterEventsPerMonth.toLocaleString('en-US')} Starter events, ${tier.proEventsPerMonth.toLocaleString('en-US')} Pro events`}
-            className={styles.range}
-            style={{
-              background: `linear-gradient(to right, #1f2937 0%, #1f2937 ${sliderPercent}%, #e5e7eb ${sliderPercent}%, #e5e7eb 100%)`,
-            }}
-          />
-          <div className={styles.rangeLabels}>
-            {SLIDER_LABELS.map(index => (
-              <span key={index}>
-                {formatTrafficEvents(getTrafficTier(index).starterEventsPerMonth)}
+        <div className={styles.heroContent}>
+          <p className={styles.eyebrow}>{BRAND.name} pricing — two plans, no free tier</p>
+          <h1 className={styles.title}>
+            <span className={styles.titleLine}>Know what&apos;s working.</span>{' '}
+            <span className={styles.titleLine}>
+              Pay for what{' '}
+              <span className={styles.highlight}>
+                matters
+                <span className={styles.underline} />
               </span>
-            ))}
+              .
+            </span>
+          </h1>
+          <p className={styles.subtitle}>
+            {BRAND.promise} Move the slider to match your traffic. No per-seat surprises, and no
+            charge until payment is confirmed.
+          </p>
+
+          <div className={styles.controls}>
+            <div className={styles.billingToggle} role="group" aria-label="Billing period">
+              <span aria-hidden="true" className={styles.toggleThumb} data-position={billing} />
+              <button
+                type="button"
+                className={styles.toggleButton}
+                aria-pressed={billing === 'monthly'}
+                data-active={billing === 'monthly'}
+                onClick={() => setBilling('monthly')}
+              >
+                Monthly
+              </button>
+              <button
+                type="button"
+                className={styles.toggleButton}
+                aria-pressed={billing === 'annual'}
+                data-active={billing === 'annual'}
+                onClick={() => setBilling('annual')}
+              >
+                Yearly <span className={styles.toggleNote}>two months free</span>
+              </button>
+            </div>
+
+            <div className={styles.trafficPanel}>
+              <div className={styles.trafficHead}>
+                <p className={styles.trafficLabel}>Monthly traffic</p>
+                <p className={styles.trafficValue}>
+                  Starter {formatTrafficEvents(tier.starterEventsPerMonth)} · Pro{' '}
+                  {formatTrafficEvents(tier.proEventsPerMonth)} events
+                </p>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={TRAFFIC_TIERS.length - 1}
+                step={1}
+                value={tierIndex}
+                onChange={event => setTierIndex(Number(event.target.value))}
+                aria-label="Monthly traffic"
+                aria-valuetext={`${tier.starterEventsPerMonth.toLocaleString('en-US')} Starter events, ${tier.proEventsPerMonth.toLocaleString('en-US')} Pro events`}
+                className={styles.range}
+                style={{
+                  background: `linear-gradient(to right, var(--pr-orange) 0%, var(--pr-orange) ${sliderPercent}%, var(--pr-line) ${sliderPercent}%, var(--pr-line) 100%)`,
+                }}
+              />
+              <div className={styles.rangeLabels}>
+                {SLIDER_LABELS.map(index => (
+                  <span key={index}>
+                    {formatTrafficEvents(getTrafficTier(index).starterEventsPerMonth)}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <p className={styles.trialNote}>
+              <strong>No free tier.</strong> Every plan starts when payment is confirmed. Cancel any
+              time. <a href="#plans">Choose a plan →</a>
+            </p>
           </div>
-        </div>
-
-        <div className={styles.billingToggle} role="group" aria-label="Billing period">
-          <button
-            type="button"
-            className={billing === 'monthly' ? styles.toggleActive : styles.toggle}
-            aria-pressed={billing === 'monthly'}
-            onClick={() => setBilling('monthly')}
-          >
-            Monthly
-          </button>
-          <button
-            type="button"
-            className={billing === 'annual' ? styles.toggleActive : styles.toggle}
-            aria-pressed={billing === 'annual'}
-            onClick={() => setBilling('annual')}
-          >
-            Yearly <span className={styles.toggleNote}>2 months free</span>
-          </button>
-        </div>
-
-        <div className={styles.trialNote}>
-          <span>
-            <strong>No free tier.</strong> Every plan starts when payment is confirmed. Cancel any
-            time.
-          </span>
-          <a href="#plans">Choose a plan →</a>
         </div>
       </section>
 
@@ -170,23 +186,25 @@ export function PricingPage() {
               className={plan.highlight ? styles.cardHighlight : styles.card}
               data-plan={plan.id}
             >
+              {plan.highlight && <span className={styles.badge}>Most popular</span>}
+
               <div className={styles.cardHead}>
-                <div>
-                  <p className={styles.planName}>{plan.name}</p>
-                  <p className={styles.planTagline}>{plan.tagline}</p>
-                </div>
-                {plan.highlight && <span className={styles.badge}>For growing SaaS</span>}
+                <h2 className={styles.planName}>{plan.name}</h2>
+                <p className={styles.planTagline}>{plan.tagline}</p>
               </div>
 
-              <div className={styles.priceRow}>
-                <span className={styles.price}>{formatUsd(price)}</span>
-                <span className={styles.period}>/ month</span>
+              <div className={styles.priceBlock}>
+                {/* Keyed on billing only: the toggle settles, the traffic slider updates instantly. */}
+                <div className={styles.priceRow} key={billing}>
+                  <span className={styles.price}>{formatUsd(price)}</span>
+                  <span className={styles.period}>/ month</span>
+                </div>
+                <p className={styles.billingNote}>
+                  {billing === 'monthly'
+                    ? 'Billed monthly. Cancel any time.'
+                    : `Billed ${formatUsd(annual)} yearly — you save ${formatUsd(monthly * 2)}.`}
+                </p>
               </div>
-              <p className={styles.billingNote}>
-                {billing === 'monthly'
-                  ? 'Billed monthly. Cancel any time.'
-                  : `Billed ${formatUsd(annual)} yearly — you save ${formatUsd(monthly * 2)}.`}
-              </p>
 
               <Link
                 href={buildCheckoutPath({
@@ -197,6 +215,12 @@ export function PricingPage() {
                 className={plan.highlight ? styles.ctaPrimary : styles.ctaSecondary}
               >
                 Start with {plan.name}
+                <ArrowUpRight
+                  className={styles.ctaArrow}
+                  width={15}
+                  height={15}
+                  aria-hidden="true"
+                />
               </Link>
 
               <ul className={styles.features}>

@@ -1,18 +1,32 @@
 /**
  * The shape every feature figure speaks: a list of things to paint, back to
- * front. A solid is a silhouette; a bead is a flat dot; a bubble is a thought
- * cloud with one arrow, carrying the dollars of the column it names. The order
- * never changes between frames, so the stage binds to it once and then only
- * rewrites what moved.
+ * front. A solid is a silhouette; a bead is a flat dot; a bubble is a callout
+ * carrying a figure; a wire is a stroke that draws itself to show a connection.
+ * The order never changes between frames, so the stage binds to it once and then
+ * only rewrites what moved.
  */
 
-export type Tone = 'dot' | 'dot m' | 'dot off';
+export type Tone = 'dot' | 'dot m' | 'dot off' | 'dot signal';
 
 export interface SolidItem {
   kind: 'solid';
   key: string;
   sil: string;
   hi?: boolean;
+}
+
+/**
+ * A connection drawn with a stroke rather than a fill. `pathLength` is fixed to
+ * 1 by the stage, so `progress` is a plain 0–1 dash offset: no geometry work in
+ * the frame loop, and the draw reads as a line being traced.
+ */
+export interface WireItem {
+  kind: 'wire';
+  key: string;
+  d: string;
+  progress: number;
+  /** The chosen attribution path is signal orange; the others stay muted. */
+  active?: boolean;
 }
 
 export interface DotItem {
@@ -37,9 +51,11 @@ export interface BubbleItem {
   tx?: number;
   ty?: number;
   text: string;
+  /** Entrance scale. The designed still is 1; frames grow it from 0. */
+  scale?: number;
 }
 
-export type Item = SolidItem | DotItem | BubbleItem;
+export type Item = SolidItem | DotItem | BubbleItem | WireItem;
 
 export interface Figure {
   view: string;

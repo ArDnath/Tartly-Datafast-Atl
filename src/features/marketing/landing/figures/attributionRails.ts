@@ -7,6 +7,7 @@ import {
   contains,
   facing,
   frameTo,
+  openPath,
   projector,
   r2,
   rings,
@@ -15,11 +16,13 @@ import {
 import type { Item } from './types';
 
 /**
- * A Y-junction lying on a plinth. Two arms come in from the far corners, meet
- * at a small collar, and leave as one long leg towards the viewer. The arms
- * are the first touch and the last; the leg is the payment both end in. The
- * bright stroke and the cloud callout follow the active hand, so the read-out
- * narrates the join.
+ * Stage 02 — every payment, traced.
+ *
+ * Three source markers on a plinth feed a central payment node. Each source
+ * appears in turn, then its orange wire draws towards the join over 900 ms.
+ * The selected touch stays orange while the other paths stay muted, and the
+ * payment carries the `$249` callout. The bright stroke and read-out follow the
+ * active hand, so the drawing narrates the match.
  */
 
 const W = 100;
@@ -39,8 +42,9 @@ const FRAME: [number, number, number][] = [
   [W + PAD, -PAD, -PLINTH],
   [W + PAD, DEEP + PAD, -PLINTH],
   [-PAD, DEEP + PAD, -PLINTH],
-  [3, HUB_Y, H],
-  [HUB_X, 3, H],
+  [3, HUB_Y, H + 8],
+  [HUB_X, 3, H + 8],
+  [3, 3, H + 8],
   [HUB_X, HUB_Y, H + 2],
   [END, END, H],
 ];
@@ -56,6 +60,7 @@ interface Leg {
   key: string;
   sil: string;
   outline: Point[];
+  from: [number, number];
 }
 
 /** A leg is a capsule prism at one height, so nothing it draws reads as a wall. */
@@ -63,18 +68,20 @@ function legOf(key: string, ax: number, ay: number, bx: number, by: number): Leg
   const foot = capsule(ax, ay, bx, by, RAIL, 9);
   const inset = capsuleInset(ax, ay, bx, by, RAIL, 1.7, 9);
   const g = solidGeom(P, front, foot, inset, 0, H);
-  return { key, sil: g.sil, outline: g.outline };
+  return { key, sil: g.sil, outline: g.outline, from: [ax, ay] };
 }
 
 /*
  * This camera draws +x down-right and +y down-left, so an arm along -x leaves
- * up-left and one along -y leaves up-right: the two approaches. The merged leg
- * runs along +x + y, straight down the screen, towards the viewer. Painted in
- * that order, each nearer thing covers the one behind it.
+ * up-left, one along -y leaves up-right, and one from the far corner comes in
+ * from the back. The merged leg runs along +x + y, straight down the screen,
+ * towards the viewer. Painted in that order, each nearer thing covers the one
+ * behind it.
  */
 const legs: Leg[] = [
   legOf('arm-0', 3, HUB_Y, HUB_X, HUB_Y),
   legOf('arm-1', HUB_X, 3, HUB_X, HUB_Y),
+  legOf('arm-2', 3, 3, HUB_X, HUB_Y),
   legOf('leg', HUB_X, HUB_Y, END, END),
 ];
 
@@ -92,6 +99,19 @@ function disc(r: number, n = 36) {
 }
 
 const collar = solidGeom(P, front, disc(COLLAR), disc(COLLAR - 2.2), 0, H + 2);
+
+const SOURCES = legs.slice(0, 3);
+/** One drawn path per source, from its marker to the join. */
+const WIRES = SOURCES.map(leg =>
+  openPath([P(leg.from[0], leg.from[1], H + 3), P(HUB_X, HUB_Y, H + 3)]),
+);
+const SOURCE_DOTS = SOURCES.map(leg => P(leg.from[0], leg.from[1], H + 4.5));
+
+/** Draw budget: 900 ms per path, staggered 200 ms, then a reading pause. */
+const WIRE_MS = 900;
+const STAGGER = 200;
+const CYCLE = STAGGER * SOURCES.length + WIRE_MS + 1400;
+const easeOut = (v: number) => 1 - (1 - v) ** 3;
 
 /** The collar's punch: three dim dots round one bright centre. */
 function punches(at = 0): Item[] {
@@ -126,6 +146,7 @@ function punches(at = 0): Item[] {
 const LABELS: Record<string, string> = {
   'arm-0': 'first touch',
   'arm-1': 'last touch',
+  'arm-2': 'email touch',
   leg: 'paid',
   collar: 'match',
 };
@@ -133,6 +154,7 @@ const LABELS: Record<string, string> = {
 const CLOUD: Record<string, string> = {
   'arm-0': 'Google',
   'arm-1': 'Direct',
+  'arm-2': 'Email',
   leg: '$249',
   collar: 'Matched',
 };
@@ -215,19 +237,8 @@ export const attributionRails = {
   watch: () => legs[tourIndex()].key,
 
   rest(): Item[] {
-    const items: Item[] = [{ kind: 'solid', key: 'plinth', sil: plinth.sil }];
-    for (const l of legs) {
-      items.push({
-        kind: 'solid',
-        key: l.key,
-        sil: l.sil,
-        hi: l.key === legs[0].key,
-      });
-    }
-    items.push({ kind: 'solid', key: 'collar', sil: collar.sil });
-    items.push(...punches());
-    items.push(cloudFor(legs[0].key, legs[0].sil));
-    return items;
+    // The designed still has every source arrived and every path drawn.
+    return build(legs[0].key, CYCLE);
   },
 
   pick(x: number, y: number): string | null {
@@ -243,28 +254,46 @@ export const attributionRails = {
   },
 
   frame(dt: number): Item[] {
-    t += dt;
-    if (held === null) tour += dt;
-    const mark = held ?? legs[tourIndex()].key;
-    const items: Item[] = [{ kind: 'solid', key: 'plinth', sil: plinth.sil }];
-    let markSil = collar.sil;
-    for (const l of legs) {
-      if (l.key === mark) markSil = l.sil;
-      items.push({
-        kind: 'solid',
-        key: l.key,
-        sil: l.sil,
-        hi: l.key === mark,
-      });
+    // A held part freezes the whole drawing, not just the tour: the generic
+    // stage contract is that holding a part pins every pose for inspection.
+    if (held === null) {
+      t += dt;
+      tour += dt;
     }
-    items.push({
-      kind: 'solid',
-      key: 'collar',
-      sil: collar.sil,
-      hi: held === 'collar',
-    });
-    items.push(...punches(t));
-    items.push(cloudFor(mark, markSil));
-    return items;
+    return build(held ?? legs[tourIndex()].key, t % CYCLE);
   },
 };
+
+/** One builder keeps the still and every animated frame in the same key order. */
+function build(mark: string, phase: number): Item[] {
+  const items: Item[] = [{ kind: 'solid', key: 'plinth', sil: plinth.sil }];
+  let markSil = collar.sil;
+  for (const leg of legs) {
+    if (leg.key === mark) markSil = leg.sil;
+    items.push({ kind: 'solid', key: leg.key, sil: leg.sil, hi: leg.key === mark });
+  }
+  SOURCES.forEach((leg, i) => {
+    items.push({
+      kind: 'wire',
+      key: `wire-${leg.key}`,
+      d: WIRES[i],
+      progress: easeOut(clamp((phase - i * STAGGER) / WIRE_MS, 0, 1)),
+      active: leg.key === mark,
+    });
+  });
+  items.push({ kind: 'solid', key: 'collar', sil: collar.sil, hi: held === 'collar' });
+  items.push(...punches(t));
+  SOURCE_DOTS.forEach(([cx, cy], i) => {
+    items.push({
+      kind: 'dot',
+      key: `source-${i}`,
+      cx,
+      cy,
+      rx: 2.6,
+      ry: 1.8,
+      tone: phase >= i * STAGGER ? 'dot signal' : 'dot off',
+    });
+  });
+  items.push(cloudFor(mark, markSil));
+  return items;
+}

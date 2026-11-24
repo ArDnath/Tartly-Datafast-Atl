@@ -1,17 +1,12 @@
 import Link from 'next/link';
 import { BrandWordmark } from '@/components/brand/BrandMark';
 import { BRAND } from '@/lib/brand';
-import {
-  LEGAL_DOCUMENTS,
-  LEGAL_DRAFT_NOTICE,
-  type LegalDocument,
-} from '@/features/marketing/legal/legal-content';
+import { LEGAL_DOCUMENTS, type LegalDocument } from '@/features/marketing/legal/legal-content';
 import styles from './Legal.module.css';
 
 export function LegalIndexPage() {
   return (
     <LegalShell title="Legal" summary="Draft policies for review. Not legal advice.">
-      <div className={styles.notice}>{LEGAL_DRAFT_NOTICE}</div>
       <ul className={styles.index}>
         {LEGAL_DOCUMENTS.map(document => (
           <li key={document.slug}>
@@ -27,7 +22,6 @@ export function LegalIndexPage() {
 export function LegalPage({ document }: { document: LegalDocument }) {
   return (
     <LegalShell title={document.title} summary={document.summary}>
-      <div className={styles.notice}>{LEGAL_DRAFT_NOTICE}</div>
       <p className={styles.updated}>Last updated {document.updated}</p>
       {document.sections.map(section => (
         <section key={section.heading} className={styles.section}>

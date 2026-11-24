@@ -54,8 +54,8 @@ export function LoginForm({ returnUrl, initialError, errorCode }: LoginFormProps
       <div className="talivia-auth-intro">
         <h1 className="talivia-auth-title">Sign in to your revenue dashboard</h1>
         <p className="talivia-auth-subtext">
-          See which channels make money. Use Google to sign in or create your {BRAND.name}{' '}
-          workspace. No password needed.
+          See which channels make money. Sign in with Google or create your {BRAND.name} workspace.
+          No password needed.
         </p>
       </div>
 

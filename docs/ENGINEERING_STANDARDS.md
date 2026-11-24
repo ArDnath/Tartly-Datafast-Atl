@@ -204,3 +204,79 @@ Rules:
   Chrome is missing at `/opt/google/chrome/chrome`. Human action: provide a
   Chrome-enabled browser environment and inspect desktop, mobile, and reduced
   motion behavior.
+
+## 9. Feature gate record — 2026-11-24 Revenue Journey scenes
+
+- [x] Architecture: all changes stay inside
+  `src/features/marketing/landing`; the section, figures and CSS are in the
+  owning feature module. No route, endpoint, schema, or data access changed.
+- [x] Validation/data, security/tenancy, reliability/operations, scale/cost:
+  N/A because this is static marketing SVG/CSS with no request input, tenant
+  data, credentials, network call, query, cache, worker or storage. The figure
+  loop remains one IntersectionObserver-driven 30 fps loop that stops offscreen
+  and under reduced motion; no second animator or dependency was added.
+- [x] Accessibility: scenes are `role="img"` with descriptive labels; pointer
+  read-out is `aria-live="off"`; reduced motion gets the full designed still;
+  the existing section keeps normal page scroll and keyboard-accessible
+  controls.
+- [x] Tests: `figures.test.ts` 32 passed (key-order, bounds, hit-testing,
+  held-pose, tour, wire dash and scene assertions); the features assertion in
+  `LandingPage.test.tsx` passes with the six-SVG count. `tsc --noEmit`,
+  `biome lint .` and `gate:docs` pass. Exact commands and the three unrelated
+  pre-existing test failures are recorded in `docs/PHASES.md`.
+- [x] History: `docs/PHASES.md` has the dated proof, the >400-line split
+  rationale, and the UNVERIFIED items.
+- [ ] `pnpm gate` remains **BLOCKED**: `gate:format` fails on pre-existing hero
+  work (`landing.css` Poppins quotes, `HeroSection.tsx` blank lines) and three
+  pre-existing `LandingPage.test.tsx` failures belong to the in-flight hero and
+  `BuildProcess` changes. The owner asked to leave that work untouched.
+- [ ] Visual parity with the attached PNG and browser QA at 1440/1024/375 px
+  and under reduced motion is **UNVERIFIED**: the image cannot be read by this
+  model, and no desktop browser is connected. Human action: describe or supply
+  the image as text/SVG and inspect `http://localhost:3100/#features` in a
+  connected browser.
+- [ ] Production build is **BLOCKED** by environment memory: webpack compiled
+  successfully, then the Next TypeScript phase was killed with exit 137 twice
+  (once with a 4 GB heap); standalone `tsc --noEmit` is clean. Human action:
+  rerun `pnpm gate:build` on a larger runner.
+
+## 10. Feature gate record — 2026-11-24 standalone pricing page
+
+- [x] Change is in the owning feature module: only
+  `src/features/marketing/PricingPage.tsx`,
+  `src/features/marketing/Pricing.module.css`, the new
+  `PricingPage.test.tsx` and the two proof documents changed. The app route is
+  still a thin adapter; the landing `#pricing` teaser was not touched.
+- [x] Prices, traffic tiers, entitlements, feature copy and checkout paths
+  remain sourced from `src/lib/plans.ts`, `buildCheckoutPath` and the existing
+  page content. No plan limit, price or brand name was hardcoded into the new
+  markup. `pnpm gate:docs` confirms the generated plan facts still match.
+- [x] Accessibility and progressive enhancement: heading order is h1 then h2;
+  the billing group has `aria-pressed`, the slider keeps its `aria-valuetext`,
+  links remain real `next/link` anchors, focus rings are visible, decorative
+  arcs are `aria-hidden`, and reduced motion disables every new animation.
+- [x] Tests and browser proof: 5 new pricing tests pass; `pnpm gate:test`
+  reached 1227 passed / 1 skipped / 2 failed, with both failures pre-existing
+  in unrelated in-flight files. Chromium checks covered 1440 × 1000, 390 ×
+  844, yearly toggle, traffic slider, hover, focus, animation sampling and
+  forced reduced motion. Exact values and screenshot paths are in
+  `docs/PHASES.md`.
+- [x] Scale/cost: static server-rendered marketing markup, CSS-only motion, no
+  new request, query, dependency, storage or background work. 1M-RPS stages
+  are N/A: this page does not touch ingestion, cache, or data hot paths.
+- [x] Security, tenancy, reliability and operations: N/A because no API,
+  tenant data, mutation, credential, webhook, log event, health dependency,
+  migration or deployment path changed.
+- [x] Build half: `pnpm gate:build` → exit 0 (`✓ Compiled successfully in 106s`,
+  TypeScript phase and `postbuild` completed). This supersedes the
+  environment-specific OOM note in section 9.
+- [ ] Full `pnpm gate` is **BLOCKED** by pre-existing work outside this
+  feature: `gate:format` flags the earlier `docs/PHASES.md` entry plus
+  `landing.css` and `HeroSection.tsx`; `gate:test` flags the stray
+  `src/components/evil-buttons` directory and a literal brand string in
+  `BuildProcess.tsx`. The owner asked to leave that work untouched.
+- [ ] Exact reference-image parity and physical-display motion feel are
+  **UNVERIFIED**: the supplied image could not be read by this model. Human
+  action: compare the captured desktop/mobile screenshots with the reference
+  and watch the toggle and underline at normal speed.
+- [x] History: `docs/PHASES.md` has the dated proof, caveats and N/A record.

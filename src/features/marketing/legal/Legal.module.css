@@ -81,16 +81,6 @@
   font-size: 15px;
 }
 
-.notice {
-  border: 1px solid rgba(242, 180, 203, 0.42);
-  background: rgba(242, 180, 203, 0.16);
-  color: var(--rl-blush);
-  border-radius: 12px;
-  padding: 14px 16px;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
 .updated {
   color: var(--rl-muted-fg);
   font-size: 12px;

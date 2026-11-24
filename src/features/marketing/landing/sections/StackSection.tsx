@@ -90,17 +90,17 @@ function LogoTile({ tile }: { tile: StackTile }) {
         href={tile.href}
         aria-label={tile.name}
         style={{ '--tile-tint': tile.tint } as React.CSSProperties}
-        className="stack-tile group/tile flex items-center gap-2 rounded-md border py-1.5 pr-2.5 pl-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-primary"
+        className="stack-tile group/tile flex items-center gap-1.5 rounded-md border py-1.5 pr-2 pl-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-primary"
       >
-        <span className="stack-tile-mark flex size-6 shrink-0 items-center justify-center rounded-[5px] border border-lp-line bg-lp-canvas">
+        <span className="stack-tile-mark flex size-5 shrink-0 items-center justify-center rounded-[4px] border border-lp-line bg-lp-canvas">
           <img
             src={tile.logo}
             alt=""
             loading="lazy"
-            className="size-4 object-contain transition-transform duration-300 motion-safe:group-hover/tile:scale-110"
+            className="size-3.5 object-contain transition-transform duration-200 motion-safe:group-hover/tile:scale-105"
           />
         </span>
-        <span className="text-[11px] font-bold whitespace-nowrap text-lp-ink/80 transition-colors duration-200 group-hover/tile:text-lp-ink">
+        <span className="text-[11px] font-semibold whitespace-nowrap text-lp-ink/80 transition-colors duration-200 group-hover/tile:text-lp-ink">
           {tile.name}
         </span>
       </Link>
@@ -109,24 +109,19 @@ function LogoTile({ tile }: { tile: StackTile }) {
 }
 
 function StackLane({
-  index,
   title,
   tiles,
   footer,
 }: {
-  index: string;
   title: string;
   tiles: StackTile[];
   footer: React.ReactNode;
 }) {
   return (
-    <div className="flex h-full flex-col bg-lp-card p-6 md:p-7">
-      <div className="flex items-baseline justify-between gap-3 border-b border-lp-line pb-3">
-        <h3 className="lp-label text-lp-fg-muted">{title}</h3>
-        <span className="font-mono text-[10px] font-bold text-lp-primary">{index}</span>
-      </div>
+    <div className="flex h-full flex-col bg-lp-card px-5 py-5 sm:px-6">
+      <h3 className="lp-label text-lp-fg-muted">{title}</h3>
 
-      <ul className="mt-5 flex flex-1 flex-wrap content-start gap-2">
+      <ul className="mt-4 flex flex-1 flex-wrap content-start gap-2">
         {tiles.map(tile => (
           <LogoTile key={tile.name} tile={tile} />
         ))}
@@ -138,11 +133,10 @@ function StackLane({
 }
 
 /**
- * One script tag is the socket; every no-code platform and framework that
- * accepts it is a lane on the same manifest surface. The connector and the
- * single surface say "same snippet, different host" without a second pair of
- * floating cards. Every tile links to a page that already ships — do not add a
- * tile before what it links to exists.
+ * One script tag works everywhere HTML can be edited. The two groups share a
+ * single surface so the section stays compact on small screens. Every tile
+ * links to a page that already ships — do not add a tile before what it links
+ * to exists.
  */
 export function StackSection() {
   return (
@@ -171,48 +165,42 @@ export function StackSection() {
           </Reveal>
         </div>
 
-        <Reveal delay={160}>
-          <div className="mt-10 flex flex-col items-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-lp-line bg-lp-card px-4 py-2 font-mono text-[11px] shadow-xs">
-              <span className="stack-socket-pip" aria-hidden="true" />
-              <span className="text-lp-fg-muted">&lt;script</span>
-              <span className="text-lp-fg-muted">defer src=</span>
-              <span className="font-semibold text-lp-primary">"/t.js"</span>
-              <span className="text-lp-fg-muted">&gt;</span>
-            </span>
-            <span className="h-6 w-px bg-lp-line" aria-hidden="true" />
-            <span className="stack-socket-node" aria-hidden="true" />
-          </div>
-        </Reveal>
+        <Reveal delay={160} distance={22}>
+          <div className="mt-8 overflow-hidden rounded-xl border border-lp-line bg-lp-card">
+            <div className="flex flex-col gap-2 border-b border-lp-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <span className="inline-flex flex-wrap items-center gap-2 font-mono text-[11px]">
+                <span className="stack-socket-pip" aria-hidden="true" />
+                <span className="text-lp-fg-muted">&lt;script defer src=</span>
+                <span className="font-semibold text-lp-primary">"/t.js"</span>
+                <span className="text-lp-fg-muted">&gt;</span>
+              </span>
+              <span className="text-xs text-lp-fg-muted">One snippet, no plugins.</span>
+            </div>
 
-        <Reveal delay={200} distance={22}>
-          <div className="relative overflow-hidden rounded-xl border border-lp-line">
             <div className="grid gap-px bg-lp-line md:grid-cols-2">
               <StackLane
-                index="01"
-                title="No code — site builders and CMS"
+                title="Site builders and CMS"
                 tiles={SITE_PLATFORMS}
                 footer="Plus any platform with a custom-code area."
               />
               <StackLane
-                index="02"
-                title="Code — frameworks"
+                title="Frameworks"
                 tiles={CODE_FRAMEWORKS}
-                footer="The same snippet works in any server-rendered template — PHP, Django, Express."
+                footer="The same snippet works in any server-rendered template."
               />
             </div>
           </div>
         </Reveal>
 
-        <p className="mt-4 text-center text-[11px] text-lp-fg-muted">
-          Script-tag integration — native plugins and marketplace apps are not included yet. See the{' '}
+        <p className="mt-4 text-center text-xs/5 text-lp-fg-muted">
+          Script tag integration only. Native plugins and marketplace apps are not included yet.{' '}
           <Link
             href="/docs/install"
             className="font-semibold text-lp-ink underline decoration-lp-primary/40 underline-offset-4 hover:decoration-lp-primary"
           >
-            install guides
+            See the install guides
           </Link>
-          . Payment providers have their own connect flow in settings.
+          . Providers connect in settings.
         </p>
       </div>
     </section>

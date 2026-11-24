@@ -41,34 +41,51 @@ export function scrollLandingBy(delta: number) {
  */
 export function LandingScroll() {
   useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return;
-    }
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-    const lenis = new Lenis({
-      duration: 1.1,
-      smoothWheel: true,
-      anchors: {
-        offset: -96,
-      },
-    });
-
-    activeLenis = lenis;
-
+    let lenis: Lenis | null = null;
     let frame = 0;
-    const raf = (time: number) => {
-      lenis.raf(time);
-      frame = requestAnimationFrame(raf);
+
+    const stop = () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      frame = 0;
+      if (activeLenis === lenis) activeLenis = null;
+      lenis?.destroy();
+      lenis = null;
     };
 
-    frame = requestAnimationFrame(raf);
+    const start = () => {
+      if (query.matches || lenis) return;
+
+      lenis = new Lenis({
+        duration: 1.1,
+        smoothWheel: true,
+        anchors: {
+          offset: -96,
+        },
+      });
+
+      activeLenis = lenis;
+
+      const raf = (time: number) => {
+        lenis?.raf(time);
+        frame = window.requestAnimationFrame(raf);
+      };
+
+      frame = window.requestAnimationFrame(raf);
+    };
+
+    const sync = () => {
+      if (query.matches) stop();
+      else start();
+    };
+
+    sync();
+    query.addEventListener('change', sync);
 
     return () => {
-      cancelAnimationFrame(frame);
-      if (activeLenis === lenis) {
-        activeLenis = null;
-      }
-      lenis.destroy();
+      query.removeEventListener('change', sync);
+      stop();
     };
   }, []);
 

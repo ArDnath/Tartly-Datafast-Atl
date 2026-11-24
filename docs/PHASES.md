@@ -3562,3 +3562,337 @@ ease back open as the pointer passes. This uses the component's
 
 Proof: targeted Biome check and the focused hero test pass. Browser motion QA
 remains **UNVERIFIED** because Chrome is unavailable at `/opt/google/chrome/chrome`.
+
+### 2026-11-24 — Revenue Journey scenes match the written design spec
+
+Refined the existing `#features` scroll story in place (no new section, no new
+dependency). The three stages now draw what the spec describes:
+
+- Stage 01 `trafficRevenue.ts` (new): isometric platform, a source marker that
+  enters from the left, an orange entry indicator, a connection line that draws
+  in 900 ms, and a `$249` tooltip that springs in over 350 ms after the 1.6 s
+  visitor ride. Replaces `revenueColumns.ts`, which drew a bar swell instead of
+  a traffic-to-payment journey; the old file was deleted, not left as dead code.
+- Stage 02 `attributionRails.ts`: three source markers appear 200 ms apart,
+  their orange wires draw toward a central payment node in 900 ms, the chosen
+  path stays orange while the others stay muted, and the `$249` callout rides
+  the payment leg.
+- Stage 03 `funnelSteps.ts`: signup / trial / paid terraces, three visitor
+  markers with a 200 ms stagger, drop-offs fading at intermediate layers, one
+  visitor landing on paid, and a floating conversion count.
+- Shared figure system: added a `wire` item (unit `pathLength`, so draw progress
+  is a plain dash offset) and an optional bubble `scale`, plus a signal dot
+  tone. Reduced-motion repaints now use the designed still instead of frame 0,
+  so a static figure cannot flash an unanimated pose on pointer interaction.
+- Copy uses the spec's exact supporting lines. Palette is scoped to `#features`:
+  orange `#ff4b0b`, ink `#191817`, ivory `#fffbeb` ground. Step activation
+  250 ms, rail 500 ms, stage swap 600 ms / 12 px. Replaced the old
+  `grid-template-rows` story-body animation with compositor-only opacity and
+  transform (verified issue: it animated layout under a scroll-linked section).
+
+Trade-offs: the section's motion already runs through one IntersectionObserver
+loop that stops offscreen and under reduced motion, so illustration "lazy
+loading" means lazily _animated_; the SVG stills stay in the server HTML for
+no-JS and screen-reader use by design. No Framer Motion or GSAP was added: the
+repo's existing figure loop already owns the frame budget, and adding a second
+animator would break the single-clock rule. The change is over 400 source lines
+because the figure contract (identical key order in `rest()` and `frame()`) is
+enforced by the shared types, binder, all three scenes and their tests; any
+partial split would leave the tree failing that contract.
+
+Proof (2026-11-24):
+
+- `tsc --noEmit` → exit 0.
+- `biome lint .` → exit 0; `biome check` on all nine changed TS/TSX files →
+  clean after formatting `trafficRevenue.ts`.
+- `NODE_ENV=test pnpm exec vitest run src/features/marketing/landing/figures/figures.test.ts --maxWorkers=2` →
+  32 passed (9 generic contract tests × 3 figures + 5 scene-specific tests).
+- `NODE_ENV=test pnpm exec vitest run src/features/marketing/landing/LandingPage.test.tsx src/features/marketing/landing/LandingMotion.test.tsx --maxWorkers=2` →
+  22 passed, 3 failed. The features assertion in `LandingPage.test.tsx` now
+  passes with the corrected count of six SVGs (three inline + three sticky
+  stage). The three remaining failures are pre-existing in the in-flight hero
+  and `BuildProcess` work (missing process heading, missing "1. Install
+  Tartly", duplicate Lemon Squeezy text) and were present before this change.
+- `pnpm gate:format` → exit 1 from two pre-existing files: single quotes in
+  `landing.css` (Poppins lines 25/412, from the hero work) and blank lines in
+  `HeroSection.tsx`. `pnpm gate:typecheck`, `gate:lint`, `gate:docs` → exit 0.
+  Full `pnpm gate` remains **BLOCKED** by that dirty hero work; those files were
+  deliberately not reformatted as the owner asked to leave them untouched.
+
+**UNVERIFIED:** visual parity with the attached PNG, and desktop / tablet /
+mobile / reduced-motion browser QA. The image cannot be read by this model and
+the browser tool reports "No desktop browser is connected to this session".
+Human action: describe the image in words or supply it as SVG/text, then open
+`http://localhost:3100/#features` at 1440 px, 1024 px and 375 px plus an
+emulated `prefers-reduced-motion: reduce` and confirm the three scenes, rail
+fill, sticky stage and static reduced-motion poses.
+
+Production build is **BLOCKED** by the environment, not by a compile error:
+`SKIP_DB_CHECK=1 pnpm build-app` printed `✓ Compiled successfully in 77s`, then
+was killed with exit 137 during `Running TypeScript`; a retry with
+`NODE_OPTIONS=--max-old-space-size=4096` compiled in 48 s and was killed at the
+same phase. Standalone `tsc --noEmit` exits 0. Available RAM was ~4.9 GB with
+~2.8 GB swap in use. Human action: rerun `pnpm gate:build` on a runner with more
+memory to close the build half of gate R1.
+
+### 2026-11-24 — Revenue Journey replaced with the dedicated scroll-linked section
+
+Rebuilt `#features` against the attached reference instead of iterating the
+figure/story path. `sections/FeaturesSection.tsx` now mounts one client
+component, `journey/RevenueJourney.tsx`; the old `StorySteps` render path is no
+longer used by the landing page.
+
+- Heading: two lines, "Traffic tells you who came." in ink and "Revenue tells
+  you who paid." in `#ff4b0b`, with a hand-drawn underline and small rays.
+- Body: a numbered rail in a 413 px column and a 689 px sticky stage at
+  1440 px (37.5 / 62.5). The active step owns the copy; the rail's orange fill
+  and the three-panel scene swap are driven by one shared scroll frame, so
+  scrolling does not re-render React unless the active step changes.
+- Drawings: hand-authored isometric SVG (no new dependency). Stage 1 is a
+  traffic tile riding a wire to a payment prism with a `$249` callout; stage 2
+  traces Direct, Organic and Ads into one payment with the Ads path selected;
+  stage 3 is a signup / trial / paid funnel with drop-off visitors, `84 paid`
+  and a signal-orange paid terrace.
+- Motion is progressive enhancement. Desktop `data-motion="on"` gets the sticky
+  stage and entrance animations; reduced motion and no-JS get the same stills
+  inline. Mobile stacks every step with its drawing and never sticks. Nothing
+  intercepts scroll.
+
+Composition pass (this entry's actual change): scene `viewBox` is now
+`0 75 880 550`, which removes the blank top third and keeps the tallest funnel
+tier and the widest attribution platform inside the frame. The traffic scene is
+shifted up 55 units and the funnel down 20 units to centre their mass; the
+three duplicate in-SVG annotations were removed in favour of the existing
+`STEP n · …` caption. The sticky box is content-height from a 21vh top instead
+of a centred 650 px box, the desktop stage starts 3.5 rem higher, and step
+min-heights are 216 px / 198 px. At 1440 × 1000 the section is now 984 px
+(about 98svh), the rail spans 630 px, and the sticky stage can travel about
+230 px before releasing. At 390 × 844 the inline drawings are 194 px tall.
+
+Proof (2026-11-24):
+
+- Browser QA with Playwright + Chromium: 1440 × 1000 at steps 1, 2 and 3,
+  1280 × 800 at the section top, and 390 × 844 mobile. Steps activate on
+  scroll, one scene is visible at a time, inactive captions stay hidden, and
+  the stage pins then releases at the section end. Element boxes confirm the
+  traffic visitor finishes on the payment node and the funnel's signup tier
+  clears the top of the drawing, so nothing is clipped.
+- `pnpm exec biome format` and `pnpm exec biome lint` on the journey files and
+  the section test → clean.
+- `pnpm typecheck` → exit 0.
+- `pnpm vitest run src/features/marketing/landing/LandingPage.test.tsx` → the
+  landing feature test passes (`rj-step`, six `rj-svg`, six `rj-tip`,
+  `aria-current`, one active step).
+- `pnpm gate:test` → 1208 passed, 5 failed in 3 files, all pre-existing and
+  outside this section: three `LandingPage.test.tsx` failures from the in-flight
+  `BuildProcess` / provider work, one `app-structure.test.ts` failure from the
+  unrelated `src/components/evil-buttons` directory, and one
+  `brand-propagation.test.ts` failure from a literal brand string in
+  `BuildProcess.tsx`.
+- `pnpm gate:build` → exit 0 (`✓ Compiled successfully`, postbuild ran). The
+  earlier out-of-memory block was environment-specific and did not recur.
+- `pnpm gate:deploy` → exit 0. `pnpm gate:docs` → exit 0.
+- `pnpm gate:format` still exits 1 on three pre-existing files: this document's
+  previous entry (italic markers and a missing blank line), `landing.css`
+  (single quotes, hero work) and `HeroSection.tsx` (blank lines, hero work).
+  The journey files themselves are formatted. Those files were left untouched
+  because they belong to the owner's in-flight hero work.
+
+**UNVERIFIED:** exact pixel parity with the attached PNG (the image is not
+available to this model as a file). The browser comparisons above verify the
+described composition, not a pixel diff. Human action: compare
+`http://localhost:3100/#features` at 1440 × 1000 against the reference and
+report any remaining spacing difference.
+
+### 2026-11-24 — Standalone `/pricing` becomes an editorial pricing page
+
+Reworked only `src/features/marketing/PricingPage.tsx` and
+`src/features/marketing/Pricing.module.css`. The landing page's `#pricing`
+teaser and the in-flight hero work were left untouched. The route
+`src/app/pricing/page.tsx` remains a thin adapter.
+
+- Composition: warm ivory canvas `#fff8e9`, ink `#171717`, Tartly orange
+  `#ff4b0b`, fine beige borders, oversized decorative arcs, and the headline
+  "Know what's working. Pay for what matters." with an animated orange
+  underline under "matters". Monthly / yearly selector sits under the heading;
+  the traffic slider stays beside it; the two plans are one hairline slab with
+  an inset orange rule, an orange "Most popular" badge, and an orange Pro CTA.
+- Behaviour: prices, tier allowances, feature lists, checkout paths, FAQ,
+  comparison table and footer still come from `src/lib/plans.ts`,
+  `buildCheckoutPath` and the existing page content. Two plans only; no plan
+  limit was hardcoded into the new markup.
+- Motion: CSS only. The price block is keyed on `billing` so the toggle settles
+  and the traffic slider updates instantly; the toggle thumb, underline, arcs,
+  card lift, CTA arrow and focus ring use `transform`, `opacity` and
+  `clip-path`. Hover movement is gated on
+  `@media (hover: hover) and (pointer: fine)`; reduced motion ships with the
+  feature. No animation library or new dependency was added.
+
+Proof (2026-11-24):
+
+- New `src/features/marketing/PricingPage.test.tsx`: `pnpm exec vitest run
+  src/features/marketing/PricingPage.test.tsx` → 1 file, 5 tests passed. It
+  covers default prices and headline, config-sourced entitlements, yearly
+  toggle with `interval=annual`, traffic slider with `tier=0`, and hiding the
+  decorative SVG from assistive technology.
+- `pnpm gate:test` → 1227 passed, 1 skipped, 2 failed in 243 files. The new
+  pricing file passed. Both failures are pre-existing and unrelated to this
+  change: `src/lib/app-structure.test.ts` finds the stray
+  `src/components/evil-buttons` directory, and
+  `src/lib/brand-propagation.test.ts` finds a literal brand string in the
+  in-flight `BuildProcess.tsx`.
+- `pnpm gate:typecheck`, `gate:lint`, `gate:docs`, `gate:deploy` → exit 0.
+  Lint reports one existing info and one existing warning outside the pricing
+  files; deploy ran 17 script/smoke tests with zero failures; docs:check
+  confirms plan facts still match `src/lib/plans.ts`.
+- `pnpm gate:format` → exit 1 on three pre-existing formatting spots: the
+  previous entry in this document (`*animated*` and a missing blank line),
+  `landing.css` Poppins quotes, and blank lines in `HeroSection.tsx`. All three
+  pricing files are formatted; the unrelated in-flight files were not touched.
+- `pnpm gate:build` → exit 0 (`✓ Compiled successfully in 106s`, then the
+  TypeScript phase and `postbuild` completed). The earlier out-of-memory note
+  in the landing entry did not recur.
+- Headless Playwright + Chromium against `http://localhost:3100/pricing`:
+  desktop 1440 × 1000 had canvas `rgb(255, 248, 233)`, h1 `77px`, two `549px`
+  plan columns, `70px` prices, the badge above the slab, and no horizontal
+  overflow. Mobile 390 × 844 stacked the plans at `341px`, h1 `40.95px`, full
+  width `293px` CTA, and no horizontal overflow. Yearly moved the thumb
+  `156px`, showed `$6.66` / `$12.49`, and produced `interval=annual&tier=3`.
+  Slider tier 0 showed `$4.99` / `$9.16` on yearly with `tier=0`. Card hover
+  lifted `3px`; the Pro CTA hovered at `rgb(224, 67, 5)` with a `3px` arrow
+  shift; keyboard focus showed a `2px` `rgb(255, 75, 11)` ring. Motion samples
+  showed the underline `scaleX(0) → scaleX(1)` with a `-1.2deg` tilt and the
+  arcs clipping from `inset(0 0 100%)` to `inset(0 0 0)`. Under forced reduced
+  motion the underline and arcs had `animationName: none` and cards had no
+  transform. Screenshots: `/tmp/opencode/pricing-desktop.png`,
+  `/tmp/opencode/pricing-yearly.png`, `/tmp/opencode/pricing-mobile.png`,
+  `/tmp/opencode/pricing-reduced.png`.
+
+**UNVERIFIED:** exact visual parity with the supplied Lemni reference image
+(the image was not readable by this model) and the feel of the motion at normal
+speed on a physical display. Human action: compare the four screenshots above
+with the reference at 1440 × 1000 and 390 × 844, then watch the toggle and
+underline at normal speed. The bundled Poppins stylesheet is blocked by the
+existing CSP in the dev server; it belongs to the in-flight landing work, not
+to these pricing files.
+
+**N/A:** no API, database, migration, tenant data, provider credential,
+webhook, queue, cache, storage, or deployment change; no new dependency. The
+two production-backend-readiness and high-scale skills were loaded, and their
+applicable checks are recorded in
+[`ENGINEERING_STANDARDS.md`](ENGINEERING_STANDARDS.md).
+
+### 2026-11-24 — Integrations section simplified for small screens
+
+Changed only `src/features/marketing/landing/sections/StackSection.tsx` and the
+stack rules in `src/features/marketing/landing/landing.css`. Removed the
+floating script connector and its diamond, the index labels, the extra card
+frames, and the tinted hover shadows. The snippet now sits in the header of one
+hairline surface; the site-builder and framework groups stack into one column
+below the `md` breakpoint and the tiles wrap without fixed widths. All 14 name
+links, the install-guide link, and the "no native plugins" note keep their
+meaning and destinations.
+
+Proof (2026-11-24): headless Chromium at 1440 × 900 and 390 × 844, after
+scrolling to `#integrations`, reported 14 tiles, two grid columns on desktop and
+one on mobile, no tile extending past the section, and
+`document.scrollWidth === document.clientWidth` at 390 px. The snippet rendered
+as `<script defer src="/t.js">`. Raw output:
+`/tmp/opencode/integrations-metrics.json`.
+
+Owner instruction: lint, typecheck, tests, and build were not run for this
+slice. Visual feel at normal speed on a physical display is **UNVERIFIED**;
+human action: open `http://localhost:3000/#integrations` at 1440 px and 390 px
+and confirm the spacing reads well.
+
+**N/A:** no API, route, database, migration, tenant data, credential, webhook,
+queue, cache, storage, or deployment change; no new dependency. The two binding
+skills were loaded and their applicable checks are unchanged from the entry
+above.
+
+### 2026-11-24 — Landing animation audit plans 020–027 executed
+
+Branch: `feature/landing-hero-highlight` (existing dirty branch; nothing
+committed). Work: `improve-animations` whole-landing audit (six parallel
+read-only auditors, re-vetted at file:line) produced plans 020–027 in `plans/`;
+all eight were executed in place via executor subagents and marked DONE.
+
+**What shipped:**
+
+- FAQ answer keyframe deletion, finishing plan 019.
+- Hero preview bar/replay fills converted from `width` to compositor `transform`;
+  reduced-motion blanket nuke replaced with targeted rules.
+- Journey rail fill no longer eases on every scroll frame.
+- `HeroPreview` memoized; `RotatingText` layout animations removed.
+- Press feedback added to swap and process toggle.
+- Marquee initial reduced-motion state set to `true` so SSR/first paint is static.
+- Landing easing curves tokenized as `--lp-move`.
+
+**Evidence:** `pnpm exec tsc --noEmit` exit 0. `NODE_ENV=test pnpm exec vitest run src/features/marketing/landing` — 76 tests, 75 passed, 1 failed: pre-existing `LandingPage.test.tsx:160-162` StackSection heading text drift (`/no code — site builders and cms/i` vs rendered "Site builders and CMS"), present before this work. Biome on touched files reported only pre-existing findings on untouched lines (`'Poppins'` quotes in `landing.css`, multiline `mask-image` in `journey.css`, relative-import order in `HeroPreview.tsx`). Plan greps all pass (no `lp-faq-in`, no `width 480ms`, no `0.01ms`, no 500ms rail transition, no `layout={!highlight}`, no duplicated marquee branch, only two token definitions with hardcoded cubic-beziers in `landing.css`).
+
+**Caveat/deviation:** plan 026's original CSS-only dual-branch target rendered every card twice and broke `LandingPage.test.tsx:245`; corrected to a single JS branch whose initial reduced-motion state is `true`, documented in `plans/026-marquee-reduced-motion-ssr.md` and `plans/README.md`.
+
+**UNVERIFIED:** all in-browser feel checks — compositor-only fills, reduced-motion toggles, press feedback, rail tracking, React Profiler, SSR first paint, computed easing. No dev server/browser run was available. `pnpm gate` was not run; prior records note it is already red on unrelated pre-existing formatting work.
+
+### 2026-11-24 — Landing copy whitespace reduction
+
+Session: marketing/landing copy trim (user directive: check for whitespace,
+reduce text as much as possible, keep landing page impactful).
+
+Changed only customer-facing copy constants in
+`src/features/marketing/landing/**`: hero hint, hero lede, hero byline,
+process section lede and three step descriptions, pricing section intro,
+capabilities marquee subtitle and eight answer strings, FAQ answers,
+integrations note, closing CTA copy, and the first revenue-journey step copy.
+
+Kept intact on purpose: the hero thesis (`See which … actually make money`),
+the tagline, section captions, step titles, and every pinned string in
+`LandingPage.test.tsx` / `BuildProcess.test.tsx` / `figures.test.tsx`.
+
+Proof (2026-11-24): `pnpm exec biome format src/features/marketing src/lib` —
+clean (exit 0). `pnpm exec biome lint src/features/marketing` — clean (exit 0).
+`pnpm exec tsc --noEmit` — clean (exit 0). `pnpm vitest run src/features/marketing`
+— 8 files, 84 tests, all passing (after fixing a capability-subtitle regression
+I introduced and reconciling one pre-existing stale StackSection heading
+expectation).
+
+**UNVERIFIED:** in-browser feel, final character counts, and full `pnpm gate`
+(build included) were not re-run; full gate was already red on unrelated
+pre-existing formatting findings in `docs/` and `plans/`.
+
+### 2026-11-25 — Payment-provider strip spacing and clipping
+
+User report: the provider strip immediately after the hero had cramped spacing
+and provider names overflowing and being clipped.
+
+Shipped in `src/features/marketing/landing/sections/TrustedBrand.tsx`:
+
+- Removed the two dead `payment-cell-glow` / `payment-cell-rule` spans from the
+  flex row (they added empty flex gaps and pushed names past the cell).
+- Added `min-w-0` through the grid item and flex chain and dropped
+  `whitespace-nowrap` so long names wrap instead of overflowing the clipped
+  `<ul>`.
+- Widened the strip on large screens (`lg:max-w-4xl`): the root font size makes
+  `max-w-3xl` only 672 px, leaving 133 px cells.
+- Fixed the tablet placement of the last provider (`sm:col-span-1`).
+- Restored section breathing room (`py-10 sm:py-12`).
+- Dropped the now-dead reduced-motion selectors in `landing.css`.
+
+A dedicated Custom API section was briefly added at the end of the landing
+page, then removed on the user's explicit follow-up request. The short manual
+API caption in the strip remains unchanged.
+
+**Evidence (2026-11-25):** headless Chromium DOM measurements at 390, 768, and
+1440 px — no horizontal overflow (document `scrollWidth <= clientWidth`), all
+five names on one line at 1440 px (cells 156 px), Yolfi full-width on mobile
+and single-cell on tablet; a temporary section was verified then deleted.
+`pnpm exec biome check` on touched files, `pnpm exec tsc --noEmit`, and
+`pnpm exec vitest run src/features/marketing/landing` (6 files, 76/76 passing)
+all clean after removal. Repo-wide `gate:format`, `gate:lint` (one pre-existing
+auth warning) and `gate:docs` clean. Production build
+(`NODE_OPTIONS=--max-old-space-size=2560 pnpm gate:build`) exited 0 before the
+section removal, with no system memory pressure (≈4.2 GB available after).
+
+**UNVERIFIED:** full `pnpm gate:test` with coverage was interrupted by the
+user's follow-up instruction and not re-run. No commit was made: the working
+tree contains extensive pre-existing user changes that were left untouched.

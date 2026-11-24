@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment } from 'react';
+import { BRAND } from '@/lib/brand';
 import { Reveal } from '../motion/Reveal';
 import { CodeCard } from '../process/CodeCard';
 import { ProcessArrow } from '../process/ProcessArrow';
@@ -22,9 +23,8 @@ type Step = {
 const STEPS: Step[] = [
   {
     key: 'install',
-    title: 'Install Tartly',
-    description:
-      'Add the script to your site. One tag, any framework, no plugin to keep in sync. The first event shows up before you pay.',
+    title: `Install ${BRAND.name}`,
+    description: 'Add one tag to your site. First event before you pay.',
     detail: "One lightweight script. That's all it takes.",
     photo: '/images/landing/process-install-bg.webp',
     visual: live => <CodeCard live={live} />,
@@ -32,8 +32,7 @@ const STEPS: Step[] = [
   {
     key: 'connect',
     title: 'Connect revenue data',
-    description:
-      'Link Stripe, Dodo, Lemon Squeezy, Polar, or Yolfi, or send payments through the manual API. Your checkout stays where it is.',
+    description: 'Link your provider, or use the manual API. Your checkout stays put.',
     detail: 'Connect Stripe, Dodo, Lemon Squeezy, Polar, or your own payment API.',
     photo: '/images/landing/process-connect-bg-v2.webp',
     visual: live => <ProviderCard live={live} />,
@@ -42,7 +41,7 @@ const STEPS: Step[] = [
     key: 'grow',
     title: 'See what converts',
     description:
-      'See which channel, campaign, and landing page produced the payment. Move budget toward what earns, not what just gets clicks.',
+      'See which channel and page produced the payment — then move budget toward what earns.',
     detail: 'Discover which channels and landing pages actually generate revenue.',
     photo: '/images/landing/process-revenue-bg-v2.webp',
     visual: (live, stillDelay) => <RevenueCard live={live} stillDelay={stillDelay} />,
@@ -52,7 +51,7 @@ const STEPS: Step[] = [
 /**
  * Three cards, one story. The structure follows the DataFast process section:
  * centred eyebrow and headline, then three inset-ring cards with a drawn product
- * still floating over a photographic plate. Colour and motion are Tartly's.
+ * still floating over a photographic plate. Colour and motion are the product's own.
  *
  * The section is interactive now: every card lifts on hover and expands on
  * click (or through its own button), the snippet types itself once, the arrows
@@ -77,8 +76,7 @@ export function BuildProcess() {
           </Reveal>
           <Reveal delay={200}>
             <p className="mt-5 max-w-2xl text-pretty text-[15px] leading-relaxed text-lp-fg-muted">
-              One lightweight script, your payment tools, and a revenue view that tells you what to
-              do next.
+              One script, your payments, and a revenue view that tells you what to fix next.
             </p>
           </Reveal>
         </div>

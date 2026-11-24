@@ -103,7 +103,11 @@ function onVisibility() {
  */
 export function animate(figure: Figure, element: Element, sink: Sink) {
   if (reducedMotion()) {
-    const redraw = () => sink(figure.frame(0), 0);
+    // A reduced-motion visitor gets the designed still, not the first frame of
+    // an entrance that never runs. Repaints after a pointer move use the same
+    // still so the illustration stays static; the read-out still follows the
+    // pointer through `select`/`label`.
+    const redraw = () => sink(figure.rest(), 0);
     sink(figure.rest(), 0);
     return { stop: () => {}, redraw };
   }

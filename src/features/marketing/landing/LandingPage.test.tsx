@@ -52,7 +52,7 @@ describe('marketing landing page', () => {
       'M6 17C50 17 80 5 130 8c25 1.5 38 4 30 9-8 5-28 0-20-8 10-10 40-6 70-2 30 4 60 8 84 2',
     );
     expect(screen.getByRole('heading', { name: /Traffic, meet revenue/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /OUR PRICING/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Simple pricing/i })).toBeInTheDocument();
     expect(screen.getAllByText(/No free tier/i).length).toBeGreaterThan(0);
     const heroForm = screen
       .getByRole('textbox', { name: /Your website/i })
@@ -157,9 +157,9 @@ describe('marketing landing page', () => {
     const stacks = screen.getByRole('region', { name: /works with your stack/i });
 
     expect(
-      within(stacks).getByRole('heading', { name: /no code — site builders and cms/i }),
+      within(stacks).getByRole('heading', { name: /Site builders and CMS/i }),
     ).toBeInTheDocument();
-    expect(within(stacks).getByRole('heading', { name: /code — frameworks/i })).toBeInTheDocument();
+    expect(within(stacks).getByRole('heading', { name: /^Frameworks$/i })).toBeInTheDocument();
     expect(within(stacks).getByRole('link', { name: /WordPress/i })).toHaveAttribute(
       'href',
       '/docs/install',
@@ -221,22 +221,7 @@ describe('marketing landing page', () => {
     expect(screen.getByRole('button', { name: /Yearly/i })).toHaveAttribute('aria-pressed', 'true');
   });
 
-  test('changes the included traffic when the pricing slider moves', async () => {
-    const { user } = render(<LandingPage />);
-    const slider = screen.getByRole('slider', { name: /Monthly traffic/i });
-
-    fireEvent.change(slider, { target: { value: '0' } });
-
-    expect(screen.getByText('10,000 events / month')).toBeInTheDocument();
-    expect(slider).toHaveAttribute('aria-valuetext', expect.stringContaining('10,000'));
-
-    await user.click(screen.getByRole('button', { name: /Yearly/i }));
-
-    expect(screen.getByText('$4.99')).toBeInTheDocument();
-    expect(screen.getByText('$9.16')).toBeInTheDocument();
-  });
-
-  test('checkout links carry the selected plan, billing period, and traffic tier', async () => {
+  test('checkout links carry the selected plan and billing period', async () => {
     const { user } = render(<LandingPage />);
     const starter = document.querySelector('[data-plan="starter"]') as HTMLElement;
 
@@ -245,14 +230,11 @@ describe('marketing landing page', () => {
       '/checkout?plan=starter&interval=monthly&tier=3',
     );
 
-    fireEvent.change(screen.getByRole('slider', { name: /Monthly traffic/i }), {
-      target: { value: '0' },
-    });
     await user.click(screen.getByRole('button', { name: /Yearly/i }));
 
     expect(within(starter).getByRole('link')).toHaveAttribute(
       'href',
-      '/checkout?plan=starter&interval=annual&tier=0',
+      '/checkout?plan=starter&interval=annual&tier=3',
     );
   });
 

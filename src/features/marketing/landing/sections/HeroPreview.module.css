@@ -187,6 +187,12 @@
   color: var(--d-text);
 }
 
+.iconButton:active {
+  border-color: var(--d-line-strong);
+  background: var(--d-hover);
+  color: var(--d-text);
+}
+
 .avatar {
   display: flex;
   align-items: center;
@@ -579,9 +585,14 @@
   border-radius: 4px;
   background: transparent;
   color: var(--d-accent-strong);
+  transition: background-color 140ms ease;
 }
 
 .clearFilter:hover {
+  background: var(--d-hover);
+}
+
+.clearFilter:active {
   background: var(--d-hover);
 }
 
@@ -938,6 +949,9 @@
   font-size: 9.5px;
   font-weight: 600;
   white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
 }
 
 .chipTab:hover {
@@ -974,9 +988,17 @@
   border-radius: 4px;
   background: transparent;
   color: var(--d-faint);
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
 }
 
 .iconButtonSmall:hover {
+  background: var(--d-hover);
+  color: var(--d-text);
+}
+
+.iconButtonSmall:active {
   background: var(--d-hover);
   color: var(--d-text);
 }
@@ -1009,10 +1031,12 @@
   top: 0;
   bottom: 0;
   left: 0;
+  width: 100%;
   border-radius: 4px;
   background: var(--d-bar-fill);
+  transform-origin: left center;
   transition:
-    width 480ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 240ms var(--lp-ease),
     background-color 140ms ease;
 }
 
@@ -1206,10 +1230,12 @@
 
 .funnelTrack span {
   display: block;
+  width: 100%;
   height: 100%;
   border-radius: 4px;
   background: linear-gradient(90deg, var(--d-bar-fill), var(--d-accent));
-  transition: width 480ms cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: left center;
+  transition: transform 240ms var(--lp-ease);
 }
 
 .dropoff {
@@ -1371,8 +1397,18 @@
   transition: scale 160ms ease;
 }
 
-.playButton:hover {
-  scale: 1.06;
+@media (hover: hover) and (pointer: fine) {
+  .playButton:hover {
+    scale: 1.06;
+  }
+}
+
+/*
+ * Touch press: the play control settles instead of springing straight back.
+ * Gated by the reduced-motion block below, which pins the resting scale.
+ */
+.playButton:active {
+  scale: 0.94;
 }
 
 .playerBadge {
@@ -1404,10 +1440,12 @@
 
 .progressTrack span {
   display: block;
-  width: 38%;
+  width: 100%;
   height: 100%;
   border-radius: 999px;
   background: var(--d-accent);
+  transform: scaleX(0.38);
+  transform-origin: left center;
 }
 
 .progressTrack span[data-playing="true"] {
@@ -1416,10 +1454,10 @@
 
 @keyframes replay-progress {
   from {
-    width: 8%;
+    transform: scaleX(0.08);
   }
   to {
-    width: 100%;
+    transform: scaleX(1);
   }
 }
 
@@ -1793,11 +1831,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .frame *,
-  .frame *::before,
-  .frame *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  .scrollHint span,
+  .progressTrack span[data-playing="true"] {
+    animation: none;
+  }
+
+  .playButton:hover,
+  .playButton:active {
+    scale: 1;
   }
 }
