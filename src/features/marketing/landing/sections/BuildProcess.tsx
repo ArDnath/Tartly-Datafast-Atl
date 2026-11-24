@@ -35,7 +35,7 @@ const STEPS: Step[] = [
     description:
       'Link Stripe, Dodo, Lemon Squeezy, Polar, or Yolfi, or send payments through the manual API. Your checkout stays where it is.',
     detail: 'Connect Stripe, Dodo, Lemon Squeezy, Polar, or your own payment API.',
-    photo: '/images/landing/process-connect-bg.webp',
+    photo: '/images/landing/process-connect-bg-v2.webp',
     visual: live => <ProviderCard live={live} />,
   },
   {
@@ -44,7 +44,7 @@ const STEPS: Step[] = [
     description:
       'See which channel, campaign, and landing page produced the payment. Move budget toward what earns, not what just gets clicks.',
     detail: 'Discover which channels and landing pages actually generate revenue.',
-    photo: '/images/landing/process-revenue-bg.webp',
+    photo: '/images/landing/process-revenue-bg-v2.webp',
     visual: (live, stillDelay) => <RevenueCard live={live} stillDelay={stillDelay} />,
   },
 ];

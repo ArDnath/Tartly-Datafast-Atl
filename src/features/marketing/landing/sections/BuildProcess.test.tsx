@@ -55,8 +55,8 @@ describe('build process section', () => {
     expect(photos.map(photo => photo.getAttribute('alt'))).toEqual(['', '', '']);
     expect(photos.map(photo => decodeURIComponent(photo.getAttribute('src') ?? ''))).toEqual([
       expect.stringContaining('/images/landing/process-install-bg.webp'),
-      expect.stringContaining('/images/landing/process-connect-bg.webp'),
-      expect.stringContaining('/images/landing/process-revenue-bg.webp'),
+      expect.stringContaining('/images/landing/process-connect-bg-v2.webp'),
+      expect.stringContaining('/images/landing/process-revenue-bg-v2.webp'),
     ]);
   });
 
