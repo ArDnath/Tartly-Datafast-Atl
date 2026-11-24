@@ -16,11 +16,13 @@
 @import "tailwindcss/utilities.css" layer(utilities) source(none);
 
 @source "./";
+@source "../../../components/evil-buttons";
 
 @theme {
   --font-sans:
     var(--font-inter), Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
+  --font-poppins: "Poppins", var(--font-sans);
   --font-mono: ui-monospace, "SFMono-Regular", "Geist Mono", Menlo, Consolas, monospace;
   --color-canvas: var(--marketing-canvas);
   --color-lp-canvas: #fffbeb;
@@ -49,8 +51,19 @@
   --marketing-blush-soft: #ffd9c7;
   --marketing-blush-ink: #ffffff;
 
+  /* The revenue-journey palette. #features overrides these two to the exact
+     values in the design spec; the rest of the page keeps the shared accent. */
+  --lp-signal: #ff4f00;
+  --lp-ink: #171717;
+
   /* One weighted curve for every entrance. Never a browser default. */
   --lp-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* On-screen movement: the existing segmented-control / price-tick curve. */
+  --lp-move: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Inter is the only typeface on the landing page, including mono utilities. */
+  --font-mono: var(--font-sans);
 
   min-height: 100vh;
   overflow-x: clip;
@@ -63,6 +76,11 @@
 
 .landing-root button {
   cursor: pointer;
+}
+
+/* Preflight forces mono on code; the landing page stays Inter-only. */
+.landing-root :where(code, kbd, samp, pre) {
+  font-family: inherit;
 }
 
 .landing-root ::selection {
@@ -135,30 +153,6 @@
   background: #ff4f00;
   transform-origin: left center;
   animation: lp-mark-draw 720ms var(--lp-ease) 360ms both;
-}
-
-/* Hand-drawn swirl under the hero accent, replacing the straight rule. */
-.landing-root .lp-mark-swirl {
-  position: relative;
-  display: inline-block;
-  color: #ff4f00;
-  white-space: nowrap;
-}
-
-.landing-root .lp-mark-swirl-line {
-  position: absolute;
-  left: -6%;
-  bottom: -0.14em;
-  width: 112%;
-  height: 0.26em;
-  color: #ff4f00;
-  overflow: visible;
-  pointer-events: none;
-  animation: lp-mark-swirl-wipe 1500ms ease-in-out both;
-}
-
-.landing-root .lp-mark-swirl-line path {
-  stroke-dasharray: none;
 }
 
 /* Consistent keyboard focus for every landing control. */
@@ -276,42 +270,46 @@
   }
 }
 
+/*
+ * Pressed state: the lift retracts back toward the surface, mirroring the
+ * hard-offset button's press language. Works on coarse pointers, where there
+ * is no hover to read.
+ */
+.landing-root .lp-card-lift:active {
+  translate: 2px 2px;
+}
+
 /* Pointing hand under the closing CTA: lift it off the card without a frame. */
 .landing-root .lp-hand {
   filter: drop-shadow(0 18px 30px rgba(23, 23, 23, 0.12));
 }
 
 .landing-root .lp-rise {
-  animation: lp-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: lp-rise 640ms var(--lp-ease) both;
 }
 
 /* One-shot entrance for the sample dashboard: values settle, never loop. */
 .landing-root .lp-kpi-in {
-  animation: lp-kpi-in 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: lp-kpi-in 520ms var(--lp-ease) both;
 }
 
 .landing-root .lp-bar-in {
   transform-origin: bottom center;
-  animation: lp-bar-rise 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: lp-bar-rise 680ms var(--lp-ease) both;
 }
 
 .landing-root .lp-row-in {
-  animation: lp-row-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: lp-row-in 420ms var(--lp-ease) both;
 }
 
 /* Price re-reads on a billing or traffic change: short, high-frequency feedback. */
 .landing-root .lp-price-tick {
-  animation: lp-price-tick 180ms cubic-bezier(0.2, 0, 0, 1) both;
+  animation: lp-price-tick 180ms var(--lp-move) both;
 }
 
 /* One-shot attention ring used when the closing CTA returns to the hero form. */
 .landing-root .lp-attention {
   animation: lp-attention 720ms var(--lp-ease);
-}
-
-/* Answer fade when a native details element opens. */
-.landing-root details[open] .lp-faq-answer {
-  animation: lp-faq-in 420ms var(--lp-ease) both;
 }
 
 @keyframes lp-mark-draw {
@@ -394,10 +392,328 @@
   }
 }
 
-@keyframes lp-faq-in {
+/* ------------------------------------------------------------------------- */
+/* Hero                                                                      */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-hero {
+  padding-top: clamp(6.5rem, 9vw, 8.25rem);
+  padding-bottom: 3rem;
+  text-align: center;
+}
+
+.landing-root .lp-hero-title {
+  margin: 0 auto;
+  max-width: 20ch;
+  font-family: "Poppins", var(--font-sans);
+  font-size: clamp(2.2rem, 6.1vw, 5.5rem);
+  font-weight: 700;
+  line-height: 0.96;
+  letter-spacing: -0.065em;
+  word-spacing: -0.035em;
+  text-wrap: balance;
+  color: #171717;
+}
+
+.landing-root .lp-hero-line {
+  display: block;
+}
+
+.landing-root .lp-hero-line-first {
+  --lp-swap-tilt: -1.6deg;
+  color: #171717;
+}
+
+.landing-root .lp-hero-line-soft {
+  --lp-swap-tilt: 1deg;
+  color: #171717;
+}
+
+/*
+ * Only the intro word stays soft; the claim that follows it carries the ink.
+ */
+.landing-root .lp-hero-line-soft .lp-hero-fade {
+  color: #8f8a83;
+}
+
+/*
+ * The swirl is a drawn stroke under the closing words, not a rule: it is wider
+ * than the text and wipes in from the left once the words have landed, so the
+ * underline reads as something added by hand after the sentence was set.
+ */
+.landing-root .lp-mark-swirl {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.landing-root .lp-mark-swirl-line {
+  position: absolute;
+  left: -4%;
+  bottom: -0.2em;
+  width: 108%;
+  height: 0.24em;
+  color: #ff4f00;
+  overflow: visible;
+  pointer-events: none;
+  animation: lp-mark-swirl-wipe 1500ms var(--lp-ease) both;
+}
+
+/*
+ * The swappable word is a button so it works from the keyboard. Its marker is a
+ * single amber band whose top and bottom edges are cut to a shallow wave, so it
+ * reads as a highlighter dragged by hand rather than a rectangular block. The
+ * wave is a low-amplitude polygon — one long period across the word, a few
+ * pixels deep — which stays a wobble at every size instead of turning into
+ * teeth. Rounded corners soften the ends while keeping the wavy sides. The shape
+ * is an SVG mask so it scales with the word. `isolation` gives the button a
+ * stacking context so the negative-z layer sits behind the word without sinking
+ * under the hero's dotted field.
+ */
+.landing-root .lp-swap {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.055em;
+  padding: 0 0.08em;
+  color: #171717;
+  cursor: pointer;
+  isolation: isolate;
+  transition: transform 160ms ease-out;
+}
+
+.landing-root .lp-swap:active {
+  transform: scale(0.97);
+}
+
+.landing-root .lp-swap::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 18% -0.01em 16%;
+  background: rgba(255, 198, 41, 0.85);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M8 21 C13 15 19 13 27 16 C37 20 44 18 52 16 C64 13 70 16 78 12 C87 10 94 16 96 23 C100 29 98 36 97 43 L97 67 C97 75 92 81 85 83 C77 85 70 81 63 82 C52 83 45 88 36 85 C27 82 21 87 13 83 C5 80 2 73 4 65 C5 56 2 49 3 40 C3 32 3 26 8 21 Z' fill='black'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M8 21 C13 15 19 13 27 16 C37 20 44 18 52 16 C64 13 70 16 78 12 C87 10 94 16 96 23 C100 29 98 36 97 43 L97 67 C97 75 92 81 85 83 C77 85 70 81 63 82 C52 83 45 88 36 85 C27 82 21 87 13 83 C5 80 2 73 4 65 C5 56 2 49 3 40 C3 32 3 26 8 21 Z' fill='black'/%3E%3C/svg%3E");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  transform: rotate(var(--lp-swap-tilt, -1.4deg));
+  transform-origin: center;
+  animation: lp-highlight-swipe 460ms var(--lp-ease) both;
+  transition: background-color 160ms var(--lp-ease);
+}
+
+.landing-root .lp-hero-line-first .lp-swap::before {
+  animation-delay: 420ms;
+}
+
+.landing-root .lp-hero-line-soft .lp-swap::before {
+  animation-delay: 560ms;
+}
+
+@keyframes lp-highlight-swipe {
+  from {
+    opacity: 0.35;
+    transform: translateX(-0.08em) scaleX(0.72) rotate(var(--lp-swap-tilt, -1.4deg));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scaleX(1) rotate(var(--lp-swap-tilt, -1.4deg));
+  }
+}
+
+@media (hover: hover) {
+  .landing-root .lp-swap:hover::before {
+    background: rgb(255, 198, 41);
+  }
+}
+
+.landing-root .lp-swap:focus-visible {
+  outline: 2px solid #ff4f00;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/*
+ * Every word lives in the same grid cell so the button's width is the width of
+ * the longest word. Only the active word is visible; the others hold the box
+ * open without participating in layout, which stops the sentence from jumping.
+ */
+.landing-root .lp-swap-stack {
+  display: inline-grid;
+  align-items: baseline;
+}
+
+.landing-root .lp-swap-stack > span {
+  grid-area: 1 / 1;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.07em);
+  transition:
+    opacity 180ms var(--lp-ease),
+    transform 220ms var(--lp-ease);
+}
+
+.landing-root .lp-swap-stack > span.is-on {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.landing-root .lp-swap-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  font-size: 0.72em;
+  line-height: 1;
+}
+
+.landing-root .lp-hero-hint {
+  margin: 0.85rem auto 0;
+  color: #77716b;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.landing-root .lp-hero-hint span {
+  display: inline-block;
+  margin-left: 0.2em;
+  color: #8daaff;
+  font-size: 1.2em;
+  transform: translateY(0.05em);
+}
+
+.landing-root .lp-hero-lede {
+  margin: 1.1rem auto 0;
+  max-width: 42rem;
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  line-height: 1.65;
+  color: #5f5a54;
+  text-wrap: pretty;
+}
+
+.landing-root .lp-hero-lede b {
+  color: #171717;
+  font-weight: 600;
+}
+
+.landing-root .lp-hero-form {
+  margin: 2rem auto 0;
+  width: min(100%, 44rem);
+}
+
+.landing-root .lp-hero-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.375rem 0.375rem 0.5rem;
+  border: 1px solid rgba(23, 23, 23, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 251, 235, 0.92);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 12px 30px -20px rgba(23, 23, 23, 0.35);
+}
+
+.landing-root .lp-hero-pill:focus-within {
+  border-color: rgba(255, 79, 0, 0.45);
+  box-shadow:
+    0 0 0 4px rgba(255, 79, 0, 0.08),
+    0 12px 30px -20px rgba(23, 23, 23, 0.35);
+}
+
+.landing-root .lp-hero-pill-input {
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 0.8rem 0.75rem 0.8rem 2rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: #171717;
+  outline: none;
+}
+
+.landing-root .lp-hero-pill-input::placeholder {
+  color: #767069;
+}
+
+.landing-root .lp-hero-3d {
+  flex-shrink: 0;
+}
+
+@media (max-width: 639px) {
+  .landing-root .lp-hero-pill {
+    flex-direction: column;
+    align-items: stretch;
+    border-radius: 1.5rem;
+    padding: 0.5rem;
+  }
+
+  .landing-root .lp-hero-input-icon {
+    top: 50%;
+    translate: 0 -50%;
+    transform: none;
+  }
+
+  /*
+   * Floating snapshots crowd the single-column copy on phones, so the hero
+   * keeps only the dotted field behind the copy on small screens.
+   */
+  .landing-root .lp-hero-decor {
+    display: none;
+  }
+}
+
+.landing-root .lp-hero-byline {
+  margin: 1rem auto 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem 0.65rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: #6b6660;
+}
+
+.landing-root .lp-hero-byline b {
+  color: #171717;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * The price is the one figure in the hero, so it carries the page's signal
+ * orange. The brand orange itself is 3.18:1 on cream, which is short of AA for
+ * 11px text, so this is the same hue darkened until it clears 5:1. The selector
+ * includes the byline's own `b` rule's specificity so the colour actually wins.
+ */
+.landing-root .lp-hero-byline b.lp-hero-price {
+  color: #c43c00;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.landing-root .lp-hero-dot {
+  color: #a29d92;
+}
+
+/*
+ * The hero entrance is a short, staggered rise. The delay comes from the
+ * inline style so the same class can be reused for headline, lede, form, and
+ * byline without creating one-off selectors.
+ */
+.landing-root .lp-hero-rise {
+  opacity: 0;
+  animation: lp-hero-rise 620ms var(--lp-ease) both;
+}
+
+@keyframes lp-hero-rise {
   from {
     opacity: 0;
-    transform: translate3d(0, 6px, 0);
+    transform: translate3d(0, 12px, 0);
   }
   to {
     opacity: 1;
@@ -405,47 +721,233 @@
   }
 }
 
+/*
+ * The product preview is the hero's subject, so it settles in after the copy
+ * and the form. A very small scale (0.985, not 0.9) keeps the surface from
+ * feeling inflated; the rise and the shared curve carry the entrance.
+ */
+.landing-root .lp-hero-preview-in {
+  opacity: 0;
+  animation: lp-hero-preview-in 900ms var(--lp-ease) both;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes lp-hero-preview-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
 /* ------------------------------------------------------------------------- */
-/* Hero entrance                                                             */
+/* Navbar and mobile menu                                                    */
 /* ------------------------------------------------------------------------- */
 
 /*
- * The hero is above the fold, so its reveal runs as a CSS entrance instead of
- * waiting for hydration. Words rise and fade on the shared curve, staggered in
- * reading order. `both` keeps the first frame hidden, so there is no flash.
+ * The bar fades in as the page composes; it never slides, because transform on
+ * this element already belongs to the hide-on-scroll state. On a client-side
+ * navigation the landing mounts alone, so this is the only entrance it gets.
  */
-.landing-root .lp-hero-word {
-  display: inline-block;
-  animation: lp-hero-word 760ms var(--lp-ease) both;
+.landing-root .lp-nav-in {
+  animation: lp-nav-in 420ms var(--lp-ease) both;
 }
 
-.landing-root .lp-hero-in {
-  animation: lp-hero-in 700ms var(--lp-ease) both;
-}
-
-@keyframes lp-hero-word {
+@keyframes lp-nav-in {
   from {
     opacity: 0;
-    transform: translate3d(0, 0.5em, 0);
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
   }
 }
 
-@keyframes lp-hero-in {
+/*
+ * Menu items rise in reading order once the overlay has begun to cover the
+ * page. Only fires on an explicit open, so the closed state stays inert.
+ */
+.landing-root .lp-menu-item {
+  opacity: 0;
+  transform: translate3d(0, 10px, 0);
+  transition:
+    opacity 280ms var(--lp-ease),
+    transform 280ms var(--lp-ease);
+}
+
+.landing-root .lp-menu-overlay[data-open="true"] .lp-menu-item {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(60ms + var(--menu-index, 0) * 35ms);
+}
+
+/*
+ * The arrow is the loud bit: signal orange, a colour the cream page does not use
+ * anywhere else. The label stays in ink so the two read as a note and its pointer
+ * rather than one orange-on-orange block.
+ */
+.landing-root .lp-demo-note {
+  color: #ff4f00;
+  animation: lp-note-in 520ms var(--lp-ease) 1240ms both;
+}
+
+.landing-root .lp-demo-note-text {
+  fill: #171717;
+  animation: lp-note-text-in 560ms var(--lp-ease) 1300ms both;
+}
+
+/* pathLength="1" normalises both strokes, so nothing measures paths in JS. */
+.landing-root .lp-demo-note-line,
+.landing-root .lp-demo-note-head {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+.landing-root .lp-demo-note-line {
+  animation: lp-note-draw 900ms var(--lp-ease) 1450ms both;
+}
+
+.landing-root .lp-demo-note-head {
+  animation: lp-note-draw 240ms var(--lp-ease) 2320ms both;
+}
+
+@keyframes lp-note-in {
   from {
     opacity: 0;
-    transform: translate3d(0, 18px, 0);
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
   }
 }
 
-/* Hand-drawn annotation that points at the interactive workspace. */
+@keyframes lp-note-text-in {
+  from {
+    opacity: 0;
+    transform: translate(0, 7px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes lp-note-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/*
+ * The ThreeDButton keeps its own face and deck, so the pill only decides where
+ * it sits: it never stretches, and its 50px box (44px face plus the 6px deck
+ * offset) sets the row height for the field beside it.
+ */
+.landing-root .lp-hero-pill .lp-hero-3d {
+  flex: none;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  text-transform: none;
+}
+
+/* The hero CTA reads as an orange block sitting under a white, ink-rimmed face. */
+.landing-root .lp-hero-pill .lp-hero-3d [data-part="deck"] {
+  background: #ff4f00;
+  box-shadow: 0 10px 18px rgba(255, 79, 0, 0.28);
+}
+
+.landing-root .lp-hero-pill .lp-hero-3d [data-part="face"] {
+  background: #ffffff;
+  color: #171717;
+  box-shadow:
+    inset 0 0 0 1.5px #171717,
+    inset 0 2px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -2px 0 rgba(24, 24, 27, 0.06);
+}
+
+.landing-root .lp-hero-form {
+  width: 100%;
+  max-width: 460px;
+}
+
+.landing-root .lp-hero-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 999px;
+  background: #fffdf6;
+  box-shadow:
+    0 0 0 1px #ddd5cc,
+    0 10px 26px -16px rgba(23, 23, 23, 0.4);
+  transition: box-shadow 180ms var(--lp-ease);
+}
+
+.landing-root .lp-hero-pill:focus-within {
+  box-shadow:
+    0 0 0 1.5px #171717,
+    0 0 0 5px rgba(255, 79, 0, 0.18);
+}
+
+.landing-root .lp-hero-pill-input.lp-hero-input {
+  height: 50px;
+  flex: 1;
+  min-width: 0;
+  padding: 0 8px 0 38px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #171717;
+  font-size: 16px;
+  font-weight: 500;
+  outline: none;
+}
+
+.landing-root .lp-hero-pill-input.lp-hero-input::placeholder {
+  color: #78736a;
+}
+
+.landing-root .lp-hero-pill-input.lp-hero-input:hover,
+.landing-root .lp-hero-pill-input.lp-hero-input:focus {
+  border: 0;
+}
+
+.landing-root .lp-hero-input-icon {
+  transition: color 160ms var(--lp-ease);
+}
+
+.landing-root .lp-hero-input-wrap:focus-within .lp-hero-input-icon {
+  color: var(--marketing-blush);
+}
+
+@media (max-width: 430px) {
+  .landing-root .lp-hero-pill {
+    flex-wrap: wrap;
+    border-radius: 22px;
+  }
+
+  .landing-root .lp-hero-pill-input.lp-hero-input {
+    flex-basis: 100%;
+    padding-left: 34px;
+  }
+
+  .landing-root .lp-hero-pill .lp-hero-3d {
+    width: 100%;
+  }
+
+  .landing-root .lp-hero-pill .lp-hero-input-icon {
+    top: 29px;
+    left: 14px;
+  }
+}
+
 /* ------------------------------------------------------------------------- */
 /* Scroll reveals                                                            */
 /* ------------------------------------------------------------------------- */
@@ -501,87 +1003,66 @@
 }
 
 /* ------------------------------------------------------------------------- */
-/* Process spine                                                             */
+/* Stack manifest                                                             */
 /* ------------------------------------------------------------------------- */
 
-.landing-root .lp-step-node {
-  background: #ddd5cc;
-  transition: background-color 300ms var(--lp-ease);
-}
-
-.landing-root .lp-step-node[data-active="true"] {
+.landing-root .stack-socket-pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
   background: #ff4f00;
 }
 
-/* ------------------------------------------------------------------------- */
-/* Stack tiles                                                               */
-/* ------------------------------------------------------------------------- */
-
 .landing-root .stack-tile {
   border-color: #ddd5cc;
-  background: #fffbeb;
+  background: #fffdf6;
   transition:
-    translate 200ms ease-out,
-    border-color 200ms ease-out,
-    box-shadow 200ms ease-out,
-    background-color 200ms ease-out;
+    border-color 180ms var(--lp-ease),
+    background-color 180ms var(--lp-ease);
+}
+
+.landing-root .stack-tile-mark {
+  transition:
+    border-color 180ms var(--lp-ease),
+    background-color 180ms var(--lp-ease);
 }
 
 @media (hover: hover) {
   .landing-root .stack-tile:hover {
-    border-color: color-mix(in srgb, var(--tile-tint) 55%, #171717);
-    background: #fffdf6;
-    translate: -1px -1px;
-    box-shadow: 3px 3px 0 0 color-mix(in srgb, var(--tile-tint) 30%, transparent);
+    border-color: color-mix(in srgb, var(--tile-tint) 50%, #b8afa2);
+    background: #fffbeb;
+  }
+
+  .landing-root .stack-tile:hover .stack-tile-mark {
+    border-color: color-mix(in srgb, var(--tile-tint) 40%, #ddd5cc);
+    background: color-mix(in srgb, var(--tile-tint) 8%, #fffbeb);
   }
 }
 
 .landing-root .stack-tile:focus-visible {
-  border-color: color-mix(in srgb, var(--tile-tint) 55%, #171717);
-  background: #fffdf6;
-  translate: -1px -1px;
-  box-shadow: 3px 3px 0 0 color-mix(in srgb, var(--tile-tint) 30%, transparent);
+  border-color: color-mix(in srgb, var(--tile-tint) 50%, #b8afa2);
+  background: #fffbeb;
 }
 
-.landing-root .stack-tip {
-  border-color: #ddd5cc;
-  background: #171717;
-  color: #fffdf6;
-  box-shadow: 0 6px 16px rgba(23, 23, 23, 0.16);
+/* ------------------------------------------------------------------------- */
+/* Payment provider strip                                                    */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .payment-cell {
+  background-color: #fffbeb;
+}
+
+.landing-root .payment-cell-logo {
   transition:
-    translate 200ms ease-out,
-    opacity 200ms ease-out;
+    opacity 300ms var(--lp-ease),
+    filter 300ms var(--lp-ease),
+    transform 300ms var(--lp-ease);
 }
 
-.landing-root .stack-tile:focus-visible .stack-tip {
-  translate: -50% 0;
-  opacity: 1;
-}
-
-@media (hover: hover) {
-  .landing-root .stack-tile:hover .stack-tip {
-    translate: -50% 0;
-    opacity: 1;
-  }
-}
-
-/* ------------------------------------------------------------------------- */
-/* Marquee                                                                   */
-/* ------------------------------------------------------------------------- */
-
-/* The card rail uses a soft edge; keep the fade on the cream ground. */
-.landing-root .marquee-fade {
-  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-}
-
-/*
- * The marquee clips vertical overflow, so a lifted card loses its top border.
- * Keep the rail cards in place and let the frame respond instead.
- */
-@media (hover: hover) {
-  .landing-root .marquee-fade .lp-card-lift:hover {
-    translate: 0 0;
-    box-shadow: 3px 3px 0 0 rgba(255, 79, 0, 0.12);
+/* A pointer-driven scale, never a tap on touch. */
+@media (hover: hover) and (pointer: fine) {
+  .landing-root .payment-cell:hover .payment-cell-logo {
+    transform: scale(1.1);
   }
 }
 
@@ -599,9 +1080,9 @@
   bottom: 4px;
   left: 4px;
   width: calc(50% - 4px);
-  background: #ff4f00;
+  background: #171717;
   border-radius: 4px;
-  transition: translate 200ms cubic-bezier(0.2, 0, 0, 1);
+  transition: translate 200ms var(--lp-move);
 }
 
 .landing-root .lp-seg-thumb[data-position="annual"] {
@@ -703,18 +1184,62 @@
   .landing-root .lp-attention,
   .landing-root .lp-hero-word,
   .landing-root .lp-hero-in,
-  .landing-root details[open] .lp-faq-answer {
+  .landing-root .lp-demo-note,
+  .landing-root .lp-demo-note-text,
+  .landing-root .lp-demo-note-line,
+  .landing-root .lp-demo-note-head {
     animation: none;
+  }
+
+  .landing-root .lp-hero-rise,
+  .landing-root .lp-hero-preview-in,
+  .landing-root .lp-swap::before {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 
   .landing-root .lp-seg-thumb,
   .landing-root .stack-tile,
   .landing-root .stack-tile img,
-  .landing-root .stack-tip,
+  .landing-root .stack-tile-mark,
+  .landing-root .payment-cell,
+  .landing-root .payment-cell-logo,
   .landing-root .lp-btn-shadow,
   .landing-root .lp-card-lift,
-  .landing-root .lp-step-node {
+  .landing-root .lp-story-node,
+  .landing-root .lp-story-num,
+  .landing-root .lp-story-badge,
+  .landing-root .lp-story-badge-num,
+  .landing-root .lp-story-title,
+  .landing-root .lp-story-body,
+  .landing-root .lp-story-rail::after,
+  .landing-root .stack-socket-node,
+  .landing-root .lp-faq-item,
+  .landing-root .lp-faq-index,
+  .landing-root .lp-faq-toggle,
+  .landing-root .lp-faq-icon {
     transition: none;
+  }
+
+  .landing-root .lp-swap-stack > span {
+    transition: none;
+    transform: none;
+  }
+
+  .landing-root .lp-story-stage-panel {
+    opacity: 0;
+    transform: none;
+    transition: none;
+  }
+
+  .landing-root .lp-story-stage-panel[data-active="true"] {
+    opacity: 1;
+  }
+
+  .landing-root .lp-story-body {
+    opacity: 1;
+    transform: none;
   }
 
   .landing-root .lp-mark-swirl-line {
@@ -739,4 +1264,1311 @@
     transform: none !important;
     will-change: auto;
   }
+
+  .landing-root .lp-swap:active {
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* FAQ ledger                                                                */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-faq-item {
+  border: 1px solid #ddd5cc;
+  border-radius: 10px;
+  background: transparent;
+}
+
+.landing-root .lp-faq-index {
+  color: #a09889;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Scroll story: feature and process sections                                */
+/* ------------------------------------------------------------------------- */
+
+/*
+ * The reference is unfair.so's feature block: a numbered rail of steps scrolls
+ * past a visual that stays pinned, and the step nearest the reading line opens
+ * while the rest fold down to their label. The geometry only engages from `lg`
+ * up on a motion-ready page; below that, without JavaScript, or under
+ * reduced motion, the section is an ordinary document with every step open and
+ * its visual inline.
+ */
+/* The Revenue Journey uses the exact spec palette, scoped so the hero and the
+   other landing sections keep their existing accent. */
+#features {
+  --lp-signal: #ff4b0b;
+  --lp-ink: #191817;
+  --color-lp-primary: #ff4b0b;
+}
+
+.landing-root .lp-story {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.landing-root .lp-story-rail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The rule and its scroll fill share one gutter, left of every node. */
+.landing-root .lp-story-rail::before,
+.landing-root .lp-story-rail::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+}
+
+.landing-root .lp-story-rail::before {
+  background: #ddd5cc;
+}
+
+.landing-root .lp-story-rail::after {
+  background: var(--lp-signal);
+  transform: scaleY(var(--lp-story-progress, 0));
+  transform-origin: top center;
+  /* A 500 ms fill is slow enough to read as progress, not a jump. */
+  transition: transform 500ms var(--lp-ease);
+}
+
+.landing-root .lp-story-step {
+  position: relative;
+  padding: 0 0 2.5rem 2.25rem;
+}
+
+.landing-root .lp-story-step:last-child {
+  padding-bottom: 0;
+}
+
+.landing-root .lp-story-node {
+  position: absolute;
+  top: 1.55rem;
+  left: -4.5px;
+  width: 9px;
+  height: 9px;
+  border: 1px solid #c9bda9;
+  border-radius: 999px;
+  background: #fffbeb;
+  transition:
+    background-color 300ms var(--lp-ease),
+    border-color 300ms var(--lp-ease),
+    box-shadow 300ms var(--lp-ease);
+}
+
+.landing-root .lp-story-step[data-active="true"] .lp-story-node {
+  border-color: var(--lp-signal);
+  background: var(--lp-signal);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--lp-signal) 12%, transparent);
+}
+
+.landing-root .lp-story-card {
+  max-width: 34rem;
+}
+
+.landing-root .lp-story-badge {
+  display: inline-flex;
+  height: 1.75rem;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0 0.6rem 0 0.3rem;
+  border: 1px solid #ded4c4;
+  border-radius: 6px;
+  background: #fffdf6;
+  color: #6b6660;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition:
+    border-color 300ms var(--lp-ease),
+    color 300ms var(--lp-ease),
+    background-color 300ms var(--lp-ease);
+}
+
+.landing-root .lp-story-badge-num {
+  display: inline-flex;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.2rem;
+  border-radius: 4px;
+  background: #f3ecdd;
+  color: #9b9284;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color 300ms var(--lp-ease),
+    color 300ms var(--lp-ease);
+}
+
+.landing-root .lp-story-step[data-active="true"] .lp-story-badge {
+  border-color: rgba(255, 79, 0, 0.45);
+  color: #171717;
+}
+
+.landing-root .lp-story-step[data-active="true"] .lp-story-badge-num {
+  background: #ff4f00;
+  color: #ffffff;
+}
+
+/* The lean label: a bare tabular numeral, no pill, no kicker word. */
+.landing-root .lp-story-num {
+  display: inline-block;
+  color: #a09889;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  transition: color 320ms var(--lp-ease);
+}
+
+.landing-root .lp-story-step[data-active="true"] .lp-story-num {
+  color: var(--lp-signal);
+}
+
+.landing-root .lp-story-title {
+  margin-top: 0.9rem;
+  color: var(--lp-ink);
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.14;
+  text-wrap: balance;
+  /* 250 ms step activation from the motion spec. */
+  transition: color 250ms var(--lp-ease);
+}
+
+/* Only the hydrated, motion-ready desktop dims rows the reader has not reached. */
+@media (min-width: 1024px) {
+  .landing-root[data-motion="on"] .lp-story-step:not([data-active="true"]) .lp-story-title {
+    color: #8f8a83;
+  }
+}
+
+.landing-root .lp-story-body {
+  opacity: 1;
+  transform: none;
+}
+
+.landing-root .lp-story-body-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.landing-root .lp-story-copy {
+  margin-top: 0.65rem;
+  max-width: 32rem;
+  color: #6b6660;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+.landing-root .lp-story-stat {
+  display: inline-flex;
+  margin-top: 0.9rem;
+  color: var(--lp-signal);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.landing-root .lp-story-inline {
+  margin-top: 1.5rem;
+}
+
+.landing-root .lp-story-inline .lp-fig-frame {
+  max-width: 30rem;
+}
+
+/* The pinned stage is a motion-ready desktop enhancement. */
+.landing-root .lp-story-stage {
+  display: none;
+}
+
+.landing-root .lp-story-sticky {
+  position: sticky;
+  top: 6.5rem;
+}
+
+/*
+ * Stacked variant: pin at natural height, centred on the viewport, instead of
+ * stretching both columns to 100vh. That removes the dead air the centred 100vh
+ * panels created under the heading on entry, while still landing the active copy
+ * and the drawing in the middle of the screen once the heading is gone.
+ */
+.landing-root[data-motion="on"] .lp-story[data-variant="stacked"] .lp-story-rail {
+  align-self: start;
+}
+
+.landing-root[data-motion="on"] .lp-story[data-variant="stacked"] .lp-story-sticky {
+  top: var(--lp-story-pin-stage, 7.5rem);
+}
+
+.landing-root[data-motion="on"]
+  .lp-story[data-variant="stacked"]
+  .lp-story-rail
+  > .lp-story-step:first-child {
+  padding-top: 0;
+}
+
+.landing-root .lp-story-stage-card {
+  position: relative;
+}
+
+.landing-root .lp-story-stage-visuals {
+  display: grid;
+  place-items: center;
+}
+
+.landing-root .lp-story-stage-panel {
+  grid-area: 1 / 1;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translate3d(0, 8px, 0) scale(0.992);
+  transition:
+    opacity 240ms var(--lp-ease),
+    transform 240ms var(--lp-ease);
+  pointer-events: none;
+}
+
+.landing-root .lp-story-stage-panel[data-active="true"] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.landing-root .lp-story-stage-panel > * {
+  width: 100%;
+  max-width: min(44rem, 86vh);
+  margin-inline: auto;
+}
+
+/* Stacked feature stage: the drawing carries the meaning, so the chrome goes. */
+.landing-root .lp-story[data-variant="stacked"] .lp-story-title {
+  margin-top: 0.55rem;
+  font-size: 1.15rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.landing-root .lp-story[data-variant="stacked"] .lp-story-copy {
+  margin-top: 0.4rem;
+  max-width: 24rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+@media (min-width: 1024px) {
+  /*
+   * The two-column pinned layout is a motion-ready enhancement. Without
+   * JavaScript, or when the visitor asks for reduced motion, the section stays
+   * a single readable column with every step's visual inline.
+   */
+  .landing-root[data-motion="on"] .lp-story {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr);
+    gap: clamp(2.5rem, 5vw, 5rem);
+  }
+
+  /*
+   * The stacked feature story gives the drawing most of the width. The copy
+   * column stays narrow enough to remain scannable, while the stage has room to
+   * render the figure at a comfortable, generous size.
+   */
+  .landing-root[data-motion="on"] .lp-story[data-variant="stacked"] {
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.5fr);
+    gap: clamp(1.5rem, 2.4vw, 3rem);
+  }
+
+  .landing-root[data-motion="on"] .lp-story[data-variant="stacked"] .lp-story-title {
+    font-size: 1.25rem;
+  }
+
+  .landing-root[data-motion="on"] .lp-story[data-flip="true"] {
+    grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr);
+  }
+
+  .landing-root[data-motion="on"] .lp-story[data-flip="true"] .lp-story-rail {
+    order: 2;
+  }
+
+  .landing-root[data-motion="on"] .lp-story[data-flip="true"] .lp-story-stage {
+    order: 1;
+  }
+
+  .landing-root .lp-story-step {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 0;
+  }
+
+  /* The tall stations buy the pinned stage room to travel. */
+  .landing-root[data-motion="on"] .lp-story-step {
+    min-height: 22rem;
+  }
+
+  .landing-root[data-motion="on"] .lp-story-step:last-child {
+    min-height: 16rem;
+  }
+
+  .landing-root .lp-story-title {
+    font-size: 1.6rem;
+  }
+
+  .landing-root[data-motion="on"] .lp-story-inline {
+    display: none;
+  }
+
+  .landing-root[data-motion="on"] .lp-story-stage {
+    display: block;
+    align-self: stretch;
+  }
+
+  /* Fade and lift only where the pinned stage can stand in for the copy.
+     No grid/height animation: transforms and opacity stay on the compositor. */
+  .landing-root[data-motion="on"] .lp-story-body {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+    transition:
+      opacity 240ms var(--lp-ease),
+      transform 240ms var(--lp-ease);
+  }
+
+  .landing-root[data-motion="on"] .lp-story-step[data-active="true"] .lp-story-body {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 300ms var(--lp-ease) 90ms,
+      transform 300ms var(--lp-ease) 90ms;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Landing page interaction feedback                                         */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-hero-input {
+  outline: none;
+}
+
+.landing-root .lp-hero-input:focus-visible {
+  outline: none;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Who it's for — statement heading, three plates, one ask                    */
+/* ------------------------------------------------------------------------- */
+
+/*
+ * The heading is a stacked statement, one line per plate, and the last line
+ * carries the accent. It is set lighter and in sentence case on purpose: the
+ * page's uppercase 900-weight display is reserved for the section titles, and
+ * repeating it here would make the band shout the same sentence three times.
+ */
+.landing-root .lp-who-statement {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  max-width: 46rem;
+  color: #8f8a83;
+  font-size: clamp(1.375rem, 3vw, 2rem);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+
+.landing-root .lp-who-line {
+  display: block;
+}
+
+.landing-root .lp-who-line[data-emphasis="true"] {
+  color: #ff4f00;
+}
+
+.landing-root .lp-who-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  margin-top: 2.75rem;
+}
+
+@media (min-width: 640px) {
+  .landing-root .lp-who-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-root .lp-who-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin-top: 3.5rem;
+  }
+}
+
+/*
+ * The plate holds a line illustration and nothing else. The caption sits under
+ * the plate, so the eye reads the set as a row of three identities rather than
+ * three mini pages.
+ */
+.landing-root .lp-who-card {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/*
+ * Only the top corners are rounded. The plate's bottom edge meets the caption
+ * with no curve, so the card reads as one tall block rather than a framed
+ * picture with a label underneath — the bottom of the card is simply open.
+ * `border-radius` therefore names the two top corners and the frame's own
+ * `overflow: hidden` clips the drawing to that shape.
+ */
+.landing-root .lp-who-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+  /* No plate colour: the drawing's own background is transparent, so the
+     canvas shows through and the card sits in the page rather than on it. */
+  background: transparent;
+  /* Tall, not wide: the plates are portrait enough to hold a full drawing and
+     to make the row the tallest thing in the section. */
+  aspect-ratio: 4 / 5;
+  padding: 1.75rem;
+}
+
+@media (min-width: 1024px) {
+  .landing-root .lp-who-frame {
+    aspect-ratio: 1 / 1;
+    min-height: 26rem;
+  }
+}
+
+/*
+ * The ring is a masked gradient rather than a border, because a border cannot
+ * fade along its own length. It runs top to bottom: near-black for most of the
+ * plate's height, then dissolving through the last quarter so the bottom edge
+ * carries no line at all. That is what makes the card feel open-ended rather
+ * than boxed.
+ *
+ * `mask-composite: exclude` keeps only the padding band, turning the filled
+ * gradient into an outline — the padding is therefore the ring's thickness.
+ * Both the prefixed and the standard properties are required — Safari still
+ * reads `-webkit-mask-composite`.
+ */
+.landing-root .lp-who-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  /*
+   * The padding is the ring's thickness. 2px rather than 1px so the line reads
+   * as a drawn frame at a glance, and it is set in one place so the mask band
+   * and the visible weight can never drift apart.
+   */
+  padding: 2px;
+  /*
+   * The ink holds near full strength for most of the plate's height and only
+   * lets go at the very end: solid to 70%, a long even ramp through the last
+   * quarter, and nothing in the final few pixels.
+   */
+  background: linear-gradient(
+    180deg,
+    #171717 0%,
+    #171717 70%,
+    rgba(23, 23, 23, 0.72) 82%,
+    rgba(23, 23, 23, 0.34) 92%,
+    rgba(23, 23, 23, 0.1) 97%,
+    rgba(23, 23, 23, 0) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/*
+ * The plate is static: the ring is the same ink at rest and under the pointer.
+ * No hover tint, because the card is not a control and a colour change would
+ * promise a click it does not have.
+ */
+
+/*
+ * `contain`, not `cover`: these are drawings with meaning at their edges, so
+ * cropping one would cut a gear or a teammate in half.
+ *
+ * The white field is gone from the files themselves — each PNG was encoded with
+ * its white background knocked out to real transparency. That is deliberate and
+ * it replaces an earlier `mix-blend-mode: multiply`, which looked identical at
+ * rest but flashed white during the scroll reveal: an ancestor mid-fade gets its
+ * own compositing group, so multiply blended the drawing's white against an
+ * empty backdrop instead of the cream page until the fade finished. Real
+ * transparency has no such dependency and no blend mode to go wrong.
+ */
+.landing-root .lp-who-photo {
+  object-fit: contain;
+  object-position: center;
+}
+
+.landing-root .lp-who-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.landing-root .lp-who-title {
+  margin: 0;
+  color: #171717;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+.landing-root .lp-who-copy {
+  margin: 0;
+  max-width: 24rem;
+  color: #6b6660;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Feature figures — isometric line drawings                                 */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-feature-visual {
+  min-height: 220px;
+}
+
+.landing-root .lp-fig-frame {
+  width: 100%;
+}
+
+.landing-root .lp-fig {
+  width: 100%;
+  aspect-ratio: 5 / 4;
+  overflow: visible;
+}
+
+.landing-root .lp-fig-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.landing-root .lp-fig-solid {
+  fill: #fffbeb;
+  stroke: rgba(110, 105, 96, 0.42);
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  transition:
+    stroke 180ms ease,
+    stroke-width 180ms ease,
+    fill 180ms ease;
+}
+
+.landing-root .lp-fig-solid.hi {
+  fill: color-mix(in srgb, var(--lp-signal) 5%, #fffbeb);
+  stroke: var(--lp-signal);
+  stroke-width: 1.5;
+}
+
+.landing-root .lp-fig-crease {
+  fill: none;
+  stroke: rgba(110, 105, 96, 0.2);
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.landing-root .lp-fig-dot {
+  stroke: none;
+  transition:
+    fill 180ms ease,
+    opacity 180ms ease;
+}
+
+.landing-root .lp-fig-dot.on {
+  fill: rgba(28, 27, 24, 0.88);
+}
+
+.landing-root .lp-fig-dot.mid {
+  fill: rgba(110, 105, 96, 0.55);
+}
+
+.landing-root .lp-fig-dot.off {
+  fill: rgba(110, 105, 96, 0.22);
+}
+
+/* The orange entry/source marker. Signal is a third weight, not a new hue. */
+.landing-root .lp-fig-dot.signal {
+  fill: var(--lp-signal);
+}
+
+/*
+ * A wire is drawn with a unit path length, so a dash offset of 1 hides it and
+ * 0 shows the whole line. Only the chosen attribution path turns orange; the
+ * other paths stay a quiet warm grey.
+ */
+.landing-root .lp-fig-wire {
+  fill: none;
+  stroke: rgba(110, 105, 96, 0.38);
+  stroke-width: 1.15;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+  transition: stroke 250ms var(--lp-ease);
+}
+
+.landing-root .lp-fig-wire.on {
+  stroke: var(--lp-signal);
+  stroke-width: 1.6;
+}
+
+.landing-root .lp-fig-callout {
+  pointer-events: none;
+}
+
+.landing-root .lp-fig-callout line {
+  stroke: rgba(110, 105, 96, 0.28);
+  stroke-width: 0.9;
+}
+
+.landing-root .lp-fig-callout-text {
+  fill: rgba(110, 105, 96, 0.58);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: fill 180ms ease;
+}
+
+.landing-root .lp-fig-callout[data-active="true"] .lp-fig-callout-text {
+  fill: rgba(28, 27, 24, 0.88);
+}
+
+.landing-root .lp-fig-callout[data-active="true"] line {
+  stroke: rgba(110, 105, 96, 0.45);
+}
+
+.landing-root .lp-fig-bubble {
+  pointer-events: none;
+}
+
+.landing-root .lp-fig-cloud {
+  fill: #fffbeb;
+  stroke: rgba(28, 27, 24, 0.72);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.landing-root .lp-fig-bubble-text {
+  fill: rgba(28, 27, 24, 0.88);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.landing-root .lp-fig-read {
+  margin-top: 0.5rem;
+  min-height: 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(110, 105, 96, 0.72);
+  text-align: center;
+}
+
+.landing-root .lp-feature-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(23, 23, 23, 0.72);
+}
+
+.landing-root .lp-feature-stat-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: #ff4f00;
+  box-shadow: 0 0 0 3px rgba(255, 79, 0, 0.12);
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-root .lp-fig-solid,
+  .landing-root .lp-fig-dot,
+  .landing-root .lp-fig-wire,
+  .landing-root .lp-fig-bubble,
+  .landing-root .lp-fig-callout-text {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Motion additions (reapplied)                                              */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-plan-card {
+  transition:
+    translate 240ms var(--lp-ease),
+    border-color 200ms var(--lp-ease),
+    box-shadow 240ms var(--lp-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .landing-root .lp-plan-card:hover {
+    translate: 0 -3px;
+  }
+}
+
+.landing-root .lp-plan-card:focus-within {
+  translate: 0 -3px;
+}
+
+@media (min-width: 1024px) {
+  .landing-root .lp-plan-card-featured {
+    translate: 0 -8px;
+  }
+
+  .landing-root .lp-plan-card-featured:focus-within {
+    translate: 0 -11px;
+  }
+}
+
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  .landing-root .lp-plan-card-featured:hover {
+    translate: 0 -11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-root .lp-hero-preview-in,
+  .landing-root .lp-nav-in {
+    animation: none;
+  }
+
+  .landing-root .lp-menu-item {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .landing-root .lp-plan-card,
+  .landing-root .lp-plan-card:hover,
+  .landing-root .lp-plan-card:focus-within {
+    transition: none;
+    translate: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (min-width: 1024px) {
+  .landing-root .lp-plan-card-featured,
+  .landing-root .lp-plan-card-featured:hover,
+  .landing-root .lp-plan-card-featured:focus-within {
+    translate: 0 -8px;
+  }
+}
+
+/*
+ * Process — three cards, one story. The shell is a warm, inset-ring plate that
+ * picks up the surrounding section tone; the card inside is the white work
+ * surface. Motion is held to tint and shadow so the drawn stills stay the
+ * concentric. The band at the top of each card stands in for a screenshot: it
+ * is drawn from the palette, so it stays sharp at any density.
+ */
+.landing-root .lp-step-shell {
+  border-radius: 18px;
+  padding: 6px;
+  background: #f2ebd8;
+  box-shadow: inset 0 0 0 1px rgba(23, 23, 23, 0.06);
+  transition:
+    background-color 180ms var(--lp-ease),
+    box-shadow 180ms var(--lp-ease);
+}
+
+.landing-root .lp-step-card {
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid #e6dcc8;
+  border-radius: 12px;
+  background: #fffdf6;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .landing-root .lp-step-shell:hover {
+    background: #f7efdb;
+    box-shadow:
+      inset 0 0 0 1px rgba(23, 23, 23, 0.1),
+      0 6px 16px -10px rgba(23, 23, 23, 0.32);
+  }
+}
+
+/*
+ * The root font-size is 14px on this app, so a rem here is 14px: 15rem is the
+ * 210px band the photographs need. It also leaves the tallest still (the
+ * revenue panel) a visible margin instead of butting the card's lower edge.
+ */
+.landing-root .lp-step-figure {
+  position: relative;
+  height: 15rem;
+  margin: 0;
+  overflow: hidden;
+  isolation: isolate;
+  border-bottom: 1px solid #e9dfcd;
+  background: #f7f0dd;
+}
+
+/*
+ * The band is a photograph with the product still floating over it. Stacking is
+ * explicit because the veil and grain are painted after the still in DOM order:
+ * photo (0) → veil (1) → still (2) → grain (3). The veil darkens only the
+ * photograph, so the still keeps its full contrast on top of it.
+ *
+ * Hover changes saturation only. The photo's scale belongs to the one-time
+ * settle below, and an animation that fills forwards would win over a hover
+ * transition on the same property — so the two never share `scale`.
+ */
+.landing-root .lp-step-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  object-fit: cover;
+  filter: saturate(1) contrast(1.03);
+  transition: filter 320ms var(--lp-ease);
+}
+
+/*
+ * Each photograph settles out of a slight over-scale as its card reveals, which
+ * reads as depth rather than decoration. One-time and scroll-gated, so it costs
+ * nothing on a repeat visit and nothing at all without JavaScript.
+ */
+@keyframes lp-step-settle {
+  from {
+    opacity: 0;
+    scale: 1.07;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+.landing-root[data-motion="on"] .lp-step-shell[data-revealed="true"] .lp-step-photo {
+  animation: lp-step-settle 1000ms var(--lp-ease) 90ms both;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .landing-root .lp-step-shell:hover .lp-step-photo {
+    filter: saturate(1.12) contrast(1.05);
+  }
+}
+
+.landing-root .lp-step-band {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+/*
+ * The still is the artifact the step is about, so it arrives a beat after its
+ * photograph — a short rise, never from scale(0). Gated on the same reveal as
+ * the settle and staggered per card.
+ */
+@keyframes lp-step-still-in {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.landing-root[data-motion="on"] .lp-step-shell[data-revealed="true"] .lp-step-band {
+  animation: lp-step-still-in 560ms var(--lp-ease) var(--lp-still-delay, 260ms) both;
+}
+
+.landing-root .lp-step-band--code {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0.6px, transparent 1.4px);
+  background-size: 16px 16px;
+}
+
+.landing-root .lp-step-band--pay {
+  background: linear-gradient(150deg, rgba(255, 79, 0, 0.16), transparent 62%);
+}
+
+/*
+ * Five providers plus the manual API fill a 2 × 3 grid exactly. A wrapping row
+ * would leave a widow on the third line, and the sixth chip keeps it even.
+ */
+.landing-root .lp-step-providers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 18rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-root .lp-step-band--chart {
+  background: linear-gradient(160deg, rgba(242, 180, 203, 0.2), transparent 58%);
+}
+
+/*
+ * Warm veil over the photograph; the still sits above it. The floor darkens
+ * only the bottom third so the plate's own colour still reads at the top.
+ */
+.landing-root .lp-step-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(255, 251, 235, 0.08), rgba(43, 22, 34, 0.34) 100%),
+    linear-gradient(155deg, rgba(242, 180, 203, 0.16), transparent 62%);
+  pointer-events: none;
+}
+
+.landing-root .lp-step-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background-image: url("/textures/grain.svg");
+  background-size: 180px 180px;
+  opacity: 0.06;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+/* Plate 1 — the snippet, framed as a small editor window. */
+.landing-root .lp-step-window {
+  width: 100%;
+  max-width: 20rem;
+  overflow: hidden;
+  border: 1px solid #ded3bd;
+  border-radius: 8px;
+  background: #fffdf6;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 14px 28px -20px rgba(23, 23, 23, 0.45);
+}
+
+.landing-root .lp-step-window-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.65rem;
+  border-bottom: 1px solid #e9dfcd;
+  background: #f7f0dd;
+}
+
+.landing-root .lp-step-dots {
+  display: inline-flex;
+  gap: 0.3rem;
+}
+
+.landing-root .lp-step-dots span {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: #d6cabb;
+}
+
+.landing-root .lp-step-window-name {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #8a8074;
+}
+
+.landing-root .lp-step-code {
+  padding: 0.85rem 0.9rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.7;
+  color: #3a3631;
+  word-break: break-word;
+}
+
+.landing-root .lp-step-code-tag {
+  color: #b45309;
+}
+.landing-root .lp-step-code-attr {
+  color: #8a5b7a;
+}
+.landing-root .lp-step-code-dim {
+  color: #9a9086;
+}
+
+/* Plate 2 — provider chips on a warm plate. */
+.landing-root .lp-step-provider {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.1rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid #ddd1bc;
+  border-radius: 8px;
+  background: rgba(255, 253, 246, 0.94);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+  color: #2d2924;
+  white-space: nowrap;
+}
+
+.landing-root .lp-step-provider-logo {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.landing-root .lp-step-provider--api {
+  color: #6f6558;
+}
+
+.landing-root .lp-step-provider-code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  border-radius: 4px;
+  background: #efe5d0;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 800;
+  color: #7a6d60;
+  letter-spacing: -0.03em;
+}
+
+/* Plate 3 — a revenue panel, clearly marked as sample data. */
+.landing-root .lp-step-revenue {
+  width: 100%;
+  max-width: 19rem;
+  padding: 0.85rem 0.9rem 0.9rem;
+  border: 1px solid #ded3bd;
+  border-radius: 10px;
+  background: rgba(255, 253, 246, 0.96);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 14px 28px -20px rgba(23, 23, 23, 0.4);
+}
+
+.landing-root .lp-step-revenue-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.landing-root .lp-step-revenue-title {
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  color: #2f2a25;
+}
+
+.landing-root .lp-step-revenue-sample {
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  background: #efe5d0;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7a6d60;
+}
+
+.landing-root .lp-step-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.landing-root .lp-step-bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.landing-root .lp-step-bar-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.landing-root .lp-step-bar-label {
+  font-weight: 600;
+  color: #5f564b;
+}
+
+.landing-root .lp-step-bar-value {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: #3a3631;
+  font-variant-numeric: tabular-nums;
+}
+
+.landing-root .lp-step-bar-track {
+  height: 0.4rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #ece1ce;
+}
+
+.landing-root .lp-step-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff4f00, #f07b8f);
+}
+
+/* Body copy below the band. */
+.landing-root .lp-step-body {
+  padding: 1.25rem 1.25rem 1.35rem;
+}
+
+.landing-root .lp-step-title {
+  margin: 0;
+  font-size: 1.2rem;
+  line-height: 1.25;
+  font-weight: 750;
+  letter-spacing: -0.025em;
+  color: #1c1b18;
+  text-wrap: balance;
+}
+
+.landing-root .lp-step-num {
+  color: #a89f93;
+  font-feature-settings: "tnum" 1;
+}
+
+.landing-root .lp-step-copy {
+  margin: 0.55rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: #655f57;
+  text-wrap: pretty;
+}
+
+.landing-root .lp-step-arrow {
+  color: #b8afa2;
+}
+
+/*
+ * Under reduced motion the cards keep their hover tint but lose every entrance:
+ * no over-scale, no rise, no delay. The content is simply there.
+ *
+ * The `[data-motion="on"]` prefix is required, not decorative. The animation
+ * rules above carry five class/attribute selectors; `animation: none` from a
+ * media query inherits no extra weight, so a shorter selector loses and the
+ * card would be left at the keyframe's `from` state — invisible. Matching the
+ * prefix keeps the override at equal specificity and later in source order.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .landing-root .lp-step-shell,
+  .landing-root .lp-step-photo,
+  .landing-root .lp-step-shell:hover .lp-step-photo {
+    scale: 1;
+    transition: none;
+  }
+
+  .landing-root[data-motion="on"] .lp-step-shell[data-revealed="true"] .lp-step-photo,
+  .landing-root[data-motion="on"] .lp-step-shell[data-revealed="true"] .lp-step-band {
+    animation: none;
+  }
+}
+
+.landing-root .lp-hero-side-square {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  background: #f8c94b;
+  border-radius: 3px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.landing-root .lp-hero-side-square-left {
+  left: 7%;
+  top: 6.5rem;
+  transform: rotate(10deg);
+}
+
+.landing-root .lp-hero-side-square-right {
+  right: 6%;
+  top: 4.5rem;
+  transform: rotate(-12deg);
+}
+
+.landing-root .lp-hero-side-square-left2 {
+  left: 12%;
+  top: 18rem;
+  transform: rotate(-8deg);
+  opacity: 0.7;
+}
+
+.landing-root .lp-hero-side-square-right2 {
+  right: 11%;
+  top: 20rem;
+  transform: rotate(14deg);
+  opacity: 0.7;
 }

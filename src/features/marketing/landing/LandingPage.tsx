@@ -8,6 +8,7 @@ import { CallToAction } from './sections/CallToAction';
 import { CapabilitiesMarquee } from './sections/CapabilitiesMarquee';
 import { FaqSection } from './sections/FaqSection';
 import { FeaturesSection } from './sections/FeaturesSection';
+import { FounderBand } from './sections/FounderBand';
 import { HeroSection } from './sections/HeroSection';
 import { PricingSection } from './sections/PricingSection';
 import { StackSection } from './sections/StackSection';
@@ -23,13 +24,14 @@ export function LandingPage() {
       <main aria-label={`${BRAND.name} overview`} className="relative">
         <HeroSection />
         <TrustedBrand />
-        <StackSection />
         <FeaturesSection />
         <TaglineReveal />
         <BuildProcess />
+        <FounderBand />
         <PricingSection />
         <CapabilitiesMarquee />
         <FaqSection />
+        <StackSection />
         <CallToAction />
       </main>
       <Footer />

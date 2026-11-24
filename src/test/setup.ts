@@ -30,6 +30,8 @@ Object.defineProperty(navigator, 'clipboard', {
 window.scrollTo = vi.fn();
 
 class ResizeObserver {
+  constructor(_callback: ResizeObserverCallback, _options?: ResizeObserverOptions) {}
+
   observe() {}
   unobserve() {}
   disconnect() {}

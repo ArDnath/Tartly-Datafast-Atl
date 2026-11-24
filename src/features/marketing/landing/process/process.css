@@ -1,0 +1,745 @@
+/*
+ * Process — three cards, one interactive story.
+ *
+ * The base plate (shell, card, photograph, veil, grain, window, chips, bars)
+ * stays in landing.css. This file only adds the interaction the section now
+ * has:
+ *
+ *   - the truthful lift, because every card is clickable;
+ *   - the grid-row detail drawer;
+ *   - the stepped code reveal and its install status;
+ *   - the drawn connector arrows;
+ *   - the CTA focus/error states.
+ *
+ * Motion is gated on `.landing-root[data-motion="on"]`, which LandingMotion
+ * writes only after hydration and only when the visitor has not asked for
+ * reduced motion. Without JavaScript the complete section is already visible.
+ *
+ * The existing photo/still settle rules in landing.css are keyed on
+ * `.lp-step-shell[data-revealed]`; Reveal still renders that attribute, but it
+ * now also carries `lp-process-item`, so the equivalents below use the more
+ * explicit process class and keep the same timing.
+ */
+
+/* ------------------------------------------------------------------------- */
+/* Card interaction                                                          */
+/* ------------------------------------------------------------------------- */
+
+/*
+ * The shell is both the Reveal entrance target and the hover surface, so it
+ * must not carry two competing `transition` shorthands. Reveal's rule in
+ * landing.css (0,3,0) owns opacity/transform; this merged list keeps those
+ * properties with their per-card stagger delay and adds the interaction
+ * properties without inheriting the entrance delay. The `[data-motion="on"]`
+ * prefix raises specificity above Reveal's rule and makes the merge explicit.
+ */
+.landing-root[data-motion="on"] .lp-step-shell.lp-process-item {
+  transition:
+    opacity 720ms var(--lp-ease) var(--reveal-delay, 0ms),
+    transform 720ms var(--lp-ease) var(--reveal-delay, 0ms),
+    translate 220ms var(--lp-ease),
+    scale 220ms var(--lp-ease),
+    background-color 180ms var(--lp-ease),
+    box-shadow 220ms var(--lp-ease);
+}
+
+.landing-root .lp-process-card {
+  cursor: pointer;
+  transition:
+    border-color 220ms var(--lp-ease),
+    box-shadow 220ms var(--lp-ease);
+}
+
+.landing-root .lp-process-card:focus-within {
+  border-color: #ff4f00;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .landing-root .lp-step-shell.lp-process-item:hover {
+    translate: 0 -10px;
+    scale: 1.02;
+    background: #f7efdb;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 79, 0, 0.18),
+      0 22px 44px -28px rgba(23, 23, 23, 0.4),
+      0 8px 18px -14px rgba(23, 23, 23, 0.26);
+  }
+
+  .landing-root .lp-step-shell.lp-process-item:hover .lp-process-card {
+    border-color: rgba(255, 79, 0, 0.52);
+    box-shadow: 0 10px 26px -20px rgba(255, 79, 0, 0.42);
+  }
+}
+
+/*
+ * Expanded is persistent, not a hover: the shell keeps an accent ring and a
+ * small lift so it is obvious which card the detail belongs to.
+ */
+.landing-root .lp-step-shell.lp-process-item:has(.lp-process-card[data-expanded="true"]) {
+  translate: 0 -4px;
+  background: #fbefdb;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 79, 0, 0.3),
+    0 18px 36px -26px rgba(23, 23, 23, 0.36);
+}
+
+.landing-root
+  .lp-step-shell.lp-process-item:has(.lp-process-card[data-expanded="true"])
+  .lp-process-card {
+  border-color: #ff4f00;
+}
+
+/* Photo settle, now keyed on the process item rather than the shell alone. */
+.landing-root[data-motion="on"] .lp-process-item[data-revealed="true"] .lp-step-photo {
+  animation: lp-step-settle 1000ms var(--lp-ease) 90ms both;
+}
+
+.landing-root[data-motion="on"] .lp-process-item[data-revealed="true"] .lp-step-band {
+  animation: lp-step-still-in 560ms var(--lp-ease) var(--lp-still-delay, 260ms) both;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Detail drawer                                                             */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-process-detail {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows 0s linear 200ms,
+    visibility 0s linear 200ms;
+}
+
+.landing-root .lp-process-detail[data-expanded="true"] {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition:
+    grid-template-rows 0s,
+    visibility 0s;
+}
+
+.landing-root .lp-process-detail-inner {
+  min-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    opacity 200ms var(--lp-ease),
+    transform 200ms var(--lp-ease);
+}
+
+.landing-root .lp-process-detail[data-expanded="true"] .lp-process-detail-inner {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.landing-root .lp-process-detail-copy {
+  margin: 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid #ece1ce;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #4a453f;
+  text-wrap: pretty;
+}
+
+.landing-root .lp-process-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.9rem;
+  padding: 0.2rem 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b6660;
+  transition:
+    color 160ms ease,
+    transform 160ms ease-out;
+}
+
+.landing-root .lp-process-toggle:active {
+  transform: scale(0.97);
+}
+
+.landing-root .lp-process-toggle:hover {
+  color: #ff4f00;
+}
+
+.landing-root .lp-process-toggle:focus-visible {
+  outline: 2px solid #ff4f00;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.landing-root .lp-process-toggle-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  transition: rotate 220ms var(--lp-ease);
+}
+
+.landing-root .lp-process-toggle[aria-expanded="true"] .lp-process-toggle-icon {
+  rotate: 180deg;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Code plate                                                                */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-process-code {
+  position: relative;
+}
+
+.landing-root .lp-process-code-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+  min-height: 6.1rem;
+  padding: 0.7rem 0.9rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: #3a3631;
+  white-space: pre;
+  text-align: left;
+}
+
+.landing-root .lp-process-code-line {
+  display: block;
+  overflow: hidden;
+  clip-path: inset(0 0 0 0);
+}
+
+.landing-root .lp-process-code-tag {
+  color: #ff4f00;
+}
+
+.landing-root .lp-process-code-value {
+  color: #3a3631;
+}
+
+.landing-root[data-motion="on"] .lp-process-code[data-live="false"] .lp-process-code-line {
+  clip-path: inset(0 100% 0 0);
+}
+
+.landing-root[data-motion="on"] .lp-process-code[data-live="true"] .lp-process-code-line {
+  animation: lp-process-type 460ms steps(22, end) both;
+}
+
+.landing-root[data-motion="on"]
+  .lp-process-code[data-live="true"]
+  .lp-process-code-line:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.landing-root[data-motion="on"]
+  .lp-process-code[data-live="true"]
+  .lp-process-code-line:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+.landing-root[data-motion="on"]
+  .lp-process-code[data-live="true"]
+  .lp-process-code-line:nth-child(4) {
+  animation-delay: 360ms;
+}
+
+@keyframes lp-process-type {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.landing-root .lp-process-code-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0.9rem;
+  padding: 0.55rem 0 0.75rem;
+  border-top: 1px solid #e9dfcd;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #15803d;
+}
+
+.landing-root .lp-process-code-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.14);
+}
+
+.landing-root .lp-process-code-check {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex-shrink: 0;
+  color: #15803d;
+}
+
+.landing-root[data-motion="on"] .lp-process-code[data-live="false"] .lp-process-code-status {
+  opacity: 0;
+  translate: 0 4px;
+}
+
+.landing-root[data-motion="on"] .lp-process-code[data-live="true"] .lp-process-code-status {
+  animation: lp-process-status 320ms var(--lp-ease) 620ms both;
+}
+
+@keyframes lp-process-status {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Connector arrows                                                          */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-process-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff4f00;
+}
+
+.landing-root .lp-process-arrow-svg {
+  width: 3.5rem;
+  height: auto;
+  overflow: visible;
+}
+
+.landing-root .lp-process-arrow-line,
+.landing-root .lp-process-arrow-head {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+.landing-root .lp-process-arrow-dot {
+  opacity: 0;
+}
+
+.landing-root[data-motion="on"]
+  .lp-process-arrow:not([data-revealed="true"])
+  .lp-process-arrow-line,
+.landing-root[data-motion="on"]
+  .lp-process-arrow:not([data-revealed="true"])
+  .lp-process-arrow-head {
+  stroke-dashoffset: 1;
+}
+
+/*
+ * `Reveal` owns the wrapper's opacity transition and puts its stagger on
+ * `--reveal-delay` (inherited by these paths). Offset every inner beat by the
+ * same amount so the draw happens while the wrapper is appearing, not before.
+ */
+.landing-root[data-motion="on"] .lp-process-arrow[data-revealed="true"] .lp-process-arrow-line {
+  animation: lp-process-arrow-draw 420ms var(--lp-ease) var(--reveal-delay, 0ms) both;
+}
+
+.landing-root[data-motion="on"] .lp-process-arrow[data-revealed="true"] .lp-process-arrow-head {
+  animation: lp-process-arrow-draw 260ms var(--lp-ease) calc(var(--reveal-delay, 0ms) + 340ms) both;
+}
+
+.landing-root[data-motion="on"] .lp-process-arrow[data-revealed="true"] .lp-process-arrow-dot {
+  animation: lp-process-arrow-travel 760ms var(--lp-ease) calc(var(--reveal-delay, 0ms) + 360ms)
+    both;
+}
+
+@keyframes lp-process-arrow-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes lp-process-arrow-travel {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: 45px 0;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .landing-root .lp-process-arrow-svg {
+    width: 2.5rem;
+    rotate: 90deg;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* CTA                                                                       */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-process-input:focus {
+  border-color: #ff4f00;
+  box-shadow: 0 0 0 3px rgba(255, 79, 0, 0.16);
+  outline: none;
+}
+
+.landing-root .lp-process-input[aria-invalid="true"] {
+  border-color: #b45309;
+  box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.14);
+}
+
+.landing-root .lp-process-error {
+  margin-top: 0.55rem;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.4;
+  color: #b45309;
+}
+
+.landing-root .lp-btn-shadow.lp-process-submit {
+  transition:
+    translate 160ms var(--lp-ease),
+    scale 120ms var(--lp-ease),
+    box-shadow 140ms var(--lp-ease),
+    opacity 140ms var(--lp-ease);
+}
+
+.landing-root .lp-process-submit-arrow {
+  transition: translate 160ms var(--lp-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .landing-root .lp-btn-shadow.lp-process-submit:hover {
+    translate: 0 -2px;
+  }
+
+  .landing-root .lp-process-submit:hover .lp-process-submit-arrow {
+    translate: 3px 0;
+  }
+}
+
+.landing-root .lp-btn-shadow.lp-process-submit:active {
+  translate: 0 0;
+  scale: 0.98;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Reduced motion                                                            */
+/* ------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-root .lp-step-shell.lp-process-item,
+  .landing-root .lp-step-shell.lp-process-item:hover,
+  .landing-root .lp-step-shell.lp-process-item:has(.lp-process-card[data-expanded="true"]),
+  .landing-root[data-motion="on"] .lp-step-shell.lp-process-item,
+  .landing-root[data-motion="on"] .lp-step-shell.lp-process-item:hover,
+  .landing-root[data-motion="on"]
+    .lp-step-shell.lp-process-item:has(.lp-process-card[data-expanded="true"]) {
+    translate: none;
+    scale: 1;
+    transition: none;
+  }
+
+  .landing-root .lp-btn-shadow.lp-process-submit,
+  .landing-root .lp-btn-shadow.lp-process-submit:hover {
+    translate: none;
+    scale: 1;
+    transition: none;
+  }
+
+  .landing-root .lp-process-submit:hover .lp-process-submit-arrow {
+    translate: none;
+  }
+
+  .landing-root .lp-process-detail,
+  .landing-root .lp-process-detail[data-expanded="true"],
+  .landing-root .lp-process-detail-inner,
+  .landing-root .lp-process-detail[data-expanded="true"] .lp-process-detail-inner {
+    transition: none;
+  }
+
+  .landing-root .lp-process-detail-inner {
+    transform: none;
+    opacity: 1;
+  }
+
+  .landing-root[data-motion="on"] .lp-process-item[data-revealed="true"] .lp-step-photo,
+  .landing-root[data-motion="on"] .lp-process-item[data-revealed="true"] .lp-step-band,
+  .landing-root[data-motion="on"] .lp-process-code[data-live="true"] .lp-process-code-line,
+  .landing-root[data-motion="on"] .lp-process-code[data-live="true"] .lp-process-code-status,
+  .landing-root[data-motion="on"] .lp-process-arrow[data-revealed="true"] .lp-process-arrow-line,
+  .landing-root[data-motion="on"] .lp-process-arrow[data-revealed="true"] .lp-process-arrow-head,
+  .landing-root[data-motion="on"] .lp-process-arrow[data-revealed="true"] .lp-process-arrow-dot {
+    animation: none;
+  }
+
+  .landing-root[data-motion="on"] .lp-process-code[data-live="false"] .lp-process-code-line,
+  .landing-root[data-motion="on"] .lp-process-code[data-live="false"] .lp-process-code-status {
+    clip-path: none;
+    opacity: 1;
+    translate: none;
+  }
+
+  .landing-root .lp-process-toggle-icon {
+    transition: none;
+  }
+
+  .landing-root .lp-process-toggle:active {
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Provider chips                                                             */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-process-provider {
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.landing-root .lp-process-provider-frame {
+  position: relative;
+  width: 100%;
+  max-width: 18rem;
+}
+
+.landing-root .lp-step-providers {
+  position: relative;
+  z-index: 1;
+}
+
+.landing-root .lp-step-provider {
+  transition:
+    scale 160ms var(--lp-ease),
+    border-color 160ms var(--lp-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .landing-root .lp-step-provider:hover {
+    scale: 1.06;
+    border-color: rgba(255, 79, 0, 0.55);
+  }
+}
+
+.landing-root[data-motion="on"] .lp-process-provider[data-live="false"] .lp-step-provider {
+  opacity: 0;
+  translate: 0 10px;
+}
+
+/*
+ * The band fades in on the same inherited `--lp-still-delay`, so chips must not
+ * start at zero: the first stagger beats would be hidden by the plate.
+ */
+.landing-root[data-motion="on"] .lp-process-provider[data-live="true"] .lp-step-provider {
+  animation: lp-process-provider-in 320ms var(--lp-ease) var(--lp-still-delay, 260ms) both;
+}
+
+.landing-root[data-motion="on"]
+  .lp-process-provider[data-live="true"]
+  .lp-step-provider:nth-child(2) {
+  animation-delay: calc(var(--lp-still-delay, 260ms) + 80ms);
+}
+
+.landing-root[data-motion="on"]
+  .lp-process-provider[data-live="true"]
+  .lp-step-provider:nth-child(3) {
+  animation-delay: calc(var(--lp-still-delay, 260ms) + 160ms);
+}
+
+.landing-root[data-motion="on"]
+  .lp-process-provider[data-live="true"]
+  .lp-step-provider:nth-child(4) {
+  animation-delay: calc(var(--lp-still-delay, 260ms) + 240ms);
+}
+
+.landing-root[data-motion="on"]
+  .lp-process-provider[data-live="true"]
+  .lp-step-provider:nth-child(5) {
+  animation-delay: calc(var(--lp-still-delay, 260ms) + 320ms);
+}
+
+.landing-root[data-motion="on"]
+  .lp-process-provider[data-live="true"]
+  .lp-step-provider:nth-child(6) {
+  animation-delay: calc(var(--lp-still-delay, 260ms) + 400ms);
+}
+
+@keyframes lp-process-provider-in {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Revenue dashboard                                                          */
+/* ------------------------------------------------------------------------- */
+
+.landing-root .lp-process-revenue-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid #e9dfcd;
+}
+
+.landing-root .lp-process-total-label {
+  font-size: 10px;
+  font-weight: 650;
+  color: #6b655d;
+}
+
+.landing-root .lp-process-total-value {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 750;
+  color: #ff4f00;
+  font-variant-numeric: tabular-nums;
+}
+
+.landing-root .lp-process-bar-fill {
+  width: 100%;
+  transform: scaleX(var(--lp-bar-scale, 1));
+  transform-origin: left center;
+  transition: filter 160ms var(--lp-ease);
+}
+
+.landing-root[data-motion="on"] .lp-process-revenue[data-live="false"] .lp-process-bar-fill {
+  transform: scaleX(0);
+}
+
+/* Bars and the matching count-up both wait for the plate, then stagger by row. */
+.landing-root[data-motion="on"] .lp-process-revenue[data-live="true"] .lp-process-bar-fill {
+  transition:
+    transform 720ms var(--lp-ease),
+    filter 160ms var(--lp-ease);
+  transition-delay: var(--lp-still-delay, 260ms), 0ms;
+}
+
+.landing-root[data-motion="on"]
+  .lp-process-revenue[data-live="true"]
+  .lp-process-bar-row:nth-child(2)
+  .lp-process-bar-fill {
+  transition-delay: calc(var(--lp-still-delay, 260ms) + 80ms), 0ms;
+}
+
+.landing-root[data-motion="on"]
+  .lp-process-revenue[data-live="true"]
+  .lp-process-bar-row:nth-child(3)
+  .lp-process-bar-fill {
+  transition-delay: calc(var(--lp-still-delay, 260ms) + 160ms), 0ms;
+}
+
+.landing-root[data-motion="on"]
+  .lp-process-revenue[data-live="false"]
+  .lp-step-bar-value
+  > span[aria-hidden],
+.landing-root[data-motion="on"]
+  .lp-process-revenue[data-live="false"]
+  .lp-process-total-value
+  > span[aria-hidden] {
+  opacity: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .landing-root .lp-process-bar-row {
+    transition:
+      opacity 160ms var(--lp-ease),
+      background-color 160ms var(--lp-ease),
+      box-shadow 160ms var(--lp-ease);
+  }
+
+  .landing-root .lp-step-bars:has(.lp-process-bar-row:hover) .lp-process-bar-row:not(:hover) {
+    opacity: 0.42;
+  }
+
+  .landing-root .lp-process-bar-row:hover {
+    border-radius: 5px;
+    background-color: rgba(255, 79, 0, 0.06);
+    box-shadow: 0 0 0 0.3rem rgba(255, 79, 0, 0.07);
+  }
+
+  .landing-root .lp-process-bar-row:hover .lp-step-bar-value {
+    color: #ff4f00;
+  }
+
+  .landing-root .lp-process-bar-row:hover .lp-process-bar-fill {
+    filter: drop-shadow(0 0 4px rgba(255, 79, 0, 0.55));
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Reduced motion — the finished still, with no glow                         */
+/* ------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-root .lp-step-provider,
+  .landing-root .lp-process-bar-row,
+  .landing-root .lp-process-bar-fill {
+    transition: none;
+  }
+
+  .landing-root .lp-step-provider:hover {
+    scale: 1;
+  }
+
+  .landing-root[data-motion="on"] .lp-process-provider[data-live="false"] .lp-step-provider {
+    opacity: 1;
+    translate: none;
+  }
+
+  .landing-root[data-motion="on"] .lp-process-provider[data-live="true"] .lp-step-provider {
+    animation: none;
+  }
+
+  .landing-root[data-motion="on"] .lp-process-revenue[data-live="false"] .lp-process-bar-fill {
+    transform: scaleX(var(--lp-bar-scale, 1));
+  }
+
+  .landing-root .lp-process-revenue[data-live="true"] .lp-process-bar-fill {
+    transition: none;
+  }
+
+  .landing-root[data-motion="on"]
+    .lp-process-revenue[data-live="false"]
+    .lp-step-bar-value
+    > span[aria-hidden],
+  .landing-root[data-motion="on"]
+    .lp-process-revenue[data-live="false"]
+    .lp-process-total-value
+    > span[aria-hidden] {
+    opacity: 1;
+  }
+
+  .landing-root .lp-process-bar-row:hover .lp-process-bar-fill {
+    filter: none;
+  }
+}

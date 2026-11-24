@@ -45,8 +45,8 @@
   position: relative;
   margin: 0;
   overflow: hidden;
-  border: 10px solid #d9cfbf;
-  border-radius: 16px;
+  border: 3px solid #171717;
+  border-radius: 28px;
   background: var(--d-bg);
   color: var(--d-text);
   color-scheme: dark;
@@ -56,28 +56,20 @@
   text-align: left;
   isolation: isolate;
   box-shadow:
-    0 0 0 2px #0d0d0d,
-    0 34px 80px -52px rgba(23, 23, 23, 0.62),
-    0 8px 22px -16px rgba(23, 23, 23, 0.28);
+    0 36px 80px -52px rgba(23, 23, 23, 0.5),
+    0 12px 30px -24px rgba(23, 23, 23, 0.22);
   transition:
     background-color 240ms ease,
     color 240ms ease;
 }
 
-/* Two black hairlines sandwich the thick light band like a framed print. */
 .frame::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 40;
-  border: 2px solid #0d0d0d;
-  border-radius: 6px;
-  pointer-events: none;
+  display: none;
 }
 
 .frame[data-theme="light"] {
-  --d-bg: #f7f2e6;
-  --d-chrome: #fffbeb;
+  --d-bg: #fffdf8;
+  --d-chrome: #fffdf8;
   --d-surface: #fffdf8;
   --d-surface-2: #f3ecdd;
   --d-line: #e4dccd;
@@ -111,9 +103,8 @@
   --d-card-shadow: 0 1px 2px rgba(23, 23, 23, 0.04);
   color-scheme: light;
   box-shadow:
-    0 0 0 2px #0d0d0d,
-    0 34px 80px -52px rgba(23, 23, 23, 0.42),
-    0 8px 22px -16px rgba(23, 23, 23, 0.14);
+    0 36px 80px -52px rgba(23, 23, 23, 0.42),
+    0 12px 30px -24px rgba(23, 23, 23, 0.14);
 }
 
 .frame :where(button, summary, select) {
@@ -192,6 +183,12 @@
 
 .iconButton:hover {
   border-color: var(--d-line);
+  background: var(--d-hover);
+  color: var(--d-text);
+}
+
+.iconButton:active {
+  border-color: var(--d-line-strong);
   background: var(--d-hover);
   color: var(--d-text);
 }
@@ -527,6 +524,13 @@
   scrollbar-width: thin;
 }
 
+/* Touch cannot be forwarded in JS, so let the browser chain the gesture. */
+@media (any-pointer: coarse) {
+  .scrollArea {
+    overscroll-behavior: auto;
+  }
+}
+
 .scrollArea::-webkit-scrollbar {
   width: 8px;
 }
@@ -581,9 +585,14 @@
   border-radius: 4px;
   background: transparent;
   color: var(--d-accent-strong);
+  transition: background-color 140ms ease;
 }
 
 .clearFilter:hover {
+  background: var(--d-hover);
+}
+
+.clearFilter:active {
   background: var(--d-hover);
 }
 
@@ -940,6 +949,9 @@
   font-size: 9.5px;
   font-weight: 600;
   white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
 }
 
 .chipTab:hover {
@@ -976,9 +988,17 @@
   border-radius: 4px;
   background: transparent;
   color: var(--d-faint);
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
 }
 
 .iconButtonSmall:hover {
+  background: var(--d-hover);
+  color: var(--d-text);
+}
+
+.iconButtonSmall:active {
   background: var(--d-hover);
   color: var(--d-text);
 }
@@ -1011,10 +1031,12 @@
   top: 0;
   bottom: 0;
   left: 0;
+  width: 100%;
   border-radius: 4px;
   background: var(--d-bar-fill);
+  transform-origin: left center;
   transition:
-    width 480ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 240ms var(--lp-ease),
     background-color 140ms ease;
 }
 
@@ -1208,10 +1230,12 @@
 
 .funnelTrack span {
   display: block;
+  width: 100%;
   height: 100%;
   border-radius: 4px;
   background: linear-gradient(90deg, var(--d-bar-fill), var(--d-accent));
-  transition: width 480ms cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: left center;
+  transition: transform 240ms var(--lp-ease);
 }
 
 .dropoff {
@@ -1373,8 +1397,18 @@
   transition: scale 160ms ease;
 }
 
-.playButton:hover {
-  scale: 1.06;
+@media (hover: hover) and (pointer: fine) {
+  .playButton:hover {
+    scale: 1.06;
+  }
+}
+
+/*
+ * Touch press: the play control settles instead of springing straight back.
+ * Gated by the reduced-motion block below, which pins the resting scale.
+ */
+.playButton:active {
+  scale: 0.94;
 }
 
 .playerBadge {
@@ -1406,10 +1440,12 @@
 
 .progressTrack span {
   display: block;
-  width: 38%;
+  width: 100%;
   height: 100%;
   border-radius: 999px;
   background: var(--d-accent);
+  transform: scaleX(0.38);
+  transform-origin: left center;
 }
 
 .progressTrack span[data-playing="true"] {
@@ -1418,10 +1454,10 @@
 
 @keyframes replay-progress {
   from {
-    width: 8%;
+    transform: scaleX(0.08);
   }
   to {
-    width: 100%;
+    transform: scaleX(1);
   }
 }
 
@@ -1693,20 +1729,8 @@
 }
 
 /* ---------------------------------------------------------------------- */
-/* Caption and responsive layout                                           */
+/* Responsive layout                                                       */
 /* ---------------------------------------------------------------------- */
-
-.caption {
-  padding: 7px 14px;
-  border-top: 1px solid var(--d-line);
-  background: var(--d-chrome);
-  color: var(--d-faint);
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 8.5px;
-  letter-spacing: 0.08em;
-  text-align: center;
-  text-transform: uppercase;
-}
 
 @media (max-width: 1000px) {
   .navHint {
@@ -1807,11 +1831,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .frame *,
-  .frame *::before,
-  .frame *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  .scrollHint span,
+  .progressTrack span[data-playing="true"] {
+    animation: none;
+  }
+
+  .playButton:hover,
+  .playButton:active {
+    scale: 1;
   }
 }

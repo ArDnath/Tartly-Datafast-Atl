@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { BrandMark } from '@/components/brand/BrandMark';
 import {
   type ChartColors,
@@ -25,6 +25,7 @@ import {
   Xmark,
 } from '@/components/icons';
 import { BRAND } from '@/lib/brand';
+import { scrollLandingBy } from '../LandingScroll';
 import { getChartLabels, getComparisonSeries, getDemoSankey } from '../demo/chart-data';
 import {
   type BreakdownCard,
@@ -119,6 +120,16 @@ function resample(values: number[], target: number): number[] {
   });
 }
 
+function wheelDelta(event: WheelEvent) {
+  if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) {
+    return event.deltaY * 16;
+  }
+  if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
+    return event.deltaY * window.innerHeight;
+  }
+  return event.deltaY;
+}
+
 function KpiStrip({ kpis, factor, conv }: { kpis: Kpi[]; factor: number; conv?: number }) {
   return (
     <div className={styles.kpis}>
@@ -208,7 +219,11 @@ function BreakdownCardView({
               aria-pressed={active}
               onClick={() => onRow(row, tab)}
             >
-              <span className={styles.rowFill} style={{ width: `${width}%` }} aria-hidden="true" />
+              <span
+                className={styles.rowFill}
+                style={{ transform: `scaleX(${(width / 100).toFixed(4)})` }}
+                aria-hidden="true"
+              />
               <span className={styles.rowLabel}>
                 {row.flag && (
                   <span className={styles.flag} aria-hidden="true">
@@ -341,7 +356,7 @@ function FunnelPanel({
                 <span className={styles.funnelPercent}>{percent.toFixed(1)}%</span>
               </div>
               <div className={styles.funnelTrack}>
-                <span style={{ width: `${Math.max(percent, 2)}%` }} />
+                <span style={{ transform: `scaleX(${(Math.max(percent, 2) / 100).toFixed(4)})` }} />
               </div>
               {index > 0 && <span className={styles.dropoff}>−{dropoff.toFixed(1)}% drop-off</span>}
             </div>
@@ -797,7 +812,7 @@ function ViewBody({
   );
 }
 
-export function HeroPreview() {
+export const HeroPreview = memo(function HeroPreview() {
   const [theme, setTheme] = useState<Theme>('light');
   const [view, setView] = useState<ViewId>('overview');
   const [range, setRange] = useState<RangeKey>('30d');
@@ -810,6 +825,34 @@ export function HeroPreview() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const moreRef = useRef<HTMLDetailsElement>(null);
   const projectRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    const area = scrollRef.current;
+    if (!area) {
+      return;
+    }
+
+    // The preview owns the wheel while its content can still move, then hands
+    // the gesture to the page so the landing page keeps scrolling at the edges.
+    const onWheel = (event: WheelEvent) => {
+      const delta = wheelDelta(event);
+      if (delta === 0) {
+        return;
+      }
+
+      const atStart = delta < 0 && area.scrollTop <= 0;
+      const atEnd = delta > 0 && area.scrollTop + area.clientHeight >= area.scrollHeight - 1;
+      if (!atStart && !atEnd) {
+        return;
+      }
+
+      event.preventDefault();
+      scrollLandingBy(delta);
+    };
+
+    area.addEventListener('wheel', onWheel, { passive: false });
+    return () => area.removeEventListener('wheel', onWheel);
+  }, []);
 
   const config = VIEWS[view];
   const filter = filters[view] ?? null;
@@ -1091,8 +1134,6 @@ export function HeroPreview() {
           )}
         </div>
       </div>
-
-      <figcaption className={styles.caption}>Illustrative preview · {BRAND.name}</figcaption>
     </figure>
   );
-}
+});

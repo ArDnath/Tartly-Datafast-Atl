@@ -60,7 +60,7 @@ export function CallToAction() {
               </h2>
               <p className="mt-4 max-w-md text-sm/6 text-lp-fg-muted">
                 Connect your site and your payment provider. See which channels create paying
-                customers before you spend another dollar on the ones that do not.
+                customers before you spend again on the wrong ones.
               </p>
             </div>
 

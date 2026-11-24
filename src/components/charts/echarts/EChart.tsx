@@ -159,9 +159,14 @@ export function EChart({ option, height = 220, className, style, ariaLabel }: EC
 
   useEffect(() => {
     // Respect the OS setting on every rebuild; ECharts has no central switch.
+    //
+    // `lazyUpdate` must not be combined with a series-replacing update: ECharts
+    // swaps the series models immediately but builds their data on the next
+    // frame, so a pointer moving in that gap makes the tooltip resolve a series
+    // whose `getData()` is undefined and throws
+    // `Cannot read properties of undefined (reading 'getRawIndex')`.
     chartRef.current?.setOption(applyMotionPreference(option), {
       notMerge: true,
-      lazyUpdate: true,
     });
   }, [option]);
 

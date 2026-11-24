@@ -69,6 +69,7 @@ const SHARED_COMPONENT_DIRS = [
   'brand',
   'charts',
   'common',
+  'evil-buttons',
   'hooks',
   'input',
   'theme',
