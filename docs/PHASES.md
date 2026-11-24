@@ -46,6 +46,29 @@
 Append-only. Newest first. Every entry states what was proven, what remains
 **UNVERIFIED**, and what was **N/A**. Do not edit old entries; add a new one.
 
+## 2026-11-25 — Land pending work and clear the CI dependency advisory
+
+- Cleaned the dirty working tree left by the landing sessions: formatted the
+  six docs/plan files flagged by `pnpm gate:format`, then committed all
+  pending changes as `9d850d4` on `feature/landing-hero-highlight`.
+- PR #85 CI failed on `pnpm audit --prod --audit-level high`:
+  GHSA-7589-6fvf-x4pw against `effect <=3.22.0` via
+  `prisma > @prisma/config > effect`. Verified the advisory and the resolved
+  version with `pnpm why effect` before changing the lockfile.
+- The first override, `effect: ">=3.22.1"`, resolved to `effect@4.1.5` and
+  broke Prisma config loading (`Cannot read properties of undefined (reading
+  'right')`). Replaced it with `^3.22.1` so the patched 3.x line is used;
+  `pnpm why effect` now reports `3.22.5`.
+- **Proof:** `pnpm audit --prod --audit-level high` reports no known
+  vulnerabilities; `pnpm exec prisma generate` succeeds; full `pnpm gate`
+  passes (format, lint, typecheck, docs, 1,227 tests, deploy checks,
+  production build).
+- **UNVERIFIED:** GitHub CI has not yet run on the new override commit; merge
+  is withheld until all three PR checks pass on the pushed head.
+- **N/A:** no application code, API, schema, tenant-isolation, or deployment
+  topology changes; this entry records a lockfile/security fix plus the
+  landing work already committed in `9d850d4`.
+
 ## 2026-11-20 — Process section closes with a CTA; cards settle on reveal
 
 - Added an "add your site" handoff directly under the three process cards, using
