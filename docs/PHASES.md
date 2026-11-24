@@ -59,15 +59,23 @@ Append-only. Newest first. Every entry states what was proven, what remains
   broke Prisma config loading (`Cannot read properties of undefined (reading
   'right')`). Replaced it with `^3.22.1` so the patched 3.x line is used;
   `pnpm why effect` now reports `3.22.5`.
+- PR #85 was then blocked by two unresolved CodeQL review threads: alerts 129
+  and 130 reported a superfluous argument to the `ResizeObserver` constructor.
+  The alert detail linked to `src/test/setup.ts`, where the test stub declared
+  a zero-argument constructor; the app code correctly passes a callback. The
+  stub now declares `(_callback, _options?)` like the existing
+  `IntersectionObserverMock` beside it, removing the false positive at its
+  source instead of dismissing the alerts.
 - **Proof:** `pnpm audit --prod --audit-level high` reports no known
   vulnerabilities; `pnpm exec prisma generate` succeeds; full `pnpm gate`
   passes (format, lint, typecheck, docs, 1,227 tests, deploy checks,
-  production build).
-- **UNVERIFIED:** GitHub CI has not yet run on the new override commit; merge
-  is withheld until all three PR checks pass on the pushed head.
-- **N/A:** no application code, API, schema, tenant-isolation, or deployment
-  topology changes; this entry records a lockfile/security fix plus the
-  landing work already committed in `9d850d4`.
+  production build). `gh pr checks 85 --watch` on `f20506e` showed Verify,
+  Security, and Container build all passing (run 45482620119).
+- **UNVERIFIED:** in-browser feel of the landing motion on a physical display
+  was not checked; the recorded DOM measurements are numerical only.
+- **N/A:** no runtime application code, API, schema, tenant-isolation, or
+  deployment topology changes; the only code touched after the landing work is
+  the Vitest `ResizeObserver` stub in `src/test/setup.ts`.
 
 ## 2026-11-20 — Process section closes with a CTA; cards settle on reveal
 
