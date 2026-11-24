@@ -6,6 +6,8 @@ import { useCountUp } from './useCountUp';
 interface RevenueCardProps {
   /** True once the card has entered the viewport (or motion is reduced). */
   live: boolean;
+  /** Same beat as the plate's `--lp-still-delay`, passed in from ProcessCard. */
+  stillDelay: number;
 }
 
 const TOTAL = 7540;
@@ -50,14 +52,16 @@ function RevenueRow({
   pct,
   live,
   reduced,
+  stillDelay,
 }: {
   label: string;
   target: number;
   pct: number;
   live: boolean;
   reduced: boolean;
+  stillDelay: number;
 }) {
-  const value = useCountUp(target, live, reduced);
+  const value = useCountUp(target, live, reduced, stillDelay);
 
   return (
     <div className="lp-step-bar-row lp-process-bar-row">
@@ -80,13 +84,13 @@ function RevenueRow({
  * number is in the server HTML; motion only animates the decorative digits and
  * the bar transforms after the card is on screen.
  */
-export function RevenueCard({ live }: RevenueCardProps) {
+export function RevenueCard({ live, stillDelay }: RevenueCardProps) {
   const [reduced] = useState(
     () =>
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
-  const total = useCountUp(TOTAL, live, reduced);
+  const total = useCountUp(TOTAL, live, reduced, stillDelay);
 
   return (
     <div className="lp-step-band lp-step-band--chart">
@@ -110,6 +114,7 @@ export function RevenueCard({ live }: RevenueCardProps) {
               pct={row.pct}
               live={live}
               reduced={reduced}
+              stillDelay={stillDelay}
             />
           ))}
         </div>

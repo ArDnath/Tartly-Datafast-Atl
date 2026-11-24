@@ -1,5 +1,6 @@
-import { fireEvent } from '@testing-library/react';
-import { describe, expect, test } from 'vitest';
+import { act, fireEvent, renderHook } from '@testing-library/react';
+import { describe, expect, test, vi } from 'vitest';
+import { useCountUp } from '../process/useCountUp';
 import { render, screen, within } from '@/test/render';
 import { BuildProcess } from './BuildProcess';
 
@@ -160,6 +161,62 @@ describe('build process section', () => {
       'Discover which channels and landing pages actually generate revenue.',
     ]) {
       expect(within(process).getByText(copy)).toBeInTheDocument();
+    }
+  });
+
+  test('count-up waits for the plate beat, then finishes in one finite rAF chain', () => {
+    const frames: FrameRequestCallback[] = [];
+    const cancelled: number[] = [];
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      frames.push(callback);
+      return frames.length;
+    });
+    vi.stubGlobal('cancelAnimationFrame', (id: number) => {
+      cancelled.push(id);
+    });
+
+    try {
+      const { result, unmount } = renderHook(() => useCountUp(1000, true, false, 400));
+
+      expect(result.current).toBe(0);
+      act(() => {
+        frames[0]?.(1000);
+      });
+      expect(result.current).toBe(0);
+      act(() => {
+        frames[1]?.(1300);
+      });
+      expect(result.current).toBe(0);
+      act(() => {
+        frames[2]?.(1750);
+      });
+      expect(result.current).toBe(772);
+      act(() => {
+        frames[3]?.(2300);
+      });
+      expect(result.current).toBe(1000);
+      expect(frames).toHaveLength(4);
+
+      unmount();
+      expect(cancelled).toContain(4);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  test('count-up returns the target immediately under reduced motion', () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      frames.push(callback);
+      return frames.length;
+    });
+
+    try {
+      const { result } = renderHook(() => useCountUp(7540, true, true, 440));
+      expect(result.current).toBe(7540);
+      expect(frames).toHaveLength(0);
+    } finally {
+      vi.unstubAllGlobals();
     }
   });
 });

@@ -11,8 +11,12 @@ const DURATION_MS = 900;
  * client render both carry the final figure. Motion starts only when the card
  * enters the viewport, uses a single rAF chain, and is cancelled on unmount.
  * Reduced motion (or a card that is not live) keeps the target value.
+ *
+ * `delayMs` mirrors the plate's `--lp-still-delay`: the bars and chips wait for
+ * that beat too, so the number never counts up behind an invisible plate. The
+ * wait is folded into the same finite rAF chain rather than a second timer.
  */
-export function useCountUp(target: number, live: boolean, reduced: boolean) {
+export function useCountUp(target: number, live: boolean, reduced: boolean, delayMs = 0) {
   const [value, setValue] = useState(target);
 
   useEffect(() => {
@@ -28,7 +32,8 @@ export function useCountUp(target: number, live: boolean, reduced: boolean) {
 
     const tick = (now: number) => {
       start ??= now;
-      const progress = Math.min((now - start) / DURATION_MS, 1);
+      const elapsed = Math.max(now - start - delayMs, 0);
+      const progress = Math.min(elapsed / DURATION_MS, 1);
       const eased = 1 - (1 - progress) ** 3;
       setValue(Math.round(target * eased));
 
@@ -39,7 +44,7 @@ export function useCountUp(target: number, live: boolean, reduced: boolean) {
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [target, live, reduced]);
+  }, [target, live, reduced, delayMs]);
 
   return value;
 }

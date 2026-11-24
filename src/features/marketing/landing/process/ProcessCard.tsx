@@ -14,7 +14,7 @@ export type ProcessCardProps = {
   detail: string;
   photo: string;
   delay: number;
-  visual: (live: boolean) => React.ReactNode;
+  visual: (live: boolean, stillDelay: number) => React.ReactNode;
 };
 
 /**
@@ -42,6 +42,9 @@ export function ProcessCard({
   const [expanded, setExpanded] = useState(false);
   const { ref, live } = useInView<HTMLDivElement>();
   const detailId = `lp-process-detail-${stepKey}`;
+  // One source of truth for the plate beat: CSS reads it as a custom property,
+  // the revenue count-up receives the same value as a prop.
+  const stillDelay = 260 + index * 90;
 
   return (
     <Reveal
@@ -56,7 +59,7 @@ export function ProcessCard({
         data-step={stepKey}
         data-expanded={expanded ? 'true' : 'false'}
         data-live={live ? 'true' : 'false'}
-        style={{ '--lp-still-delay': `${260 + index * 90}ms` } as React.CSSProperties}
+        style={{ '--lp-still-delay': `${stillDelay}ms` } as React.CSSProperties}
         onClick={() => setExpanded(value => !value)}
       >
         <figure className="lp-step-figure lp-process-figure">
@@ -67,7 +70,7 @@ export function ProcessCard({
             sizes="(min-width: 1024px) 33vw, (min-width: 640px) 80vw, 100vw"
             className="lp-step-photo"
           />
-          {visual(live)}
+          {visual(live, stillDelay)}
           <span aria-hidden="true" className="lp-step-veil" />
           <span aria-hidden="true" className="lp-step-grain" />
         </figure>

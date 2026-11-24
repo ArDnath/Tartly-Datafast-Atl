@@ -16,7 +16,7 @@ type Step = {
   description: string;
   detail: string;
   photo: string;
-  visual: (live: boolean) => React.ReactNode;
+  visual: (live: boolean, stillDelay: number) => React.ReactNode;
 };
 
 const STEPS: Step[] = [
@@ -45,7 +45,7 @@ const STEPS: Step[] = [
       'See which channel, campaign, and landing page produced the payment. Move budget toward what earns, not what just gets clicks.',
     detail: 'Discover which channels and landing pages actually generate revenue.',
     photo: '/images/landing/process-grow.webp',
-    visual: live => <RevenueCard live={live} />,
+    visual: (live, stillDelay) => <RevenueCard live={live} stillDelay={stillDelay} />,
   },
 ];
 

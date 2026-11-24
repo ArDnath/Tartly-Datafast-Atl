@@ -327,16 +327,22 @@
   stroke-dashoffset: 1;
 }
 
+/*
+ * `Reveal` owns the wrapper's opacity transition and puts its stagger on
+ * `--reveal-delay` (inherited by these paths). Offset every inner beat by the
+ * same amount so the draw happens while the wrapper is appearing, not before.
+ */
 .landing-root[data-motion="on"] .lp-process-arrow[data-revealed="true"] .lp-process-arrow-line {
-  animation: lp-process-arrow-draw 420ms var(--lp-ease) both;
+  animation: lp-process-arrow-draw 420ms var(--lp-ease) var(--reveal-delay, 0ms) both;
 }
 
 .landing-root[data-motion="on"] .lp-process-arrow[data-revealed="true"] .lp-process-arrow-head {
-  animation: lp-process-arrow-draw 260ms var(--lp-ease) 340ms both;
+  animation: lp-process-arrow-draw 260ms var(--lp-ease) calc(var(--reveal-delay, 0ms) + 340ms) both;
 }
 
 .landing-root[data-motion="on"] .lp-process-arrow[data-revealed="true"] .lp-process-arrow-dot {
-  animation: lp-process-arrow-travel 760ms var(--lp-ease) 360ms both;
+  animation: lp-process-arrow-travel 760ms var(--lp-ease) calc(var(--reveal-delay, 0ms) + 360ms)
+    both;
 }
 
 @keyframes lp-process-arrow-draw {
@@ -584,38 +590,42 @@
   translate: 0 10px;
 }
 
+/*
+ * The band fades in on the same inherited `--lp-still-delay`, so chips must not
+ * start at zero: the first stagger beats would be hidden by the plate.
+ */
 .landing-root[data-motion="on"] .lp-process-provider[data-live="true"] .lp-step-provider {
-  animation: lp-process-provider-in 320ms var(--lp-ease) both;
+  animation: lp-process-provider-in 320ms var(--lp-ease) var(--lp-still-delay, 260ms) both;
 }
 
 .landing-root[data-motion="on"]
   .lp-process-provider[data-live="true"]
   .lp-step-provider:nth-child(2) {
-  animation-delay: 80ms;
+  animation-delay: calc(var(--lp-still-delay, 260ms) + 80ms);
 }
 
 .landing-root[data-motion="on"]
   .lp-process-provider[data-live="true"]
   .lp-step-provider:nth-child(3) {
-  animation-delay: 160ms;
+  animation-delay: calc(var(--lp-still-delay, 260ms) + 160ms);
 }
 
 .landing-root[data-motion="on"]
   .lp-process-provider[data-live="true"]
   .lp-step-provider:nth-child(4) {
-  animation-delay: 240ms;
+  animation-delay: calc(var(--lp-still-delay, 260ms) + 240ms);
 }
 
 .landing-root[data-motion="on"]
   .lp-process-provider[data-live="true"]
   .lp-step-provider:nth-child(5) {
-  animation-delay: 320ms;
+  animation-delay: calc(var(--lp-still-delay, 260ms) + 320ms);
 }
 
 .landing-root[data-motion="on"]
   .lp-process-provider[data-live="true"]
   .lp-step-provider:nth-child(6) {
-  animation-delay: 400ms;
+  animation-delay: calc(var(--lp-still-delay, 260ms) + 400ms);
 }
 
 @keyframes lp-process-provider-in {
@@ -675,24 +685,26 @@
   transform: scaleX(0);
 }
 
+/* Bars and the matching count-up both wait for the plate, then stagger by row. */
 .landing-root[data-motion="on"] .lp-process-revenue[data-live="true"] .lp-process-bar-fill {
   transition:
     transform 720ms var(--lp-ease),
     filter 160ms var(--lp-ease);
+  transition-delay: var(--lp-still-delay, 260ms), 0ms;
 }
 
 .landing-root[data-motion="on"]
   .lp-process-revenue[data-live="true"]
   .lp-process-bar-row:nth-child(2)
   .lp-process-bar-fill {
-  transition-delay: 80ms;
+  transition-delay: calc(var(--lp-still-delay, 260ms) + 80ms), 0ms;
 }
 
 .landing-root[data-motion="on"]
   .lp-process-revenue[data-live="true"]
   .lp-process-bar-row:nth-child(3)
   .lp-process-bar-fill {
-  transition-delay: 160ms;
+  transition-delay: calc(var(--lp-still-delay, 260ms) + 160ms), 0ms;
 }
 
 .landing-root[data-motion="on"]
