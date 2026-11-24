@@ -129,19 +129,19 @@ describe('build process section', () => {
     expect(within(form).getByRole('button', { name: /Add your site/i })).toBeInTheDocument();
   });
 
-  test('renders the interactive provider web with every source and its status', () => {
+  test('renders every provider without connector lines or a status label', () => {
     const { container } = render(<BuildProcess />);
     const process = processRegion();
 
     for (const name of ['Stripe', 'Dodo', 'Lemon Squeezy', 'Polar', 'Yolfi', 'Manual API']) {
       expect(within(process).getByText(name)).toBeInTheDocument();
     }
-    expect(within(process).getByText('All sources connected')).toBeInTheDocument();
+    expect(within(process).queryByText('All sources connected')).not.toBeInTheDocument();
 
     const provider = container.querySelector('.lp-process-provider') as HTMLElement;
     expect(provider.querySelectorAll('.lp-step-provider')).toHaveLength(6);
-    expect(provider.querySelectorAll('.lp-process-web path')).toHaveLength(5);
-    expect(provider.querySelector('.lp-process-web')).toHaveAttribute('aria-hidden', 'true');
+    expect(provider.querySelector('.lp-process-web')).not.toBeInTheDocument();
+    expect(provider.querySelector('.lp-process-provider-status')).not.toBeInTheDocument();
   });
 
   test('renders the revenue header, rows, and accessible final figures', () => {
