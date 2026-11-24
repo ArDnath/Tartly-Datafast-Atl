@@ -25,8 +25,18 @@
 /* Card interaction                                                          */
 /* ------------------------------------------------------------------------- */
 
-.landing-root .lp-step-shell.lp-process-item {
+/*
+ * The shell is both the Reveal entrance target and the hover surface, so it
+ * must not carry two competing `transition` shorthands. Reveal's rule in
+ * landing.css (0,3,0) owns opacity/transform; this merged list keeps those
+ * properties with their per-card stagger delay and adds the interaction
+ * properties without inheriting the entrance delay. The `[data-motion="on"]`
+ * prefix raises specificity above Reveal's rule and makes the merge explicit.
+ */
+.landing-root[data-motion="on"] .lp-step-shell.lp-process-item {
   transition:
+    opacity 720ms var(--lp-ease) var(--reveal-delay, 0ms),
+    transform 720ms var(--lp-ease) var(--reveal-delay, 0ms),
     translate 220ms var(--lp-ease),
     scale 220ms var(--lp-ease),
     background-color 180ms var(--lp-ease),
@@ -419,7 +429,11 @@
 @media (prefers-reduced-motion: reduce) {
   .landing-root .lp-step-shell.lp-process-item,
   .landing-root .lp-step-shell.lp-process-item:hover,
-  .landing-root .lp-step-shell.lp-process-item:has(.lp-process-card[data-expanded="true"]) {
+  .landing-root .lp-step-shell.lp-process-item:has(.lp-process-card[data-expanded="true"]),
+  .landing-root[data-motion="on"] .lp-step-shell.lp-process-item,
+  .landing-root[data-motion="on"] .lp-step-shell.lp-process-item:hover,
+  .landing-root[data-motion="on"]
+    .lp-step-shell.lp-process-item:has(.lp-process-card[data-expanded="true"]) {
     translate: none;
     scale: 1;
     transition: none;
