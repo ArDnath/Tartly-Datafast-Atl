@@ -6,15 +6,9 @@ import { CodeCard } from '../process/CodeCard';
 import { ProcessArrow } from '../process/ProcessArrow';
 import { ProcessCard } from '../process/ProcessCard';
 import { ProcessCta } from '../process/ProcessCta';
+import { ProviderCard } from '../process/ProviderCard';
+import { RevenueCard } from '../process/RevenueCard';
 import '../process/process.css';
-
-const PROVIDERS = [
-  { name: 'Stripe', logo: '/images/payments/stripe.svg' },
-  { name: 'Dodo', logo: '/images/payments/dodo-payments.svg' },
-  { name: 'Lemon Squeezy', logo: '/images/payments/lemon-squeezy.svg' },
-  { name: 'Polar', logo: '/images/payments/polar.svg' },
-  { name: 'Yolfi', logo: '/images/payments/yolfi.png' },
-] as const;
 
 type Step = {
   key: string;
@@ -24,77 +18,6 @@ type Step = {
   photo: string;
   visual: (live: boolean) => React.ReactNode;
 };
-
-/**
- * Plate 2 — the payment sources. Task 2 replaces this with the interactive
- * provider web; for now it stays the shipped static chip grid so the section
- * already names every integration it supports.
- */
-function ProvidersVisual() {
-  return (
-    <div className="lp-step-band lp-step-band--pay">
-      <ul className="lp-step-providers" aria-label="Works with">
-        {PROVIDERS.map(provider => (
-          <li key={provider.name} className="lp-step-provider">
-            <img
-              src={provider.logo}
-              alt=""
-              aria-hidden="true"
-              className="lp-step-provider-logo"
-              width={16}
-              height={16}
-              loading="lazy"
-            />
-            <span>{provider.name}</span>
-          </li>
-        ))}
-        <li className="lp-step-provider lp-step-provider--api">
-          <span className="lp-step-provider-code" aria-hidden="true">
-            &lt;/&gt;
-          </span>
-          <span>Manual API</span>
-        </li>
-      </ul>
-    </div>
-  );
-}
-
-/**
- * Plate 3 — the revenue panel, clearly marked as sample data. Task 2 replaces
- * this with the counted-up dashboard; the labels and values are already the
- * final ones so the story reads correctly today.
- */
-function GrowthVisual() {
-  const rows = [
-    { label: 'Organic / Google', value: '$4,280', pct: 100 },
-    { label: 'Direct', value: '$2,140', pct: 50 },
-    { label: 'Product Hunt', value: '$1,120', pct: 26 },
-  ] as const;
-
-  return (
-    <div className="lp-step-band lp-step-band--chart">
-      <div className="lp-step-revenue">
-        <div className="lp-step-revenue-head">
-          <span className="lp-step-revenue-title">Revenue by source</span>
-          <span className="lp-step-revenue-sample">Sample</span>
-        </div>
-        <div className="lp-step-bars">
-          {rows.map(row => (
-            <div key={row.label} className="lp-step-bar-row">
-              <div className="lp-step-bar-meta">
-                <span className="lp-step-bar-label">{row.label}</span>
-                <span className="lp-step-bar-value">{row.value}</span>
-              </div>
-              <div className="lp-step-bar-track" aria-hidden="true">
-                <div className="lp-step-bar-fill" style={{ width: `${row.pct}%` }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 const STEPS: Step[] = [
   {
@@ -113,7 +36,7 @@ const STEPS: Step[] = [
       'Link Stripe, Dodo, Lemon Squeezy, Polar, or Yolfi, or send payments through the manual API. Your checkout stays where it is.',
     detail: 'Connect Stripe, Dodo, Lemon Squeezy, Polar, or your own payment API.',
     photo: '/images/landing/process-connect.webp',
-    visual: () => <ProvidersVisual />,
+    visual: live => <ProviderCard live={live} />,
   },
   {
     key: 'grow',
@@ -122,7 +45,7 @@ const STEPS: Step[] = [
       'See which channel, campaign, and landing page produced the payment. Move budget toward what earns, not what just gets clicks.',
     detail: 'Discover which channels and landing pages actually generate revenue.',
     photo: '/images/landing/process-grow.webp',
-    visual: () => <GrowthVisual />,
+    visual: live => <RevenueCard live={live} />,
   },
 ];
 

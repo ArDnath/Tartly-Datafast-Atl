@@ -114,4 +114,52 @@ describe('build process section', () => {
     expect(form.querySelector('input[name="website"]')).toBe(input);
     expect(within(form).getByRole('button', { name: /Add your site/i })).toBeInTheDocument();
   });
+
+  test('renders the interactive provider web with every source and its status', () => {
+    const { container } = render(<BuildProcess />);
+    const process = processRegion();
+
+    for (const name of ['Stripe', 'Dodo', 'Lemon Squeezy', 'Polar', 'Yolfi', 'Manual API']) {
+      expect(within(process).getByText(name)).toBeInTheDocument();
+    }
+    expect(within(process).getByText('All sources connected')).toBeInTheDocument();
+
+    const provider = container.querySelector('.lp-process-provider') as HTMLElement;
+    expect(provider.querySelectorAll('.lp-step-provider')).toHaveLength(6);
+    expect(provider.querySelectorAll('.lp-process-web path')).toHaveLength(5);
+    expect(provider.querySelector('.lp-process-web')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  test('renders the revenue header, rows, and accessible final figures', () => {
+    const { container } = render(<BuildProcess />);
+    const process = processRegion();
+
+    expect(within(process).getByText('Revenue by source')).toBeInTheDocument();
+    expect(within(process).getByText('Sample')).toBeInTheDocument();
+    expect(within(process).getByText('This month')).toBeInTheDocument();
+    for (const label of ['Organic / Google', 'Direct', 'Product Hunt']) {
+      expect(within(process).getByText(label)).toBeInTheDocument();
+    }
+
+    const revenue = container.querySelector('.lp-process-revenue') as HTMLElement;
+    for (const value of ['$7,540', '$4,280', '$2,140', '$1,120']) {
+      expect(within(revenue).getByText(value, { selector: '.sr-only' })).toBeInTheDocument();
+    }
+    expect(revenue.querySelectorAll('.lp-process-bar-fill')).toHaveLength(3);
+  });
+
+  test('extraction keeps all three card shells and their detail copy', () => {
+    const { container } = render(<BuildProcess />);
+    const process = processRegion();
+
+    expect(container.querySelectorAll('.lp-process-card')).toHaveLength(3);
+    expect(container.querySelectorAll('.lp-step-figure')).toHaveLength(3);
+    for (const copy of [
+      "One lightweight script. That's all it takes.",
+      'Connect Stripe, Dodo, Lemon Squeezy, Polar, or your own payment API.',
+      'Discover which channels and landing pages actually generate revenue.',
+    ]) {
+      expect(within(process).getByText(copy)).toBeInTheDocument();
+    }
+  });
 });
