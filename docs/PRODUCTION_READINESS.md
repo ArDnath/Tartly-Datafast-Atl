@@ -1,7 +1,7 @@
 # Production readiness program
 
-- **Status date:** 2026-11-17
-- **Production revision:** `2e88ca5ab47f61bca76f0f92e874033b53bf113e`
+- **Status date:** 2026-11-25
+- **Production revision:** `12227158e5716de3a19a50104705210e15858c54`
 - **Verdict:** **NOT READY TO CHARGE CUSTOMERS.** The product is deployed and
   the core tracking path is proven end to end; gates R2–R7 below are open.
 - **This is the only forward-looking readiness plan.** `docs/PHASES.md` is the
@@ -160,6 +160,9 @@ release gate on their own.
 | 2026-11-17 | R3   | Account deletion: tombstoned, login 401, analytics purged by the job                                                                                                                   | VERIFIED                                           |
 | 2026-11-17 | R3   | Off-host restore: no S3/B2 configured (L13 OPEN)                                                                                                                                       | BLOCKED — human                                    |
 | 2026-11-17 | R3   | Off-host restore drill: rclone copy to B2; pg_restore 0 errors; counts match source; drill cleaned up                                                                                  | VERIFIED                                           |
+| 2026-11-25 | R1   | Dependency groups #86/#87 reconciled on head `427c361`; local `pnpm gate` green (1,227 tests), CI green on PR and on merged `1222715`                                                  | VERIFIED — see `docs/PHASES.md`                    |
+| 2026-11-25 | R1   | Deploy run `45580914994` for `1222715` succeeded after ~35 min; post-deploy smoke passed; `/api/health/ready` returns that SHA with `database:"up"`                                    | VERIFIED — supersedes the 2026-11-24 build timeout |
+| 2026-11-25 | R1   | Open PR #84 (actions/dependency-review-action 5.0.1) still has failing CI                                                                                                              | BLOCKED — not merged, not claimed green            |
 
 ## 4. Ownership and human actions
 
@@ -219,7 +222,8 @@ measurement is a guess; label it as one.
 
 ## 8. Status history
 
-| Date       | Change                                                            |
-| ---------- | ----------------------------------------------------------------- |
-| 2026-11-16 | Program created; supersedes four overlapping readiness documents. |
-| 2026-11-17 | R1 pipeline evidence recorded; deploy stdin bug found and fixed.  |
+| Date       | Change                                                                                      |
+| ---------- | ------------------------------------------------------------------------------------------- |
+| 2026-11-16 | Program created; supersedes four overlapping readiness documents.                           |
+| 2026-11-17 | R1 pipeline evidence recorded; deploy stdin bug found and fixed.                            |
+| 2026-11-25 | Green dependency PRs #86/#87 landed as `1222715` and deployed; production revision updated. |
