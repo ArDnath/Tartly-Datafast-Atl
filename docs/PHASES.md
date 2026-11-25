@@ -46,6 +46,36 @@
 Append-only. Newest first. Every entry states what was proven, what remains
 **UNVERIFIED**, and what was **N/A**. Do not edit old entries; add a new one.
 
+## 2026-11-25 — Land the two green dependency PRs and deploy main
+
+- Merged the two green Dependabot PRs the owner selected: #86 (build-minor-patch)
+  and #87 (runtime-minor-patch). Both rewrote `pnpm-lock.yaml` from base
+  `86fa369`, so merging them back-to-back would conflict. #86 was merged into
+  #87's branch, the lockfile conflicts were resolved by keeping #87's newer
+  runtime resolutions and #86's `@testing-library/user-event` `^14.6.13`
+  specifier, and the result was pushed as #87's head `427c361`.
+- **Proof:** `pnpm install --frozen-lockfile` passed against the reconciled
+  lockfile; `pnpm gate` exited 0 (format 1,489 files, lint 1,513 files,
+  typecheck, docs:check, 1,227 tests passed / 1 skipped, deploy scripts and
+  smoke tests, production build compiled in 54s — log
+  `/tmp/opencode/gate-dependabot-reconcile.log`). PR #87 CI on `427c361`: Verify,
+  Security, Container build, CodeQL and Trivy all pass (run 45576651009).
+  Squash-merged as `1222715`; #86 was closed as superseded after verifying its
+  `@testing-library/user-event` 14.6.13 bump is in `main`.
+- **Deploy proof:** CI on `1222715` passed all three jobs (run 45579028954);
+  deploy run `45580914994` completed successfully at 09:33 UTC after ~35 min,
+  including the post-deploy smoke. `/api/health/ready` returns
+  `12227158e5716de3a19a50104705210e15858c54` with `database:"up"`. This
+  supersedes the 2026-11-24 `86fa369` deploy that hit the 40-minute image-build
+  cap and left production on `51988e4`.
+- **UNVERIFIED:** #84 (actions/dependency-review-action 5.0.0 → 5.0.1) remains
+  open with failing CI; no dependency update was reported green without proof.
+  No in-browser verification was added for this dependency-only change.
+- **N/A:** no application code, schema, tenant-isolation control, API, pricing
+  config, or deployment topology changed. The PR gate comment marks the
+  code-path checks N/A; the mandatory skills' architecture, REST, BOLA,
+  migration, cache, queue, and 1M-RPS stages are unaffected.
+
 ## 2026-11-25 — Land pending work and clear the CI dependency advisory
 
 - Cleaned the dirty working tree left by the landing sessions: formatted the
